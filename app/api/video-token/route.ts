@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { signContentToken, verifyContentToken } from "../../../lib/content-token";
+import { verifyContentToken } from "../../../lib/content-token";
 
 function youtubeSource(url: string) {
   try {
@@ -40,17 +40,13 @@ export async function POST(request: Request) {
     if (!source) return Response.json({ error: "Liên kết YouTube không hợp lệ." }, { status: 422 });
     responseBody = { type: resource.resource_type, title: resource.title, youtubeId: source.id, start: source.start };
   } else {
-    const streamToken = await signContentToken(resource.id, auth.user.id, tokenSecret, 3600);
-    responseBody = { type: resource.resource_type, title: resource.title, contentPath: `/api/resource-content?token=${encodeURIComponent(streamToken)}` };
+    responseBody = { type: resource.resource_type, title: resource.title, protectedContent: "pdf" };
   }
 
-  const sessionToken = await signContentToken("__content_session__", auth.user.id, tokenSecret, 3600);
-  const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
   return Response.json(responseBody, {
     headers: {
       "cache-control": "private, no-store, max-age=0",
       "referrer-policy": "same-origin",
-      "set-cookie": `remix_content_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/api/resource-content; Max-Age=3600${secure}`,
       "x-content-type-options": "nosniff",
     },
   });
