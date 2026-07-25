@@ -156,6 +156,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(resourceContentRoute, /source\.pathname !== "\/pdf-viewer\.html"/);
   assert.match(resourceContentRoute, /destination !== "document"/);
   assert.match(resourceContentRoute, /remix_content_session/);
+  assert.match(resourceContentRoute, /upstream\.status === 204 \|\| !upstream\.body/);
   assert.match(resourceContentRoute, /resource\.resource_url/);
   assert.match(resourceContentRoute, /frame-ancestors 'self'/);
   assert.match(pdfDownloadRoute, /PDFDocument\.load/);
@@ -177,7 +178,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(vidstackHtml, /media-player\{[^}]*max-width:100%/);
   assert.match(vidstackHtml, /media-video-layout\{position:absolute;inset:0/);
   assert.match(pdfViewerHtml, /pdfjs-dist@5\.4\.624\/build\/pdf\.mjs/);
-  assert.match(pdfViewerHtml, /getDocument\(\{ url: file \}\)/);
+  assert.match(pdfViewerHtml, /getDocument\(\{ url: file, disableRange: true, disableStream: true \}\)/);
   assert.match(pdfViewerHtml, /for \(let number = 1; number <= documentRef\.numPages; number \+= 1\)/);
   assert.match(pdfViewerHtml, /id="download"/);
   assert.match(videoPlayer, /\/api\/lesson-pdf-download/);

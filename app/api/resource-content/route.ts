@@ -49,10 +49,18 @@ export async function GET(request: Request) {
   const { data: resource } = await admin.from("lesson_resources").select("id,resource_type,resource_url").eq("id", contentPayload.rid).single();
   if (!resource || resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
 
-  const upstreamHeaders = new Headers({ accept: "application/pdf" });
+  const upstreamHeaders = new Headers({ accept: "application/pdf", "accept-encoding": "identity" });
   const range = request.headers.get("range");
   if (range) upstreamHeaders.set("range", range);
-  const upstream = await fetch(resource.resource_url, { headers: upstreamHeaders, redirect: "follow" });
+  let upstream = await fetch(resource.resource_url, { headers: upstreamHeaders, redirect: "follow", cache: "no-store" });
+  if (upstream.status === 204 || !upstream.body) {
+    upstream = await fetch(resource.resource_url, {
+      headers: { accept: "application/pdf", "accept-encoding": "identity" },
+      redirect: "follow",
+      cache: "no-store",
+    });
+  }
+  if (upstream.status === 204 || !upstream.body) return Response.json({ error: "Nguồn PDF trả về nội dung rỗng." }, { status: 502 });
   if (!upstream.ok && upstream.status !== 206) return Response.json({ error: "Không thể tải nội dung PDF." }, { status: 502 });
   const contentType = upstream.headers.get("content-type") ?? "";
   if (!/application\/pdf|application\/octet-stream/i.test(contentType)) return Response.json({ error: "Nguồn nội dung không phải PDF hợp lệ." }, { status: 422 });

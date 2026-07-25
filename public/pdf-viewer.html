@@ -99,7 +99,7 @@
     if (!file) showError("Thiếu đường dẫn tài liệu.");
     else {
       try {
-        documentRef = await pdfjsLib.getDocument({ url: file }).promise;
+        documentRef = await pdfjsLib.getDocument({ url: file, disableRange: true, disableStream: true }).promise;
         document.querySelector("#page-count").textContent = String(documentRef.numPages);
         await renderDocument(1);
       } catch (error) {
