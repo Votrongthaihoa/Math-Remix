@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>REMIX Video Player</title>
+  <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
+  <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
+  <style>
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020617;color:#fff;font-family:Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body,#player{display:block;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}#player{position:relative}.error{padding:24px;text-align:center;color:#fecaca}media-player{position:relative;display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;overflow:hidden;aspect-ratio:auto;background:#020617;contain:layout paint}media-provider{display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;overflow:hidden}media-video-layout{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}.video-watermark{position:absolute;z-index:30;left:8%;top:12%;max-width:72%;padding:5px 9px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:rgba(15,23,42,.24);color:rgba(255,255,255,.62);font-size:clamp(8px,1.35vw,13px);font-weight:700;line-height:1.35;letter-spacing:.25px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:left 1.4s ease-in-out,top 1.4s ease-in-out,opacity .3s;will-change:left,top}.video-watermark small{display:block;margin-top:1px;color:inherit;font-size:.78em;font-weight:500;letter-spacing:.4px}@media(max-width:520px){.video-watermark{max-width:78%;padding:4px 7px;border-radius:5px}}
+  </style>
+</head>
+<body>
+  <div id="player"></div>
+  <script type="module">
+    import "https://cdn.vidstack.io/player";
+
+    const query = new URLSearchParams(location.search);
+    const videoId = (query.get("v") || "").trim();
+    const start = Math.max(0, Number(query.get("start") || 0) || 0);
+    const watermarkOwner = (query.get("wm") || "Học viên REMIX").trim().slice(0, 120);
+    const target = document.querySelector("#player");
+
+    if (!/^[a-zA-Z0-9_-]{6,20}$/.test(videoId)) {
+      target.innerHTML = '<div class="error">Không tìm thấy mã video hợp lệ.</div>';
+    } else {
+      const player = document.createElement("media-player");
+      player.setAttribute("title", "Video bài giảng");
+      player.setAttribute("src", `youtube/${videoId}`);
+      player.setAttribute("load", "eager");
+      player.setAttribute("playsinline", "");
+      player.setAttribute("crossorigin", "");
+      const provider = document.createElement("media-provider");
+      const layout = document.createElement("media-video-layout");
+      player.append(provider, layout);
+      if (start > 0) player.addEventListener("can-play", () => { player.currentTime = start; }, { once: true });
+
+      const watermark = document.createElement("div");
+      watermark.className = "video-watermark";
+      const owner = document.createElement("span");
+      const clock = document.createElement("small");
+      owner.textContent = watermarkOwner;
+      watermark.append(owner, clock);
+      player.append(watermark);
+      target.append(player);
+
+      const updateClock = () => {
+        clock.textContent = new Intl.DateTimeFormat("vi-VN", {
+          timeZone: "Asia/Ho_Chi_Minh",
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+          hour12: false,
+        }).format(new Date());
+      };
+      const moveWatermark = () => {
+        const padding = Math.max(8, Math.min(18, player.clientWidth * .03));
+        const maxX = Math.max(padding, player.clientWidth - watermark.offsetWidth - padding);
+        const controlsSafeArea = Math.max(48, player.clientHeight * .12);
+        const maxY = Math.max(padding, player.clientHeight - watermark.offsetHeight - controlsSafeArea);
+        watermark.style.left = `${padding + Math.random() * (maxX - padding)}px`;
+        watermark.style.top = `${padding + Math.random() * (maxY - padding)}px`;
+        watermark.style.opacity = String(.5 + Math.random() * .22);
+      };
+      updateClock();
+      moveWatermark();
+      setInterval(updateClock, 1000);
+      setInterval(moveWatermark, 6500);
+      window.addEventListener("resize", moveWatermark);
+    }
+  </script>
+</body>
+</html>

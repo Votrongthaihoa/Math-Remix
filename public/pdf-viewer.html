@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>REMIX PDF Viewer</title>
+  <style>
+    :root{font-family:Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1f2937;background:#e5e7eb}*{box-sizing:border-box}html,body{height:100%;margin:0}.app{height:100%;display:grid;grid-template-rows:52px minmax(0,1fr)}.toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border-bottom:1px solid #d1d5db;box-shadow:0 1px 3px rgba(15,23,42,.08);z-index:2}.toolbar button{height:34px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;padding:0 11px;display:inline-flex;align-items:center;cursor:pointer}.toolbar button:hover{border-color:#cd1627;color:#cd1627}.toolbar button:disabled{cursor:wait;opacity:.6}.toolbar .title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}.page-status{font-size:12px;color:#6b7280;white-space:nowrap}.stage{overflow:auto;display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px;scroll-behavior:smooth}.paper{flex:0 0 auto;background:#fff;box-shadow:0 8px 30px rgba(15,23,42,.18)}canvas{display:block;max-width:none}.message{margin:auto;padding:30px;max-width:560px;text-align:center;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,.12)}@media(max-width:640px){.toolbar{gap:5px;padding:7px}.toolbar button{padding:0 8px}.title{display:none}.stage{gap:10px;padding:10px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="toolbar">
+      <button id="prev" type="button" aria-label="Trang trước">‹</button>
+      <span class="page-status"><b id="page-num">1</b> / <span id="page-count">—</span></span>
+      <button id="next" type="button" aria-label="Trang sau">›</button>
+      <button id="zoom-out" type="button" aria-label="Thu nhỏ">−</button>
+      <button id="zoom-in" type="button" aria-label="Phóng to">＋</button>
+      <span class="title" id="title">Tài liệu PDF</span>
+      <button id="download" type="button">Tải xuống</button>
+    </header>
+    <main class="stage" id="stage"></main>
+  </div>
+  <script type="module">
+    import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.624/build/pdf.mjs";
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.624/build/pdf.worker.mjs";
+
+    const query = new URLSearchParams(location.search);
+    const file = query.get("file") || "";
+    const title = query.get("title") || "Tài liệu PDF";
+    const canDownload = query.get("download") === "1";
+    const stage = document.querySelector("#stage");
+    const pageLabel = document.querySelector("#page-num");
+    const downloadButton = document.querySelector("#download");
+    downloadButton.hidden = !canDownload;
+    document.querySelector("#title").textContent = title;
+    let documentRef = null;
+    let pageNumber = 1;
+    let zoom = 1;
+    let renderGeneration = 0;
+    let scrollFrame = 0;
+
+    function setCurrentPage(number) {
+      pageNumber = Math.max(1, Math.min(documentRef?.numPages || 1, number));
+      pageLabel.textContent = String(pageNumber);
+    }
+
+    function scrollToPage(number, behavior = "smooth") {
+      const target = stage.querySelector(`[data-page="${number}"]`);
+      if (!target) return;
+      setCurrentPage(number);
+      stage.scrollTo({ top: Math.max(0, target.offsetTop - stage.offsetTop - 20), behavior });
+    }
+
+    async function renderDocument(focusPage = 1) {
+      if (!documentRef) return;
+      const generation = ++renderGeneration;
+      const fragment = document.createDocumentFragment();
+      const holders = [];
+      for (let number = 1; number <= documentRef.numPages; number += 1) {
+        const paper = document.createElement("section");
+        paper.className = "paper";
+        paper.dataset.page = String(number);
+        paper.setAttribute("aria-label", `Trang ${number}`);
+        const canvas = document.createElement("canvas");
+        paper.append(canvas);
+        fragment.append(paper);
+        holders.push({ number, paper, canvas });
+      }
+      stage.replaceChildren(fragment);
+
+      for (const holder of holders) {
+        if (generation !== renderGeneration) return;
+        const page = await documentRef.getPage(holder.number);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const fitScale = Math.max(.25, (stage.clientWidth - 24) / baseViewport.width);
+        const viewport = page.getViewport({ scale: fitScale * zoom });
+        holder.canvas.width = Math.floor(viewport.width);
+        holder.canvas.height = Math.floor(viewport.height);
+        holder.canvas.style.width = `${Math.floor(viewport.width)}px`;
+        holder.canvas.style.height = `${Math.floor(viewport.height)}px`;
+        await page.render({ canvasContext: holder.canvas.getContext("2d"), viewport }).promise;
+      }
+      if (generation === renderGeneration) scrollToPage(focusPage, "auto");
+    }
+
+    function showError(message) {
+      stage.replaceChildren();
+      const box = document.createElement("div");
+      box.className = "message";
+      const heading = document.createElement("h2");
+      heading.textContent = "Không thể mở PDF";
+      const detail = document.createElement("p");
+      detail.textContent = message;
+      box.append(heading, detail);
+      stage.append(box);
+    }
+
+    if (!file) showError("Thiếu đường dẫn tài liệu.");
+    else {
+      try {
+        documentRef = await pdfjsLib.getDocument({ url: file }).promise;
+        document.querySelector("#page-count").textContent = String(documentRef.numPages);
+        await renderDocument(1);
+      } catch (error) {
+        showError(error instanceof Error ? error.message : "Máy chủ tài liệu không cho phép PDF.js tải file.");
+      }
+    }
+
+    stage.addEventListener("scroll", () => {
+      cancelAnimationFrame(scrollFrame);
+      scrollFrame = requestAnimationFrame(() => {
+        const papers = [...stage.querySelectorAll(".paper")];
+        if (!papers.length) return;
+        const marker = stage.getBoundingClientRect().top + Math.min(160, stage.clientHeight * .3);
+        const nearest = papers.reduce((best, paper) => Math.abs(paper.getBoundingClientRect().top - marker) < Math.abs(best.getBoundingClientRect().top - marker) ? paper : best);
+        setCurrentPage(Number(nearest.dataset.page));
+      });
+    }, { passive: true });
+    document.querySelector("#prev").addEventListener("click", () => { if (pageNumber > 1) scrollToPage(pageNumber - 1); });
+    document.querySelector("#next").addEventListener("click", () => { if (documentRef && pageNumber < documentRef.numPages) scrollToPage(pageNumber + 1); });
+    document.querySelector("#zoom-in").addEventListener("click", () => { zoom = Math.min(3, zoom + .2); void renderDocument(pageNumber); });
+    document.querySelector("#zoom-out").addEventListener("click", () => { zoom = Math.max(.5, zoom - .2); void renderDocument(pageNumber); });
+    downloadButton.addEventListener("click", () => {
+      if (!file || window.parent === window) {
+        downloadButton.textContent = "Không tải được";
+        setTimeout(() => { downloadButton.textContent = "Tải xuống"; }, 1800);
+        return;
+      }
+      downloadButton.disabled = true;
+      downloadButton.textContent = "Đang tải…";
+      window.parent.postMessage({ type: "remix:pdf-download-request" }, window.location.origin);
+    });
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin || event.source !== window.parent || event.data?.type !== "remix:pdf-download-result") return;
+      downloadButton.disabled = false;
+      downloadButton.textContent = event.data.ok ? "Đã tải" : "Không tải được";
+      downloadButton.title = event.data.ok ? "PDF đã được đóng watermark" : event.data.error || "Không thể tải PDF";
+      setTimeout(() => { downloadButton.textContent = "Tải xuống"; }, 1800);
+    });
+  </script>
+</body>
+</html>
