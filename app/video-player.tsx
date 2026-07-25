@@ -24,6 +24,9 @@ type ResolvedContent = {
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
   const [content, setContent] = useState<ResolvedContent | null>(null);
   const [watermarkEmail, setWatermarkEmail] = useState("");
+  const [pdfObjectUrl, setPdfObjectUrl] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
@@ -92,6 +95,42 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     return () => window.removeEventListener("message", downloadWatermarkedPdf);
   }, [content, resource.videoToken]);
 
+  useEffect(() => {
+    if (!content?.contentPath || content.type === "youtube") return;
+    let cancelled = false;
+    let objectUrl = "";
+    async function loadPdfIntoMemory() {
+      setPdfLoading(true);
+      setPdfError("");
+      setPdfObjectUrl("");
+      try {
+        const response = await fetch(content!.contentPath!, {
+          method: "GET",
+          credentials: "same-origin",
+          headers: { "x-remix-content-viewer": "lesson-parent", accept: "application/pdf" },
+          cache: "no-store",
+        });
+        if (!response.ok || response.status === 204) {
+          const payload = await response.json().catch(() => null) as { error?: string } | null;
+          throw new Error(payload?.error || `Máy chủ PDF trả về mã ${response.status}.`);
+        }
+        const blob = await response.blob();
+        if (!blob.size) throw new Error("Tài liệu PDF không có dữ liệu.");
+        objectUrl = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+        if (!cancelled) setPdfObjectUrl(objectUrl);
+      } catch (loadError) {
+        if (!cancelled) setPdfError(loadError instanceof Error ? loadError.message : "Không thể tải tài liệu PDF.");
+      } finally {
+        if (!cancelled) setPdfLoading(false);
+      }
+    }
+    void loadPdfIntoMemory();
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [content]);
+
   if (loading) return <div className="secure-viewer-state"><LoadingIndicator label="Đang xác thực nội dung…" /></div>;
   if (error || !content) return <div className="secure-viewer-state error">{error || "Không thể mở nội dung."}</div>;
 
@@ -101,6 +140,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   }
 
   if (!content.contentPath) return <div className="secure-viewer-state error">Không thể mở tài liệu PDF.</div>;
-  const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(content.contentPath)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
+  if (pdfLoading || !pdfObjectUrl && !pdfError) return <div className="secure-viewer-state"><LoadingIndicator label="Đang tải tài liệu PDF…" /></div>;
+  if (pdfError) return <div className="secure-viewer-state error">{pdfError}</div>;
+  const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(pdfObjectUrl)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
   return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title}/></div>;
 }

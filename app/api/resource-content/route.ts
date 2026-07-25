@@ -16,13 +16,20 @@ function isEmbeddedViewerRequest(request: Request) {
   if (!referer) return false;
   try {
     const source = new URL(referer);
-    if (source.origin !== requestUrl.origin || source.pathname !== "/pdf-viewer.html") return false;
+    if (source.origin !== requestUrl.origin) return false;
+    const fromPdfFrame = source.pathname === "/pdf-viewer.html";
+    const fromLessonParent = request.headers.get("x-remix-content-viewer") === "lesson-parent" && source.pathname.startsWith("/lessons/");
+    if (!fromPdfFrame && !fromLessonParent) return false;
   } catch {
     return false;
   }
   const destination = request.headers.get("sec-fetch-dest");
   const site = request.headers.get("sec-fetch-site");
   return destination !== "document" && (!site || site === "same-origin");
+}
+
+export async function HEAD() {
+  return new Response(null, { status: 405, headers: { allow: "GET", "cache-control": "no-store" } });
 }
 
 export async function GET(request: Request) {

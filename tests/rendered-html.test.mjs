@@ -153,7 +153,9 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(videoTokenRoute, /contentPath: `\/api\/resource-content\?token=/);
   assert.match(videoTokenRoute, /HttpOnly; SameSite=Strict/);
   assert.doesNotMatch(videoTokenRoute, /url: resource\.resource_url/);
-  assert.match(resourceContentRoute, /source\.pathname !== "\/pdf-viewer\.html"/);
+  assert.match(resourceContentRoute, /source\.pathname === "\/pdf-viewer\.html"/);
+  assert.match(resourceContentRoute, /x-remix-content-viewer/);
+  assert.match(resourceContentRoute, /export async function HEAD/);
   assert.match(resourceContentRoute, /destination !== "document"/);
   assert.match(resourceContentRoute, /remix_content_session/);
   assert.match(resourceContentRoute, /upstream\.status === 204 \|\| !upstream\.body/);
@@ -168,6 +170,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(videoPlayer, /\/yt-embed-player\.html\?v=/);
   assert.match(videoPlayer, /\/pdf-viewer\.html\?file=/);
   assert.match(videoPlayer, /content\.contentPath/);
+  assert.match(videoPlayer, /URL\.createObjectURL/);
+  assert.match(videoPlayer, /x-remix-content-viewer/);
   assert.doesNotMatch(videoPlayer, /content\.url/);
   assert.match(contentToken, /AES-GCM/);
   assert.match(contentToken, /crypto\.subtle\.encrypt/);
