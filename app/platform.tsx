@@ -156,6 +156,18 @@ export default function PlatformApp() {
     window.history.replaceState({}, "", "/dashboard");
   }, [authReady, signedIn, view, isAdmin]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false); };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileOpen]);
+
   async function loadUserData(user: { id: string; email?: string | null }) {
     if (!supabase) return null;
     const [profileResult, attemptResult] = await Promise.all([
@@ -249,17 +261,19 @@ export default function PlatformApp() {
   const accountLabel = activeProfile.email.split("@")[0] || activeProfile.full_name;
   return (
     <div className={`app-shell ${sidebarOpen ? "sidebar-expanded" : ""}`}>
-      <div className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={() => setMobileOpen(false)} />
-      <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
+      <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={() => setMobileOpen(false)} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
+      <aside id="main-sidebar" className={`sidebar ${mobileOpen ? "mobile-open" : ""}`} aria-label="Điều hướng chính">
+        <div className="mobile-sidebar-head"><button type="button" className="mobile-sidebar-brand" onClick={() => go("overview")} aria-label="Về tổng quan"><span>R</span><b>REMIX</b></button><button type="button" className="mobile-sidebar-close" onClick={() => setMobileOpen(false)} aria-label="Đóng menu"><X/></button></div>
         <nav>
           {nav.map(item => <button key={item.id} className={currentView === item.id ? "active" : ""} onClick={() => go(item.id)} title={item.label}><item.icon /><span>{item.label}</span></button>)}
           {isAdmin && <button className={currentView === "admin" ? "active" : ""} onClick={() => go("admin")} title="Quản trị"><ShieldCheck /><span>Quản trị</span></button>}
         </nav>
+        <button type="button" className="mobile-sidebar-account" onClick={() => go("profile")}><span className="mini-avatar">{activeProfile.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><span><b>{activeProfile.full_name}</b><small>{activeProfile.student_code}</small></span><ChevronRight/></button>
       </aside>
       <header className="topbar">
         <button className="header-brand" onClick={() => go("overview")} aria-label="Về tổng quan"><span>R</span><b>REMIX</b></button>
         <button className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"}><ChevronRight /></button>
-        <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu"><Menu /></button>
+        <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu /></button>
         <div className="top-actions">
           <div className={`account-menu-wrap ${accountMenuOpen ? "open" : ""}`} onMouseLeave={() => setAccountMenuOpen(false)}>
             <button className="account-trigger" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(value => !value)}><span>{accountLabel}</span><ChevronDown /></button>

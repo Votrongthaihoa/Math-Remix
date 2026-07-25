@@ -76,6 +76,9 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /view === "admin" && !isAdmin \? "overview" : view/);
   assert.match(platform, /next === "admin" && !isAdmin/);
   assert.match(platform, /currentView === "admin" && isAdmin && <RealAdminDashboard/);
+  assert.match(platform, /aria-controls="main-sidebar"/);
+  assert.match(platform, /mobile-sidebar-close/);
+  assert.match(platform, /document\.body\.style\.overflow = "hidden"/);
   assert.match(platform, /profile\?\.role === "admin" && profile\.status === "active"/);
   assert.doesNotMatch(platform, /profileData \?\?/);
   assert.match(platform, /supabase\.from\("profiles"\)\.select\("id,full_name,student_code,role,status,created_at"\)/);
@@ -125,6 +128,9 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(css, /\.hierarchy-index\{/);
   assert.match(css, /@media\(max-width:767px\)/);
   assert.match(css, /@media\(max-width:575px\)/);
+  assert.match(css, /Mobile navigation drawer/);
+  assert.match(css, /\.mobile-sidebar-account/);
+  assert.match(css, /overscroll-behavior:contain/);
   assert.match(studyCss, /\.curriculum-panel\{width:400px/);
   assert.match(studyCss, /@media\(max-width:1023px\)/);
   assert.match(studyCss, /@media\(max-width:767px\)/);
