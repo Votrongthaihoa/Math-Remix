@@ -43,7 +43,7 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
   assert.match(html, /404 · NOT FOUND/);
   assert.match(html, /Bạn không nên ở đây/);
   assert.match(html, /Quay về trang chính/);
-  assert.match(html, /not-found-canvas/);
+  assert.match(html, /404-eyes\.html/);
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {

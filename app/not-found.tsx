@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import NotFoundCanvas from "./not-found-canvas";
 
 export const metadata: Metadata = { title: "404 | REMIX Education" };
 
 export default function NotFoundPage() {
   return <main className="not-found-page">
-    <NotFoundCanvas />
+    <iframe className="not-found-canvas" src="/404-eyes.html" title="Hiệu ứng những con mắt" tabIndex={-1} aria-hidden="true" />
     <section className="not-found-message">
       <span>404 · NOT FOUND</span>
       <h1>Bạn không nên ở đây.</h1>
