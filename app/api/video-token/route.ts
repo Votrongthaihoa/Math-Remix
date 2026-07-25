@@ -1,5 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
-import { verifyContentToken } from "../../../lib/content-token";
+import { signContentToken, verifyContentToken } from "../../../lib/content-token";
+
+function youtubeSource(url: string) {
+  try {
+    const parsed = new URL(url);
+    const id = parsed.hostname.includes("youtu.be") ? parsed.pathname.slice(1) : parsed.searchParams.get("v") || parsed.pathname.split("/").filter(Boolean).pop() || "";
+    const start = Number(parsed.searchParams.get("t") || parsed.searchParams.get("start") || 0) || 0;
+    return /^[a-zA-Z0-9_-]{6,20}$/.test(id) ? { id, start: Math.max(0, start) } : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,5 +33,25 @@ export async function POST(request: Request) {
 
   const { data: resource, error } = await admin.from("lesson_resources").select("id,title,resource_type,resource_url").eq("id", payload.rid).single();
   if (error || !resource) return Response.json({ error: "Không tìm thấy nội dung." }, { status: 404 });
-  return Response.json({ url: resource.resource_url, type: resource.resource_type, title: resource.title });
+
+  let responseBody: Record<string, string | number>;
+  if (resource.resource_type === "youtube") {
+    const source = youtubeSource(resource.resource_url);
+    if (!source) return Response.json({ error: "Liên kết YouTube không hợp lệ." }, { status: 422 });
+    responseBody = { type: resource.resource_type, title: resource.title, youtubeId: source.id, start: source.start };
+  } else {
+    const streamToken = await signContentToken(resource.id, auth.user.id, tokenSecret, 3600);
+    responseBody = { type: resource.resource_type, title: resource.title, contentPath: `/api/resource-content?token=${encodeURIComponent(streamToken)}` };
+  }
+
+  const sessionToken = await signContentToken("__content_session__", auth.user.id, tokenSecret, 3600);
+  const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
+  return Response.json(responseBody, {
+    headers: {
+      "cache-control": "private, no-store, max-age=0",
+      "referrer-policy": "same-origin",
+      "set-cookie": `remix_content_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/api/resource-content; Max-Age=3600${secure}`,
+      "x-content-type-options": "nosniff",
+    },
+  });
 }

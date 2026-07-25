@@ -20,26 +20,24 @@ function fromBase64Url(value: string) {
 }
 
 async function getKey(secret: string, usages: KeyUsage[]) {
-  return crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, usages);
+  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(secret));
+  return crypto.subtle.importKey("raw", digest, { name: "AES-GCM" }, false, usages);
 }
 
 export async function signContentToken(resourceId: string, userId: string, secret: string, lifetimeSeconds = 300) {
   const now = Math.floor(Date.now() / 1000);
-  const header = toBase64Url(encoder.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
-  const payload = toBase64Url(encoder.encode(JSON.stringify({ rid: resourceId, sub: userId, iat: now, exp: now + lifetimeSeconds })));
-  const unsigned = `${header}.${payload}`;
-  const signature = await crypto.subtle.sign("HMAC", await getKey(secret, ["sign"]), encoder.encode(unsigned));
-  return `${unsigned}.${toBase64Url(new Uint8Array(signature))}`;
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plaintext = encoder.encode(JSON.stringify({ rid: resourceId, sub: userId, iat: now, exp: now + lifetimeSeconds }));
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await getKey(secret, ["encrypt"]), plaintext);
+  return `v1.${toBase64Url(iv)}.${toBase64Url(new Uint8Array(encrypted))}`;
 }
 
 export async function verifyContentToken(token: string, secret: string): Promise<ContentTokenPayload | null> {
   const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  const unsigned = `${parts[0]}.${parts[1]}`;
-  const valid = await crypto.subtle.verify("HMAC", await getKey(secret, ["verify"]), fromBase64Url(parts[2]), encoder.encode(unsigned));
-  if (!valid) return null;
+  if (parts.length !== 3 || parts[0] !== "v1") return null;
   try {
-    const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(parts[1]))) as ContentTokenPayload;
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64Url(parts[1]) }, await getKey(secret, ["decrypt"]), fromBase64Url(parts[2]));
+    const payload = JSON.parse(new TextDecoder().decode(decrypted)) as ContentTokenPayload;
     if (!payload.rid || !payload.sub || !payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) return null;
     return payload;
   } catch {

@@ -47,15 +47,17 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, pdfDownloadRoute, videoPlayer, vidstackHtml, pdfViewerHtml] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/lesson-files/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/lesson-resources/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/video-token/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/resource-content/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/lesson-pdf-download/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/content-token.ts", import.meta.url), "utf8"),
     readFile(new URL("../public/yt-embed-player.html", import.meta.url), "utf8"),
     readFile(new URL("../public/pdf-viewer.html", import.meta.url), "utf8"),
   ]);
@@ -142,6 +144,14 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(videoTokenRoute, /verifyContentToken/);
   assert.match(videoTokenRoute, /payload\.sub !== auth\.user\.id/);
   assert.match(videoTokenRoute, /resource_url/);
+  assert.match(videoTokenRoute, /contentPath: `\/api\/resource-content\?token=/);
+  assert.match(videoTokenRoute, /HttpOnly; SameSite=Strict/);
+  assert.doesNotMatch(videoTokenRoute, /url: resource\.resource_url/);
+  assert.match(resourceContentRoute, /source\.pathname !== "\/pdf-viewer\.html"/);
+  assert.match(resourceContentRoute, /destination !== "document"/);
+  assert.match(resourceContentRoute, /remix_content_session/);
+  assert.match(resourceContentRoute, /resource\.resource_url/);
+  assert.match(resourceContentRoute, /frame-ancestors 'self'/);
   assert.match(pdfDownloadRoute, /PDFDocument\.load/);
   assert.match(pdfDownloadRoute, /drawText\(mark/);
   assert.match(pdfDownloadRoute, /Asia\/Ho_Chi_Minh/);
@@ -150,6 +160,10 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(videoPlayer, /fetch\("\/api\/video-token"/);
   assert.match(videoPlayer, /\/yt-embed-player\.html\?v=/);
   assert.match(videoPlayer, /\/pdf-viewer\.html\?file=/);
+  assert.match(videoPlayer, /content\.contentPath/);
+  assert.doesNotMatch(videoPlayer, /content\.url/);
+  assert.match(contentToken, /AES-GCM/);
+  assert.match(contentToken, /crypto\.subtle\.encrypt/);
   assert.doesNotMatch(videoPlayer, /Mở tài liệu gốc/);
   assert.match(vidstackHtml, /import "https:\/\/cdn\.vidstack\.io\/player"/);
   assert.match(vidstackHtml, /media-video-layout/);

@@ -13,18 +13,13 @@ export type SecureLessonResource = {
   videoToken: string;
 };
 
-type ResolvedContent = { url: string; type: SecureLessonResource["resource_type"]; title: string };
-
-function youtubeSource(url: string) {
-  try {
-    const parsed = new URL(url);
-    const id = parsed.hostname.includes("youtu.be") ? parsed.pathname.slice(1) : parsed.searchParams.get("v") || parsed.pathname.split("/").filter(Boolean).pop() || "";
-    const start = Number(parsed.searchParams.get("t") || parsed.searchParams.get("start") || 0) || 0;
-    return { id, start };
-  } catch {
-    return { id: "", start: 0 };
-  }
-}
+type ResolvedContent = {
+  type: SecureLessonResource["resource_type"];
+  title: string;
+  youtubeId?: string;
+  start?: number;
+  contentPath?: string;
+};
 
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
   const [content, setContent] = useState<ResolvedContent | null>(null);
@@ -49,8 +44,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       });
       const payload = await response.json() as ResolvedContent & { error?: string };
       if (cancelled) return;
-      if (!response.ok || !payload.url) setError(payload.error || "Không thể mở nội dung.");
-      else setContent({ url: payload.url, type: payload.type, title: payload.title || resource.title });
+      const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : Boolean(payload.contentPath);
+      if (!response.ok || !hasPlayableSource) setError(payload.error || "Không thể mở nội dung.");
+      else setContent({ ...payload, title: payload.title || resource.title });
       setLoading(false);
     }
     void resolveToken();
@@ -100,11 +96,11 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   if (error || !content) return <div className="secure-viewer-state error">{error || "Không thể mở nội dung."}</div>;
 
   if (content.type === "youtube") {
-    const source = youtubeSource(content.url);
-    if (!source.id) return <div className="secure-viewer-state error">Liên kết YouTube không hợp lệ.</div>;
-    return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(source.id)}&start=${source.start}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen/>;
+    if (!content.youtubeId) return <div className="secure-viewer-state error">Liên kết YouTube không hợp lệ.</div>;
+    return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen/>;
   }
 
-  const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(content.url)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
+  if (!content.contentPath) return <div className="secure-viewer-state error">Không thể mở tài liệu PDF.</div>;
+  const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(content.contentPath)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
   return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title}/></div>;
 }
