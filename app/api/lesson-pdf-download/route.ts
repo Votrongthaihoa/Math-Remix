@@ -94,7 +94,8 @@ export async function POST(request: Request) {
   try {
     const output = await addWatermark(source, auth.user.email, downloadTimestamp());
     const filename = safeFilename(resource.title);
-    return new Response(output, {
+    const body = output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength) as ArrayBuffer;
+    return new Response(body, {
       headers: {
         "content-type": "application/pdf",
         "content-disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,

@@ -126,7 +126,7 @@ export default function PlatformApp() {
       const profile = await loadUserData(data.session.user);
       if (!active) return;
       if (!profile || profile.status === "locked") {
-        await supabase.auth.signOut();
+        await supabase!.auth.signOut();
         if (!active) return;
         setSignedIn(false);
         setProfileData(null);

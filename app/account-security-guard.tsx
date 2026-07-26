@@ -98,8 +98,9 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize the server-backed guard on mount
     void start();
     return () => {
-      if (sessionId.current && navigator.sendBeacon) {
-        // Access token cannot be attached to sendBeacon; the stale session expires server-side after five minutes.
+      if (sessionId.current) {
+        // Access token cannot be attached to sendBeacon, so the session is only
+        // dropped locally; the stale row expires server-side after five minutes.
         sessionStorage.removeItem(SESSION_KEY);
       }
     };

@@ -58,6 +58,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   useEffect(() => {
     if (!content || content.type === "youtube") return;
+    const resolved = content;
     async function downloadWatermarkedPdf(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== pdfFrameRef.current?.contentWindow || event.data?.type !== "remix:pdf-download-request") return;
       const frame = pdfFrameRef.current?.contentWindow;
@@ -77,7 +78,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         }
         const disposition = response.headers.get("content-disposition") || "";
         const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
-        const filename = encodedName ? decodeURIComponent(encodedName) : `${content.title.replace(/\.pdf$/i, "")}-watermarked.pdf`;
+        const filename = encodedName ? decodeURIComponent(encodedName) : `${resolved.title.replace(/\.pdf$/i, "")}-watermarked.pdf`;
         const blobUrl = URL.createObjectURL(await response.blob());
         const link = document.createElement("a");
         link.href = blobUrl;
