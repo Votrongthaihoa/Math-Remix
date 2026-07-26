@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { verifyContentToken } from "../../../lib/content-token";
+import { ensureActiveAccount } from "../../../lib/security-server";
 
 function youtubeSource(url: string) {
   try {
@@ -24,10 +25,9 @@ export async function POST(request: Request) {
   if (!body.videoToken) return Response.json({ error: "Thiếu token nội dung." }, { status: 400 });
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data: auth } = await admin.auth.getUser(accessToken);
-  if (!auth.user) return Response.json({ error: "Phiên đăng nhập không hợp lệ." }, { status: 401 });
-  const { data: profile } = await admin.from("profiles").select("status").eq("id", auth.user.id).single();
-  if (profile?.status !== "active") return Response.json({ error: "Tài khoản không hoạt động." }, { status: 403 });
+  const security = await ensureActiveAccount(request, admin);
+  if (!security.ok) return security.response;
+  const auth = { user: security.user };
   const payload = await verifyContentToken(body.videoToken, tokenSecret);
   if (!payload || payload.sub !== auth.user.id) return Response.json({ error: "Token nội dung không hợp lệ hoặc đã hết hạn." }, { status: 403 });
 

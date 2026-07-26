@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import LoadingIndicator from "./loading-indicator";
+import AccountSecurityGuard from "./account-security-guard";
 import "./exam-room.css";
 
 type Room = { id: string; title: string; description: string; exam_type: string; access_mode: string; registration_start: string | null; registration_end: string | null; exam_start: string | null; exam_end: string | null; published: boolean; sort_order: number };
@@ -215,6 +216,7 @@ function ExamRunner({ examId, mode, navigate }: { examId: string; mode: "practic
     return { ...previous, [question.id]: selected.includes(value) ? selected.filter(item => item !== value) : [...selected, value] };
   });
   return <div className="exam-runner-shell">
+    <AccountSecurityGuard activityType={mode === "exam" ? "exam" : "quiz"} resourceId={examId} />
     <header className="exam-runner-header"><button onClick={() => navigate(`/exam-room/${encodeURIComponent(bundle.room.id)}`)} aria-label="Thoát bài thi"><ArrowLeft/></button><div><span>{mode === "exam" ? "THỰC CHIẾN" : "LUYỆN TẬP"}</span><h1>{bundle.exam.title}</h1></div><div className={`exam-timer ${mode === "exam" && secondsLeft < 300 ? "warning" : ""}`}><Timer/><span><small>Thời gian còn lại</small><b>{mode === "exam" ? formatDuration(secondsLeft) : "Không giới hạn"}</b></span></div><button className="exam-palette-toggle" onClick={() => setPaletteOpen(true)} aria-label="Mở danh sách câu hỏi"><Grid3X3/></button></header>
     <div className="exam-runner-progress"><span style={{ width: `${answered / bundle.questions.length * 100}%` }} /><small>{answered}/{bundle.questions.length} câu đã trả lời</small></div>
     <main className="exam-runner-main">

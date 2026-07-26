@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { verifyContentToken } from "../../../lib/content-token";
+import { ensureActiveAccount } from "../../../lib/security-server";
 
 function arrayBufferToBase64(buffer: ArrayBuffer) {
   const bytes = new Uint8Array(buffer);
@@ -23,13 +24,12 @@ export async function POST(request: Request) {
   if (!body.videoToken) return Response.json({ error: "Thiếu token nội dung." }, { status: 400 });
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data: auth } = await admin.auth.getUser(accessToken);
-  if (!auth.user) return Response.json({ error: "Phiên đăng nhập không hợp lệ." }, { status: 401 });
+  const security = await ensureActiveAccount(request, admin);
+  if (!security.ok) return security.response;
+  const auth = { user: security.user };
   const payload = await verifyContentToken(body.videoToken, tokenSecret);
   if (!payload || payload.sub !== auth.user.id) return Response.json({ error: "Quyền xem nội dung không hợp lệ hoặc đã hết hạn." }, { status: 403 });
 
-  const { data: profile } = await admin.from("profiles").select("status").eq("id", auth.user.id).single();
-  if (profile?.status !== "active") return Response.json({ error: "Tài khoản không hoạt động." }, { status: 403 });
   const { data: resource } = await admin.from("lesson_resources").select("id,resource_type,resource_url").eq("id", payload.rid).single();
   if (!resource || resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
 

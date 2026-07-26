@@ -161,7 +161,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.doesNotMatch(videoTokenRoute, /contentPath|set-cookie/);
   assert.doesNotMatch(videoTokenRoute, /url: resource\.resource_url/);
   assert.match(resourceContentRoute, /export async function POST/);
-  assert.match(resourceContentRoute, /admin\.auth\.getUser\(accessToken\)/);
+  assert.match(resourceContentRoute, /ensureActiveAccount\(request, admin\)/);
   assert.match(resourceContentRoute, /body\.videoToken/);
   assert.match(resourceContentRoute, /payload\.sub !== auth\.user\.id/);
   assert.match(resourceContentRoute, /export async function HEAD/);

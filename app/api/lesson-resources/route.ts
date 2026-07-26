@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { signContentToken } from "../../../lib/content-token";
+import { ensureActiveAccount } from "../../../lib/security-server";
 
 type ChapterRelation = { course_id: string } | { course_id: string }[] | null;
 
@@ -15,10 +16,10 @@ export async function GET(request: Request) {
   if (!lessonId) return Response.json({ error: "Thiếu mã bài học." }, { status: 400 });
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data: auth } = await admin.auth.getUser(accessToken);
-  if (!auth.user) return Response.json({ error: "Phiên đăng nhập không hợp lệ." }, { status: 401 });
-  const { data: profile } = await admin.from("profiles").select("role,status").eq("id", auth.user.id).single();
-  if (!profile || profile.status !== "active") return Response.json({ error: "Tài khoản không hoạt động." }, { status: 403 });
+  const security = await ensureActiveAccount(request, admin);
+  if (!security.ok) return security.response;
+  const auth = { user: security.user };
+  const profile = security.profile;
 
   const { data: lesson } = await admin.from("lessons").select("id,published,chapters(course_id)").eq("id", lessonId).single();
   if (!lesson) return Response.json({ error: "Không tìm thấy bài học." }, { status: 404 });

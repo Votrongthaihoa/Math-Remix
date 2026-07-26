@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { ensureActiveAccount } from "../../../lib/security-server";
 
 type AnswerValue = string | string[];
 type ExamUser = { id: string; role: "student" | "admin" };
@@ -10,13 +11,9 @@ function serverClient() {
 }
 
 async function authenticate(request: Request, admin: SupabaseClient): Promise<ExamUser | null> {
-  const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!accessToken) return null;
-  const { data: auth } = await admin.auth.getUser(accessToken);
-  if (!auth.user) return null;
-  const { data: profile } = await admin.from("profiles").select("role,status").eq("id", auth.user.id).single();
-  if (!profile || profile.status !== "active") return null;
-  return { id: auth.user.id, role: profile.role === "admin" ? "admin" : "student" };
+  const security = await ensureActiveAccount(request, admin);
+  if (!security.ok) return null;
+  return { id: security.user.id, role: security.profile.role === "admin" ? "admin" : "student" };
 }
 
 async function canAccessRoom(admin: SupabaseClient, user: ExamUser, roomId: string) {
