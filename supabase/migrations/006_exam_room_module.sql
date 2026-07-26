@@ -57,6 +57,21 @@ create table if not exists public.exam_room_enrollments (
   primary key (room_id, student_id)
 );
 
+-- Some projects were initialized before the exam history migration existed.
+-- Keep this migration independently runnable by creating the base attempt table
+-- before extending it with the full exam-room fields below.
+create table if not exists public.exam_attempts (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  score numeric not null default 0,
+  correct_answers int not null default 0,
+  total_questions int not null default 0,
+  status text not null default 'completed' check (status in ('in_progress','completed','submitted','graded')),
+  submitted_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 alter table public.exam_attempts drop constraint if exists exam_attempts_status_check;
 alter table public.exam_attempts alter column submitted_at drop not null;
 alter table public.exam_attempts add column if not exists exam_id uuid references public.exams(id) on delete set null;
