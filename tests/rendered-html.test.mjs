@@ -223,6 +223,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /\["enrollments","Phân quyền"\]/);
   assert.match(platform, /supabase\.from\("exam_room_enrollments"\)\.upsert/);
   assert.match(platform, /student\.email/);
+  assert.match(platform, /Tìm theo tên, mã học viên hoặc email/);
+  assert.match(platform, /student-name-email/);
   assert.match(adminUsersRoute, /export async function GET/);
   assert.match(adminUsersRoute, /admin\.auth\.admin\.listUsers/);
   assert.doesNotMatch(adminExams, /Phân quyền học viên/);

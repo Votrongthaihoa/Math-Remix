@@ -199,3 +199,5 @@ html,body{background:#fff}
 
 .assignment-page{display:flex;flex-direction:column;gap:20px}.assignment-page-head h2{margin:6px 0 4px;font-size:27px}.assignment-page-head p{margin:0;color:var(--muted)}
 @media(max-width:767px){.assignment-page-head h2{font-size:23px}.assignment-page .section-card{padding:18px}.assignment-page .enrollment-form{grid-template-columns:1fr}.assignment-page .enrollment-list>article{grid-template-columns:1fr}.assignment-page .enrollment-list>article>svg{transform:rotate(90deg)}}
+
+.student-search{margin-bottom:0}.student-search input[type="search"]::-webkit-search-cancel-button{display:none}.student-search>button{width:30px;height:30px;flex:0 0 auto;border:0;border-radius:8px;background:#f2f4f7;color:#667085;display:grid;place-items:center}.student-search>button svg{width:14px;height:14px}.student-search-hint{margin:7px 3px 18px;color:#8a93a2;font-size:11px}.student-name-email{min-width:0;display:flex;flex-direction:column;gap:3px}.student-name-email b,.student-name-email small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-name-email small{max-width:280px;color:#7b8492;font-size:10px;font-weight:400}
