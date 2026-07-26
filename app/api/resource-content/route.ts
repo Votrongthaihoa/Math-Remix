@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { verifyContentToken } from "../../../lib/content-token";
+import { guardResourceAccess } from "../../../lib/resource-access-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
 import { loadPdfBytes } from "../../../lib/r2-server";
 
@@ -33,8 +34,10 @@ export async function POST(request: Request) {
   const payload = await verifyContentToken(body.videoToken, tokenSecret);
   if (!payload || payload.sub !== auth.user.id) return Response.json({ error: "Quyền xem nội dung không hợp lệ hoặc đã hết hạn." }, { status: 403 });
 
-  const { data: resource } = await admin.from("lesson_resources").select("id,resource_type,resource_url").eq("id", payload.rid).single();
-  if (!resource || resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
+  const access = await guardResourceAccess(admin, security.user.id, security.profile, payload.rid, "view");
+  if (!access.ok) return access.response;
+  const resource = access.resource;
+  if (resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
 
   let pdfBytes: Uint8Array;
   try { pdfBytes = await loadPdfBytes(resource.resource_url, MAX_PDF_BYTES); }

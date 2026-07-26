@@ -179,7 +179,13 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(pdfDownloadRoute, /drawText\(mark/);
   assert.match(pdfDownloadRoute, /Asia\/Ho_Chi_Minh/);
   assert.match(pdfDownloadRoute, /auth\.user\.email/);
-  assert.match(pdfDownloadRoute, /resource\.allow_download/);
+  // allow_download, enrollment and published now live in lib/resource-access.ts
+  // and are unit tested in resource-access.test.mjs. What matters here is that
+  // every content route delegates to that policy with the correct mode.
+  const guardCall = mode => new RegExp(`guardResourceAccess\\(admin, security\\.user\\.id, security\\.profile, payload\\.rid, "${mode}"\\)`);
+  assert.match(pdfDownloadRoute, guardCall("download"));
+  assert.match(resourceContentRoute, guardCall("view"));
+  assert.match(videoTokenRoute, guardCall("view"));
   assert.match(videoPlayer, /fetch\("\/api\/video-token"/);
   assert.match(videoPlayer, /\/yt-embed-player\.html\?v=/);
   assert.match(videoPlayer, /\/pdf-viewer\.html\?file=/);

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { verifyContentToken } from "../../../lib/content-token";
+import { guardResourceAccess } from "../../../lib/resource-access-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
 
 function youtubeSource(url: string) {
@@ -31,8 +32,9 @@ export async function POST(request: Request) {
   const payload = await verifyContentToken(body.videoToken, tokenSecret);
   if (!payload || payload.sub !== auth.user.id) return Response.json({ error: "Token nội dung không hợp lệ hoặc đã hết hạn." }, { status: 403 });
 
-  const { data: resource, error } = await admin.from("lesson_resources").select("id,title,resource_type,resource_url").eq("id", payload.rid).single();
-  if (error || !resource) return Response.json({ error: "Không tìm thấy nội dung." }, { status: 404 });
+  const access = await guardResourceAccess(admin, security.user.id, security.profile, payload.rid, "view");
+  if (!access.ok) return access.response;
+  const resource = access.resource;
 
   let responseBody: Record<string, string | number>;
   if (resource.resource_type === "youtube") {

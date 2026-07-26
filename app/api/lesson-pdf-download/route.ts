@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { degrees, PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { verifyContentToken } from "../../../lib/content-token";
+import { guardResourceAccess } from "../../../lib/resource-access-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
 import { loadPdfBytes } from "../../../lib/r2-server";
 
@@ -82,9 +83,10 @@ export async function POST(request: Request) {
 
   const payload = await verifyContentToken(body.videoToken, tokenSecret);
   if (!payload || payload.sub !== auth.user.id) return Response.json({ error: "Token nội dung không hợp lệ hoặc đã hết hạn." }, { status: 403 });
-  const { data: resource } = await admin.from("lesson_resources").select("id,title,resource_type,resource_url,allow_download").eq("id", payload.rid).single();
-  if (!resource || resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
-  if (!resource.allow_download) return Response.json({ error: "Tài liệu này không được phép tải xuống." }, { status: 403 });
+  const access = await guardResourceAccess(admin, security.user.id, security.profile, payload.rid, "download");
+  if (!access.ok) return access.response;
+  const resource = access.resource;
+  if (resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
 
   let source: Uint8Array;
   try { source = await loadPdfBytes(resource.resource_url, MAX_PDF_BYTES); }
