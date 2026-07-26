@@ -27,8 +27,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-dev-server.log
-dev-server.err.log
+dev-server*.log
+dev-server*.err.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -38,7 +38,12 @@ dev-server.err.log
 
 # typescript
 next-env.d.ts
+tsconfig.tsbuildinfo
 /dist/
 /.wrangler/
 /outputs/
 /work/
+
+# local dev captures and stale vinext asset caches
+/artifacts/
+/.vinext-stale-*/
