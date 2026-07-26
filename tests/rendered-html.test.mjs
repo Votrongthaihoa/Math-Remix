@@ -47,7 +47,7 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
@@ -64,6 +64,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
     readFile(new URL("../app/exam-room.css", import.meta.url), "utf8"),
     readFile(new URL("../app/api/exams/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../supabase/migrations/006_exam_room_module.sql", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-exams.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-exams.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /"\/dashboard"/);
@@ -209,5 +211,13 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(examsRoute, /status: "in_progress"/);
   assert.match(examMigration, /create table if not exists public\.exam_rooms/);
   assert.match(examMigration, /create table if not exists public\.exam_question_keys/);
+  assert.match(platform, /lazy\(\(\) => import\("\.\/admin-exams"\)\)/);
+  assert.match(platform, /\["exams","Khảo thí"\]/);
+  assert.match(adminExams, /from\("exam_rooms"\)\.insert/);
+  assert.match(adminExams, /from\("exams"\)\.insert/);
+  assert.match(adminExams, /from\("exam_sections"\)\.insert/);
+  assert.match(adminExams, /from\("exam_questions"\)\.insert/);
+  assert.match(adminExams, /from\("exam_question_keys"\)\.insert/);
+  assert.match(adminExamsCss, /@media\(max-width:767px\)/);
   assert.doesNotMatch(pdfViewerHtml, /Mở file gốc|Mở tài liệu trong tab mới/);
 });

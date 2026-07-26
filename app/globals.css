@@ -192,3 +192,7 @@ html,body{background:#fff}
   .top-actions{min-width:0}.account-trigger{padding:8px 7px}.account-trigger span{max-width:78px;font-size:13px}
 }
 @media(max-width:370px){.header-brand b,.sidebar-expanded .header-brand b{display:none}.account-trigger span{max-width:66px}}
+
+/* Admin sections stay usable when the tab list grows on small screens. */
+.admin-tabs{overflow-x:auto;scrollbar-width:thin}
+.admin-tabs button{flex:0 0 auto;white-space:nowrap}
