@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import {
-  ArrowLeft, BarChart3, BookOpenCheck, CalendarDays, Check, ChevronLeft, ChevronRight,
+  ArrowLeft, BarChart3, BookOpenCheck, Check, ChevronLeft, ChevronRight, ClipboardList,
   CircleAlert, Clock3, FileText, Flag, Grid3X3, ListChecks, Play, RotateCcw,
-  Send, ShieldCheck, Timer, Trophy, X
+  Send, Timer, Trophy, X
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import LoadingIndicator from "./loading-indicator";
@@ -112,28 +112,27 @@ function ExamRoomCatalog({ navigate }: { navigate: (path: string) => void }) {
   if (!data) return <PageState loading={!error} error={error} onRetry={load} />;
   if (!data.rooms.length) return <PageState empty="Phòng thi sẽ xuất hiện sau khi quản trị viên xuất bản và cấp quyền cho bạn." />;
   return <div className="exam-page exam-room-page">
-    <header className="exam-page-heading"><span>PHÒNG KHẢO THÍ</span><h1>Đánh giá tư duy - TSA</h1><p>Chọn phòng thi để bắt đầu hoặc tiếp tục bài làm.</p></header>
+    <header className="exam-page-heading reference-room-heading"><h1>Đánh giá tư duy - TSA</h1><p>Chọn phòng thi để bắt đầu làm bài</p></header>
     <div className="exam-room-grid">{data.rooms.map(room => {
       const exams = data.exams.filter(exam => exam.room_id === room.id);
       const examIds = exams.map(exam => exam.id);
       const completed = new Set(data.attempts.filter(attempt => examIds.includes(attempt.exam_id) && attempt.status !== "in_progress").map(attempt => attempt.exam_id)).size;
-      return <article className="exam-room-card" key={room.id}>
-        <div className="exam-room-card-top"><div><span className="exam-type-badge">{room.exam_type}</span><h2>{room.title}</h2></div><ShieldCheck/></div>
-        {room.description && <p className="exam-room-description">{room.description}</p>}
-        <div className="exam-room-meta">
-          <Meta icon={CalendarDays} label="Đăng ký" value={`${formatDate(room.registration_start)} – ${formatDate(room.registration_end)}`} />
-          <Meta icon={Clock3} label="Thời gian thi" value={`${formatDate(room.exam_start)} – ${formatDate(room.exam_end)}`} />
-          <Meta icon={ListChecks} label="Số lượng bài thi" value={`${exams.length} bài thi`} />
-          <Meta icon={FileText} label="Hoàn thành" value={`${completed}/${exams.length} bài`} />
+      return <article className="exam-room-card reference-room-card" key={room.id} onClick={() => navigate(`/exam-room/${encodeURIComponent(room.id)}`)}>
+        <div className="reference-room-card-title"><h2>{room.title}</h2></div>
+        <div className="reference-room-card-body">
+          <Meta icon={Clock3} label="Đăng ký" value={`${formatDate(room.registration_start, true)} - ${formatDate(room.registration_end, true)}`} />
+          <Meta icon={Timer} label="Thời gian thi" value={`${formatDate(room.exam_start, true)} - ${formatDate(room.exam_end, true)}`} />
+          <Meta icon={ClipboardList} label="Số lượng bài thi" value={`${exams.length} bài thi`} />
+          <Meta icon={FileText} label="Số lượng đề thi" value={`${exams.length} đề thi`} />
         </div>
-        <div className="exam-card-footer"><div className="exam-progress"><span style={{ width: `${exams.length ? completed / exams.length * 100 : 0}%` }} /></div><button onClick={() => navigate(`/exam-room/${encodeURIComponent(room.id)}`)}>Bắt đầu<ChevronRight/></button></div>
+        <div className="reference-room-card-footer"><div className="reference-room-completion"><div><span>Hoàn thành</span><b>{completed}/{exams.length} bài</b></div><div className="exam-progress"><span style={{ width: `${exams.length ? completed / exams.length * 100 : 0}%` }} /></div></div><button onClick={event => { event.stopPropagation(); navigate(`/exam-room/${encodeURIComponent(room.id)}`); }}>Bắt đầu</button></div>
       </article>;
     })}</div>
   </div>;
 }
 
 function Meta({ icon: Icon, label, value }: { icon: typeof Clock3; label: string; value: string }) {
-  return <div className="exam-meta-item"><Icon/><span><small>{label}</small><b>{value}</b></span></div>;
+  return <div className="exam-meta-item"><span><Icon/><small>{label}</small></span><b>{value}</b></div>;
 }
 
 function ExamList({ roomId, navigate }: { roomId: string; navigate: (path: string) => void }) {
