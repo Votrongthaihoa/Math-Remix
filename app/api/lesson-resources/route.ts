@@ -1,21 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
+import { contentServer } from "../../../lib/content-server";
 import { signContentToken } from "../../../lib/content-token";
 import { ensureActiveAccount } from "../../../lib/security-server";
 
 type ChapterRelation = { course_id: string } | { course_id: string }[] | null;
 
 export async function GET(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const tokenSecret = process.env.VIDEO_TOKEN_SECRET || serviceKey;
-  if (!url || !serviceKey || !tokenSecret) return Response.json({ error: "Chưa cấu hình máy chủ nội dung." }, { status: 503 });
+  const config = contentServer();
+  if (!config.ok) return config.response;
+  const { admin, tokenSecret } = config;
 
   const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!accessToken) return Response.json({ error: "Chưa đăng nhập." }, { status: 401 });
   const lessonId = new URL(request.url).searchParams.get("lessonId")?.trim();
   if (!lessonId) return Response.json({ error: "Thiếu mã bài học." }, { status: 400 });
 
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
   const security = await ensureActiveAccount(request, admin);
   if (!security.ok) return security.response;
   const auth = { user: security.user };
