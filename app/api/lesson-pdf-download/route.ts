@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { degrees, PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { verifyContentToken } from "../../../lib/content-token";
 import { ensureActiveAccount } from "../../../lib/security-server";
+import { loadPdfBytes } from "../../../lib/r2-server";
 
 const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
@@ -85,12 +86,9 @@ export async function POST(request: Request) {
   if (!resource || resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
   if (!resource.allow_download) return Response.json({ error: "Tài liệu này không được phép tải xuống." }, { status: 403 });
 
-  const sourceResponse = await fetch(resource.resource_url, { headers: { accept: "application/pdf" } });
-  if (!sourceResponse.ok) return Response.json({ error: "Không thể tải PDF nguồn." }, { status: 502 });
-  const declaredSize = Number(sourceResponse.headers.get("content-length") || 0);
-  if (declaredSize > MAX_PDF_BYTES) return Response.json({ error: "PDF vượt quá giới hạn 50 MB." }, { status: 413 });
-  const source = new Uint8Array(await sourceResponse.arrayBuffer());
-  if (source.byteLength > MAX_PDF_BYTES) return Response.json({ error: "PDF vượt quá giới hạn 50 MB." }, { status: 413 });
+  let source: Uint8Array;
+  try { source = await loadPdfBytes(resource.resource_url, MAX_PDF_BYTES); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Không thể tải PDF nguồn." }, { status: 502 }); }
   if (new TextDecoder().decode(source.slice(0, 5)) !== "%PDF-") return Response.json({ error: "Nguồn tải xuống không phải PDF hợp lệ." }, { status: 422 });
 
   try {

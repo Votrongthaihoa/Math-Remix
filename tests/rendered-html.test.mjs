@@ -47,7 +47,7 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminUsersRoute] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminUsersRoute, r2Server] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
@@ -67,6 +67,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
     readFile(new URL("../app/admin-exams.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exams.css", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/users/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/r2-server.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /"\/dashboard"/);
@@ -147,8 +148,12 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
 
   assert.match(lessonFilesRoute, /admin\.auth\.getUser\(token\)/);
   assert.match(lessonFilesRoute, /profile\?\.role !== "admin"/);
-  assert.match(lessonFilesRoute, /createBucket\(BUCKET/);
-  assert.match(lessonFilesRoute, /\.storage\.from\(BUCKET\)\.upload/);
+  assert.match(lessonFilesRoute, /createPdfUpload\(path\)/);
+  assert.match(lessonFilesRoute, /verifyPdfObject\(path, size, MAX_PDF_SIZE\)/);
+  assert.match(r2Server, /new S3Client/);
+  assert.match(r2Server, /getSignedUrl/);
+  assert.match(r2Server, /expiresIn: 120/);
+  assert.match(r2Server, /GetObjectCommand/);
   assert.match(lessonResourcesRoute, /signContentToken/);
   assert.match(lessonResourcesRoute, /course_enrollments/);
   assert.match(lessonResourcesRoute, /curriculum/);
@@ -166,9 +171,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(resourceContentRoute, /payload\.sub !== auth\.user\.id/);
   assert.match(resourceContentRoute, /export async function HEAD/);
   assert.match(resourceContentRoute, /Nội dung PDF không thể mở trực tiếp/);
-  assert.match(resourceContentRoute, /upstream\.status === 204 \|\| !upstream\.body/);
-  assert.match(resourceContentRoute, /await upstream\.arrayBuffer\(\)/);
-  assert.match(resourceContentRoute, /pdfBytes\.byteLength/);
+  assert.match(resourceContentRoute, /loadPdfBytes\(resource\.resource_url, MAX_PDF_BYTES\)/);
   assert.match(resourceContentRoute, /arrayBufferToBase64/);
   assert.match(resourceContentRoute, /encoding: "base64"/);
   assert.match(resourceContentRoute, /resource\.resource_url/);

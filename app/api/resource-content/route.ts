@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { verifyContentToken } from "../../../lib/content-token";
 import { ensureActiveAccount } from "../../../lib/security-server";
+import { loadPdfBytes } from "../../../lib/r2-server";
+
+const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
 function arrayBufferToBase64(buffer: ArrayBuffer) {
   const bytes = new Uint8Array(buffer);
@@ -33,21 +36,15 @@ export async function POST(request: Request) {
   const { data: resource } = await admin.from("lesson_resources").select("id,resource_type,resource_url").eq("id", payload.rid).single();
   if (!resource || resource.resource_type === "youtube") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
 
-  const sourceHeaders = { accept: "application/pdf", "accept-encoding": "identity" };
-  let upstream = await fetch(resource.resource_url, { headers: sourceHeaders, redirect: "follow", cache: "no-store" });
-  if (upstream.status === 204 || !upstream.body) upstream = await fetch(resource.resource_url, { headers: sourceHeaders, redirect: "follow", cache: "no-store" });
-  if (upstream.status === 204 || !upstream.body) return Response.json({ error: "Nguồn PDF trả về nội dung rỗng." }, { status: 502 });
-  if (!upstream.ok) return Response.json({ error: "Không thể tải nội dung PDF." }, { status: 502 });
-  const contentType = upstream.headers.get("content-type") ?? "";
-  if (!/application\/pdf|application\/octet-stream/i.test(contentType)) return Response.json({ error: "Nguồn nội dung không phải PDF hợp lệ." }, { status: 422 });
-
-  const pdfBytes = await upstream.arrayBuffer();
-  if (!pdfBytes.byteLength) return Response.json({ error: "Nguồn PDF trả về nội dung rỗng." }, { status: 502 });
+  let pdfBytes: Uint8Array;
+  try { pdfBytes = await loadPdfBytes(resource.resource_url, MAX_PDF_BYTES); }
+  catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Không thể tải nội dung PDF." }, { status: 502 }); }
+  if (new TextDecoder().decode(pdfBytes.slice(0, 5)) !== "%PDF-") return Response.json({ error: "Nội dung tải về không phải PDF hợp lệ." }, { status: 422 });
 
   return Response.json({
     encoding: "base64",
     mimeType: "application/pdf",
-    data: arrayBufferToBase64(pdfBytes),
+    data: arrayBufferToBase64(pdfBytes.buffer.slice(pdfBytes.byteOffset, pdfBytes.byteOffset + pdfBytes.byteLength) as ArrayBuffer),
   }, {
     headers: {
       "cache-control": "private, no-store, max-age=0",
