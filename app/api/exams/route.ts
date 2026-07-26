@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { answersMatch } from "../../../lib/exam-answers";
 import { ensureActiveAccount } from "../../../lib/security-server";
 
 type AnswerValue = string | string[];
@@ -35,18 +36,6 @@ async function loadExam(admin: SupabaseClient, user: ExamUser, examId: string) {
     ? await admin.from("exam_questions").select("id,section_id,prompt,question_type,options,points,sort_order").in("section_id", sectionIds).order("sort_order")
     : { data: [] };
   return { room, exam, sections: sections ?? [], questions: questions ?? [] };
-}
-
-function normalizeAnswer(value: unknown) {
-  if (Array.isArray(value)) return value.map(item => String(item).trim()).sort();
-  return String(value ?? "").trim().toLocaleLowerCase("vi");
-}
-
-function answersMatch(answer: unknown, correct: unknown) {
-  const left = normalizeAnswer(answer);
-  const right = normalizeAnswer(correct);
-  if (Array.isArray(left) && Array.isArray(right)) return left.length === right.length && left.every((item, index) => item === right[index]);
-  return left === right;
 }
 
 const privateHeaders = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
