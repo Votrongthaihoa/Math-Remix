@@ -622,10 +622,12 @@ function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData
 function Detail({icon:Icon,label,value}:any){return <div className="detail-row"><span><Icon/></span><div><small>{label}</small><b>{value}</b></div></div>}
 
 
-type AdminProfileRow = { id: string; full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; created_at: string };
+type AdminProfileRow = { id: string; full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; created_at: string; email: string };
 type AdminCourseRow = { id: string; title: string; description: string; cover_url: string | null; cover_color: string; published: boolean; sort_order: number; created_at: string };
 type AdminLessonRow = { id: string; title: string; published: boolean; chapters: { course_id: string } | { course_id: string }[] | null };
 type AdminEnrollmentRow = { student_id: string; course_id: string };
+type AdminExamRoomRow = { id: string; title: string; published: boolean; access_mode: "open" | "assigned" };
+type AdminExamEnrollmentRow = { student_id: string; room_id: string };
 
 function RealAdminDashboard() {
   const [tab, setTab] = useState("dashboard");
@@ -637,6 +639,8 @@ function RealAdminDashboard() {
   const [adminCourses, setAdminCourses] = useState<AdminCourseRow[]>([]);
   const [adminLessons, setAdminLessons] = useState<AdminLessonRow[]>([]);
   const [enrollments, setEnrollments] = useState<AdminEnrollmentRow[]>([]);
+  const [adminExamRooms, setAdminExamRooms] = useState<AdminExamRoomRow[]>([]);
+  const [examRoomEnrollments, setExamRoomEnrollments] = useState<AdminExamEnrollmentRow[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [newFullName, setNewFullName] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -661,22 +665,37 @@ function RealAdminDashboard() {
   const [assignCourseId, setAssignCourseId] = useState("");
   const [assignError, setAssignError] = useState("");
   const [assigningCourse, setAssigningCourse] = useState(false);
+  const [assignExamRoomId, setAssignExamRoomId] = useState("");
+  const [assignExamStudentId, setAssignExamStudentId] = useState("");
+  const [assigningExamRoom, setAssigningExamRoom] = useState(false);
 
   async function loadAdminData() {
     setLoadingAdmin(true); setAdminError("");
     if (!supabase) { setAdminError("Chưa cấu hình Supabase."); setLoadingAdmin(false); return; }
-    const [profileResult, courseResult, lessonResult, enrollmentResult] = await Promise.all([
+    const [profileResult, courseResult, lessonResult, enrollmentResult, examRoomResult, examEnrollmentResult] = await Promise.all([
       supabase.from("profiles").select("id,full_name,student_code,role,status,created_at").order("created_at", { ascending: false }),
       supabase.from("courses").select("id,title,description,cover_url,cover_color,published,sort_order,created_at").order("sort_order").order("created_at", { ascending: false }),
       supabase.from("lessons").select("id,title,published,chapters(course_id)"),
       supabase.from("course_enrollments").select("student_id,course_id"),
+      supabase.from("exam_rooms").select("id,title,published,access_mode").order("sort_order"),
+      supabase.from("exam_room_enrollments").select("student_id,room_id"),
     ]);
-    const firstError = profileResult.error ?? courseResult.error ?? lessonResult.error ?? enrollmentResult.error;
+    const firstError = profileResult.error ?? courseResult.error ?? lessonResult.error ?? enrollmentResult.error ?? examRoomResult.error ?? examEnrollmentResult.error;
     if (firstError) setAdminError(firstError.message);
-    setProfiles((profileResult.data ?? []) as AdminProfileRow[]);
+    const { data: sessionData } = await supabase.auth.getSession();
+    let emailMap: Record<string, string> = {};
+    if (sessionData.session) {
+      const response = await fetch("/api/admin/users", { headers: { authorization: `Bearer ${sessionData.session.access_token}` }, cache: "no-store" });
+      const payload = await response.json().catch(() => null) as { users?: Array<{ id: string; email: string }>; error?: string } | null;
+      if (response.ok) emailMap = Object.fromEntries((payload?.users ?? []).map(user => [user.id, user.email]));
+      else if (!firstError) setAdminError(payload?.error ?? "Không thể tải email học viên.");
+    }
+    setProfiles(((profileResult.data ?? []) as Omit<AdminProfileRow, "email">[]).map(profile => ({ ...profile, email: emailMap[profile.id] ?? "" })));
     setAdminCourses((courseResult.data ?? []) as AdminCourseRow[]);
     setAdminLessons((lessonResult.data ?? []) as AdminLessonRow[]);
     setEnrollments((enrollmentResult.data ?? []) as AdminEnrollmentRow[]);
+    setAdminExamRooms((examRoomResult.data ?? []) as AdminExamRoomRow[]);
+    setExamRoomEnrollments((examEnrollmentResult.data ?? []) as AdminExamEnrollmentRow[]);
     setLoadingAdmin(false);
   }
 
@@ -686,7 +705,7 @@ function RealAdminDashboard() {
   const filteredStudents = useMemo(() => {
     const query = searchTerm.trim().toLocaleLowerCase("vi");
     if (!query) return students;
-    return students.filter(student => `${student.full_name} ${student.student_code}`.toLocaleLowerCase("vi").includes(query));
+    return students.filter(student => `${student.full_name} ${student.student_code} ${student.email}`.toLocaleLowerCase("vi").includes(query));
   }, [searchTerm, students]);
   const enrollmentCount = useMemo(() => enrollments.reduce<Record<string, number>>((counts, row) => {
     counts[row.student_id] = (counts[row.student_id] ?? 0) + 1;
@@ -801,8 +820,25 @@ function RealAdminDashboard() {
     if (error) setAssignError(error.message); else await loadAdminData();
   }
 
+  async function assignExamRoom(event: React.FormEvent) {
+    event.preventDefault(); setAssignError("");
+    if (!supabase || !assignExamStudentId || !assignExamRoomId) { setAssignError("Hãy chọn học viên và phòng thi."); return; }
+    setAssigningExamRoom(true);
+    const { error } = await supabase.from("exam_room_enrollments").upsert({ student_id: assignExamStudentId, room_id: assignExamRoomId });
+    setAssigningExamRoom(false);
+    if (error) { setAssignError(error.message); return; }
+    setAdminNotice("Đã cấp quyền phòng thi cho học viên.");
+    await loadAdminData();
+  }
+
+  async function removeExamRoomEnrollment(studentId: string, roomId: string) {
+    if (!supabase || !window.confirm("Bỏ quyền phòng thi của học viên này?")) return;
+    const { error } = await supabase.from("exam_room_enrollments").delete().eq("student_id", studentId).eq("room_id", roomId);
+    if (error) setAssignError(error.message); else await loadAdminData();
+  }
+
   return <div className="admin-page">
-    <div className="admin-tabs">{[["dashboard","Tổng quan"],["students","Học viên"],["content","Nội dung"],["exams","Khảo thí"],["enrollments","Phân khóa"]].map(([id,label])=><button key={id} className={tab===id?"active":""} onClick={()=>setTab(id)}>{label}</button>)}</div>
+    <div className="admin-tabs">{[["dashboard","Tổng quan"],["students","Học viên"],["content","Nội dung"],["exams","Khảo thí"],["enrollments","Phân quyền"]].map(([id,label])=><button key={id} className={tab===id?"active":""} onClick={()=>setTab(id)}>{label}</button>)}</div>
     {adminError && <p className="form-error">Không thể tải dữ liệu quản trị: {adminError}</p>}
     {adminNotice && <p className="form-success">{adminNotice}</p>}
     {tab === "dashboard" && <>
@@ -814,8 +850,13 @@ function RealAdminDashboard() {
     </>}
     {tab === "students" && <section className="section-card"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản và khóa học từ Supabase.</p></div><button className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div><label className="search wide"><Search/><input value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên hoặc mã học viên…"/></label><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><b>{student.full_name}</b></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button className="student-password-btn" onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Chưa có học viên nào.</div>}</div></section>}
     {tab === "content" && (managedCourseId ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>setManagedCourseId("")} onChanged={loadAdminData} onDeleted={async()=>{setManagedCourseId("");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt=""/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button className="outline-btn" onClick={()=>setManagedCourseId(course.id)}>Quản lý <ChevronRight/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
-    {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị khảo thí…" />}><AdminExamManager students={students}/></Suspense>}
-    {tab === "enrollments" && <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân khóa học</h2><p className="muted">Học viên chỉ thấy khóa đã được phân và xuất bản.</p></div></div><form className="enrollment-form" onSubmit={assignCourse}><label>Học viên<select value={assignStudentId} onChange={event=>setAssignStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}</option>)}</select></label><label>Khóa học<select value={assignCourseId} onChange={event=>setAssignCourseId(event.target.value)} required><option value="">Chọn khóa học</option>{adminCourses.map(course=><option key={course.id} value={course.id}>{course.title}{course.published?"":" (bản nháp)"}</option>)}</select></label><button className="primary-btn small" disabled={assigningCourse}>{assigningCourse?"Đang phân…":"Phân khóa học"}</button></form>{assignError&&<p className="form-error">{assignError}</p>}<div className="enrollment-list">{enrollments.length?enrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const course=adminCourses.find(item=>item.id===row.course_id);return <article key={`${row.student_id}-${row.course_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}</small></div><ChevronRight/><div><b>{course?.title??"Khóa học không tồn tại"}</b><small>{course?.published?"Đã xuất bản":"Bản nháp"}</small></div><button className="outline-btn danger" onClick={()=>removeEnrollment(row.student_id,row.course_id)}><Trash2/> Bỏ phân</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân khóa."/>}</div></section>}
+    {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị khảo thí…" />}><AdminExamManager /></Suspense>}
+    {tab === "enrollments" && <div className="assignment-page">
+      <header className="assignment-page-head"><div><span className="eyebrow">PHÂN QUYỀN HỌC VIÊN</span><h2>Khóa học và phòng thi</h2><p>Quản lý toàn bộ nội dung được cấp cho từng học viên tại một nơi.</p></div></header>
+      {assignError && <p className="form-error">{assignError}</p>}
+      <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân khóa học</h2><p className="muted">Học viên chỉ thấy khóa đã được phân và xuất bản.</p></div></div><form className="enrollment-form" onSubmit={assignCourse}><label>Học viên<select value={assignStudentId} onChange={event=>setAssignStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}{student.email ? ` — ${student.email}` : ""}</option>)}</select></label><label>Khóa học<select value={assignCourseId} onChange={event=>setAssignCourseId(event.target.value)} required><option value="">Chọn khóa học</option>{adminCourses.map(course=><option key={course.id} value={course.id}>{course.title}{course.published?"":" (bản nháp)"}</option>)}</select></label><button className="primary-btn small" disabled={assigningCourse}>{assigningCourse?"Đang phân…":"Phân khóa học"}</button></form><div className="enrollment-list">{enrollments.length?enrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const course=adminCourses.find(item=>item.id===row.course_id);return <article key={`${row.student_id}-${row.course_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}{student?.email ? ` · ${student.email}` : ""}</small></div><ChevronRight/><div><b>{course?.title??"Khóa học không tồn tại"}</b><small>{course?.published?"Đã xuất bản":"Bản nháp"}</small></div><button className="outline-btn danger" onClick={()=>removeEnrollment(row.student_id,row.course_id)}><Trash2/> Bỏ phân</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân khóa."/>}</div></section>
+      <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân phòng thi</h2><p className="muted">Áp dụng cho phòng có quyền truy cập “Chỉ học viên được phân”.</p></div></div><form className="enrollment-form" onSubmit={assignExamRoom}><label>Học viên<select value={assignExamStudentId} onChange={event=>setAssignExamStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}{student.email ? ` — ${student.email}` : ""}</option>)}</select></label><label>Phòng thi<select value={assignExamRoomId} onChange={event=>setAssignExamRoomId(event.target.value)} required><option value="">Chọn phòng thi</option>{adminExamRooms.map(room=><option key={room.id} value={room.id}>{room.title}{room.access_mode === "open" ? " (đang mở cho mọi học viên)" : ""}{room.published ? "" : " (bản nháp)"}</option>)}</select></label><button className="primary-btn small" disabled={assigningExamRoom}>{assigningExamRoom?"Đang phân…":"Cấp phòng thi"}</button></form><div className="enrollment-list">{examRoomEnrollments.length?examRoomEnrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const room=adminExamRooms.find(item=>item.id===row.room_id);return <article key={`${row.student_id}-${row.room_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}{student?.email ? ` · ${student.email}` : ""}</small></div><ChevronRight/><div><b>{room?.title??"Phòng thi không tồn tại"}</b><small>{room?.published?"Đã xuất bản":"Bản nháp"}</small></div><button className="outline-btn danger" onClick={()=>removeExamRoomEnrollment(row.student_id,row.room_id)}><Trash2/> Bỏ quyền</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân phòng thi."/>}</div></section>
+    </div>}
     {modal && <div className="modal-shade"><form className="modal" onSubmit={createStudent}><div className="section-head"><div><span className="eyebrow">TÀI KHOẢN MỚI</span><h2>Thêm học viên</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(false)}><X/></button></div><label>Họ và tên<input value={newFullName} onChange={event=>setNewFullName(event.target.value)} placeholder="Nguyễn Văn A" required/></label><label>Email<input type="email" value={newEmail} onChange={event=>setNewEmail(event.target.value)} placeholder="hocvien@example.com" required/></label><label>Mật khẩu ban đầu<input type="password" value={newStudentPassword} onChange={event=>setNewStudentPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label>{createError && <p className="form-error">{createError}</p>}<p className="info-note">Mã học viên tiếp theo được Supabase tạo tự động theo dạng REMIX000001.</p><button className="primary-btn" disabled={creatingStudent}>{creatingStudent ? "Đang tạo…" : "Tạo tài khoản"}</button></form></div>}
     {passwordStudent && <div className="modal-shade"><form className="modal password-modal" onSubmit={changeStudentPassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT HỌC VIÊN</span><h2>Đổi mật khẩu</h2></div><button type="button" className="icon-btn" onClick={closeStudentPassword} disabled={savingStudentPassword}><X/></button></div><div className="student-password-identity"><span className="mini-avatar">{passwordStudent.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><div><b>{passwordStudent.full_name}</b><small>{passwordStudent.student_code}</small></div></div><label>Mật khẩu mới<input type="password" autoComplete="new-password" value={adminStudentPassword} onChange={event=>setAdminStudentPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required autoFocus/></label><label>Xác nhận mật khẩu<input type="password" autoComplete="new-password" value={adminStudentPasswordConfirm} onChange={event=>setAdminStudentPasswordConfirm(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{studentPasswordError && <p className="form-error">{studentPasswordError}</p>}<p className="info-note">Học viên có thể đăng nhập ngay bằng mật khẩu mới sau khi cập nhật.</p><button className="primary-btn" disabled={savingStudentPassword}>{savingStudentPassword ? "Đang cập nhật…" : "Cập nhật mật khẩu"}</button></form></div>}
     {courseModal && <div className="modal-shade"><form className="modal" onSubmit={createCourse}><div className="section-head"><div><span className="eyebrow">NỘI DUNG MỚI</span><h2>Tạo khóa học</h2></div><button type="button" className="icon-btn" onClick={()=>setCourseModal(false)}><X/></button></div><label>Tên khóa học<input value={newCourseTitle} onChange={event=>setNewCourseTitle(event.target.value)} placeholder="Nhập tên khóa học" required/></label><label>Mô tả<textarea value={newCourseDescription} onChange={event=>setNewCourseDescription(event.target.value)} placeholder="Mô tả ngắn về khóa học" rows={4}/></label><label>Ảnh bìa (URL)<input type="url" value={newCourseCoverUrl} onChange={event=>setNewCourseCoverUrl(event.target.value)} placeholder="https://..."/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(newCourseColor)} onChange={event=>setNewCourseColor(event.target.value)}/><input value={newCourseColor} onChange={event=>setNewCourseColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={newCoursePublished} onChange={event=>setNewCoursePublished(event.target.checked)}/><span>Xuất bản ngay</span></label>{courseError && <p className="form-error">{courseError}</p>}<p className="info-note">Màu chỉ áp dụng cho bìa của khóa học này khi chưa có ảnh. Học viên chỉ nhìn thấy sau khi được phân khóa học.</p><button className="primary-btn" disabled={creatingCourse}>{creatingCourse ? "Đang tạo…" : "Tạo khóa học"}</button></form></div>}

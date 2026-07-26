@@ -196,3 +196,6 @@ html,body{background:#fff}
 /* Admin sections stay usable when the tab list grows on small screens. */
 .admin-tabs{overflow-x:auto;scrollbar-width:thin}
 .admin-tabs button{flex:0 0 auto;white-space:nowrap}
+
+.assignment-page{display:flex;flex-direction:column;gap:20px}.assignment-page-head h2{margin:6px 0 4px;font-size:27px}.assignment-page-head p{margin:0;color:var(--muted)}
+@media(max-width:767px){.assignment-page-head h2{font-size:23px}.assignment-page .section-card{padding:18px}.assignment-page .enrollment-form{grid-template-columns:1fr}.assignment-page .enrollment-list>article{grid-template-columns:1fr}.assignment-page .enrollment-list>article>svg{transform:rotate(90deg)}}

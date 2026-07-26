@@ -47,7 +47,7 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminUsersRoute] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
@@ -66,6 +66,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
     readFile(new URL("../supabase/migrations/006_exam_room_module.sql", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exams.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exams.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/users/route.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /"\/dashboard"/);
@@ -219,5 +220,11 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(adminExams, /from\("exam_questions"\)\.insert/);
   assert.match(adminExams, /from\("exam_question_keys"\)\.insert/);
   assert.match(adminExamsCss, /@media\(max-width:767px\)/);
+  assert.match(platform, /\["enrollments","Phân quyền"\]/);
+  assert.match(platform, /supabase\.from\("exam_room_enrollments"\)\.upsert/);
+  assert.match(platform, /student\.email/);
+  assert.match(adminUsersRoute, /export async function GET/);
+  assert.match(adminUsersRoute, /admin\.auth\.admin\.listUsers/);
+  assert.doesNotMatch(adminExams, /Phân quyền học viên/);
   assert.doesNotMatch(pdfViewerHtml, /Mở file gốc|Mở tài liệu trong tab mới/);
 });

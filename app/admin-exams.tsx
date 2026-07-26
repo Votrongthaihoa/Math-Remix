@@ -5,7 +5,7 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import {
   CalendarDays, ChevronRight, ClipboardCheck, FilePlus2, FolderPlus,
-  GraduationCap, Pencil, Plus, Save, Settings2, Trash2, UserPlus, X
+  GraduationCap, Pencil, Plus, Save, Settings2, Trash2, X
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import LoadingIndicator from "./loading-indicator";
@@ -16,8 +16,6 @@ type Exam = { id: string; room_id: string; title: string; description: string; e
 type Section = { id: string; exam_id: string; title: string; duration_minutes: number | null; sort_order: number };
 type Question = { id: string; section_id: string; prompt: string; question_type: "single" | "multiple" | "text"; options: Array<{ value: string; label: string }>; points: number; sort_order: number };
 type KeyRow = { question_id: string; correct_answer: string | string[]; explanation: string };
-type Student = { id: string; full_name: string; student_code: string; status: string };
-type Enrollment = { room_id: string; student_id: string };
 type ModalType = "room" | "exam" | "section" | "question" | null;
 
 function toLocalInput(value: string | null) {
@@ -36,14 +34,12 @@ function MathPreview({ text }: { text: string }) {
   return <div className="admin-exam-math-preview"><small>Xem trước</small>{html ? <span dangerouslySetInnerHTML={{ __html: html }} /> : <span>{text || "Nhập nội dung câu hỏi và công thức trong $...$ hoặc $$...$$"}</span>}</div>;
 }
 
-export default function AdminExamManager({ students: suppliedStudents = [] }: { students?: Student[] }) {
+export default function AdminExamManager() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [keys, setKeys] = useState<KeyRow[]>([]);
-  const [students, setStudents] = useState<Student[]>(suppliedStudents);
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [selectedExamId, setSelectedExamId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -54,7 +50,6 @@ export default function AdminExamManager({ students: suppliedStudents = [] }: { 
   const [modalParentId, setModalParentId] = useState("");
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
-  const [assignStudentId, setAssignStudentId] = useState("");
 
   const load = useCallback(async () => {
     if (!supabase) { setError("Chưa cấu hình Supabase."); setLoading(false); return; }
@@ -73,14 +68,12 @@ export default function AdminExamManager({ students: suppliedStudents = [] }: { 
     const questionRows = (questionResult.data ?? []) as Question[];
     const questionIds = questionRows.map(question => question.id);
     const keyResult = questionIds.length ? await supabase.from("exam_question_keys").select("question_id,correct_answer,explanation").in("question_id", questionIds) : { data: [], error: null };
-    const enrollmentResult = roomIds.length ? await supabase.from("exam_room_enrollments").select("room_id,student_id").in("room_id", roomIds) : { data: [], error: null };
-    const studentResult = suppliedStudents.length ? { data: suppliedStudents, error: null } : await supabase.from("profiles").select("id,full_name,student_code,status").eq("role", "student").order("student_code");
-    const firstError = examResult.error ?? sectionResult.error ?? questionResult.error ?? keyResult.error ?? enrollmentResult.error ?? studentResult.error;
+    const firstError = examResult.error ?? sectionResult.error ?? questionResult.error ?? keyResult.error;
     if (firstError) setError(firstError.message);
-    setRooms(roomRows); setExams(examRows); setSections(sectionRows); setQuestions(questionRows); setKeys((keyResult.data ?? []) as KeyRow[]); setEnrollments((enrollmentResult.data ?? []) as Enrollment[]); setStudents((studentResult.data ?? []) as Student[]);
+    setRooms(roomRows); setExams(examRows); setSections(sectionRows); setQuestions(questionRows); setKeys((keyResult.data ?? []) as KeyRow[]);
     setSelectedRoomId(previous => roomRows.some(room => room.id === previous) ? previous : roomRows[0]?.id ?? "");
     setLoading(false);
-  }, [suppliedStudents]);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -91,7 +84,6 @@ export default function AdminExamManager({ students: suppliedStudents = [] }: { 
   const roomExams = exams.filter(exam => exam.room_id === selectedRoomId);
   const selectedExam = exams.find(exam => exam.id === selectedExamId) ?? null;
   const examSections = sections.filter(section => section.exam_id === selectedExamId);
-  const roomEnrollments = enrollments.filter(row => row.room_id === selectedRoomId);
 
   useEffect(() => {
     if (selectedExamId && roomExams.some(exam => exam.id === selectedExamId)) return;
@@ -123,18 +115,6 @@ export default function AdminExamManager({ students: suppliedStudents = [] }: { 
     if (deleteError) setError(deleteError.message); else { setNotice(`Đã xóa ${label}.`); await load(); }
   }
 
-  async function assignStudent(event: React.FormEvent) {
-    event.preventDefault(); if (!supabase || !selectedRoomId || !assignStudentId) return;
-    setSaving(true); const { error: assignError } = await supabase.from("exam_room_enrollments").upsert({ room_id: selectedRoomId, student_id: assignStudentId }); setSaving(false);
-    if (assignError) setError(assignError.message); else { setAssignStudentId(""); setNotice("Đã cấp quyền phòng thi cho học viên."); await load(); }
-  }
-
-  async function revokeStudent(studentId: string) {
-    if (!supabase) return;
-    const { error: revokeError } = await supabase.from("exam_room_enrollments").delete().eq("room_id", selectedRoomId).eq("student_id", studentId);
-    if (revokeError) setError(revokeError.message); else await load();
-  }
-
   if (loading) return <LoadingIndicator label="Đang tải dữ liệu khảo thí…" />;
   return <div className="admin-exam-manager">
     <header className="admin-exam-header"><div><span className="eyebrow">QUẢN TRỊ KHẢO THÍ</span><h2>Phòng thi và ngân hàng đề</h2><p>Tạo dữ liệu theo cấp Phòng → Đề → Phần → Câu hỏi và đáp án.</p></div><button className="primary-btn small" onClick={() => openModal("room")}><Plus/>Tạo phòng thi</button></header>
@@ -143,11 +123,10 @@ export default function AdminExamManager({ students: suppliedStudents = [] }: { 
       <aside className="admin-exam-room-list"><div className="admin-exam-panel-title"><span><ClipboardCheck/>Phòng thi</span><b>{rooms.length}</b></div>{rooms.length ? rooms.map(room => <button key={room.id} className={room.id === selectedRoomId ? "active" : ""} onClick={() => setSelectedRoomId(room.id)}><span><b>{room.title}</b><small>{exams.filter(exam => exam.room_id === room.id).length} đề · {room.published ? "Đã xuất bản" : "Bản nháp"}</small></span><ChevronRight/></button>) : <div className="admin-exam-empty"><ClipboardCheck/><p>Chưa có phòng thi.</p></div>}</aside>
       <section className="admin-exam-workspace">{selectedRoom ? <>
         <div className="admin-exam-toolbar"><div><span className="exam-admin-badge">{selectedRoom.exam_type}</span><h3>{selectedRoom.title}</h3><p>{selectedRoom.description || "Chưa có mô tả."}</p></div><div><button className="outline-btn" onClick={() => setEditingRoom({ ...selectedRoom })}><Pencil/>Sửa phòng</button><button className="outline-btn danger" onClick={() => void remove("exam_rooms", selectedRoom.id, "phòng thi")}><Trash2/></button></div></div>
-        <div className="admin-exam-summary"><span><CalendarDays/><small>Thời gian thi</small><b>{selectedRoom.exam_start ? new Date(selectedRoom.exam_start).toLocaleString("vi-VN") : "Không giới hạn"}</b></span><span><GraduationCap/><small>Quyền truy cập</small><b>{selectedRoom.access_mode === "open" ? "Mọi học viên" : `${roomEnrollments.length} học viên`}</b></span><span><ClipboardCheck/><small>Trạng thái</small><b>{selectedRoom.published ? "Đã xuất bản" : "Bản nháp"}</b></span></div>
+        <div className="admin-exam-summary"><span><CalendarDays/><small>Thời gian thi</small><b>{selectedRoom.exam_start ? new Date(selectedRoom.exam_start).toLocaleString("vi-VN") : "Không giới hạn"}</b></span><span><GraduationCap/><small>Quyền truy cập</small><b>{selectedRoom.access_mode === "open" ? "Mọi học viên" : "Theo tab Phân quyền"}</b></span><span><ClipboardCheck/><small>Trạng thái</small><b>{selectedRoom.published ? "Đã xuất bản" : "Bản nháp"}</b></span></div>
         <div className="admin-exam-content-head"><div><h3>Danh sách đề thi</h3><p>Chọn một đề để quản lý phần và câu hỏi.</p></div><button className="primary-btn small" onClick={() => openModal("exam", selectedRoom.id)}><FilePlus2/>Thêm đề</button></div>
         <div className="admin-exam-card-grid">{roomExams.length ? roomExams.map(exam => <article key={exam.id} className={exam.id === selectedExamId ? "selected" : ""} onClick={() => setSelectedExamId(exam.id)}><div><span>{exam.exam_type}</span><h4>{exam.title}</h4><p>{exam.duration_minutes} phút · {sections.filter(section => section.exam_id === exam.id).length} phần · {exam.published ? "Đã xuất bản" : "Bản nháp"}</p></div><div><button aria-label="Sửa đề" onClick={event => { event.stopPropagation(); setEditingExam({ ...exam }); }}><Settings2/></button><button aria-label="Xóa đề" onClick={event => { event.stopPropagation(); void remove("exams", exam.id, "đề thi"); }}><Trash2/></button></div></article>) : <div className="admin-exam-empty wide"><FilePlus2/><p>Chưa có đề thi trong phòng này.</p></div>}</div>
         {selectedExam && <ExamTree exam={selectedExam} sections={examSections} questions={questions} keys={keys} onModal={openModal} onDelete={remove} />}
-        <section className="admin-exam-access"><div className="admin-exam-content-head"><div><h3>Phân quyền học viên</h3><p>Chỉ áp dụng khi phòng đặt ở chế độ “Được phân”.</p></div></div><form onSubmit={assignStudent}><select value={assignStudentId} onChange={event => setAssignStudentId(event.target.value)} disabled={selectedRoom.access_mode === "open"}><option value="">Chọn học viên</option>{students.filter(student => !roomEnrollments.some(row => row.student_id === student.id)).map(student => <option key={student.id} value={student.id}>{student.student_code} — {student.full_name}</option>)}</select><button className="primary-btn small" disabled={saving || !assignStudentId || selectedRoom.access_mode === "open"}><UserPlus/>Cấp quyền</button></form><div className="admin-exam-students">{roomEnrollments.map(row => { const student = students.find(item => item.id === row.student_id); return <span key={row.student_id}><i>{student?.full_name.split(" ").slice(-2).map(part => part[0]).join("") || "HV"}</i><b>{student?.student_code ?? "Học viên"}</b><small>{student?.full_name}</small><button onClick={() => void revokeStudent(row.student_id)} aria-label="Bỏ quyền"><X/></button></span>; })}</div></section>
       </> : <div className="admin-exam-empty workspace"><ClipboardCheck/><h3>Chưa có phòng thi</h3><p>Hãy tạo phòng thi đầu tiên để bắt đầu xây dựng đề.</p></div>}</section>
     </div>
     {modal && <CreateExamModal type={modal} parentId={modalParentId} counts={{ rooms: rooms.length, exams: roomExams.length, sections: examSections.length, questions: questions.length }} onClose={() => setModal(null)} onCreated={async id => { setModal(null); setNotice("Đã tạo dữ liệu khảo thí."); await load(); if (modal === "room") setSelectedRoomId(id); if (modal === "exam") setSelectedExamId(id); }} />}
