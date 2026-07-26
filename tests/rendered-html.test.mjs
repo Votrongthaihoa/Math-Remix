@@ -47,7 +47,7 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
@@ -60,6 +60,10 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
     readFile(new URL("../lib/content-token.ts", import.meta.url), "utf8"),
     readFile(new URL("../public/yt-embed-player.html", import.meta.url), "utf8"),
     readFile(new URL("../public/pdf-viewer.html", import.meta.url), "utf8"),
+    readFile(new URL("../app/exam-room.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/exam-room.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/exams/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../supabase/migrations/006_exam_room_module.sql", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /"\/dashboard"/);
@@ -194,5 +198,16 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(videoPlayer, /\/api\/lesson-pdf-download/);
   assert.match(videoPlayer, /resource\.allow_download/);
   assert.match(pdfViewerHtml, /remix:pdf-download-request/);
+  assert.match(platform, /lazy\(\(\) => import\("\.\/exam-room"\)\)/);
+  assert.match(examRoom, /katex\.renderToString/);
+  assert.match(examRoom, /trust: false/);
+  assert.match(examRoom, /QuestionPalette/);
+  assert.match(examRoom, /\/api\/exams\?scope=/);
+  assert.match(examCss, /@media\(max-width:767px\)/);
+  assert.match(examCss, /\.exam-question-actions\{position:fixed/);
+  assert.match(examsRoute, /exam_question_keys/);
+  assert.match(examsRoute, /status: "in_progress"/);
+  assert.match(examMigration, /create table if not exists public\.exam_rooms/);
+  assert.match(examMigration, /create table if not exists public\.exam_question_keys/);
   assert.doesNotMatch(pdfViewerHtml, /Mở file gốc|Mở tài liệu trong tab mới/);
 });

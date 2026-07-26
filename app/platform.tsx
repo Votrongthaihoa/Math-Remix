@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import VideoPlayer, { type SecureLessonResource } from "./video-player";
 import LoadingIndicator from "./loading-indicator";
@@ -10,6 +10,8 @@ import {
   Search, ShieldCheck, Users, Library, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2,
   ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown
 } from "lucide-react";
+
+const ExamRoomModule = lazy(() => import("./exam-room"));
 
 type View = "overview" | "exams" | "courses" | "history" | "profile" | "admin" | "course" | "lesson";
 type AuthMode = "login" | "forgot" | "reset";
@@ -66,7 +68,7 @@ function viewFromPath(pathname: string): View {
   if (pathname.startsWith("/lessons/")) return "lesson";
   if (pathname.startsWith("/courses/") && pathname !== "/courses/") return "course";
   if (pathname === "/courses") return "courses";
-  if (pathname === "/exam-room") return "exams";
+  if (pathname === "/exam-room" || pathname.startsWith("/exam-room/") || pathname.startsWith("/exam/")) return "exams";
   if (pathname === "/exam-history") return "history";
   if (pathname === "/profile") return "profile";
   if (pathname.startsWith("/admin")) return "admin";
@@ -289,7 +291,7 @@ export default function PlatformApp() {
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} onOpen={courseId => go("course", `/courses/${encodeURIComponent(String(courseId))}`)} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} onBack={() => go("courses")} onLesson={lessonId => go("lesson", `/lessons/${encodeURIComponent(lessonId)}`)} />}
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onBack={courseId => courseId ? go("course", `/courses/${encodeURIComponent(courseId)}`) : go("courses")} onLesson={(nextLessonId, resourceId) => go("lesson", `/lessons/${encodeURIComponent(nextLessonId)}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ""}`)} />}
-        {currentView === "exams" && <EmptyState icon={ClipboardCheck} title="Phòng khảo thí đang được chuẩn bị" text="Các kỳ thi sẽ xuất hiện tại đây khi mô-đun khảo thí được mở." />}
+        {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory />}
         {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} />}
         {currentView === "admin" && isAdmin && <RealAdminDashboard />}
