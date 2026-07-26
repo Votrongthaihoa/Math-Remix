@@ -22,12 +22,16 @@ test("protected content APIs enforce active account status", async () => {
   for (const file of files) assert.match(file, /ensureActiveAccount\(request, admin\)/);
 });
 
-test("learning guard uses verified device, visibility-aware heartbeat and OTP", async () => {
+test("learning guard tracks devices and heartbeats without email verification", async () => {
   const [guard, sessionApi, platform, exam] = await Promise.all([source("app/account-security-guard.tsx"), source("app/api/security/session/route.ts"), source("app/platform.tsx"), source("app/exam-room.tsx")]);
   assert.match(guard, /crypto\.randomUUID\(\)/);
   assert.match(guard, /document\.visibilityState !== "visible"/);
   assert.match(guard, /60_000/);
-  assert.match(guard, /verifyOtp\(\{ email, token: otp\.trim\(\), type: "email" \}\)/);
+  // OTP was removed until transactional email is configured. Assert it is gone
+  // from both halves, so a partial restore cannot leave students facing a 428
+  // challenge that the client can no longer answer.
+  assert.doesNotMatch(guard, /verifyOtp|signInWithOtp/);
+  assert.doesNotMatch(sessionApi, /device_verification_challenges|OTP_REQUIRED/);
   assert.match(sessionApi, /DEVICE_LIMIT_REACHED/);
   assert.match(sessionApi, /score >= 100/);
   assert.match(sessionApi, /apply_account_violation/);

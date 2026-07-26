@@ -1,7 +1,7 @@
 import { banPayload, ensureActiveAccount, hashedRequestIp, haversineKm, requestLocation, riskScore, type ActivityType } from "../../../../lib/security-server";
 
 type SecurityBody = {
-  action?: "start" | "heartbeat" | "stop" | "verify-device" | "status";
+  action?: "start" | "heartbeat" | "stop" | "status";
   sessionId?: string;
   deviceId?: string;
   deviceName?: string;
@@ -27,17 +27,6 @@ export async function POST(request: Request) {
   const deviceId = clean(body.deviceId, 80);
   if (!uuidPattern.test(deviceId)) return Response.json({ allowed: false, code: "INVALID_DEVICE_ID", message: "Mã thiết bị không hợp lệ." }, { status: 400, headers: noStore });
 
-  if (action === "verify-device") {
-    const { data: challenge } = await admin.from("device_verification_challenges").select("id,initial_auth_session_id,expires_at").eq("user_id", user.id).eq("device_id", deviceId).is("verified_at", null).gt("expires_at", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (!challenge || !authSessionId || challenge.initial_auth_session_id === authSessionId) return Response.json({ allowed: false, code: "OTP_VERIFICATION_REQUIRED", message: "Phiên OTP chưa được xác minh." }, { status: 428, headers: noStore });
-    const { count } = await admin.from("trusted_devices").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("revoked_at", null).not("verified_at", "is", null);
-    if ((count ?? 0) >= 2) return Response.json({ allowed: false, code: "DEVICE_LIMIT_REACHED", message: "Tài khoản đã có tối đa 2 thiết bị được xác minh." }, { status: 409, headers: noStore });
-    await admin.from("trusted_devices").upsert({ user_id: user.id, device_id: deviceId, device_name: clean(body.deviceName, 100), browser: clean(body.browser, 80), operating_system: clean(body.operatingSystem, 80), verified_at: new Date().toISOString(), revoked_at: null, last_used_at: new Date().toISOString() }, { onConflict: "user_id,device_id" });
-    await admin.from("device_verification_challenges").update({ verified_at: new Date().toISOString() }).eq("id", challenge.id);
-    await admin.from("security_events").insert({ user_id: user.id, event_type: "otp_verified", reason: "Thiết bị mới đã xác minh OTP.", device_id: deviceId, evidence: { authSessionRotated: true } });
-    return Response.json({ allowed: true, verified: true }, { headers: noStore });
-  }
-
   if (action === "stop") {
     if (body.sessionId) await admin.from("user_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", body.sessionId).eq("user_id", user.id).eq("device_id", deviceId);
     return Response.json({ allowed: true, stopped: true }, { headers: noStore });
@@ -52,18 +41,23 @@ export async function POST(request: Request) {
   const now = new Date();
   const location = requestLocation(request);
   const ipHash = await hashedRequestIp(request);
-  const { data: trusted } = await admin.from("trusted_devices").select("id,verified_at,revoked_at,trusted_by_admin").eq("user_id", user.id).eq("device_id", deviceId).maybeSingle();
+  const { data: knownDevice } = await admin.from("trusted_devices").select("id,verified_at,revoked_at,trusted_by_admin").eq("user_id", user.id).eq("device_id", deviceId).maybeSingle();
+  let trusted = knownDevice;
 
+  // Email verification was removed until transactional email is configured, so
+  // a new device is trusted on first sight. The two-device cap below is what
+  // still limits account sharing; restore OTP by reverting the commit that
+  // removed it.
   if (!trusted?.verified_at || trusted.revoked_at) {
     const { count } = await admin.from("trusted_devices").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("revoked_at", null).not("verified_at", "is", null);
     if ((count ?? 0) >= 2) {
       await admin.from("security_events").insert({ user_id: user.id, event_type: "device_limit", risk_score: 20, reason: "Thiết bị thứ ba yêu cầu quản trị viên xem xét.", device_id: deviceId });
       return Response.json({ allowed: false, code: "DEVICE_LIMIT_REACHED", message: "Tài khoản đã có tối đa 2 thiết bị. Hãy liên hệ quản trị viên để đổi thiết bị." }, { status: 409, headers: noStore });
     }
-    const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
-    await admin.from("device_verification_challenges").insert({ user_id: user.id, device_id: deviceId, initial_auth_session_id: authSessionId, expires_at: expiresAt });
-    await admin.from("security_events").insert([{ user_id: user.id, event_type: "new_device", risk_score: 20, reason: "Phát hiện thiết bị mới chưa xác minh.", device_id: deviceId }, { user_id: user.id, event_type: "otp_required", risk_score: 20, reason: "Yêu cầu OTP cho thiết bị mới.", device_id: deviceId }]);
-    return Response.json({ allowed: false, code: "OTP_REQUIRED", requiresOtp: true, message: "Thiết bị mới cần xác minh qua email trước khi học.", email: user.email ?? "", expiresAt }, { status: 428, headers: noStore });
+    const { data: registered } = await admin.from("trusted_devices").upsert({ user_id: user.id, device_id: deviceId, device_name: clean(body.deviceName, 100), browser: clean(body.browser, 80), operating_system: clean(body.operatingSystem, 80), verified_at: now.toISOString(), revoked_at: null, last_used_at: now.toISOString() }, { onConflict: "user_id,device_id" }).select("id,verified_at,revoked_at,trusted_by_admin").single();
+    if (!registered) return Response.json({ allowed: false, code: "DEVICE_TRUST_FAILED", message: "Không thể đăng ký thiết bị học." }, { status: 500, headers: noStore });
+    await admin.from("security_events").insert({ user_id: user.id, event_type: "new_device", risk_score: 20, reason: "Thiết bị mới được ghi nhận và tin cậy tự động.", device_id: deviceId });
+    trusted = registered;
   }
 
   await admin.from("trusted_devices").update({ last_used_at: now.toISOString(), device_name: clean(body.deviceName, 100), browser: clean(body.browser, 80), operating_system: clean(body.operatingSystem, 80) }).eq("id", trusted.id);
@@ -99,8 +93,11 @@ export async function POST(request: Request) {
       await admin.from("security_events").insert({ user_id: user.id, event_type: "warning", risk_score: score, reason: "Đã dừng phiên cũ và cảnh báo tài khoản.", device_id: deviceId, conflicting_device_id: conflict.device_id, evidence: { sourceEventId: event?.id } });
       warning = { code: "CONCURRENT_SESSION_STOPPED", message: "Một phiên học trên thiết bị khác đã được dừng. Nếu tiếp tục xảy ra, tài khoản có thể bị khóa.", riskScore: score };
     } else if (score >= 40) {
-      await admin.from("device_verification_challenges").insert({ user_id: user.id, device_id: deviceId, initial_auth_session_id: authSessionId, expires_at: new Date(Date.now() + 15 * 60_000).toISOString() });
-      return Response.json({ allowed: false, code: "RISK_OTP_REQUIRED", requiresOtp: true, message: "Hoạt động cần được xác minh lại qua email.", riskScore: score, email: user.email ?? "" }, { status: 428, headers: noStore });
+      // Previously an OTP re-verification step. With email removed the activity
+      // is recorded and surfaced as a warning rather than blocking a student on
+      // a challenge they have no way to answer.
+      await admin.from("security_events").insert({ user_id: user.id, event_type: "warning", risk_score: score, reason: "Hoạt động rủi ro trung bình được ghi nhận để quản trị viên xem xét.", device_id: deviceId, conflicting_device_id: conflict.device_id, evidence: { sourceEventId: event?.id } });
+      warning = { code: "RISK_REVIEW_REQUIRED", message: "Hệ thống ghi nhận dấu hiệu bất thường trên tài khoản của bạn.", riskScore: score };
     }
   }
 

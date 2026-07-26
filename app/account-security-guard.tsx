@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { AlertTriangle, LockKeyhole } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 type ActivityType = "lesson" | "video" | "pdf" | "quiz" | "exam";
@@ -11,8 +11,6 @@ type SecurityReply = {
   message?: string;
   reason?: string;
   sessionId?: string;
-  requiresOtp?: boolean;
-  email?: string;
   bannedUntil?: string | null;
   serverTime?: string;
   violationNumber?: number;
@@ -49,18 +47,15 @@ function remainingLabel(milliseconds: number) {
 }
 
 export default function AccountSecurityGuard({ activityType, resourceId }: { activityType: ActivityType; resourceId: string }) {
-  const [state, setState] = useState<"checking" | "allowed" | "otp" | "blocked">("checking");
+  const [state, setState] = useState<"checking" | "allowed" | "blocked">("checking");
   const [reply, setReply] = useState<SecurityReply>({});
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [remaining, setRemaining] = useState(0);
   const sessionId = useRef<string | null>(null);
   const deviceId = useRef<string>("");
   const info = useMemo(() => typeof navigator === "undefined" ? { browser: "", operatingSystem: "", deviceName: "" } : deviceInfo(), []);
 
-  const callSecurity = useCallback(async (action: "start" | "heartbeat" | "stop" | "verify-device" | "status") => {
+  const callSecurity = useCallback(async (action: "start" | "heartbeat" | "stop" | "status") => {
     if (!supabase) throw new Error("Chưa cấu hình Supabase.");
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw new Error("Phiên đăng nhập đã hết hạn.");
@@ -84,8 +79,7 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
         sessionId.current = payload.sessionId;
         sessionStorage.setItem(SESSION_KEY, payload.sessionId);
         setState("allowed");
-      } else if (payload.requiresOtp) setState("otp");
-      else setState("blocked");
+      } else setState("blocked");
     } catch (value) {
       setError(value instanceof Error ? value.message : "Không thể kiểm tra phiên học.");
       setState("blocked");
@@ -113,7 +107,7 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
       const payload = await callSecurity("heartbeat").catch(() => null);
       if (!payload) return;
       setReply(payload);
-      if (!payload.allowed) setState(payload.requiresOtp ? "otp" : "blocked");
+      if (!payload.allowed) setState("blocked");
     };
     const timer = window.setInterval(() => void heartbeat(), 60_000);
     const onVisible = () => { if (document.visibilityState === "visible") void heartbeat(); };
@@ -130,40 +124,11 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
     return () => window.clearInterval(timer);
   }, [reply.bannedUntil, reply.serverTime]);
 
-  async function sendOtp() {
-    if (!supabase) return;
-    setBusy(true); setError("");
-    const { data } = await supabase.auth.getUser();
-    const email = data.user?.email || reply.email;
-    const { error: sendError } = email ? await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } }) : { error: new Error("Không tìm thấy email tài khoản.") };
-    setBusy(false);
-    if (sendError) { setError(sendError.message.includes("rate limit") ? "Bạn đã yêu cầu mã quá nhiều lần. Vui lòng chờ rồi thử lại." : sendError.message); return; }
-    setOtpSent(true);
-  }
-
-  async function verifyOtp() {
-    if (!supabase) return;
-    setBusy(true); setError("");
-    const { data } = await supabase.auth.getUser();
-    const email = data.user?.email || reply.email;
-    if (!email) { setError("Không tìm thấy email tài khoản."); setBusy(false); return; }
-    const { error: verifyError } = await supabase.auth.verifyOtp({ email, token: otp.trim(), type: "email" });
-    if (verifyError) { setError("Mã xác minh không đúng hoặc đã hết hạn."); setBusy(false); return; }
-    const verified = await callSecurity("verify-device").catch(value => ({ allowed: false, message: value instanceof Error ? value.message : "Không thể xác minh thiết bị." }));
-    setBusy(false);
-    if (!verified.allowed) { setError(verified.message || "Không thể xác minh thiết bị."); return; }
-    setOtp(""); setOtpSent(false);
-    await start();
-  }
-
   if (state === "allowed") return reply.warning?.message ? <div className="security-inline-warning"><AlertTriangle />{reply.warning.message}</div> : null;
   return <div className="security-gate" role="dialog" aria-modal="true">
     <section className="security-gate-card">
-      <div className={`security-gate-icon ${state === "otp" ? "verify" : "blocked"}`}>{state === "otp" ? <ShieldCheck /> : <LockKeyhole />}</div>
-      {state === "checking" ? <><h2>Đang kiểm tra phiên học</h2><p>Hệ thống đang xác minh tài khoản và thiết bị.</p></> : state === "otp" ? <>
-        <span className="security-kicker">XÁC MINH THIẾT BỊ</span><h2>Kiểm tra email của bạn</h2><p>{reply.message || "Thiết bị mới cần được xác minh trước khi truy cập nội dung học."}</p>
-        {!otpSent ? <button className="security-primary" disabled={busy} onClick={() => void sendOtp()}><Mail />{busy ? "Đang gửi…" : "Gửi mã xác minh"}</button> : <><label>Mã gồm 6 chữ số<input inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={otp} onChange={event => setOtp(event.target.value.replace(/\D/g, ""))} /></label><button className="security-primary" disabled={busy || otp.length < 6} onClick={() => void verifyOtp()}>{busy ? "Đang xác minh…" : "Xác minh và tiếp tục"}</button><button className="security-link" disabled={busy} onClick={() => void sendOtp()}>Gửi lại mã</button></>}
-      </> : <>
+      <div className="security-gate-icon blocked"><LockKeyhole /></div>
+      {state === "checking" ? <><h2>Đang kiểm tra phiên học</h2><p>Hệ thống đang xác minh tài khoản và thiết bị.</p></> : <>
         <span className="security-kicker">BẢO MẬT TÀI KHOẢN</span><h2>{reply.code?.includes("BANNED") ? "Tài khoản đang bị khóa" : "Không thể mở nội dung"}</h2><p>{reply.reason || reply.message || error}</p>
         {reply.bannedUntil && <div className="security-ban-time"><small>Thời gian còn lại</small><b>{remainingLabel(remaining)}</b><span>Có thể truy cập lại lúc {new Date(reply.bannedUntil).toLocaleString("vi-VN")}</span></div>}
         {reply.violationNumber ? <p>Mức vi phạm: <b>Lần {reply.violationNumber}</b></p> : null}
