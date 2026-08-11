@@ -3,6 +3,33 @@ import test from "node:test";
 
 import { answersMatch, buildAnswerKeySnapshot, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, scoreExamQuestionsWithOverrides, scoreExamQuestionsWithOverridesForContext } from "../lib/exam-answers.ts";
 import { THPTQG_SUBJECT_TEMPLATES } from "../lib/exam-config.ts";
+import { positionalOptionParts } from "../lib/exam-option-display.ts";
+
+test("keeps A-D positional while shuffled content retains its scoring identity", () => {
+  const shuffled = [
+    { value: "C", label: "Gamma" },
+    { value: "A", label: "Alpha" },
+    { value: "D", label: "Delta" },
+    { value: "B", label: "Beta" },
+  ].map((option, index) => positionalOptionParts(option, index));
+
+  assert.deepEqual(shuffled.map(option => option.displayLabel), ["A", "B", "C", "D"]);
+  assert.deepEqual(shuffled.map(option => option.label), ["Gamma", "Alpha", "Delta", "Beta"]);
+  assert.deepEqual(shuffled.map(option => option.value), ["C", "A", "D", "B"]);
+  assert.deepEqual(
+    scoreExamQuestions(
+      [{ id: "single", question_type: "single" }],
+      { single: shuffled[0].value },
+      new Map([["single", "C"]]),
+    ),
+    { correctAnswers: 1, totalQuestions: 1, score: 100 },
+  );
+});
+
+test("uses the attempt option snapshot as the stable identity for string options", () => {
+  const displayed = positionalOptionParts("Gamma", 0, "C");
+  assert.deepEqual(displayed, { value: "C", displayLabel: "A", label: "Gamma" });
+});
 
 test("scores single and multiple choice answers consistently", () => {
   const questions = [

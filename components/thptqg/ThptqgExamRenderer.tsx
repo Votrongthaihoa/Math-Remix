@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { ChevronLeft, ChevronRight, Computer, FilePenLine, List, Maximize2, Menu, Timer, ZoomIn, ZoomOut, X } from "lucide-react";
 import { isGuestExamImage, RichQuestionContent as BaseRichQuestionContent } from "../remixstudyedu/MathExam";
 import { formatLatexAnswerForDisplay, latexPartInstruction, normalizeLatexContent, resolveBaidocQuestionRange, type LatexPartNumber } from "../../lib/exam-latex";
+import { positionalOptionParts } from "../../lib/exam-option-display";
 import "./thptqg.css";
 
 type RichQuestionContentProps = {
@@ -21,7 +22,7 @@ function TsaRichQuestionContent({ mathDisplayStyle, inline, renderBlank, ...prop
 
 type AnswerValue = string | string[];
 type OptionValue = string | { id?: string; value?: string; label?: string; text?: string };
-type Question = { id: string; prompt: string; question_type: "single" | "multiple" | "text" | "inline" | "true_false" | "ordering" | "drag_drop"; options: OptionValue[]; option_columns?: number; passage?: string | null; media_url?: string | null; instruction?: string | null; solution?: string | null; part?: LatexPartNumber; _displayNumber?: number; _partInstruction?: string; _loading?: boolean; _loadError?: string };
+type Question = { id: string; prompt: string; question_type: "single" | "multiple" | "text" | "inline" | "true_false" | "ordering" | "drag_drop"; options: OptionValue[]; option_order?: string[]; option_columns?: number; passage?: string | null; media_url?: string | null; instruction?: string | null; solution?: string | null; part?: LatexPartNumber; _displayNumber?: number; _partInstruction?: string; _loading?: boolean; _loadError?: string };
 type ThptqgProgress = { answers: Record<string, AnswerValue>; marked: string[]; currentIndex: number; remainingSeconds: number; questionSeconds: number };
 
 type QuestionDisplayMeta = { number: number; partInstruction?: string };
@@ -66,11 +67,6 @@ function buildPassageGroups(questions: Question[], displayMeta: QuestionDisplayM
     else groups.push({ key, passage, startIndex: index, items: [item] });
   });
   return groups;
-}
-
-function optionParts(option: OptionValue, index: number) {
-  if (typeof option === "string") return { value: String.fromCharCode(65 + index), label: option };
-  return { value: option.value ?? option.id ?? String.fromCharCode(65 + index), label: option.label ?? option.text ?? option.value ?? `Phương án ${index + 1}` };
 }
 
 function wrapBareVectorCommands(value: string) {
@@ -282,7 +278,7 @@ function QuestionCard({ question, index, number, partInstruction: partHeading, v
   onToggleMark: () => void;
 }) {
   const questionListContext = useContext(QuestionListContext);
-  const options = question.options.map(optionParts);
+  const options = question.options.map((option, optionIndex) => positionalOptionParts(option, optionIndex, question.option_order?.[optionIndex]));
   const optionColumns = Math.min(4, Math.max(1, Number(question.option_columns) || 1));
   const selected = Array.isArray(value) ? value : value ? [value] : [];
   const choose = (optionValue: string) => {
@@ -313,7 +309,7 @@ function QuestionCard({ question, index, number, partInstruction: partHeading, v
     </div>
     {question.question_type === "text" && <ShortAnswerField value={typeof value === "string" ? value : ""} number={number} readOnly={readOnly} onAnswer={onAnswer} />}
     {question.question_type === "true_false" && <div className="thptqg-true-false true-false-list" role="table" aria-label="Các khẳng định đúng sai"><div className="true-false-head" role="row"><span>Phát biểu</span><span>Đúng</span><span>Sai</span></div>{options.map((option, index) => { const statement = `${String.fromCharCode(97 + index)}) ${option.label}`; return <div className="true-false-row" role="row" key={`${option.value}-${index}`}><TsaRichQuestionContent content={richContent(statement)} renderBlank={undefined} inline /><div className="true-false-cell"><button type="button" className={inlineValues[index] === "true" ? "selected true" : ""} onClick={() => { const next = [...inlineValues]; next[index] = "true"; onAnswer(next); }} disabled={readOnly} aria-label={`${statement}: Đúng`} aria-pressed={inlineValues[index] === "true"} /></div><div className="true-false-cell"><button type="button" className={inlineValues[index] === "false" ? "selected false" : ""} onClick={() => { const next = [...inlineValues]; next[index] = "false"; onAnswer(next); }} disabled={readOnly} aria-label={`${statement}: Sai`} aria-pressed={inlineValues[index] === "false"} /></div></div>; })}</div>}
-    {!(["text", "inline", "true_false"].includes(question.question_type)) && <div className={`thptqg-options math-choice-list columns-${optionColumns} ${question.question_type === "multiple" ? "multiple" : "single"}`}>{options.map((option, index) => { const isSelected = selected.includes(option.value); return <div role={readOnly ? undefined : "button"} tabIndex={readOnly ? undefined : 0} key={`${option.value}-${index}`} className={`thptqg-choice-option ${isSelected ? "selected" : ""}${readOnly ? " is-read-only" : ""}`} onClick={readOnly ? undefined : () => choose(option.value)} onKeyDown={readOnly ? undefined : event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(option.value); } }} aria-pressed={readOnly ? undefined : isSelected} aria-disabled={readOnly || undefined} aria-label={`${option.value}. ${option.label}`}><span className="thptqg-choice-letter" aria-hidden="true">{option.value}</span><div className="thptqg-choice-content"><TsaRichQuestionContent content={richContent(option.label)} renderBlank={undefined} inline /></div></div>; })}</div>}
+    {!(["text", "inline", "true_false"].includes(question.question_type)) && <div className={`thptqg-options math-choice-list columns-${optionColumns} ${question.question_type === "multiple" ? "multiple" : "single"}`}>{options.map((option, index) => { const isSelected = selected.includes(option.value); return <div role={readOnly ? undefined : "button"} tabIndex={readOnly ? undefined : 0} key={`${option.value}-${index}`} className={`thptqg-choice-option ${isSelected ? "selected" : ""}${readOnly ? " is-read-only" : ""}`} onClick={readOnly ? undefined : () => choose(option.value)} onKeyDown={readOnly ? undefined : event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(option.value); } }} aria-pressed={readOnly ? undefined : isSelected} aria-disabled={readOnly || undefined} aria-label={`${option.displayLabel}. ${option.label}`}><span className="thptqg-choice-letter" aria-hidden="true">{option.displayLabel}</span><div className="thptqg-choice-content"><TsaRichQuestionContent content={richContent(option.label)} renderBlank={undefined} inline /></div></div>; })}</div>}
     {previewMode === "answer" && <>
       <div className="thptqg-feedback-row">
         <button type="button" className="thptqg-solution-toggle" aria-expanded={solutionOpen} onClick={() => setSolutionOpen(open => !open)}>
