@@ -1,0 +1,199 @@
+/* Product-shell polish for the result summary only.
+ * The review overlay and its answer renderer intentionally remain outside
+ * this scope so the measured answer/review surface is unchanged. */
+.ui-shell.student-app.product-shell .exam-result-page {
+  --result-accent: var(--product-blue, #007aff);
+  --result-ink: var(--product-ink, #1d1d1f);
+  --result-body: var(--product-body, #424245);
+  --result-muted: var(--product-muted, #6e6e73);
+  --result-line: var(--product-line, rgba(60, 60, 67, 0.14));
+  width: min(1120px, 100%);
+  gap: 20px;
+  color: var(--result-ink);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-actions .exam-back,
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-actions > button:last-child {
+  min-height: 40px;
+  border: 1px solid var(--result-line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--result-body);
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-actions .exam-back {
+  padding: 8px 11px 8px 8px;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-actions > button:last-child {
+  padding: 8px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-actions button:hover {
+  border-color: rgba(0, 122, 255, 0.32);
+  background: rgba(0, 122, 255, 0.08);
+  color: var(--result-accent);
+  transform: translateY(-1px);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-hero {
+  min-width: 0;
+  border: 1px solid rgba(0, 122, 255, 0.16);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.78), transparent 14rem),
+    linear-gradient(135deg, rgba(234, 244, 255, 0.9), rgba(242, 240, 255, 0.82));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 14px 34px rgba(56, 82, 145, 0.1);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-hero > div:first-child {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-hero > div:first-child > span,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results header span {
+  color: var(--result-accent);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-hero h1,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results h2 {
+  color: var(--result-ink);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-hero p,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results header p {
+  color: var(--result-muted);
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-score-ring {
+  background: conic-gradient(var(--result-accent) var(--score), rgba(0, 122, 255, 0.12) 0);
+  box-shadow: 0 10px 24px rgba(0, 122, 255, 0.12);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-score-ring::before {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-score-ring b {
+  color: var(--result-accent);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-score-ring small {
+  color: var(--result-muted);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-score-ring.is-locked {
+  background: conic-gradient(#8e8e93 100%, rgba(60, 60, 67, 0.12) 0);
+  box-shadow: none;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-summary {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-summary > div,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results {
+  border-color: var(--result-line);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(24, 32, 48, 0.055);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-summary > div {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-summary > div > svg,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article > button {
+  color: var(--result-accent);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-summary small,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article small {
+  color: var(--result-muted);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-summary b,
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article b {
+  color: var(--result-ink);
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results > header {
+  min-width: 0;
+  border-bottom-color: var(--result-line);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article {
+  min-width: 0;
+  border-bottom-color: var(--result-line);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-bar {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-result-bar span {
+  background: var(--result-accent);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article > button {
+  border-color: rgba(0, 122, 255, 0.16);
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--result-accent);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article > button:hover:not(:disabled) {
+  border-color: rgba(0, 122, 255, 0.32);
+  background: rgba(0, 122, 255, 0.16);
+}
+
+.ui-shell.student-app.product-shell .exam-result-page .exam-section-results article > button:disabled {
+  opacity: 0.45;
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell .exam-result-page {
+    gap: 16px;
+  }
+
+  .ui-shell.student-app.product-shell .exam-result-page .exam-result-actions {
+    align-items: stretch;
+  }
+
+  .ui-shell.student-app.product-shell .exam-result-page .exam-result-actions > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .ui-shell.student-app.product-shell .exam-result-page .exam-result-hero {
+    gap: 20px;
+    padding: 24px 20px;
+  }
+
+  .ui-shell.student-app.product-shell .exam-result-page .exam-result-summary {
+    grid-template-columns: 1fr;
+  }
+}

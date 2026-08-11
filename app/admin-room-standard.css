@@ -1,0 +1,127 @@
+/* Scoped additions for the standardized exam-room authoring form. */
+.room-form-page .room-standard-profile {
+  margin: 2px 0 16px;
+  padding: 14px 15px;
+  border: 1px solid #f0d9dc;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff8f8, #fff);
+  box-shadow: 0 6px 18px rgba(41, 40, 53, 0.035);
+}
+
+.room-standard-profile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.room-standard-profile-head h3 {
+  margin: 5px 0 0;
+  color: #4b2930;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.room-standard-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid #f1cdd2;
+  border-radius: 999px;
+  background: #fff0f1;
+  color: #b41b2c;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.room-standard-profile-badge.is-custom {
+  border-color: #e4e8ed;
+  background: #f6f8fa;
+  color: #707b89;
+}
+
+.room-standard-profile > p {
+  max-width: 680px;
+  margin: 7px 0 0;
+  color: #906f76;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.room-standard-profile-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.room-standard-profile-item {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #f0e1e3;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.room-standard-profile-number {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  background: #fff0f1;
+  color: #bf1c2d;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.room-standard-profile-item > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.room-standard-profile-item b,
+.room-standard-profile-item small {
+  overflow-wrap: anywhere;
+}
+
+.room-standard-profile-item b {
+  color: #5e3840;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.room-standard-profile-item small {
+  color: #a27e85;
+  font-size: 9px;
+  line-height: 14px;
+}
+
+@media (max-width: 850px) {
+  .room-standard-profile-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .room-standard-profile {
+    padding: 13px;
+  }
+
+  .room-standard-profile-list {
+    grid-template-columns: 1fr;
+  }
+
+  .room-standard-profile-item {
+    padding: 10px;
+  }
+}

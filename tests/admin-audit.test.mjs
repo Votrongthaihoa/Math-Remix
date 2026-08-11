@@ -1,0 +1,120 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const source = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("exam admin audit migration is constrained, indexed, and RLS protected", async () => {
+  const migration = await source("supabase/migrations/022_exam_admin_audit_logs.sql");
+  assert.match(migration, /create table if not exists public\.exam_admin_audit_logs/i);
+  assert.match(migration, /id bigint generated always as identity primary key/i);
+  assert.match(migration, /admin_id uuid references auth\.users\(id\) on delete set null/i);
+  assert.match(migration, /exam_id uuid references public\.exams\(id\) on delete set null/i);
+  assert.match(migration, /room_id uuid references public\.exam_rooms\(id\) on delete set null/i);
+  assert.match(migration, /slot_id uuid references public\.exam_access_slots\(id\) on delete set null/i);
+  for (const action of [
+    "save_exam_access_config",
+    "create_exam_access_slot",
+    "update_exam_access_slot",
+    "rotate_exam_access_slot",
+    "release_exam_results",
+    "export_exam_results",
+  ]) assert.match(migration, new RegExp(`'${action}'`));
+  assert.match(migration, /status in \('started', 'succeeded', 'failed'\)/i);
+  assert.match(migration, /jsonb_typeof\(metadata\) = 'object'/i);
+  assert.match(migration, /alter table public\.exam_admin_audit_logs enable row level security/i);
+  assert.match(migration, /for select to authenticated\s+using \(\(select public\.is_admin\(\)\)\)/i);
+  assert.match(migration, /grant select on table public\.exam_admin_audit_logs to authenticated/i);
+  assert.match(migration, /grant select, insert, update on table public\.exam_admin_audit_logs to service_role/i);
+  assert.match(migration, /exam_admin_audit_logs_(exam|room|slot|admin)_date_idx/i);
+  assert.doesNotMatch(migration, /security definer/i);
+});
+
+test("audit metadata accepts only bounded non-sensitive scalar fields", async () => {
+  const { sanitizeAuditMetadata } = await import("../lib/admin-audit-server.ts");
+  const metadata = sanitizeAuditMetadata({
+    changed_fields: "settings,enabled",
+    count: 3,
+    enabled: true,
+    empty: null,
+    password: "do-not-store",
+    token: "do-not-store",
+    identity: { name: "do-not-store" },
+    answer: ["A"],
+    long_value: "x".repeat(500),
+  });
+  assert.deepEqual(metadata, {
+    changed_fields: "settings,enabled",
+    count: 3,
+    enabled: true,
+    empty: null,
+    long_value: "x".repeat(256),
+  });
+});
+
+test("admin exam-access mutations preflight audit and export no longer uses account-security actions", async () => {
+  const [adminRoute, exportRoute] = await Promise.all([
+    source("app/api/admin/exam-access/route.ts"),
+    source("app/api/admin/exam-access/export/route.ts"),
+  ]);
+  assert.match(adminRoute, /startExamAdminAudit/);
+  assert.match(adminRoute, /finishExamAdminAudit/);
+  for (const action of [
+    "save_exam_access_config",
+    "create_exam_access_slot",
+    "update_exam_access_slot",
+    "rotate_exam_access_slot",
+    "release_exam_results",
+  ]) assert.match(adminRoute, new RegExp(`action: "${action}"`));
+  assert.match(exportRoute, /action: "export_exam_results"/);
+  assert.match(exportRoute, /answer_row_count/);
+  assert.doesNotMatch(exportRoute, /admin_actions/);
+});
+
+test("new exam creation is draft-first and cannot publish before preflight", async () => {
+  const [workspace, legacyManager, policyRoute, auditServer, publishMigration] = await Promise.all([
+    source("app/admin-exam-workspace.tsx"),
+    source("app/admin-exams.tsx"),
+    source("app/api/admin/exam-policy/route.ts"),
+    source("lib/admin-audit-server.ts"),
+    source("supabase/migrations/031_exam_publish_preflight.sql"),
+  ]);
+  assert.match(workspace, /const requestedPublish = form\.published/);
+  assert.match(workspace, /\.insert\(\{ \.\.\.form, published: false/);
+  assert.match(workspace, /body: JSON\.stringify\(\{ action: "preflight", examId: examResult\.data\.id \}\)/);
+  assert.match(workspace, /body: JSON\.stringify\(\{ action: "publish_exam", examId: examResult\.data\.id \}\)/);
+  assert.match(legacyManager, /const requestedPublish = published/);
+  assert.match(legacyManager, /published: false, sort_order: counts\.exams/);
+  assert.match(legacyManager, /body: JSON\.stringify\(\{ action: "preflight", examId: id \}\)/);
+  assert.match(legacyManager, /body: JSON\.stringify\(\{ action: "publish_exam", examId: id \}\)/);
+  assert.match(policyRoute, /body\.action === "publish_exam"/);
+  assert.match(policyRoute, /runExamPreflight/);
+  assert.match(policyRoute, /action: "publish_exam"/);
+  assert.match(auditServer, /"publish_exam"/);
+  assert.match(publishMigration, /'publish_exam'/);
+});
+
+test("data API hardening keeps server-owned exam operations out of browser roles", async () => {
+  const migration = await source("supabase/migrations/032_exam_data_api_hardening.sql");
+  assert.match(migration, /attempts self read/);
+  assert.match(migration, /student_id = \(select auth\.uid\(\)\)/);
+  assert.match(migration, /active account exam attempts/);
+  assert.match(migration, /revoke all on table[\s\S]*exam_access_slots[\s\S]*guest_exam_attempts[\s\S]*from public, anon, authenticated/i);
+  assert.match(migration, /grant select, insert, update, delete on table[\s\S]*exam_attempt_adjustments[\s\S]*to service_role/i);
+  assert.match(migration, /revoke all on function public\.consume_request_budget/i);
+  assert.match(migration, /revoke all on function public\.consume_exam_attempt_grant/i);
+});
+
+test("guest exam image access is rate-limited after attempt authorization", async () => {
+  const imageRoute = await source("app/api/guest-exams/images/[sectionId]/[asset]/route.ts");
+  assert.match(imageRoute, /requestClientHash/);
+  assert.match(imageRoute, /consumeRequestBudget/);
+  assert.match(imageRoute, /"guest_image"/);
+  assert.match(imageRoute, /status: 503/);
+  assert.match(imageRoute, /status: 429/);
+  const authorizationCall = imageRoute.indexOf("const admin = await guestImageAccess");
+  const rateLimitCall = imageRoute.indexOf("const budget = await consumeRequestBudget");
+  const r2Call = imageRoute.indexOf("loadR2Object(examImageKey");
+  assert.ok(authorizationCall >= 0 && authorizationCall < rateLimitCall);
+  assert.ok(rateLimitCall < r2Call);
+});

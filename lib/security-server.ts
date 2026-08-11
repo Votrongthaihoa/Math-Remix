@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 
 export type ActivityType = "idle" | "lesson" | "video" | "pdf" | "quiz" | "exam";
 export type SecurityProfile = {
@@ -13,6 +13,18 @@ export type SecurityProfile = {
   ban_event_id: number | null;
 };
 
+type AuthUserResolution =
+  | { status: "authenticated"; user: User }
+  | { status: "invalid" }
+  | { status: "unavailable" };
+
+class AuthServiceUnavailableError extends Error {
+  constructor() {
+    super("Supabase Auth is temporarily unavailable.");
+    this.name = "AuthServiceUnavailableError";
+  }
+}
+
 export function securityAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -20,13 +32,27 @@ export function securityAdminClient() {
 }
 
 export async function authenticatedSecurityUser(request: Request, admin: SupabaseClient) {
-  const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim()
+    || request.headers.get("x-supabase-access-token")?.trim()
+    || "";
   if (!accessToken) return null;
-  const { data: auth } = await admin.auth.getUser(accessToken);
-  if (!auth.user) return null;
-  const { data: profile } = await admin.from("profiles").select("id,role,status,account_status,violation_count,banned_at,banned_until,ban_reason,ban_event_id").eq("id", auth.user.id).single();
+  const resolution = await resolveAuthUserResult(accessToken, admin);
+  if (resolution.status === "unavailable") throw new AuthServiceUnavailableError();
+  if (resolution.status === "invalid") return null;
+  const user = resolution.user;
+  let profileResult;
+  try {
+    profileResult = await admin.from("profiles").select("id,role,status,account_status,violation_count,banned_at,banned_until,ban_reason,ban_event_id").eq("id", user.id).single();
+  } catch {
+    throw new AuthServiceUnavailableError();
+  }
+  const { data: profile, error: profileError } = profileResult;
+  if (profileError) {
+    console.warn("[auth] profile lookup failed", { code: profileError.code, message: profileError.message });
+    throw new AuthServiceUnavailableError();
+  }
   if (!profile) return null;
-  return { user: auth.user, profile: profile as SecurityProfile, accessToken, authSessionId: jwtSessionId(accessToken) };
+  return { user, profile: profile as SecurityProfile, accessToken, authSessionId: jwtSessionId(accessToken) };
 }
 
 function jwtSessionId(token: string) {
@@ -58,11 +84,103 @@ export function banPayload(profile: SecurityProfile) {
   };
 }
 
+async function resolveAuthUserResult(accessToken: string, admin: SupabaseClient): Promise<AuthUserResolution> {
+  let receivedInvalidResponse = false;
+  let verificationUnavailable = false;
+  try {
+    const sdkResult = await admin.auth.getUser(accessToken);
+    if (sdkResult.data.user) return { status: "authenticated", user: sdkResult.data.user };
+    if (sdkResult.error) {
+      console.warn("[auth] Supabase SDK rejected access token", { status: sdkResult.error.status, code: sdkResult.error.code, message: sdkResult.error.message });
+      const status = Number(sdkResult.error.status ?? 0);
+      if (!status || status === 429 || status >= 500) verificationUnavailable = true;
+      else receivedInvalidResponse = true;
+    }
+  } catch {
+    // Fall through to the direct auth endpoint below.
+    console.warn("[auth] Supabase SDK user check threw");
+    verificationUnavailable = true;
+  }
+
+  // The Supabase auth SDK can fail to validate a user token inside the
+  // Cloudflare/Worker module runner even though the same token is accepted by
+  // Supabase's auth endpoint. Keep the server-side validation, but fall back
+  // to that endpoint instead of treating a valid session as anonymous.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const keys = [
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    process.env.SUPABASE_ANON_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  ].filter((key, index, values): key is string => Boolean(key) && values.indexOf(key) === index);
+  if (!url || !keys.length) return { status: "unavailable" };
+  for (const key of keys) {
+    try {
+      const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/user`, {
+        cache: "no-store",
+        headers: { apikey: key, authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok) console.warn("[auth] direct Supabase user check rejected", { status: response.status });
+      if (!response.ok) {
+        if (response.status === 429 || response.status >= 500) verificationUnavailable = true;
+        else receivedInvalidResponse = true;
+        continue;
+      }
+      const user = await response.json() as Partial<User>;
+      if (user.id) return { status: "authenticated", user: user as User };
+      verificationUnavailable = true;
+    } catch {
+      // Try the other configured Supabase key before rejecting the session.
+      console.warn("[auth] direct Supabase user check threw");
+      verificationUnavailable = true;
+    }
+  }
+  if (receivedInvalidResponse && !verificationUnavailable) return { status: "invalid" };
+  return { status: "unavailable" };
+}
+
+export async function resolveAuthUser(accessToken: string, admin: SupabaseClient) {
+  const resolution = await resolveAuthUserResult(accessToken, admin);
+  return resolution.status === "authenticated" ? resolution.user : null;
+}
+
 export async function ensureActiveAccount(request: Request, admin?: SupabaseClient) {
   const client = admin ?? securityAdminClient();
   if (!client) return { ok: false as const, response: Response.json({ error: "Chưa cấu hình máy chủ bảo mật." }, { status: 503 }) };
-  const auth = await authenticatedSecurityUser(request, client);
-  if (!auth) return { ok: false as const, response: Response.json({ error: "Phiên đăng nhập không hợp lệ." }, { status: 401 }) };
+  const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim()
+    || request.headers.get("x-supabase-access-token")?.trim()
+    || "";
+  if (!accessToken) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { error: "Chưa đăng nhập hoặc phiên đăng nhập đã bị mất.", code: "AUTH_REQUIRED" },
+        { status: 401, headers: { "cache-control": "private, no-store", "www-authenticate": "Bearer" } },
+      ),
+    };
+  }
+  let auth;
+  try {
+    auth = await authenticatedSecurityUser(request, client);
+  } catch (value) {
+    if (!(value instanceof AuthServiceUnavailableError)) throw value;
+    return {
+      ok: false as const,
+      response: Response.json(
+        { error: "Không thể xác thực phiên đăng nhập lúc này. Hãy thử lại.", code: "AUTH_SERVICE_UNAVAILABLE" },
+        { status: 503, headers: { "cache-control": "private, no-store", "retry-after": "3" } },
+      ),
+    };
+  }
+  if (!auth) {
+    return {
+      ok: false as const,
+      response: Response.json(
+        { error: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.", code: "AUTH_SESSION_INVALID" },
+        { status: 401, headers: { "cache-control": "private, no-store", "www-authenticate": "Bearer" } },
+      ),
+    };
+  }
   if (!activeAccount(auth.profile)) return { ok: false as const, response: Response.json(banPayload(auth.profile), { status: 423, headers: { "cache-control": "private, no-store" } }) };
   if (auth.profile.account_status === "temporarily_banned") await client.from("profiles").update({ account_status: "active", banned_at: null, banned_until: null, ban_reason: null, ban_event_id: null }).eq("id", auth.user.id);
   return { ok: true as const, admin: client, ...auth };
@@ -86,7 +204,11 @@ function stringOrNull(value: unknown, max: number) { return typeof value === "st
 
 export async function hashedRequestIp(request: Request) {
   const rawIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const secret = process.env.SECURITY_IP_HASH_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "local-security";
+  const configuredSecret = process.env.SECURITY_IP_HASH_SECRET;
+  if (!configuredSecret && process.env.NODE_ENV === "production") {
+    throw new Error("SECURITY_IP_HASH_SECRET is required in production.");
+  }
+  const secret = configuredSecret || "local-security-development-only";
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawIp));
   return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("");

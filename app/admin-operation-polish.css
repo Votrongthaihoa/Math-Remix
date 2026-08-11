@@ -1,0 +1,23 @@
+.ui-shell.admin-app.product-shell .operation-item-analysis {
+  margin-top: 14px;
+  border: 1px solid var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .6);
+  overflow: hidden;
+}
+.ui-shell.admin-app.product-shell .operation-item-analysis summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; color: var(--admin-body); font-size: 11px; font-weight: 800; cursor: pointer; }
+.ui-shell.admin-app.product-shell .operation-item-analysis summary span { display: inline-flex; align-items: center; gap: 7px; }
+.ui-shell.admin-app.product-shell .operation-item-analysis summary svg { width: 15px; color: var(--admin-primary); }
+.ui-shell.admin-app.product-shell .operation-item-analysis summary small { color: var(--admin-subtle); font-size: 10px; font-weight: 500; }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list { display: grid; gap: 0; border-top: 1px solid var(--admin-line); }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list > div { display: grid; grid-template-columns: minmax(0, 1fr) 70px 70px; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid rgba(60, 60, 67, .08); }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list > div:last-child { border-bottom: 0; }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list span { display: grid; min-width: 0; gap: 3px; }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list b { color: var(--admin-body); font-size: 10px; }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list small { overflow: hidden; color: var(--admin-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list strong { color: var(--admin-primary-strong); font-size: 12px; text-align: right; }
+.ui-shell.admin-app.product-shell .operation-item-analysis-list em { color: var(--admin-subtle); font-size: 10px; font-style: normal; text-align: right; }
+
+@media (max-width: 560px) {
+  .ui-shell.admin-app.product-shell .operation-item-analysis-list > div { grid-template-columns: minmax(0, 1fr) 54px 54px; padding-inline: 10px; }
+}

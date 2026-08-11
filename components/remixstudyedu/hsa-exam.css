@@ -1,0 +1,1974 @@
+/* HSA runner: intentionally isolated from the TSA/THPTQG exam surfaces. */
+.hsa-exam-page {
+  --hsa-green: #158a39;
+  --hsa-green-strong: #0f6e2d;
+  --hsa-green-soft: #e6f4ea;
+  --hsa-canvas: #f8f9fa;
+  --hsa-line: #e2e8e5;
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  grid-template-rows: 66px 35px minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--hsa-canvas);
+  color: #1f2937;
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+}
+
+.hsa-exam-page button,
+.hsa-exam-page input {
+  font: inherit;
+}
+
+.hsa-exam-page button:focus-visible,
+.hsa-exam-page input:focus-visible {
+  outline: 2px solid var(--hsa-green);
+  outline-offset: 2px;
+}
+
+.hsa-exam-header {
+  position: relative;
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  min-width: 0;
+  padding: 8px 16px;
+  background: #f3f4f6;
+}
+
+.hsa-exam-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.hsa-exam-brand img {
+  display: block;
+  width: auto;
+  height: 40px;
+  object-fit: contain;
+}
+
+.hsa-exam-title {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 8px;
+  text-align: center;
+}
+
+.hsa-exam-title strong,
+.hsa-exam-title span,
+.hsa-exam-candidate span,
+.hsa-exam-candidate small {
+  overflow-wrap: anywhere;
+}
+
+.hsa-exam-title strong {
+  width: 100%;
+  overflow: hidden;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hsa-exam-title span {
+  max-width: 100%;
+  margin-top: 2px;
+  overflow: hidden;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--hsa-green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hsa-exam-candidate {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 16px;
+  display: flex;
+  width: calc(33.333% - 16px);
+  flex-direction: column;
+  align-items: flex-end;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: end;
+}
+
+.hsa-exam-candidate small {
+  display: none;
+}
+
+.hsa-exam-timer {
+  position: absolute;
+  inset-block-end: 8px;
+  inset-inline-end: 16px;
+  display: flex;
+  align-items: flex-end;
+  color: var(--hsa-green);
+}
+
+.hsa-exam-timer span { display: none; }
+
+.hsa-exam-timer strong {
+  color: var(--hsa-green);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 28px;
+}
+
+.hsa-exam-header .exam-save-state {
+  flex: 0 0 auto;
+  color: var(--hsa-green-strong);
+  font-size: 11px;
+}
+
+.hsa-exam-page.hsa-preview-mode .hsa-preview-header-extras {
+  position: fixed;
+  z-index: 210;
+  inset-block-end: 12px;
+  inset-inline-start: 50%;
+  display: flex;
+  width: min(920px, calc(100vw - 32px));
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px;
+  border: 1px solid rgb(15 23 42 / 12%);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 8px 28px rgb(15 23 42 / 18%);
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+}
+
+.hsa-question-nav {
+  grid-column: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.hsa-question-nav-scroll {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 20px 9px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hsa-question-nav button {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: #6b7280;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  transition: background-color 140ms ease;
+}
+
+.hsa-question-nav button:hover {
+  background: #4b5563;
+}
+
+.hsa-question-nav button.current {
+  background: #6b7280;
+}
+
+.hsa-question-nav button.answered { display: none; }
+
+.hsa-question-scroll {
+  grid-column: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: var(--hsa-canvas);
+  padding: 8px;
+  contain: layout style;
+}
+
+.hsa-question-content {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.hsa-question-group {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  contain: layout style;
+}
+
+.hsa-question-group.has-passage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0;
+  margin-block: 48px;
+}
+
+.hsa-question-group .hsa-passage {
+  position: static;
+  height: 100%;
+  max-height: none;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: #e7e8ef;
+  box-shadow: none;
+}
+
+.hsa-question-group .hsa-passage .group-passage-content {
+  padding: 24px;
+}
+
+.hsa-question-group .hsa-passage .group-passage-title {
+  margin: 0 0 12px;
+  color: #111827;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.hsa-question-group .hsa-passage .group-passage-body {
+  color: #111827;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.hsa-question-list {
+  min-width: 0;
+  background: #fff;
+}
+
+.hsa-question {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  scroll-margin-top: 8px;
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 160px;
+}
+
+.hsa-question.current { box-shadow: none; }
+
+.hsa-question.answered .hsa-question-heading > span {
+  color: #fff;
+}
+
+.hsa-question-heading {
+  float: inline-start;
+  display: block;
+  margin: 0 8px 0 0;
+  color: #fff;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.hsa-question-heading > span {
+  display: inline-flex;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: #087a22;
+  color: #fff;
+  font-weight: 700;
+}
+
+.hsa-question-heading small {
+  min-width: 0;
+  display: block;
+  margin-top: 4px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.hsa-question-body {
+  min-width: 0;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.hsa-question-body .rich-question-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hsa-question-body .math-choice-list {
+  display: flex;
+  clear: both;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+  padding-inline-start: 68px;
+}
+
+.hsa-question-body .math-choice-option {
+  display: flex;
+  min-width: 0;
+  min-height: 28px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px;
+  border: 0;
+  border-radius: 0;
+  color: #111827;
+  cursor: pointer;
+  line-height: 20px;
+  text-align: start;
+}
+
+.hsa-question-body .math-choice-option:hover {
+  background: transparent;
+}
+
+.hsa-question-body .math-choice-option i {
+  display: block;
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  margin-top: 4px;
+  border: 1px solid #9ca3af;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.hsa-question-body .math-choice-option.selected {
+  background: transparent;
+  color: #111827;
+}
+
+.hsa-question-body .math-choice-option.selected i {
+  border: 4px solid var(--hsa-green);
+}
+
+.hsa-exam-page .math-choice-option::before {
+  display: inline-block;
+  flex: 0 0 auto;
+  min-width: 24px;
+  color: #111827;
+  line-height: 20px;
+  text-align: end;
+}
+
+.hsa-exam-page .math-choice-option:nth-child(1)::before { content: "(A)"; }
+.hsa-exam-page .math-choice-option:nth-child(2)::before { content: "(B)"; }
+.hsa-exam-page .math-choice-option:nth-child(3)::before { content: "(C)"; }
+.hsa-exam-page .math-choice-option:nth-child(4)::before { content: "(D)"; }
+.hsa-exam-page .math-choice-option:nth-child(5)::before { content: "(E)"; }
+.hsa-exam-page .math-choice-option:nth-child(6)::before { content: "(F)"; }
+
+.hsa-exam-page .math-choice-option i {
+  margin-inline-end: 4px;
+}
+
+.hsa-question-body .math-blank-input {
+  width: 150px !important;
+  min-width: 150px;
+  max-width: 100%;
+  min-height: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  background: #8be78d;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.hsa-question-body .true-false-list,
+.hsa-question-body .matching-question,
+.hsa-question-body .ordering-question,
+.hsa-question-body .drag-bank {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.hsa-question-skeleton {
+  display: flex;
+  min-height: 90px;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+.hsa-question-skeleton i {
+  display: block;
+  width: 88%;
+  height: 12px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #edf2ee 25%, #f8fbf8 50%, #edf2ee 75%);
+  background-size: 200% 100%;
+  animation: hsa-loading-pulse 1.4s infinite;
+}
+
+.hsa-question-skeleton i:nth-child(2) { width: 72%; }
+.hsa-question-skeleton i:nth-child(3) { width: 54%; }
+.hsa-question-skeleton span { color: #667085; font-size: 12px; }
+
+@keyframes hsa-loading-pulse {
+  to { background-position: -200% 0; }
+}
+
+.hsa-empty-state {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: #667085;
+  text-align: center;
+}
+
+.hsa-empty-state strong { color: #344054; }
+
+.hsa-question-footer {
+  display: flex;
+  min-height: 128px;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  background: #fff;
+}
+
+.hsa-question-footer button {
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 4px;
+  background: #d94b4b;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  text-transform: uppercase;
+}
+
+.hsa-question-footer button:hover { background: #c63d3d; }
+
+.hsa-exam-page.hsa-preview-mode .hsa-question-footer {
+  min-height: 220px;
+  padding-bottom: 132px;
+}
+
+.hsa-answer-panel {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 0;
+  background: var(--hsa-green-soft);
+  color: var(--hsa-green-strong);
+}
+
+.hsa-answer-panel h2 {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 16px 20px;
+  color: var(--hsa-green-strong);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: start;
+}
+
+.hsa-answer-grid {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.hsa-answer-grid button {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 30px;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--hsa-green-strong);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1.25;
+  text-align: start;
+}
+
+.hsa-answer-grid button:hover {
+  background: rgb(255 255 255 / 40%);
+}
+
+.hsa-answer-grid button.current {
+  color: var(--hsa-green-strong);
+}
+
+.hsa-answer-grid button.answered:not(.current) {
+  color: var(--hsa-green-strong);
+}
+
+.hsa-answer-grid button span {
+  font-variant-numeric: tabular-nums;
+}
+
+.hsa-answer-grid button b {
+  min-width: 0;
+  overflow: hidden;
+  color: #d71920;
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hsa-answer-grid button.answered b { color: var(--hsa-green-strong); }
+
+.hsa-answer-summary { display: none; }
+
+.hsa-answer-summary strong {
+  display: block;
+  color: var(--hsa-green-strong);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hsa-answer-summary > div {
+  height: 4px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(21 138 57 / 15%);
+}
+
+.hsa-answer-summary i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--hsa-green);
+  transition: width 140ms ease;
+}
+
+.hsa-submit-button { display: none; }
+
+.hsa-submit-button:hover:not(:disabled) { background: var(--hsa-green-strong); }
+.hsa-submit-button:disabled { cursor: not-allowed; opacity: .55; }
+
+.hsa-submit-backdrop {
+  position: fixed;
+  z-index: 240;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 50%);
+  backdrop-filter: blur(3px);
+}
+
+.hsa-submit-dialog {
+  position: relative;
+  width: min(500px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: visible;
+  padding: 22px 32px 20px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 20%);
+  color: #344054;
+  box-sizing: border-box;
+}
+
+.hsa-submit-close {
+  position: absolute;
+  inset-block-start: -56px;
+  inset-inline-start: 50%;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.hsa-submit-count {
+  display: flex;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 14px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffb800;
+  color: #fff;
+}
+.hsa-submit-count strong { font-size: 30px; font-variant-numeric: tabular-nums; line-height: 34px; }
+.hsa-submit-count span { font-size: 11px; font-weight: 700; line-height: 14px; }
+.hsa-submit-dialog p { margin: 0 0 20px; color: #303030; font-size: 14px; font-weight: 600; line-height: 24px; text-align: center; }
+.hsa-submit-error { margin: 12px 0; color: #b42318; font-size: 13px; }
+.hsa-submit-actions { display: flex; justify-content: center; gap: 16px; }
+.hsa-submit-actions button { min-height: 48px; flex: 1 1 0; padding: 10px 16px; border: 0; border-radius: 7px; color: #fff; cursor: pointer; font-size: 15px; font-weight: 700; }
+.hsa-submit-actions button:first-child { background: #21438d; }
+.hsa-submit-actions button.primary { background: #dd2e2e; color: #fff; }
+.hsa-submit-actions button:disabled { cursor: not-allowed; opacity: .55; }
+
+/* Answer review is a state layer on the same HSA runner geometry. */
+
+.hsa-answer-preview .hsa-exam-header,
+.hsa-answer-preview .hsa-question-nav,
+.hsa-answer-preview .hsa-question-scroll,
+.hsa-review-candidate {
+  position: relative;
+  z-index: 3;
+}
+
+/* The author-preview controls live inside the renderer header. Answer review
+   gives every content pane its own stacking context, so keep that header
+   above the sibling panes while the fixed preview dock is mounted. */
+.hsa-exam-page.hsa-preview-mode.hsa-answer-preview .hsa-exam-header {
+  z-index: 220;
+}
+
+.hsa-answer-preview .hsa-exam-header {
+  grid-column: 1;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+}
+
+.hsa-answer-preview .hsa-exam-brand {
+  flex: 0 0 auto;
+}
+
+.hsa-review-header-copy {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.hsa-review-panel-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: max-content;
+  align-self: center;
+  justify-self: end;
+  margin-left: auto;
+  margin-right: 0;
+  min-height: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #fff;
+  color: #158a39;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.hsa-review-panel-toggle:hover {
+  border-color: #86b994;
+  background: #f2faf4;
+}
+
+.hsa-review-panel-toggle svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+
+.hsa-review-panel-show {
+  margin-inline-start: auto;
+}
+
+.hsa-review-header-copy strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hsa-review-header-copy span {
+  flex: 0 0 auto;
+  color: #158a39;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.hsa-answer-preview .hsa-exam-candidate,
+.hsa-answer-preview .hsa-exam-timer {
+  display: none;
+}
+
+.hsa-answer-preview .hsa-question-nav {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
+
+.hsa-review-nav-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.hsa-review-nav-heading > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.hsa-review-nav-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hsa-review-nav-heading small {
+  color: #6b7280;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.hsa-answer-preview .hsa-question-nav-scroll {
+  height: 28px;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 0;
+}
+
+.hsa-answer-preview .hsa-question-nav button.answered {
+  display: flex;
+  background: #6b7280;
+}
+
+.hsa-answer-preview .hsa-question-nav button.current,
+.hsa-answer-preview .hsa-question-nav button.answered.current {
+  background: #16a34a;
+}
+
+.hsa-answer-preview .hsa-question-scroll {
+  padding: 24px 20px;
+  background: #f8f9fa;
+}
+
+.hsa-answer-preview .hsa-question-content {
+  overflow: visible;
+  background: transparent;
+}
+
+.hsa-answer-preview .hsa-question-list {
+  background: transparent;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  margin: 0 0 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage {
+  height: auto;
+  margin: 0;
+  padding: 24px;
+  border: 0;
+  border-right: 1px solid #d1d5db;
+  border-radius: 0;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-content {
+  padding: 0;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-heading {
+  margin: 0 0 16px;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-body {
+  color: #374151;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage > .hsa-question-list {
+  min-width: 0;
+  padding: 24px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage .hsa-review-passage-question {
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.hsa-answer-preview .hsa-question-group.has-passage .hsa-review-passage-question:last-child {
+  margin-bottom: 0;
+}
+
+.hsa-answer-preview .hsa-question-heading {
+  margin-inline-end: 16px;
+}
+
+.hsa-answer-preview .hsa-question.answered .hsa-question-heading > span {
+  color: inherit;
+}
+
+.hsa-answer-preview .hsa-question-body .math-choice-list {
+  width: 100%;
+  gap: 12px;
+  margin-top: 16px;
+  padding-inline-start: 56px;
+  box-sizing: border-box;
+}
+
+.learner-exam-preview.answer-mode .hsa-answer-preview .hsa-question-body .math-choice-option.selected {
+  border-color: transparent;
+  background: transparent;
+  color: #111827;
+}
+
+.hsa-answer-preview .hsa-question-body .answer-green-box {
+  border: 0;
+  background: transparent;
+  color: #111827;
+  box-shadow: none;
+}
+
+.hsa-answer-preview .hsa-question-body .math-blank-answer.answer-green-box {
+  border: 1px solid #22c55e;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.hsa-review-solution {
+  clear: both;
+  margin: 12px 0 0 56px;
+  padding-top: 16px;
+}
+
+.hsa-review-solution > button {
+  margin: 0;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #078d35;
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 5%);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color .2s cubic-bezier(.4, 0, .2, 1), transform .2s cubic-bezier(.4, 0, .2, 1);
+}
+
+.hsa-review-solution > button:hover {
+  background: #06772e;
+}
+
+.hsa-review-solution > button:active {
+  transform: translateY(1px);
+}
+
+.hsa-review-solution > button > span {
+  font-size: inherit;
+  font-weight: 500;
+  line-height: inherit;
+}
+
+.hsa-review-solution > button > svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hsa-review-solution-content {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid #dfe4ea;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #111827;
+  overflow-wrap: anywhere;
+}
+
+.hsa-review-solution-content h4 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.hsa-review-solution-content h4 i {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+  color: #3b82f6;
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.hsa-review-candidate {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+  background: #fff;
+  color: #111827;
+}
+
+.hsa-review-candidate[hidden] {
+  display: none;
+}
+
+.hsa-review-candidate-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.hsa-review-candidate h2 {
+  min-width: 0;
+  margin: 0;
+  color: #374151;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 25.5px;
+  overflow-wrap: anywhere;
+}
+
+.hsa-review-panel-hide {
+  min-height: 40px;
+  padding-inline: 10px;
+  color: #4b5563;
+}
+
+.hsa-review-candidate dl {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding-top: 6px;
+}
+
+.hsa-review-candidate dl > div {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+}
+
+.hsa-review-candidate dt,
+.hsa-review-candidate dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.hsa-review-candidate dt { color: #6b7280; }
+.hsa-review-candidate dd { color: #374151; text-align: end; }
+
+.hsa-review-legend {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  margin: 35px 0 24px;
+}
+
+.hsa-review-legend > span {
+  margin-inline-end: auto;
+  color: #374151;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.hsa-review-legend b {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.hsa-review-legend .unanswered { background: #f3f4f6; color: #6b7280; }
+.hsa-review-legend .correct { background: #dcfce7; color: #16a34a; }
+.hsa-review-legend .incorrect { background: #fee2e2; color: #dc2626; }
+.hsa-review-legend .marked { border-color: #eab308; background: #fff; color: #ca8a04; }
+
+.hsa-review-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 30px);
+  align-content: start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.hsa-review-grid button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hsa-review-grid button.correct { background: #dcfce7; color: #16a34a; }
+.hsa-review-grid button.incorrect { background: #fee2e2; color: #dc2626; }
+.hsa-review-grid button.current { border-color: #16a34a; background: #fff; color: #158a39; }
+
+.hsa-review-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 108px;
+  align-items: end;
+  gap: 8px 16px;
+  margin-top: auto;
+  padding: 16px 0 37px;
+  box-sizing: border-box;
+}
+
+.hsa-review-progress > div:first-child {
+  grid-column: 1 / 3;
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hsa-review-progress span {
+  color: #1f2937;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.hsa-review-progress strong {
+  color: #1f2937;
+  font-size: 28px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 31px;
+}
+
+.hsa-review-progress strong small {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.hsa-review-progress-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f1f3f5;
+}
+
+.hsa-review-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #22c55e;
+}
+
+.hsa-review-progress > b {
+  color: #158a39;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+}
+
+.hsa-review-watermarks {
+  position: fixed;
+  z-index: 5;
+  inset: -180px -120px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(260px, 1fr));
+  grid-auto-rows: 180px;
+  align-items: center;
+  justify-items: center;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 17px;
+  font-weight: 700;
+  opacity: .055;
+  pointer-events: none;
+  transform: rotate(-16deg);
+  user-select: none;
+}
+
+.hsa-review-watermarks span {
+  white-space: nowrap;
+}
+
+/* The submitted-answer surface keeps the HSA accent while retaining the
+   existing review renderer's information architecture. */
+.hsa-result-page .tsa-review-preview-page .tsa-review-header,
+.hsa-result-page .tsa-review-preview-page .tsa-review-panel {
+  border-color: #cce6d2;
+}
+
+.hsa-result-page .tsa-review-preview-page .tsa-review-panel {
+  background: var(--hsa-green-soft, #e6f4ea);
+}
+
+.hsa-result-page .tsa-review-preview-page .tsa-review-grid button.correct,
+.hsa-result-page .tsa-review-preview-page .tsa-review-verdict.correct {
+  color: var(--hsa-green-strong, #0f6e2d);
+}
+
+.hsa-result-page .tsa-review-preview-page .tsa-review-grid button.current {
+  border-color: var(--hsa-green, #158a39);
+  box-shadow: 0 0 0 2px rgb(21 138 57 / 12%);
+}
+
+/* HSA Part 3 selection surface. It is shared by the pre-exam chooser and
+   the confirmation summary, but remains prefixed so it cannot style the
+   generic TSA/THPTQG shell. */
+.hsa-combination-picker {
+  --hsa-picker-green: #158a39;
+  --hsa-picker-green-strong: #0f6e2d;
+  width: min(100%, 620px);
+  margin: 0 auto 16px;
+  padding: 20px;
+  border: 1px solid #cce6d2;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgb(16 24 40 / 5%);
+  color: #344054;
+}
+
+.hsa-combination-picker-header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.hsa-combination-picker-header > div:first-child { min-width: 0; }
+.hsa-combination-eyebrow { color: var(--hsa-picker-green-strong); font-size: 10px; font-weight: 800; letter-spacing: .08em; line-height: 14px; }
+.hsa-combination-picker h2 { margin: 4px 0 5px; color: #1f2937; font-size: 18px; font-weight: 800; line-height: 24px; text-wrap: balance; }
+.hsa-combination-picker p { max-width: 65ch; margin: 0; color: #667085; font-size: 12px; line-height: 18px; text-wrap: pretty; }
+
+.hsa-combination-summary {
+  display: inline-flex;
+  min-width: 136px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #b8ddc1;
+  border-radius: 8px;
+  background: #f2fbf4;
+}
+
+.hsa-combination-summary-code {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 28px;
+  border-radius: 5px;
+  background: var(--hsa-picker-green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hsa-combination-summary-copy { display: flex; min-width: 0; flex-direction: column; gap: 1px; }
+.hsa-combination-summary-copy b { color: var(--hsa-picker-green-strong); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+.hsa-combination-summary-copy small { color: #667085; font-size: 10px; line-height: 14px; }
+
+.hsa-combination-options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.hsa-combination-option {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 9px 12px;
+  border: 2px solid #78b68a;
+  border-radius: 8px;
+  background: #eef8f1;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.hsa-combination-option:hover { border-color: #35965c; background: #e7f5eb; }
+.hsa-combination-option:has(input:focus-visible) { outline: 2px solid var(--hsa-picker-green); outline-offset: 2px; }
+.hsa-combination-option.is-selected { border-color: var(--hsa-picker-green); background: #dff1e5; box-shadow: 0 0 0 1px rgb(21 138 57 / 12%); }
+.hsa-combination-option input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.hsa-combination-option-code { display: grid; place-items: center; width: 34px; height: 25px; border-radius: 4px; background: #edf3ee; color: #55705d; font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hsa-combination-option.is-selected .hsa-combination-option-code { background: var(--hsa-picker-green); color: #fff; }
+.hsa-combination-option-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.hsa-combination-option-copy b { min-width: 0; color: #344054; font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+.hsa-combination-option-copy small { min-width: 0; overflow-wrap: anywhere; color: #667085; font-size: 10px; line-height: 14px; }
+.hsa-combination-option-mark { color: var(--hsa-picker-green); font-size: 15px; font-weight: 800; opacity: 0; transform: scale(.8); transition: opacity 140ms ease, transform 140ms ease; }
+.hsa-combination-option.is-selected .hsa-combination-option-mark { opacity: 1; transform: scale(1); }
+.hsa-combination-options:disabled .hsa-combination-option { cursor: not-allowed; opacity: .65; }
+.hsa-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.hsa-session-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 24px 16px 48px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: url("/thi-tsa-bg.jpg") center / cover no-repeat fixed;
+}
+
+.hsa-session-page .tsa-session-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  min-height: auto;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+.hsa-confirmation-page {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: url("/thi-tsa-bg.jpg") center / cover no-repeat;
+  background-attachment: fixed;
+  color: #111827;
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.hsa-confirmation-page * { box-sizing: border-box; }
+
+.hsa-confirmation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: min(100%, 640px);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.hsa-confirm-code-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #158a39;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hsa-confirm-code-btn:hover {
+  background: #0f6e2d;
+}
+
+.hsa-selected-combination-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(100%, 512px);
+  padding: 10px 16px;
+  border: 1px solid #b8ddc1;
+  border-radius: 8px;
+  background: #f2fbf4;
+  color: #0f6e2d;
+  font-size: 14px;
+}
+
+.hsa-selected-combination-badge button {
+  padding: 4px 10px;
+  border: 1px solid #158a39;
+  border-radius: 4px;
+  background: #fff;
+  color: #158a39;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hsa-confirmation-panel {
+  width: min(100%, 512px);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block: 16px;
+  text-align: center;
+}
+
+.hsa-confirmation-logo {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.hsa-confirmation-logo img {
+  display: block;
+  width: min(178px, 52vw);
+  height: auto;
+  object-fit: contain;
+}
+
+.hsa-confirmation-panel h1 {
+  margin: 0 0 12px;
+  color: #158a39;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 32px;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.hsa-confirmation-duration,
+.hsa-confirmation-auto,
+.hsa-confirmation-ready,
+.hsa-confirmation-error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.hsa-confirmation-duration { margin-bottom: 20px; color: #4b5563; }
+
+.hsa-confirmation-marks {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.hsa-confirmation-mark {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.hsa-confirmation-mark.is-h { background: #808080; }
+.hsa-confirmation-mark.is-s { background: #158a39; }
+.hsa-confirmation-mark.is-a { background: #d8232a; }
+.hsa-confirmation-auto { margin-bottom: 2px; color: #4b5563; }
+.hsa-confirmation-ready { margin-bottom: 24px; color: #6b7280; }
+.hsa-confirmation-error { margin: -12px 0 16px; color: #c81e1e; }
+
+.hsa-confirmation-countdown {
+  min-width: 0;
+  margin-bottom: 24px;
+  color: #158a39;
+  font-size: 72px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 72px;
+}
+
+.hsa-confirmation-start {
+  min-width: 216px;
+  min-height: 56px;
+  padding: 12px 64px;
+  border: 2px solid #158a39;
+  border-radius: 4px;
+  background: transparent;
+  color: #158a39;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.hsa-confirmation-start:hover:not(:disabled) { background: #158a39; color: #fff; }
+.hsa-confirmation-start:disabled { cursor: wait; opacity: .6; }
+.hsa-confirmation-start:focus-visible { outline: 2px solid #158a39; outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .hsa-combination-picker { padding: 16px; }
+  .hsa-combination-picker-header { flex-direction: column; gap: 12px; }
+  .hsa-combination-summary { width: 100%; box-sizing: border-box; }
+  .hsa-combination-options { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 430px) {
+  .hsa-session-page { padding: 14px 10px 32px; }
+  .hsa-combination-picker { padding: 13px; }
+  .hsa-combination-picker h2 { font-size: 16px; line-height: 22px; }
+  .hsa-combination-options { grid-template-columns: 1fr; }
+  .hsa-combination-option { min-height: 52px; }
+  .hsa-confirmation-page { padding: 20px 16px; }
+  .hsa-confirmation-panel { padding-block: 8px; }
+  .hsa-confirmation-logo { margin-bottom: 18px; }
+  .hsa-confirmation-logo img { width: min(158px, 50vw); }
+  .hsa-confirmation-panel h1 { font-size: 20px; line-height: 28px; }
+  .hsa-confirmation-ready { margin-bottom: 20px; }
+  .hsa-confirmation-countdown { margin-bottom: 20px; font-size: 60px; line-height: 64px; }
+  .hsa-confirmation-start { min-width: min(216px, 100%); min-height: 52px; padding: 10px 40px; font-size: 16px; line-height: 28px; }
+}
+
+@media (max-width: 1023px) {
+  .hsa-exam-page.hsa-answer-preview:not(.hsa-review-panel-hidden)::after {
+    content: "";
+    position: fixed;
+    z-index: 225;
+    inset: 0;
+    background: rgb(15 23 42 / 28%);
+  }
+
+  .hsa-review-candidate {
+    position: fixed;
+    z-index: 230;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: min(480px, calc(100vw - 24px));
+    box-sizing: border-box;
+    box-shadow: -16px 0 36px rgb(15 23 42 / 18%);
+    overscroll-behavior: contain;
+  }
+
+  .hsa-answer-preview .hsa-question-group.has-passage {
+    display: block;
+  }
+
+  .hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage {
+    border-right: 0;
+    border-bottom: 1px solid #d1d5db;
+  }
+}
+
+@media (max-width: 767px) {
+  .hsa-exam-page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 64px 36px minmax(0, 1fr);
+  }
+
+  .hsa-exam-header { gap: 9px; padding: 0 12px; }
+  .hsa-exam-brand, .hsa-exam-brand img { width: 34px; height: 34px; }
+  .hsa-exam-title { display: block; }
+  .hsa-exam-title strong, .hsa-exam-title span { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hsa-exam-title strong { font-size: 13px; line-height: 17px; }
+  .hsa-exam-title span { font-size: 11px; line-height: 16px; }
+  .hsa-exam-candidate { display: none; }
+  .hsa-exam-timer span { display: none; }
+  .hsa-exam-timer strong { font-size: 14px; }
+  .hsa-question-nav { grid-column: 1; }
+  .hsa-question-nav-scroll { padding-inline: 10px; }
+  .hsa-question-scroll { grid-column: 1; }
+  .hsa-question-content { padding: 12px 12px 28px; }
+  .hsa-question-group.has-passage { display: block; }
+  .hsa-question-group .hsa-passage { position: static; max-height: none; margin-bottom: 12px; }
+  .hsa-question { padding: 12px 12px 14px; }
+  .hsa-question-heading { align-items: flex-start; flex-direction: column; gap: 2px; margin-bottom: 7px; }
+  .hsa-question-body { font-size: 14px; }
+  .hsa-answer-panel { display: none; }
+
+  .hsa-answer-preview .hsa-exam-header {
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  .hsa-answer-preview .hsa-exam-brand {
+    width: auto;
+    height: auto;
+  }
+
+  .hsa-answer-preview .hsa-exam-brand img {
+    width: auto;
+    height: 34px;
+  }
+
+  .hsa-review-header-copy {
+    flex: 1 1 auto;
+    gap: 8px;
+  }
+
+  .hsa-review-header-copy strong {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .hsa-review-header-copy span {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .hsa-answer-preview .hsa-question-nav {
+    gap: 4px;
+    padding: 5px 10px 7px;
+  }
+
+  .hsa-review-nav-heading strong {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .hsa-answer-preview .hsa-question-scroll {
+    padding: 12px;
+  }
+
+  .hsa-answer-preview .hsa-question-content {
+    padding: 0;
+  }
+
+  .hsa-answer-preview .hsa-question {
+    margin-bottom: 12px;
+    padding: 16px;
+  }
+
+  .hsa-answer-preview .hsa-question-heading {
+    float: none;
+    margin: 0 0 8px;
+  }
+
+  .hsa-answer-preview .hsa-question-body .math-choice-list {
+    padding-inline-start: 0;
+  }
+
+  .hsa-answer-preview .hsa-question-body .math-choice-option {
+    min-height: 58px;
+    padding: 10px;
+  }
+
+  .hsa-review-solution {
+    margin-inline-start: 0;
+  }
+
+  .hsa-review-solution-content {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .hsa-review-candidate {
+    width: calc(100vw - 16px);
+    padding: 18px 16px;
+  }
+
+  .hsa-review-legend {
+    flex-wrap: wrap;
+  }
+
+  .hsa-review-legend > span {
+    flex: 1 0 100%;
+    margin-inline-end: 0;
+  }
+
+  .hsa-review-grid {
+    grid-template-columns: repeat(5, 30px);
+  }
+
+  .hsa-review-panel-show span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .hsa-review-panel-show {
+    width: 40px;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hsa-exam-page *,
+  .hsa-exam-page *::before,
+  .hsa-exam-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Geometry parity: answer state, solutions and watermark are additions to the
+   exact HSA test-taking shell. Keep this final block after legacy state colors
+   so no answer-only rule can resize the header, navigator or question pane. */
+.hsa-exam-page.hsa-answer-preview .hsa-exam-header {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 8px 16px;
+  background: #f3f4f6;
+  box-shadow: none;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-exam-candidate,
+.hsa-exam-page.hsa-answer-preview .hsa-exam-timer {
+  display: flex;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-nav {
+  display: block;
+  gap: 0;
+  padding: 0;
+  background: #f3f4f6;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-nav-scroll {
+  height: 100%;
+  gap: 2px;
+  padding: 4px 20px 9px;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-scroll {
+  padding: 8px;
+  background: var(--hsa-canvas);
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-content {
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-list {
+  padding: 0;
+  background: #fff;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0;
+  margin-block: 48px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage {
+  height: 100%;
+  margin: 0;
+  padding: 20px 16px 20px 20px;
+  border: 0;
+  border-radius: 0;
+  background: #e7e8ef;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage > .hsa-question-list {
+  padding: 0;
+  background: #fff;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-content {
+  padding: 24px;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-title,
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-heading {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage > .hsa-passage .group-passage-body {
+  color: #111827;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question {
+  margin: 0;
+  padding: 12px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  scroll-margin-top: 8px;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-heading {
+  float: inline-start;
+  display: block;
+  margin: 0 8px 0 0;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-body .math-choice-list {
+  width: min(100%, 772.4px);
+  gap: 12px;
+  margin-top: 8px;
+  padding-inline-start: 68px;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-body .math-choice-option {
+  min-height: 28px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px;
+  border-radius: 0;
+  line-height: 20px;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-body .math-choice-option i {
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  margin-top: 4px;
+  border: 1px solid #9ca3af;
+  background: #fff;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-body .math-choice-option.selected i {
+  border: 4px solid var(--hsa-green);
+  background: #fff;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-review-solution {
+  margin: 12px 0 0;
+}
+
+.hsa-exam-page.hsa-answer-preview::after {
+  content: none;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-question-nav button.answered {
+  display: flex;
+}
+
+.hsa-exam-page.hsa-answer-preview .hsa-answer-grid button.status-correct b { color: #0f6e2d; }
+.hsa-exam-page.hsa-answer-preview .hsa-answer-grid button.status-incorrect b { color: #b42318; }
+.hsa-exam-page.hsa-answer-preview .hsa-answer-grid button.status-unanswered b { color: #667085; }
+
+@media (max-width: 767px) {
+  .hsa-exam-page.hsa-answer-preview .hsa-exam-header {
+    gap: 9px;
+    padding: 0 12px;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question-nav-scroll {
+    padding: 4px 10px 9px;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question-content {
+    padding: 12px 12px 28px;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question-group.has-passage {
+    display: block;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question {
+    margin: 0;
+    padding: 12px 12px 14px;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question-heading {
+    float: inline-start;
+    display: block;
+    margin: 0 8px 7px 0;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question-body .math-choice-list {
+    padding-inline-start: 68px;
+  }
+
+  .hsa-exam-page.hsa-answer-preview .hsa-question-body .math-choice-option {
+    min-height: 28px;
+    padding: 4px;
+  }
+}

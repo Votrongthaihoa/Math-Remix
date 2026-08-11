@@ -23,16 +23,16 @@ async function render(pathname = "/") {
   );
 }
 
-test("server-renders the REMIX sign-in page", async () => {
+test("server-renders the safe REMIX session-checking shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
   assert.match(html, /<title>REMIX Education<\/title>/i);
-  assert.match(html, /CHÀO MỪNG TRỞ LẠI/);
-  assert.match(html, /Tài khoản học tập được cấp bởi quản trị viên/);
-  assert.match(html, /placeholder="hocvien@example\.com"/);
+  assert.match(html, /class="remix-loading full-page" role="status"/);
+  assert.match(html, /Đang xác thực tài khoản/);
+  assert.doesNotMatch(html, /placeholder="hocvien@example\.com"/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
 });
 
@@ -47,7 +47,7 @@ test("returns the animated REMIX 404 page for unknown routes", async () => {
 });
 
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminUsersRoute, r2Server] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminWorkspace, adminWorkspaceCss, adminWorkspaceLayoutCss, adminUsersRoute, r2Server] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
@@ -66,6 +66,9 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
     readFile(new URL("../supabase/migrations/006_exam_room_module.sql", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exams.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exams.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-exam-workspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-exam-latex-import.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-exam-workspace.css", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/users/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/r2-server.ts", import.meta.url), "utf8"),
   ]);
@@ -81,7 +84,12 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /supabase\.from\("profiles"\)\.update\(\{ full_name: nextName/);
   assert.doesNotMatch(platform, /Minh Hoàng|minhhoang@example\.com/);
   assert.match(platform, /function RealAdminDashboard/);
-  assert.match(platform, /view === "admin" && !isAdmin \? "overview" : view/);
+  assert.match(platform, /const \[adminRouteRequested, setAdminRouteRequested\] = useState\(initialAdminRoute\)/);
+  assert.match(platform, /function AdminLoginPage/);
+  assert.match(platform, /adminRouteRequested && \(!signedIn \|\| !isAdmin\)/);
+  assert.match(platform, /loginContext === "admin" && profile\.role !== "admin"/);
+  assert.match(platform, /adminRouteRequested \? adminNav\.map/);
+  assert.match(platform, /admin-sidebar-nav-item/);
   assert.match(platform, /next === "admin" && !isAdmin/);
   assert.match(platform, /currentView === "admin" && isAdmin && <RealAdminDashboard/);
   assert.match(platform, /aria-controls="main-sidebar"/);
@@ -107,7 +115,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /administrator\s*\?\s*await supabase\.from\("courses"\)/);
   assert.match(platform, /Danh sách khóa học/);
   assert.match(platform, /storage_pdf/);
-  assert.match(platform, /fetch\("\/api\/admin\/lesson-files"/);
+  assert.match(platform, /authenticatedFetch\("\/api\/admin\/lesson-files"/);
   assert.doesNotMatch(platform, /supabase\.storage\.from\("lesson-files"\)\.upload/);
   assert.match(platform, /supabase\.from\("course_enrollments"\)\.upsert\(/);
   assert.match(platform, /Tạo khóa học/);
@@ -150,10 +158,11 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(lessonFilesRoute, /profile\?\.role !== "admin"/);
   assert.match(lessonFilesRoute, /createPdfUpload\(path\)/);
   assert.match(lessonFilesRoute, /verifyPdfObject\(path, size, MAX_PDF_SIZE\)/);
-  assert.match(r2Server, /new S3Client/);
-  assert.match(r2Server, /getSignedUrl/);
+  assert.match(r2Server, /function signedR2Request/);
+  assert.match(r2Server, /function createPresignedR2Url/);
+  assert.match(r2Server, /crypto\.subtle/);
   assert.match(r2Server, /expiresIn: 120/);
-  assert.match(r2Server, /GetObjectCommand/);
+  assert.match(r2Server, /listR2Objects/);
   assert.match(lessonResourcesRoute, /signContentToken/);
   assert.match(lessonResourcesRoute, /course_enrollments/);
   assert.match(lessonResourcesRoute, /curriculum/);
@@ -186,11 +195,11 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(pdfDownloadRoute, guardCall("download"));
   assert.match(resourceContentRoute, guardCall("view"));
   assert.match(videoTokenRoute, guardCall("view"));
-  assert.match(videoPlayer, /fetch\("\/api\/video-token"/);
+  assert.match(videoPlayer, /authenticatedFetch\("\/api\/video-token"/);
   assert.match(videoPlayer, /\/yt-embed-player\.html\?v=/);
   assert.match(videoPlayer, /\/pdf-viewer\.html\?file=/);
   assert.match(videoPlayer, /protectedContent/);
-  assert.match(videoPlayer, /fetch\("\/api\/resource-content"/);
+  assert.match(videoPlayer, /authenticatedFetch\("\/api\/resource-content"/);
   assert.match(videoPlayer, /atob\(payload\.data\)/);
   assert.match(videoPlayer, /URL\.createObjectURL/);
   assert.doesNotMatch(videoPlayer, /x-remix-content-viewer/);
@@ -221,15 +230,36 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(examsRoute, /status: "in_progress"/);
   assert.match(examMigration, /create table if not exists public\.exam_rooms/);
   assert.match(examMigration, /create table if not exists public\.exam_question_keys/);
-  assert.match(platform, /lazy\(\(\) => import\("\.\/admin-exams"\)\)/);
-  assert.match(platform, /\["exams","Khảo thí"\]/);
+  assert.match(platform, /lazy\(\(\) => import\("\.\/admin-exam-workspace"\)\)/);
+  assert.match(platform, /id: "exams" as const,[^\n]+label: "Đề thi"/);
   assert.match(adminExams, /from\("exam_rooms"\)\.insert/);
   assert.match(adminExams, /from\("exams"\)\.insert/);
+  assert.match(adminExams, /dashboard_title: dashboardTitle/);
   assert.match(adminExams, /from\("exam_sections"\)\.insert/);
   assert.match(adminExams, /from\("exam_questions"\)\.insert/);
   assert.match(adminExams, /from\("exam_question_keys"\)\.insert/);
   assert.match(adminExamsCss, /@media\(max-width:767px\)/);
-  assert.match(platform, /\["enrollments","Phân quyền"\]/);
+  assert.match(adminWorkspace, /splitLatexQuestions/);
+  assert.match(adminWorkspace, /accept="\.tex,text\/plain"/);
+  assert.match(adminWorkspace, /LearnerExamPreview/);
+  assert.doesNotMatch(adminWorkspace, /latex-preview-column/);
+  assert.match(adminWorkspace, /reference-exam-card admin-reference-exam-card/);
+  assert.match(adminWorkspace, /Nhập file/);
+  assert.match(adminWorkspace, /Soạn đề/);
+  assert.match(adminWorkspace, /function ExamPreviewPage/);
+  assert.match(adminWorkspace, /dashboard_title: dashboardTitle/);
+  assert.doesNotMatch(adminWorkspace, /dashboard_title: isThptqg[^\n]+: null/);
+  assert.match(adminWorkspace, /openExamPreviewTab/);
+  assert.match(adminWorkspace, /Giao diện bài làm/);
+  assert.match(adminWorkspace, /Giao diện đáp án/);
+  assert.doesNotMatch(adminWorkspace, /preview-correct/);
+  assert.match(adminWorkspaceCss, /latex-file-import/);
+  assert.match(adminWorkspaceLayoutCss, /admin-reference-exam-card/);
+  assert.match(adminWorkspaceLayoutCss, /exam-preview-page/);
+  assert.match(platform, /initialAdminRoute/);
+  assert.match(platform, /initialStandaloneAdminPreview/);
+  assert.match(platform, /admin-exam-preview-host/);
+  assert.match(platform, /id: "enrollments" as const,[^\n]+label: "Phân quyền"/);
   assert.match(platform, /supabase\.from\("exam_room_enrollments"\)\.upsert/);
   assert.match(platform, /student\.email/);
   assert.match(platform, /Tìm theo tên, mã học viên hoặc email/);

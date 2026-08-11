@@ -1,0 +1,321 @@
+.admin-security-page .security-empty {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 180px;
+  padding: 28px;
+  border: 1px dashed #d7dce3;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #64748b;
+  text-align: center;
+}
+
+.admin-security-page .security-empty svg {
+  width: 30px;
+  height: 30px;
+  color: #007aff;
+}
+
+.admin-security-page .security-empty h3 {
+  margin: 4px 0 0;
+  color: #1d1d1f;
+  font-size: 16px;
+}
+
+.admin-security-page .security-empty p {
+  max-width: 420px;
+  margin: 0;
+  color: #6e6e73;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.admin-security-page .security-detail-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 14px 0 0;
+  color: #6e6e73;
+  font-size: 11px;
+}
+
+.admin-security-page .security-detail-loading svg,
+.admin-security-page .security-action-dialog-actions svg {
+  width: 15px;
+  height: 15px;
+}
+
+.admin-security-page .security-action-dialog-shade {
+  position: fixed;
+  z-index: 9600;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 28, 30, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.admin-security-page .security-action-dialog {
+  width: min(460px, 100%);
+  max-height: min(680px, calc(100vh - 40px));
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
+  color: #1d1d1f;
+}
+
+.admin-security-page .security-action-dialog:focus {
+  outline: 3px solid rgba(0, 122, 255, 0.28);
+  outline-offset: 3px;
+}
+
+.admin-security-page .security-action-dialog form {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-security-page .security-action-dialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-security-page .security-action-dialog header h2 {
+  margin: 4px 0 0;
+  color: #1d1d1f;
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.admin-security-page .security-action-kicker {
+  color: #007aff;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+}
+
+.admin-security-page .security-action-dialog header > button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(60, 60, 67, 0.16);
+  border-radius: 9px;
+  color: #6e6e73;
+  background: rgba(245, 245, 247, 0.78);
+}
+
+.admin-security-page .security-action-dialog header > button:hover:not(:disabled) {
+  color: #1d1d1f;
+  background: rgba(60, 60, 67, 0.1);
+}
+
+.admin-security-page .security-action-dialog header > button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-security-page .security-action-dialog > form > p {
+  margin: 0;
+  color: #424245;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.admin-security-page .security-action-dialog label {
+  display: grid;
+  gap: 7px;
+  color: #424245;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-security-page .security-action-dialog textarea {
+  width: 100%;
+  min-height: 104px;
+  resize: vertical;
+  padding: 11px 12px;
+  border: 1px solid rgba(60, 60, 67, 0.24);
+  border-radius: 10px;
+  color: #1d1d1f;
+  background: #fff;
+  font: 13px/1.5 inherit;
+}
+
+.admin-security-page .security-action-dialog textarea:focus {
+  border-color: rgba(0, 122, 255, 0.72);
+  outline: 0;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.admin-security-page .security-action-dialog > form > small {
+  margin-top: -8px;
+  color: #8e8e93;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.admin-security-page .security-action-error {
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  border-radius: 9px;
+  color: #b42318;
+  background: rgba(255, 59, 48, 0.08);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.admin-security-page .security-action-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.admin-security-page .security-action-dialog-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: 800 12px/1 inherit;
+}
+
+.admin-security-page .security-action-secondary {
+  border: 1px solid rgba(60, 60, 67, 0.16);
+  color: #424245;
+  background: rgba(245, 245, 247, 0.78);
+}
+
+.admin-security-page .security-action-primary {
+  border: 1px solid #007aff;
+  color: #fff;
+  background: #007aff;
+  box-shadow: 0 7px 16px rgba(0, 122, 255, 0.16);
+}
+
+.admin-security-page .security-action-dialog-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.admin-security-page .security-action-secondary:hover:not(:disabled) {
+  border-color: rgba(0, 122, 255, 0.32);
+  color: #007aff;
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.admin-security-page .security-action-primary:hover:not(:disabled) {
+  border-color: #0066d6;
+  background: #0066d6;
+}
+
+.admin-security-page .security-action-dialog-actions button:disabled,
+.admin-security-page .security-action-dialog header > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 560px) {
+  .admin-security-page .security-action-dialog-shade {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .admin-security-page .security-action-dialog {
+    max-height: calc(100vh - 24px);
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .admin-security-page .security-action-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-security-page .security-action-dialog-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-security-page .security-action-dialog-actions button:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Text-safe AECK header. Kept out of protected exam surfaces. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px 24px;
+  padding: 20px 22px;
+  border-color: var(--aeck-border, #e2e8f0);
+  border-radius: var(--aeck-radius-lg, 14px);
+  background: linear-gradient(135deg, var(--aeck-primary-soft, #eff6ff), #fff 70%);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > div > span {
+  display: block;
+  color: var(--aeck-primary, #1d4ed8);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head h2,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head p {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head h2 {
+  color: var(--aeck-text, #0f172a);
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head p {
+  max-width: 65ch;
+  color: var(--aeck-text-muted, #475569);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > button {
+  min-width: max-content;
+  min-height: 40px;
+  align-self: start;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head {
+    grid-template-columns: 1fr;
+    padding: 18px 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > button {
+    width: 100%;
+    justify-content: center;
+  }
+}

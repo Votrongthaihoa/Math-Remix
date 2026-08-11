@@ -1,4 +1,6 @@
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
+import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
+import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -13,7 +15,7 @@ async function adminRequest(request: Request) {
 export async function GET(request: Request) {
   const security = await adminRequest(request);
   if (!security.ok) return security.response;
-  const { admin } = security;
+  const { admin, user } = security;
   const userId = new URL(request.url).searchParams.get("userId")?.trim() || "";
   if (userId && !uuid.test(userId)) return Response.json({ error: "Mã tài khoản không hợp lệ." }, { status: 400, headers });
 
@@ -27,6 +29,11 @@ export async function GET(request: Request) {
     const rows = (profiles ?? []).map(profile => ({ ...profile, email: emails.get(profile.id) ?? "" }));
     return Response.json({ users: rows, serverTime: new Date().toISOString() }, { headers });
   }
+
+  const { data: targetProfile, error: targetProfileError } = await admin.from("profiles").select("id,role").eq("id", userId).maybeSingle();
+  if (targetProfileError) return Response.json({ error: targetProfileError.message }, { status: 400, headers });
+  if (!targetProfile) return Response.json({ error: "Không tìm thấy tài khoản học viên." }, { status: 404, headers });
+  if (targetProfile.id === user.id || targetProfile.role !== "student") return Response.json({ error: "Chỉ có thể quản trị tài khoản học viên." }, { status: 403, headers });
 
   const [profile, devices, sessions, events, violations, actions] = await Promise.all([
     admin.from("profiles").select("id,full_name,student_code,role,status,account_status,violation_count,banned_at,banned_until,ban_reason,ban_event_id").eq("id", userId).single(),
@@ -49,12 +56,26 @@ export async function POST(request: Request) {
   const security = await adminRequest(request);
   if (!security.ok) return security.response;
   const { admin, user } = security;
-  const body = await request.json().catch(() => ({})) as Body;
+  let ipHash = "";
+  try {
+    ipHash = await hashedRequestIp(request);
+  } catch {
+    return Response.json({ error: "Máy chủ bảo mật chưa được cấu hình đầy đủ.", code: "SECURITY_CONFIGURATION_REQUIRED" }, { status: 503, headers });
+  }
+  const budget = await consumeRequestBudget(admin, "admin-security-action", `${user.id}:${ipHash}`, { capacity: 5, refillSeconds: 120 });
+  if (!budget.allowed) return Response.json({ error: "Bạn thao tác quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...headers, "retry-after": String(budget.retryAfterSeconds) } });
+  const parsedBody = await readJsonBody<Body>(request);
+  if (!parsedBody.ok) return Response.json(jsonBodyError(parsedBody.error), { status: parsedBody.error === "payload_too_large" ? 413 : 400, headers });
+  const body = parsedBody.body;
   const action = body.action;
   const userId = body.userId?.trim() || "";
   const reason = body.reason?.trim().slice(0, 500) || "Thao tác quản trị bảo mật.";
   const allowed = new Set<AdminAction>(["unban", "extend_ban", "permanent_ban", "mark_false_positive", "trust_device", "revoke_device", "reset_violation_count"]);
   if (!action || !allowed.has(action) || !uuid.test(userId)) return Response.json({ error: "Yêu cầu không hợp lệ." }, { status: 400, headers });
+  const { data: targetProfile, error: targetProfileError } = await admin.from("profiles").select("id,role").eq("id", userId).maybeSingle();
+  if (targetProfileError) return Response.json({ error: targetProfileError.message }, { status: 400, headers });
+  if (!targetProfile) return Response.json({ error: "Không tìm thấy tài khoản học viên." }, { status: 404, headers });
+  if (targetProfile.id === user.id || targetProfile.role !== "student") return Response.json({ error: "Chỉ có thể quản trị tài khoản học viên." }, { status: 403, headers });
   const now = new Date().toISOString();
   let metadata: Record<string, unknown> = {};
   let operationError: { message: string } | null = null;

@@ -1,6 +1,7 @@
 import { contentServer } from "../../../lib/content-server";
 import { verifyContentToken } from "../../../lib/content-token";
 import { guardResourceAccess } from "../../../lib/resource-access-server";
+import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
 import { loadPdfBytes } from "../../../lib/r2-server";
 
@@ -23,7 +24,9 @@ export async function POST(request: Request) {
 
   const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!accessToken) return Response.json({ error: "Chưa đăng nhập." }, { status: 401 });
-  const body = await request.json() as { videoToken?: string };
+  const parsedBody = await readJsonBody<{ videoToken?: string }>(request);
+  if (!parsedBody.ok) return Response.json(jsonBodyError(parsedBody.error), { status: parsedBody.error === "payload_too_large" ? 413 : 400 });
+  const body = parsedBody.body;
   if (!body.videoToken) return Response.json({ error: "Thiếu token nội dung." }, { status: 400 });
 
   const security = await ensureActiveAccount(request, admin);

@@ -1,0 +1,274 @@
+.tsa-review-preview-host{width:100%;height:100%;min-height:0;overflow:hidden}.exam-preview-stage .tsa-review-preview-page,.section-preview-page>.tsa-review-preview-host .tsa-review-preview-page{width:100%;height:100%;min-height:0}.tsa-review-preview-page .tsa-review-card{min-height:0}.tsa-review-preview-empty{height:100%;display:grid;place-items:center;padding:24px;color:#718096;background:#fff;font-size:13px}
+
+/* The answer view uses the same viewport and renderer scale as MathExam. The
+   extra answer controls below are content differences, not a second layout. */
+.tsa-review-preview-page .tsa-review-bookmark::before,
+.tsa-review-preview-page .tsa-review-bookmark::after{
+  position:absolute;
+  z-index:160;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .2s cubic-bezier(.645,.045,.355,1),visibility .2s;
+}
+
+.tsa-review-preview-page .tsa-review-bookmark::after{
+  content:attr(data-tooltip);
+  right:calc(100% + 9px);
+  top:50%;
+  padding:6px 8px;
+  border-radius:6px;
+  background:rgba(0,0,0,.85);
+  box-shadow:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px rgba(0,0,0,.08),0 9px 28px 8px rgba(0,0,0,.05);
+  color:#fff;
+  font-size:14px;
+  font-weight:400;
+  line-height:22px;
+  white-space:nowrap;
+  transform:translateY(-50%);
+}
+
+.tsa-review-preview-page .tsa-review-bookmark::before{
+  content:"";
+  right:calc(100% - 1px);
+  top:50%;
+  width:0;
+  height:0;
+  border:5px solid transparent;
+  border-left-color:rgba(0,0,0,.85);
+  transform:translateY(-50%);
+}
+
+.tsa-review-preview-page .tsa-review-bookmark:hover::before,
+.tsa-review-preview-page .tsa-review-bookmark:hover::after,
+.tsa-review-preview-page .tsa-review-bookmark:focus-visible::before,
+.tsa-review-preview-page .tsa-review-bookmark:focus-visible::after{
+  opacity:1;
+  visibility:visible;
+}
+
+/* Render one candidate watermark over the whole review surface. The review
+   regions stay transparent so the layer also reaches the unused space below
+   the question, while every interactive/content layer remains above it. */
+.tsa-review-preview-page.has-watermark{
+  position:relative;
+  isolation:isolate;
+  background-color:#fff;
+}
+
+.tsa-review-preview-page.has-watermark::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:var(--tsa-review-watermark-image);
+  background-repeat:repeat;
+  background-size:340px 190px;
+}
+
+.tsa-review-preview-page.has-watermark > *{
+  z-index:1;
+}
+
+.tsa-review-preview-page.has-watermark > :not(.tsa-review-panel){
+  position:relative;
+}
+
+.tsa-review-preview-page.has-watermark .tsa-review-header,
+.tsa-review-preview-page.has-watermark .tsa-review-card,
+.tsa-review-preview-page.has-watermark .tsa-review-footer,
+.tsa-review-preview-page.has-watermark .tsa-review-panel,
+.tsa-review-preview-page.has-watermark .tsa-review-passage-pane,
+.tsa-review-preview-page.has-watermark .tsa-review-questions-pane,
+.tsa-review-preview-page.has-watermark .tsa-review-question{
+  background-color:transparent;
+  background-image:none;
+}
+
+.tsa-review-preview-page .tsa-review-indicators i{
+  position:relative;
+  cursor:default;
+}
+
+.tsa-review-preview-page .tsa-review-indicators i::before,
+.tsa-review-preview-page .tsa-review-indicators i::after{
+  position:absolute;
+  z-index:160;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .2s cubic-bezier(.645,.045,.355,1),visibility .2s;
+}
+
+.tsa-review-preview-page .tsa-review-indicators i::after{
+  content:attr(data-tooltip);
+  left:50%;
+  bottom:calc(100% + 9px);
+  padding:6px 8px;
+  border-radius:6px;
+  background:rgba(0,0,0,.85);
+  box-shadow:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px rgba(0,0,0,.08),0 9px 28px 8px rgba(0,0,0,.05);
+  color:#fff;
+  font-size:14px;
+  font-weight:400;
+  line-height:22px;
+  white-space:nowrap;
+  transform:translateX(-50%);
+}
+
+.tsa-review-preview-page .tsa-review-indicators i::before{
+  content:"";
+  left:50%;
+  bottom:calc(100% - 1px);
+  width:0;
+  height:0;
+  border:5px solid transparent;
+  border-top-color:rgba(0,0,0,.85);
+  transform:translateX(-50%);
+}
+
+.tsa-review-preview-page .tsa-review-indicators i:hover::before,
+.tsa-review-preview-page .tsa-review-indicators i:hover::after,
+.tsa-review-preview-page .tsa-review-indicators i:focus-visible::before,
+.tsa-review-preview-page .tsa-review-indicators i:focus-visible::after{
+  opacity:1;
+  visibility:visible;
+}
+
+@media(min-width:1024px){
+  .tsa-review-preview-page{
+    width:100%;
+    height:100%;
+    min-height:0;
+    grid-template-columns:minmax(0,1fr) 480px;
+    grid-template-rows:64px minmax(0,1fr) 80px;
+  }
+
+  .tsa-review-preview-page .tsa-review-header{
+    height:64px;
+    min-height:64px;
+    padding:8px 24px;
+    gap:16px;
+  }
+
+  .tsa-review-preview-page .tsa-review-header img{
+    width:111.75px;
+    height:48px;
+  }
+
+  .tsa-review-preview-page .tsa-review-panel>h2{
+    height:52px;
+    min-height:52px;
+    margin:0;
+    padding:22px 15px 0;
+    color:rgba(0,0,0,.85);
+    font-size:17px;
+    line-height:25.5px;
+    font-weight:500;
+    text-align:left;
+    box-sizing:border-box;
+  }
+
+  .tsa-review-preview-page .tsa-review-heading{
+    min-width:0;
+    margin:0;
+  }
+
+  .tsa-review-preview-page .tsa-review-heading h1{
+    min-width:0;
+    overflow:hidden;
+    color:#111827;
+    font-size:20px;
+    line-height:28px;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* tsa-result-overrides targets every header button. Keep only the preview
+     toolbar compact so it can coexist with the real LAB header. */
+  .tsa-review-preview-page .preview-header-control-group{
+    height:31px;
+    gap:7px;
+    margin-left:8px;
+  }
+
+  .tsa-review-preview-page .preview-header-control-group .learner-preview-mode-switch{
+    height:31px;
+    padding:2px;
+  }
+
+  .tsa-review-preview-page .preview-header-control-group .learner-preview-mode-switch button{
+    width:auto;
+    min-width:0;
+    min-height:0;
+    height:25px;
+    margin:0;
+    padding:5px 7px;
+    border:0;
+    border-radius:5px;
+    font:800 10px/15px Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+
+  .tsa-review-preview-page .preview-header-close{
+    width:auto;
+    min-width:0;
+    min-height:30px;
+    height:30px;
+    margin-left:0;
+    padding:0 8px;
+    border-radius:7px;
+    font:700 10px/14px Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+
+  .tsa-review-preview-page .tsa-review-card.single,
+  .tsa-review-preview-page .tsa-review-card.grouped{
+    height:calc(100% - 40px);
+    margin:20px;
+  }
+
+  .tsa-review-preview-page .tsa-review-card.single .tsa-review-questions-pane{
+    width:100%;
+    height:100%;
+    padding:24px 20px 52px 24px;
+    overflow-y:auto;
+  }
+
+  .tsa-review-preview-page .tsa-review-card.grouped .tsa-review-passage-pane,
+  .tsa-review-preview-page .tsa-review-card.grouped .tsa-review-questions-pane{
+    height:100%;
+    padding:24px 20px;
+  }
+
+  .tsa-review-preview-page .tsa-review-footer{
+    height:80px;
+    min-height:80px;
+    padding:12px 24px 10px 64px;
+  }
+
+  .tsa-review-preview-page .tsa-review-panel{
+    width:480px;
+    min-width:480px;
+  }
+}
+
+@media(min-width:1024px){
+  .tsa-review-preview-page.grouped-review-page{position:relative}.tsa-review-preview-page.grouped-review-page .tsa-review-panel{top:0;bottom:0;height:100%;min-height:0}.tsa-review-preview-page.grouped-review-page .tsa-review-panel-overlay{position:absolute;inset:0}
+}
+
+@media(max-width:1023px){
+  .tsa-review-preview-host{height:auto;min-height:100%}.exam-preview-stage .tsa-review-preview-page{height:auto;min-height:100dvh}.tsa-review-preview-page .tsa-review-card{min-height:calc(100dvh - 140px)}
+}
+
+.tsa-review-part-instruction{
+  margin:0 0 12px;
+  color:#172033;
+  font-size:20px;
+  font-weight:700;
+  line-height:28px;
+  text-align:left;
+}
+
+@media(max-width:639px){
+  .tsa-review-part-instruction{font-size:17px;line-height:24px}
+}

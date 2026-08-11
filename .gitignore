@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -43,6 +45,7 @@ tsconfig.tsbuildinfo
 /.wrangler/
 /outputs/
 /work/
+/.runtime-*
 
 # local dev captures and stale vinext asset caches
 /artifacts/

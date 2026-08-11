@@ -1,0 +1,1152 @@
+/*
+ * Product UI layer inspired by the macOS 26 community kit supplied by the
+ * product team. It intentionally targets only signed-in, non-exam surfaces.
+ * Candidate runners keep the legacy exam stylesheet and layout untouched.
+ */
+
+.ui-shell.student-app.product-shell {
+  --mac-bg: #f5f5f7;
+  --mac-bg-deep: #ececf0;
+  --mac-surface: rgba(255, 255, 255, 0.78);
+  --mac-surface-solid: #ffffff;
+  --mac-surface-muted: rgba(255, 255, 255, 0.56);
+  --mac-ink: #1d1d1f;
+  --mac-body: #424245;
+  --mac-muted: #6e6e73;
+  --mac-subtle: #8e8e93;
+  --mac-line: rgba(60, 60, 67, 0.16);
+  --mac-line-soft: rgba(60, 60, 67, 0.1);
+  --mac-blue: #007aff;
+  --mac-blue-strong: #0066d6;
+  --mac-blue-soft: rgba(0, 122, 255, 0.1);
+  --mac-indigo: #5856d6;
+  --mac-green: #34c759;
+  --mac-orange: #ff9500;
+  --mac-red: #ff3b30;
+  --mac-radius-sm: 10px;
+  --mac-radius-md: 15px;
+  --mac-radius-lg: 22px;
+  --mac-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(24, 32, 48, 0.045);
+  --mac-shadow-md: 0 16px 42px rgba(24, 32, 48, 0.08);
+  color: var(--mac-ink);
+  background: var(--mac-bg);
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.ui-shell.student-app.product-shell .main-content {
+  min-height: calc(100vh - 76px);
+  margin-left: 84px;
+  padding: 38px 42px 72px;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(88, 86, 214, 0.08), transparent 28rem),
+    radial-gradient(circle at 12% 30%, rgba(0, 122, 255, 0.045), transparent 24rem),
+    var(--mac-bg);
+}
+
+.ui-shell.student-app.product-shell.sidebar-expanded .main-content {
+  margin-left: 280px;
+}
+
+.ui-shell.student-app.product-shell .topbar {
+  height: 76px;
+  margin-left: 84px;
+  padding: 0 34px;
+  border-bottom: 1px solid var(--mac-line-soft);
+  background: rgba(250, 250, 252, 0.78);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  transition: margin-left 0.24s ease;
+}
+
+.ui-shell.student-app.product-shell.sidebar-expanded .topbar {
+  margin-left: 280px;
+}
+
+.ui-shell.student-app.product-shell .sidebar {
+  width: 84px;
+  border-right: 1px solid var(--mac-line-soft);
+  background: rgba(250, 250, 252, 0.72);
+  box-shadow: 6px 0 26px rgba(40, 40, 50, 0.035);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  transition: width 0.24s ease;
+}
+
+.ui-shell.student-app.product-shell.sidebar-expanded .sidebar {
+  width: 280px;
+}
+
+.ui-shell.student-app.product-shell .sidebar nav {
+  /* Keep the first navigation item below the 76px product toolbar. */
+  padding: 90px 12px 18px;
+}
+
+.ui-shell.student-app.product-shell .sidebar nav button,
+.ui-shell.student-app.product-shell .sidebar-toggle {
+  height: 46px;
+  gap: 13px;
+  margin: 4px 0;
+  padding: 0 15px;
+  border-radius: 12px;
+  color: var(--mac-muted);
+  transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .sidebar nav button:hover,
+.ui-shell.student-app.product-shell .sidebar-toggle:hover {
+  color: var(--mac-blue);
+  background: rgba(0, 122, 255, 0.07);
+}
+
+.ui-shell.student-app.product-shell .sidebar nav button.active {
+  color: var(--mac-blue);
+  background: rgba(0, 122, 255, 0.11);
+  font-weight: 800;
+}
+
+.ui-shell.student-app.product-shell .sidebar nav button.active::after {
+  display: none;
+}
+
+.ui-shell.student-app.product-shell .sidebar-toggle {
+  border-top-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .sidebar nav button:focus-visible,
+.ui-shell.student-app.product-shell .sidebar-toggle:focus-visible,
+.ui-shell.student-app.product-shell .header-brand:focus-visible,
+.ui-shell.student-app.product-shell .header-sidebar-toggle:focus-visible,
+.ui-shell.student-app.product-shell .account-trigger:focus-visible,
+.ui-shell.student-app.product-shell .mobile-menu:focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.ui-shell.student-app.product-shell .header-brand {
+  height: 56px;
+  gap: 11px;
+  border-radius: 14px;
+}
+
+.ui-shell.student-app.product-shell .header-brand:hover {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.ui-shell.student-app.product-shell .header-brand-logo-compact {
+  width: 38px;
+  height: 38px;
+}
+
+.ui-shell.student-app.product-shell .header-brand-logo-full {
+  width: 146px;
+  height: 48px;
+}
+
+.ui-shell.student-app.product-shell .header-sidebar-toggle {
+  color: var(--mac-subtle);
+  border-radius: 10px;
+}
+
+.ui-shell.student-app.product-shell .header-sidebar-toggle:hover {
+  color: var(--mac-body);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.ui-shell.student-app.product-shell .account-trigger {
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--mac-body);
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .account-trigger:hover,
+.ui-shell.student-app.product-shell .account-menu-wrap.open .account-trigger {
+  border-color: var(--mac-line-soft);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.ui-shell.student-app.product-shell .account-dropdown {
+  top: calc(100% + 9px);
+  min-width: 170px;
+  padding: 6px;
+  border: 1px solid var(--mac-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--mac-shadow-md);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.ui-shell.student-app.product-shell .account-dropdown button {
+  min-height: 38px;
+  border-radius: 9px;
+  color: var(--mac-body);
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .account-dropdown button:hover {
+  color: var(--mac-blue);
+  background: var(--mac-blue-soft);
+}
+
+.ui-shell.student-app.product-shell .page-stack {
+  width: min(1240px, 100%);
+  gap: 25px;
+}
+
+.ui-shell.student-app.product-shell :where(h1, h2, h3, p) {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell .eyebrow,
+.ui-shell.student-app.product-shell .kicker {
+  color: var(--mac-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.45px;
+}
+
+.ui-shell.student-app.product-shell .page-intro,
+.ui-shell.student-app.product-shell .courses-toolbar {
+  align-items: flex-end;
+  padding: 3px 0 2px;
+}
+
+.ui-shell.student-app.product-shell .page-intro h2,
+.ui-shell.student-app.product-shell .courses-toolbar h1 {
+  margin: 6px 0 0;
+  color: var(--mac-ink);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.13;
+  letter-spacing: -0.7px;
+}
+
+.ui-shell.student-app.product-shell .page-intro p,
+.ui-shell.student-app.product-shell .courses-toolbar p {
+  margin: 8px 0 0;
+  color: var(--mac-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ui-shell.student-app.product-shell .search,
+.ui-shell.student-app.product-shell .course-search {
+  width: min(300px, 100%);
+  min-height: 42px;
+  border: 1px solid var(--mac-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--mac-body);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.025);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .search:focus-within,
+.ui-shell.student-app.product-shell .course-search:focus-within {
+  border-color: rgba(0, 122, 255, 0.7);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.ui-shell.student-app.product-shell .search svg,
+.ui-shell.student-app.product-shell .course-search svg {
+  color: var(--mac-subtle);
+}
+
+.ui-shell.student-app.product-shell :where(.section-card, .overview-list-card, .history-frame, .history-list, .profile-card, .course-curriculum-panel, .viewer-card, .curriculum-panel) {
+  border-color: var(--mac-line-soft);
+  border-radius: var(--mac-radius-md);
+  box-shadow: var(--mac-shadow-sm);
+}
+
+.ui-shell.student-app.product-shell .section-card,
+.ui-shell.student-app.product-shell .overview-list-card,
+.ui-shell.student-app.product-shell .history-frame,
+.ui-shell.student-app.product-shell .profile-card,
+.ui-shell.student-app.product-shell .course-curriculum-panel,
+.ui-shell.student-app.product-shell .viewer-card,
+.ui-shell.student-app.product-shell .curriculum-panel {
+  background: var(--mac-surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ui-shell.student-app.product-shell .section-card {
+  padding: 24px;
+}
+
+.ui-shell.student-app.product-shell .section-head h2,
+.ui-shell.student-app.product-shell .page-intro h2 {
+  color: var(--mac-ink);
+  letter-spacing: -0.3px;
+}
+
+.ui-shell.student-app.product-shell .section-head p,
+.ui-shell.student-app.product-shell .muted,
+.ui-shell.student-app.product-shell .overview-number small,
+.ui-shell.student-app.product-shell .overview-role small {
+  color: var(--mac-muted);
+}
+
+/* Dashboard */
+.ui-shell.student-app.product-shell .overview-summary {
+  min-height: 146px;
+  padding: 25px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: var(--mac-radius-lg);
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.26), transparent 12rem),
+    linear-gradient(128deg, #0a84ff, #5856d6 72%, #6e67df);
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(58, 83, 194, 0.2);
+}
+
+.ui-shell.student-app.product-shell .overview-user {
+  gap: 14px;
+}
+
+.ui-shell.student-app.product-shell .overview-avatar {
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+}
+
+.ui-shell.student-app.product-shell .overview-user small,
+.ui-shell.student-app.product-shell .overview-number small,
+.ui-shell.student-app.product-shell .overview-role small {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ui-shell.student-app.product-shell .overview-user h2 {
+  margin: 3px 0 4px;
+  color: #fff;
+  font-size: clamp(21px, 3vw, 28px);
+  letter-spacing: -0.45px;
+}
+
+.ui-shell.student-app.product-shell .overview-user p,
+.ui-shell.student-app.product-shell .overview-number span,
+.ui-shell.student-app.product-shell .overview-role span {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.ui-shell.student-app.product-shell .overview-number b,
+.ui-shell.student-app.product-shell .overview-role b {
+  color: #fff;
+}
+
+.ui-shell.student-app.product-shell .summary-divider {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ui-shell.student-app.product-shell .overview-lists {
+  gap: 14px;
+}
+
+.ui-shell.student-app.product-shell .overview-list-card {
+  min-height: 174px;
+  padding: 19px 20px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.ui-shell.student-app.product-shell .overview-card-head {
+  padding-bottom: 13px;
+  border-bottom-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .overview-card-head b {
+  color: var(--mac-ink);
+  font-size: 14px;
+}
+
+.ui-shell.student-app.product-shell .overview-card-head button {
+  color: var(--mac-blue);
+  border-radius: 8px;
+}
+
+.ui-shell.student-app.product-shell .overview-card-head button:hover,
+.ui-shell.student-app.product-shell .text-btn:hover {
+  background: var(--mac-blue-soft);
+}
+
+.ui-shell.student-app.product-shell .overview-list-card li {
+  padding: 10px 0;
+  border-bottom-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .overview-list-card li button,
+.ui-shell.student-app.product-shell .attempt-list-link {
+  color: var(--mac-body);
+}
+
+.ui-shell.student-app.product-shell .overview-list-card li button:hover,
+.ui-shell.student-app.product-shell .attempt-list-link:hover {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .dot.blue {
+  background: var(--mac-blue);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+}
+
+.ui-shell.student-app.product-shell .two-col {
+  gap: 14px;
+}
+
+.ui-shell.student-app.product-shell .attempt-list {
+  margin-top: 14px;
+}
+
+.ui-shell.student-app.product-shell .attempt-list li {
+  border-top-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .activity-card {
+  overflow: hidden;
+}
+
+.ui-shell.student-app.product-shell .activity-year {
+  border-color: var(--mac-line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--mac-body);
+}
+
+.ui-shell.student-app.product-shell .heatmap i {
+  border-radius: 4px;
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.ui-shell.student-app.product-shell .heatmap i.level-1 { background: #b7dcff; }
+.ui-shell.student-app.product-shell .heatmap i.level-2 { background: #65b7ff; }
+.ui-shell.student-app.product-shell .heatmap i.level-3 { background: #168cff; }
+.ui-shell.student-app.product-shell .heatmap i.level-4 { background: #005ecb; }
+
+/* Courses and curriculum */
+.ui-shell.student-app.product-shell .courses-toolbar {
+  gap: 20px;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-search {
+  width: min(330px, 100%);
+  height: 44px;
+  border-radius: 12px;
+}
+
+.ui-shell.student-app.product-shell .reference-course-grid {
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.ui-shell.student-app.product-shell .reference-course-card {
+  min-height: 344px;
+  border: 1px solid var(--mac-line-soft);
+  border-radius: var(--mac-radius-md);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: var(--mac-shadow-sm);
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.ui-shell.student-app.product-shell .reference-course-card:hover {
+  border-color: rgba(0, 122, 255, 0.25);
+  box-shadow: 0 18px 34px rgba(27, 53, 94, 0.12);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card:focus-within {
+  border-color: rgba(0, 122, 255, 0.7);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1), var(--mac-shadow-sm);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-cover {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #0a84ff, #5856d6);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-cover::after {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.ui-shell.student-app.product-shell .course-cover-fallback {
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--course-color, #0a84ff) 74%, #101014), color-mix(in srgb, var(--course-color, #0a84ff) 70%, #fff)), radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.24), transparent 34%);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-body {
+  min-height: 160px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-body h3 {
+  color: var(--mac-ink);
+  font-size: 17px;
+  letter-spacing: -0.15px;
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-meta {
+  border-top-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-meta span {
+  color: var(--mac-muted);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-meta b {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .course-study-page {
+  width: min(1080px, 100%);
+}
+
+.ui-shell.student-app.product-shell .back-btn {
+  width: fit-content;
+  min-height: 34px;
+  margin: -2px 0 -5px;
+  padding: 7px 10px 7px 5px;
+  border-radius: 9px;
+  color: var(--mac-muted);
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .back-btn:hover {
+  color: var(--mac-blue);
+  background: var(--mac-blue-soft);
+}
+
+.ui-shell.student-app.product-shell .course-study-hero {
+  gap: 28px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: var(--mac-radius-lg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(239, 244, 255, 0.75));
+  box-shadow: var(--mac-shadow-md);
+}
+
+.ui-shell.student-app.product-shell .course-study-hero > img,
+.ui-shell.student-app.product-shell .course-study-cover-fallback {
+  width: 238px;
+  min-height: 148px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(38, 57, 99, 0.12);
+}
+
+.ui-shell.student-app.product-shell .course-study-hero .eyebrow {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .course-study-hero h1 {
+  margin: 8px 0 7px;
+  color: var(--mac-ink);
+  font-size: clamp(26px, 4vw, 38px);
+  letter-spacing: -0.8px;
+}
+
+.ui-shell.student-app.product-shell .course-study-hero p {
+  color: var(--mac-muted);
+  line-height: 1.6;
+}
+
+.ui-shell.student-app.product-shell .course-curriculum-panel {
+  overflow: hidden;
+}
+
+.ui-shell.student-app.product-shell .course-curriculum-head,
+.ui-shell.student-app.product-shell .curriculum-panel-head {
+  border-bottom-color: var(--mac-line-soft);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.ui-shell.student-app.product-shell .course-curriculum-head h2,
+.ui-shell.student-app.product-shell .curriculum-panel-head h2 {
+  color: var(--mac-ink);
+  letter-spacing: -0.2px;
+}
+
+.ui-shell.student-app.product-shell .course-curriculum-head p,
+.ui-shell.student-app.product-shell .curriculum-panel-head p {
+  color: var(--mac-muted);
+}
+
+.ui-shell.student-app.product-shell .course-part-card,
+.ui-shell.student-app.product-shell .lesson-curriculum-list details {
+  border-color: var(--mac-line-soft);
+  border-radius: 12px;
+  background: rgba(245, 245, 247, 0.64);
+}
+
+.ui-shell.student-app.product-shell .course-part-card > summary,
+.ui-shell.student-app.product-shell .lesson-curriculum-list summary {
+  color: var(--mac-body);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .course-part-card > summary:hover,
+.ui-shell.student-app.product-shell .lesson-curriculum-list summary:hover {
+  color: var(--mac-blue);
+  background: rgba(0, 122, 255, 0.06);
+}
+
+.ui-shell.student-app.product-shell .course-part-lessons,
+.ui-shell.student-app.product-shell .lesson-curriculum-lessons {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.ui-shell.student-app.product-shell .course-part-lessons > button {
+  color: var(--mac-body);
+  border-bottom-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .course-part-lessons > button:hover {
+  background: rgba(0, 122, 255, 0.055);
+}
+
+.ui-shell.student-app.product-shell .course-part-lessons > button:hover b,
+.ui-shell.student-app.product-shell .course-part-lessons > button.published b {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .course-part-lessons > button:before {
+  background: var(--mac-blue);
+}
+
+/* Lesson viewer */
+.ui-shell.student-app.product-shell .main-content.lesson-main-content {
+  padding-top: 22px;
+}
+
+.ui-shell.student-app.product-shell .real-lesson-page .lesson-layout {
+  gap: 22px;
+}
+
+.ui-shell.student-app.product-shell .real-lesson-page .viewer-card,
+.ui-shell.student-app.product-shell .real-lesson-page .curriculum-panel {
+  border: 1px solid var(--mac-line-soft);
+  border-radius: var(--mac-radius-md);
+  box-shadow: var(--mac-shadow-sm);
+}
+
+.ui-shell.student-app.product-shell .real-lesson-page .viewer-card {
+  overflow: hidden;
+  background: #111114;
+}
+
+.ui-shell.student-app.product-shell .real-lesson-page .curriculum-panel {
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.ui-shell.student-app.product-shell .lesson-breadcrumb-back,
+.ui-shell.student-app.product-shell .breadcrumb-course {
+  color: var(--mac-muted);
+}
+
+.ui-shell.student-app.product-shell .lesson-breadcrumb-back:hover {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .breadcrumb-current {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .curriculum-lesson {
+  border-bottom-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .curriculum-lesson.current {
+  background: rgba(0, 122, 255, 0.055);
+}
+
+.ui-shell.student-app.product-shell .curriculum-lesson.current .curriculum-lesson-title b {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .curriculum-lesson.current .curriculum-lesson-title:before {
+  background: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .curriculum-resource.selected {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 4px rgba(18, 47, 78, 0.08);
+}
+
+.ui-shell.student-app.product-shell .curriculum-resource.selected > span:first-child {
+  color: var(--mac-blue);
+}
+
+/* History */
+.ui-shell.student-app.product-shell .history-frame {
+  overflow: hidden;
+}
+
+.ui-shell.student-app.product-shell .history-frame > .history-head {
+  border-bottom-color: var(--mac-line-soft);
+  background: rgba(245, 245, 247, 0.58);
+  color: var(--mac-subtle);
+}
+
+.ui-shell.student-app.product-shell .history-list {
+  background: transparent;
+}
+
+.ui-shell.student-app.product-shell .history-row {
+  border-top-color: var(--mac-line-soft);
+  transition: background-color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .history-row:hover {
+  background: rgba(0, 122, 255, 0.045);
+}
+
+.ui-shell.student-app.product-shell .history-exam b,
+.ui-shell.student-app.product-shell .history-row > strong {
+  color: var(--mac-ink);
+}
+
+.ui-shell.student-app.product-shell .history-exam small,
+.ui-shell.student-app.product-shell .history-row time {
+  color: var(--mac-muted);
+}
+
+.ui-shell.student-app.product-shell .history-status > span {
+  background: rgba(52, 199, 89, 0.12);
+  color: #248a41;
+}
+
+.ui-shell.student-app.product-shell .history-status button {
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .history-feedback > span {
+  background: var(--mac-blue-soft);
+  color: var(--mac-blue);
+}
+
+/* Profile */
+.ui-shell.student-app.product-shell .profile-grid {
+  max-width: 1100px;
+  gap: 16px;
+}
+
+.ui-shell.student-app.product-shell .profile-card.identity {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.86), rgba(240, 246, 255, 0.74));
+}
+
+.ui-shell.student-app.product-shell .profile-card.identity::before {
+  height: 3px;
+  background: linear-gradient(90deg, var(--mac-blue), var(--mac-indigo));
+}
+
+.ui-shell.student-app.product-shell .profile-label {
+  color: var(--mac-subtle);
+}
+
+.ui-shell.student-app.product-shell .big-avatar,
+.ui-shell.student-app.product-shell .profile-card.details .detail-row > span {
+  border-color: rgba(0, 122, 255, 0.16);
+  background: var(--mac-blue-soft);
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .identity h2,
+.ui-shell.student-app.product-shell .profile-card.details h2,
+.ui-shell.student-app.product-shell .profile-card.exam-profile h2 {
+  color: var(--mac-ink);
+}
+
+.ui-shell.student-app.product-shell .identity > p,
+.ui-shell.student-app.product-shell .profile-identity-meta small,
+.ui-shell.student-app.product-shell .profile-card.details .detail-row small,
+.ui-shell.student-app.product-shell .attempt-list li small {
+  color: var(--mac-muted);
+}
+
+.ui-shell.student-app.product-shell .identity .status {
+  border-color: rgba(52, 199, 89, 0.22);
+  background: rgba(52, 199, 89, 0.1);
+  color: #248a41;
+}
+
+.ui-shell.student-app.product-shell .profile-card.details .section-head,
+.ui-shell.student-app.product-shell .profile-identity-meta,
+.ui-shell.student-app.product-shell .profile-card.details hr,
+.ui-shell.student-app.product-shell .attempt-list li {
+  border-color: var(--mac-line-soft);
+}
+
+.ui-shell.student-app.product-shell .profile-score {
+  border-color: rgba(0, 122, 255, 0.15);
+  background: var(--mac-blue-soft);
+  color: var(--mac-blue);
+}
+
+.ui-shell.student-app.product-shell .password-row > div > svg {
+  background: rgba(0, 0, 0, 0.045);
+  color: var(--mac-muted);
+}
+
+/* Shared product controls and overlays */
+.ui-shell.student-app.product-shell :where(.primary-btn, .outline-btn, .text-btn, .icon-btn, .forgot, .activity-year):focus-visible,
+.login-page :where(button, a, input):focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.3);
+  outline-offset: 3px;
+}
+
+.ui-shell.student-app.product-shell .primary-btn {
+  min-height: 42px;
+  border: 1px solid var(--mac-blue);
+  border-radius: 11px;
+  background: var(--mac-blue);
+  box-shadow: 0 6px 14px rgba(0, 122, 255, 0.16);
+  transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .primary-btn:hover:not(:disabled) {
+  border-color: var(--mac-blue-strong);
+  background: var(--mac-blue-strong);
+  box-shadow: 0 8px 18px rgba(0, 102, 214, 0.2);
+  transform: translateY(-1px);
+}
+
+.ui-shell.student-app.product-shell .outline-btn {
+  min-height: 40px;
+  border-color: var(--mac-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--mac-body);
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell .outline-btn:hover:not(:disabled) {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: var(--mac-blue-soft);
+  color: var(--mac-blue);
+  transform: translateY(-1px);
+}
+
+.ui-shell.student-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  border-color: var(--mac-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--mac-ink);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(0, 122, 255, 0.72);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+  outline: 0;
+}
+
+.ui-shell.student-app.product-shell .modal-shade {
+  background: rgba(28, 28, 30, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ui-shell.student-app.product-shell .modal {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
+}
+
+.ui-shell.student-app.product-shell .form-error,
+.ui-shell.student-app.product-shell .form-success {
+  border-radius: 10px;
+}
+
+/* Auth surfaces are outside the signed-in shell but still belong to product UI. */
+.login-page {
+  /* Auth pages render before the signed-in shell, so they need their own
+   * token scope instead of inheriting product-shell variables. */
+  --mac-blue: #007aff;
+  --mac-blue-strong: #0066d6;
+  --mac-blue-soft: rgba(0, 122, 255, 0.1);
+  --mac-ink: #1d1d1f;
+  --mac-muted: #6e6e73;
+  --mac-subtle: #8e8e93;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(0, 122, 255, 0.16), transparent 28rem),
+    radial-gradient(circle at 90% 88%, rgba(88, 86, 214, 0.16), transparent 30rem),
+    linear-gradient(135deg, #f5f5f7, #eef2fa);
+  color: var(--mac-ink, #1d1d1f);
+}
+
+.login-page::before,
+.login-page::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  color: rgba(0, 122, 255, 0.05);
+  font-weight: 900;
+  letter-spacing: -0.12em;
+  pointer-events: none;
+}
+
+.login-page::before {
+  content: "R";
+  top: -16vh;
+  left: -3vw;
+  font-size: min(48vw, 560px);
+  transform: rotate(-12deg);
+}
+
+.login-page::after {
+  content: "REMIX";
+  right: -2vw;
+  bottom: 3vh;
+  font-size: clamp(80px, 14vw, 220px);
+  transform: rotate(-8deg);
+}
+
+.login-page .login-wrap {
+  width: min(460px, calc(100% - 32px));
+}
+
+.login-page .login-brand {
+  margin-bottom: 24px;
+}
+
+.login-page .login-brand > span {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #0a84ff, #5856d6);
+  box-shadow: 0 10px 22px rgba(0, 122, 255, 0.2);
+}
+
+.login-page .login-brand b {
+  color: var(--mac-ink, #1d1d1f);
+}
+
+.login-page .login-brand small {
+  color: var(--mac-blue);
+}
+
+.login-page .login-card {
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-top: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 24px 70px rgba(51, 66, 103, 0.12);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+.login-page .login-heading h1 {
+  color: var(--mac-ink, #1d1d1f);
+  letter-spacing: -0.55px;
+}
+
+.login-page .login-heading p,
+.login-page .login-foot {
+  color: var(--mac-muted, #6e6e73);
+}
+
+.login-page .login-heading .kicker {
+  color: var(--mac-blue);
+}
+
+.login-page .field {
+  border-color: rgba(60, 60, 67, 0.16);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.66);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.login-page .login-field-group {
+  display: grid;
+  gap: 8px;
+  margin-top: 17px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-page .field:focus-within {
+  border-color: rgba(0, 122, 255, 0.7);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.login-page .field > svg {
+  color: var(--mac-subtle);
+}
+
+.login-page .primary-btn {
+  min-height: 44px;
+  border: 1px solid var(--mac-blue);
+  border-radius: 11px;
+  background: var(--mac-blue);
+  box-shadow: 0 8px 18px rgba(0, 122, 255, 0.18);
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.login-page .primary-btn:hover:not(:disabled) {
+  border-color: var(--mac-blue-strong);
+  background: var(--mac-blue-strong);
+  box-shadow: 0 10px 22px rgba(0, 102, 214, 0.22);
+  transform: translateY(-1px);
+}
+
+.login-page .forgot {
+  color: var(--mac-blue);
+}
+
+.login-page .form-error,
+.login-page .form-success {
+  border-radius: 10px;
+}
+
+.ui-shell.student-app.product-shell .skip-link:focus,
+.login-page :where(button, a, input):focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.3);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1050px) {
+  .ui-shell.student-app.product-shell .main-content,
+  .ui-shell.student-app.product-shell.sidebar-expanded .main-content {
+    margin-left: 84px;
+    padding-inline: 28px;
+  }
+
+  .ui-shell.student-app.product-shell .topbar,
+  .ui-shell.student-app.product-shell.sidebar-expanded .topbar {
+    margin-left: 84px;
+  }
+
+  .ui-shell.student-app.product-shell .overview-summary {
+    grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(96px, 0.7fr));
+  }
+
+  .ui-shell.student-app.product-shell .overview-role {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell .main-content,
+  .ui-shell.student-app.product-shell.sidebar-expanded .main-content {
+    margin-left: 0;
+    padding: 24px 16px 50px;
+  }
+
+  .ui-shell.student-app.product-shell .topbar,
+  .ui-shell.student-app.product-shell.sidebar-expanded .topbar {
+    height: 68px;
+    margin-left: 0;
+    padding: 8px 12px;
+    background: rgba(250, 250, 252, 0.86);
+  }
+
+  .ui-shell.student-app.product-shell .sidebar {
+    width: min(88vw, 328px);
+    background: rgba(250, 250, 252, 0.94);
+  }
+
+  .ui-shell.student-app.product-shell .sidebar nav {
+    padding: 12px 12px 16px;
+  }
+
+  .ui-shell.student-app.product-shell .page-stack {
+    gap: 18px;
+  }
+
+  .ui-shell.student-app.product-shell .page-intro,
+  .ui-shell.student-app.product-shell .courses-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .ui-shell.student-app.product-shell .search,
+  .ui-shell.student-app.product-shell .course-search {
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell .overview-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 12px;
+    padding: 20px;
+  }
+
+  .ui-shell.student-app.product-shell .overview-user {
+    grid-column: 1 / -1;
+  }
+
+  .ui-shell.student-app.product-shell .summary-divider {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell .overview-number {
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .ui-shell.student-app.product-shell .overview-lists,
+  .ui-shell.student-app.product-shell .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.student-app.product-shell .section-card {
+    padding: 19px;
+  }
+
+  .ui-shell.student-app.product-shell .course-study-hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .ui-shell.student-app.product-shell .course-study-hero > img,
+  .ui-shell.student-app.product-shell .course-study-cover-fallback {
+    width: 100%;
+    min-height: 170px;
+  }
+
+  .ui-shell.student-app.product-shell .profile-card.details .detail-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575px) {
+  .ui-shell.student-app.product-shell .main-content.lesson-main-content {
+    padding: 16px 10px 40px;
+  }
+
+  .ui-shell.student-app.product-shell .reference-course-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.student-app.product-shell .reference-course-card {
+    min-height: 0;
+  }
+
+  .ui-shell.student-app.product-shell .overview-user h2 {
+    font-size: 22px;
+  }
+
+  .login-page .login-wrap {
+    width: min(100% - 24px, 460px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell *,
+  .login-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

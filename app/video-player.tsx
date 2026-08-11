@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import LoadingIndicator from "./loading-indicator";
 
 export type SecureLessonResource = {
@@ -36,21 +37,25 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     async function resolveToken() {
       setLoading(true); setError(""); setContent(null);
       if (!supabase) { setError("Chưa cấu hình Supabase."); setLoading(false); return; }
-      const { data } = await supabase.auth.getSession();
-      const accessToken = data.session?.access_token;
-      if (!accessToken) { setError("Phiên đăng nhập đã hết hạn."); setLoading(false); return; }
-      setWatermarkEmail(data.session?.user.email || "Học viên REMIX");
-      const response = await fetch("/api/video-token", {
-        method: "POST",
-        headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
-        body: JSON.stringify({ videoToken: resource.videoToken }),
-      });
-      const payload = await response.json() as ResolvedContent & { error?: string };
-      if (cancelled) return;
-      const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : payload.protectedContent === "pdf";
-      if (!response.ok || !hasPlayableSource) setError(payload.error || "Không thể mở nội dung.");
-      else setContent({ ...payload, title: payload.title || resource.title });
-      setLoading(false);
+      try {
+        const accessToken = await activeSessionToken();
+        const { data: userData } = await supabase.auth.getUser(accessToken);
+        setWatermarkEmail(userData.user?.email || "Học viên REMIX");
+        const response = await authenticatedFetch("/api/video-token", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ videoToken: resource.videoToken }),
+        });
+        const payload = await response.json() as ResolvedContent & { error?: string };
+        if (cancelled) return;
+        const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : payload.protectedContent === "pdf";
+        if (!response.ok || !hasPlayableSource) setError(payload.error || "Không thể mở nội dung.");
+        else setContent({ ...payload, title: payload.title || resource.title });
+      } catch (value) {
+        if (!cancelled) setError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     void resolveToken();
     return () => { cancelled = true; };
@@ -64,12 +69,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       const frame = pdfFrameRef.current?.contentWindow;
       try {
         if (!supabase) throw new Error("Chưa cấu hình Supabase.");
-        const { data } = await supabase.auth.getSession();
-        const accessToken = data.session?.access_token;
-        if (!accessToken) throw new Error("Phiên đăng nhập đã hết hạn.");
-        const response = await fetch("/api/lesson-pdf-download", {
+        const response = await authenticatedFetch("/api/lesson-pdf-download", {
           method: "POST",
-          headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
+          headers: { "content-type": "application/json" },
           body: JSON.stringify({ videoToken: resource.videoToken }),
         });
         if (!response.ok) {
@@ -106,12 +108,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       setPdfObjectUrl("");
       try {
         if (!supabase) throw new Error("Chưa cấu hình Supabase.");
-        const { data } = await supabase.auth.getSession();
-        const accessToken = data.session?.access_token;
-        if (!accessToken) throw new Error("Phiên đăng nhập đã hết hạn.");
-        const response = await fetch("/api/resource-content", {
+        const response = await authenticatedFetch("/api/resource-content", {
           method: "POST",
-          headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json", accept: "application/json" },
+          headers: { "content-type": "application/json", accept: "application/json" },
           body: JSON.stringify({ videoToken: resource.videoToken }),
           cache: "no-store",
         });

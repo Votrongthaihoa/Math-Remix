@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, LockKeyhole } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { authenticatedFetch } from "../lib/auth-client";
 
 type ActivityType = "lesson" | "video" | "pdf" | "quiz" | "exam";
 type SecurityReply = {
@@ -16,6 +16,7 @@ type SecurityReply = {
   violationNumber?: number;
   eventCode?: string | null;
   warning?: { message?: string } | null;
+  exempt?: boolean;
 };
 
 const DEVICE_KEY = "remix.security.device-id.v1";
@@ -56,12 +57,9 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
   const info = useMemo(() => typeof navigator === "undefined" ? { browser: "", operatingSystem: "", deviceName: "" } : deviceInfo(), []);
 
   const callSecurity = useCallback(async (action: "start" | "heartbeat" | "stop" | "status") => {
-    if (!supabase) throw new Error("Chưa cấu hình Supabase.");
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) throw new Error("Phiên đăng nhập đã hết hạn.");
-    const response = await fetch("/api/security/session", {
+    const response = await authenticatedFetch("/api/security/session", {
       method: "POST",
-      headers: { authorization: `Bearer ${data.session.access_token}`, "content-type": "application/json" },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ action, sessionId: sessionId.current, deviceId: deviceId.current, activityType, resourceId, ...info }),
       cache: "no-store",
     });
@@ -75,9 +73,10 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
     try {
       const payload = await callSecurity("start");
       setReply(payload);
-      if (payload.allowed && payload.sessionId) {
-        sessionId.current = payload.sessionId;
-        sessionStorage.setItem(SESSION_KEY, payload.sessionId);
+      if (payload.allowed && (payload.sessionId || payload.exempt)) {
+        sessionId.current = payload.sessionId ?? null;
+        if (payload.sessionId) sessionStorage.setItem(SESSION_KEY, payload.sessionId);
+        else sessionStorage.removeItem(SESSION_KEY);
         setState("allowed");
       } else setState("blocked");
     } catch (value) {

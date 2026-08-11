@@ -1,4 +1,5 @@
 import { banPayload, ensureActiveAccount, hashedRequestIp, haversineKm, requestLocation, riskScore, type ActivityType } from "../../../../lib/security-server";
+import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 
 type SecurityBody = {
   action?: "start" | "heartbeat" | "stop" | "status";
@@ -20,8 +21,15 @@ export async function POST(request: Request) {
   const security = await ensureActiveAccount(request);
   if (!security.ok) return security.response;
   const { admin, user, profile, authSessionId } = security;
-  const body = await request.json().catch(() => ({})) as SecurityBody;
+  const parsedBody = await readJsonBody<SecurityBody>(request);
+  if (!parsedBody.ok) return Response.json(jsonBodyError(parsedBody.error), { status: parsedBody.error === "payload_too_large" ? 413 : 400, headers: noStore });
+  const body = parsedBody.body;
   const action = body.action ?? "status";
+  // Administrators manage the platform from multiple browsers and must not be
+  // enrolled in student device/session enforcement. Account status is still
+  // validated by ensureActiveAccount above, so a deliberately locked admin is
+  // not silently re-enabled here.
+  if (profile.role === "admin") return Response.json({ allowed: true, exempt: true, status: "admin_exempt", serverTime: new Date().toISOString() }, { headers: noStore });
   if (action === "status") return Response.json({ allowed: true, status: "active", serverTime: new Date().toISOString(), violationNumber: profile.violation_count }, { headers: noStore });
 
   const deviceId = clean(body.deviceId, 80);

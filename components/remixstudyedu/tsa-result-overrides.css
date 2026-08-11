@@ -1,0 +1,2465 @@
+body.tsa-review-active {
+  overflow-y: auto;
+}
+
+body.tsa-review-active::-webkit-scrollbar,
+html:has(body.tsa-review-active)::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tsa-review-page {
+  --tsa-ui-font: "Lato Source", Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --tsa-content-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  min-height: 100vh;
+  height: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  background: #f5f5f5;
+  font-family: var(--tsa-ui-font);
+  font-optical-sizing: auto;
+  font-style: normal;
+  line-height: 24px;
+}
+
+.tsa-review-panel-overlay {
+  background: rgba(0, 0, 0, .5);
+}
+
+.tsa-review-header {
+  flex: 0 0 64px;
+  height: 64px;
+  margin: 0;
+  padding: 8px 16px;
+  gap: 0;
+}
+
+.tsa-review-header img {
+  width: auto;
+  height: 40px;
+}
+
+.tsa-review-header h1 {
+  margin: 0 0 0 8px;
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.tsa-review-header button {
+  width: 46px;
+  height: 38px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.tsa-review-header button svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tsa-review-card {
+  flex: 0 0 auto;
+  height: auto;
+  margin: 20px;
+  padding: 16px;
+  overflow: visible;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.tsa-review-question {
+  position: relative;
+  margin-bottom: 32px;
+  padding: 0 48px 0 56px;
+}
+
+.tsa-review-bookmark {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 36px;
+  display: grid;
+  place-items: center;
+  color: #d5d5d5;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.tsa-review-bookmark svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.tsa-review-bookmark.marked {
+  color: #fa8c16;
+  background: #fff7e6;
+}
+
+.tsa-review-bookmark:hover,
+.tsa-review-bookmark:focus-visible {
+  color: #fa8c16;
+  outline: 2px solid rgba(250, 140, 22, .28);
+  outline-offset: 2px;
+}
+
+.tsa-review-answer .true-false-list {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.tsa-review-answer .math-token .katex {
+  font-size: 1.21em;
+}
+
+.tsa-review-answer .math-blank-answer .math-token .katex,
+.tsa-review-answer .drag-bank .math-token .katex,
+.tsa-review-answer .drag-blank.filled .math-token .katex {
+  font-size: 1.1em;
+}
+
+.tsa-review-key-values .math-token .katex {
+  font-size: 1.1em;
+}
+
+.tsa-review-passage .rich-question-content,
+.tsa-review-answer > .rich-question-content,
+.tsa-review-answer > .question-answer > .rich-question-content,
+.tsa-review-answer > .matching-question > .rich-question-content,
+.tsa-review-answer .true-false-row > .rich-question-content {
+  font-family: var(--tsa-content-font);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.tsa-review-answer .math-blank-answer {
+  min-width: 100px;
+  min-height: 48px;
+  padding: 6px 12px;
+}
+
+.tsa-review-answer .inline-answer-slot:has(.drag-blank.filled),
+.tsa-review-answer .inline-answer-slot:has(.math-blank-answer) {
+  margin: 8px 6px;
+}
+
+.tsa-review-answer .drag-blank.filled,
+.tsa-review-answer .math-blank-answer {
+  min-width: 100px;
+  min-height: 48px;
+  padding: 6px 12px;
+}
+
+.tsa-review-answer .answer-green-box {
+  border: 1px solid #22c55e;
+  border-radius: 4px;
+  background: #f0fdf4;
+  color: #166534;
+  line-height: 1.35;
+}
+
+.tsa-review-answer .math-choice-option .rich-question-content,
+.tsa-review-answer .drag-bank .rich-question-content,
+.tsa-review-answer .matching-prompt .rich-question-content,
+.tsa-review-answer .matching-choice .rich-question-content,
+.tsa-review-answer .matching-bank .rich-question-content {
+  font-family: var(--tsa-ui-font);
+  line-height: 1.45;
+}
+
+.tsa-review-answer .true-false-head,
+.tsa-review-answer .true-false-row {
+  grid-template-columns: minmax(0, 1fr) 50px 50px;
+}
+
+.tsa-review-answer .true-false-head {
+  min-height: 36px;
+  height: 36px;
+  padding: 6px 0;
+}
+
+.tsa-review-answer .true-false-row > .rich-question-content {
+  padding: 10px 8px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.tsa-review-question > p {
+  min-height: 48px;
+  margin: 16px 0 0;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.tsa-review-question > p::before {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 20px;
+  color: #fff;
+  font: 700 13px/20px Arial, sans-serif;
+}
+
+.tsa-review-question > p.wrong::before {
+  content: "×";
+  background: #dc2626;
+}
+
+.tsa-review-question > p.correct::before {
+  content: "✓";
+  background: #16a34a;
+}
+
+.tsa-review-question > p.skipped {
+  color: #6b7280;
+}
+
+.tsa-review-question > p.skipped::before {
+  content: "–";
+  background: #9ca3af;
+}
+
+.tsa-review-key {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  line-height: 24px;
+}
+
+.tsa-review-key-summary {
+  min-height: 24px;
+  font-weight: 500;
+}
+
+.tsa-review-key-summary strong {
+  font-weight: 500;
+}
+
+.tsa-review-key-summary em {
+  color: #111827;
+  font-weight: 500;
+}
+
+.tsa-review-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tsa-review-actions button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  background: #fff;
+  color: #047857;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tsa-review-actions .tsa-review-video {
+  margin-left: 0;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.tsa-review-solution {
+  line-height: 24px;
+}
+
+.tsa-review-solution-slot {
+  min-height: 0;
+  margin-top: 12px;
+}
+
+.tsa-review-solution-slot .tsa-review-solution {
+  margin-top: 0;
+}
+
+.tsa-review-footer {
+  position: static;
+  flex: 0 0 73px;
+  width: 100%;
+  height: 73px;
+  margin-top: auto;
+  padding: 16px 24px;
+  line-height: 20px;
+}
+
+.tsa-review-footer > span {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tsa-review-footer div {
+  gap: 16px;
+}
+
+.tsa-review-footer button {
+  min-height: 40px;
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.tsa-review-footer > div button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition: transform .16s cubic-bezier(.4, 0, .2, 1), box-shadow .2s ease, filter .2s ease;
+}
+
+.tsa-review-footer > div button:not(:disabled)::before {
+  content: "";
+  width: 145%;
+  aspect-ratio: 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.tsa-review-footer > div button:not(:disabled):active {
+  transform: translateY(1px) scale(.96);
+}
+
+.tsa-review-footer > div button.is-click-animating {
+  animation: tsa-review-button-click .32s cubic-bezier(.22, .8, .32, 1);
+}
+
+.tsa-review-footer > div button.is-click-animating::before {
+  animation: tsa-review-button-ripple .32s ease-out;
+}
+
+.tsa-review-footer > div button:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes tsa-review-button-click {
+  0% { transform: scale(1); }
+  34% { transform: translateY(1px) scale(.94); }
+  68% { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+
+@keyframes tsa-review-button-ripple {
+  0% { opacity: .22; transform: translate(-50%, -50%) scale(0); }
+  70% { opacity: .09; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+.tsa-review-panel-handle {
+  top: 50%;
+  padding: 12px 10px;
+  border: 1px solid #fda4af;
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+  background: linear-gradient(to bottom, #fff1f2, #fee2e2);
+  box-shadow: 0 0 0 1px #fecaca, 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -4px rgba(0, 0, 0, .1);
+  transform: translateY(-50%);
+  font-family: inherit;
+  line-height: 24px;
+}
+
+.tsa-review-panel-handle > span {
+  width: 73.34375px;
+  align-items: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.tsa-review-panel-handle > span > b {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.tsa-review-panel-handle > span > b > i {
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.tsa-review-panel-handle small {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: -.25px;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.tsa-review-panel {
+  width: 320px;
+  padding: 24px 24px 0;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: inherit;
+  line-height: 24px;
+}
+
+.tsa-review-panel-close {
+  right: 16px;
+  top: 16px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  font-family: inherit;
+  line-height: 20px;
+  display: grid;
+  place-items: center;
+}
+
+.tsa-review-panel-close svg,
+.tsa-review-panel-handle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tsa-review-panel-handle svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.tsa-review-panel h2 {
+  min-height: 28px;
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.tsa-review-panel dl {
+  margin: 0 -24px;
+  padding: 0 24px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tsa-review-panel dl > div {
+  min-height: 24px;
+  margin: 0;
+  line-height: 24px;
+}
+
+.tsa-review-panel dl > div + div {
+  margin-top: 12px;
+}
+
+.tsa-review-panel h3 {
+  min-height: 20px;
+  margin: 24px 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.tsa-review-grid {
+  width: 100%;
+  height: 50vh;
+  max-height: 50vh;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: 40px;
+  gap: 12px;
+  overflow: auto;
+}
+
+.tsa-review-grid::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tsa-review-grid::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: #a3a3a3;
+}
+
+.tsa-review-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tsa-review-grid button {
+  min-width: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.tsa-review-grid button.correct { background: #dcfce7; color: #15803d; }
+.tsa-review-grid button.wrong,
+.tsa-review-grid button.attempted { background: #fee2e2; color: #b91c1c; }
+.tsa-review-grid button.skipped { background: #f3f4f6; color: #4b5563; }
+.tsa-review-grid button.current {
+  outline: 0;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+@media (min-width: 640px) {
+  .tsa-review-header {
+    padding: 8px 24px;
+  }
+
+  .tsa-review-header img {
+    height: 48px;
+  }
+
+  .tsa-review-header h1 {
+    margin-left: 16px;
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .tsa-review-header button {
+    width: auto;
+    height: 40px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .tsa-review-card { padding: 24px; }
+
+  .tsa-review-answer .true-false-head,
+  .tsa-review-answer .true-false-row {
+    grid-template-columns: minmax(0, 1fr) 80px 80px;
+  }
+
+  .tsa-review-answer .true-false-head {
+    min-height: 48px;
+    height: auto;
+    padding: 12px;
+  }
+
+  .tsa-review-answer .true-false-row > .rich-question-content {
+    padding: 16px;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .tsa-review-answer .true-false-cell button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tsa-review-page {
+    width: 100%;
+    min-height: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .tsa-review-card {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .tsa-review-footer {
+    margin-top: 0;
+  }
+
+  .tsa-review-panel { width: 320px; }
+  .tsa-review-page.panel-open .tsa-review-panel-handle { display: none; }
+  .tsa-review-page.panel-open .tsa-review-panel-overlay { display: none; }
+}
+
+@media (max-width: 639px) {
+  .tsa-review-header {
+    flex-basis: 56px;
+    height: 56px;
+  }
+
+  .tsa-review-card {
+    margin: 20px;
+    padding: 16px;
+  }
+
+  .source-review-fixture .true-false-answer > .rich-question-content {
+    height: 104px;
+  }
+
+  .tsa-review-answer .true-false-list {
+    margin-top: 16px;
+  }
+
+  .tsa-review-answer .true-false-row > .rich-question-content {
+    padding: 10px 8px;
+  }
+
+  .tsa-review-panel h3 {
+    margin: 16px -8px 16px;
+  }
+
+  .tsa-review-grid {
+    width: calc(100% + 16px);
+    margin-left: -8px;
+    gap: 8px;
+  }
+
+  .tsa-review-footer {
+    flex-basis: 90px;
+    height: 90px;
+    padding: 16px;
+  }
+
+  .tsa-review-footer > span { display: none; }
+  .tsa-review-footer div {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0;
+  }
+
+  .tsa-review-footer button {
+    width: auto;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: 0;
+    line-height: 20px;
+  }
+
+  .tsa-review-footer button:first-child::after { content: "←"; font-size: 14px; }
+  .tsa-review-footer button:nth-child(2)::after { content: "→"; font-size: 14px; }
+  .tsa-review-footer button:last-child::after { content: "←"; font-size: 14px; }
+}
+
+/* Per-part result entry points, matching the source's three independent reviews. */
+.tsa-result-parts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.tsa-result-parts article {
+  grid-template-columns: minmax(0, 1fr) auto 116px;
+  grid-template-rows: auto 8px;
+  gap: 12px 28px;
+  padding: 20px 24px;
+}
+
+.tsa-result-part-copy {
+  min-width: 0;
+}
+
+.tsa-result-parts > article > strong {
+  align-self: center;
+  color: #171717;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tsa-result-parts article > button {
+  width: 116px;
+  min-height: 42px;
+  grid-column: 3;
+  grid-row: 1 / 3;
+  align-self: center;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #cc1628;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tsa-result-parts article > button span {
+  margin-left: 6px;
+  font-size: 22px;
+  line-height: 14px;
+  vertical-align: -1px;
+}
+
+.tsa-result-parts article > .tsa-result-part-progress {
+  width: 100%;
+  height: 8px;
+  margin: 0;
+  grid-column: 1 / 3;
+  grid-row: 2;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.tsa-result-parts article > button:hover {
+  background: #b51223;
+}
+
+.tsa-result-parts article > button:focus-visible {
+  outline: 3px solid rgba(204, 22, 40, .28);
+  outline-offset: 3px;
+}
+
+/* Review pages use the same split passage/question model as the source answer pages. */
+.tsa-review-heading {
+  min-width: 0;
+  margin-left: 16px;
+}
+
+.tsa-review-heading h1 {
+  margin: 0;
+}
+
+.tsa-review-heading p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.tsa-review-card.single,
+.tsa-review-card.grouped {
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.tsa-review-card.single {
+  display: block;
+}
+
+.tsa-review-card.grouped {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  scrollbar-gutter: stable;
+}
+
+.tsa-review-passage-pane,
+.tsa-review-questions-pane {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.tsa-review-passage-pane {
+  border-right: 1px solid #d1d5db;
+  background: #fff;
+  font-family: var(--tsa-content-font);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-passage-pane.group-passage {
+  padding: 20px 16px 20px 20px;
+  overflow-y: auto;
+  scrollbar-gutter: auto;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-passage-pane.group-passage.is-scrollable {
+  padding-right: 6px;
+}
+
+.tsa-review-passage-pane > h2 {
+  margin: 0 0 20px;
+  color: #111827;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.tsa-review-passage-pane > .tsa-review-passage-title {
+  font-weight: 700;
+  text-align: center;
+}
+
+.tsa-review-passage {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: #1f2937;
+  font-family: var(--tsa-content-font);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.tsa-review-questions-pane {
+  background: #fff;
+}
+
+.tsa-review-card.single .tsa-review-questions-pane {
+  max-width: none;
+}
+
+.tsa-review-question[data-current="true"] {
+  scroll-margin-top: 12px;
+}
+
+.tsa-review-question > p.tsa-review-status {
+  margin-top: 16px;
+}
+
+.tsa-review-question > p.attempted {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.tsa-review-question > p.attempted::before {
+  content: "✓";
+  background: #2563eb;
+}
+
+.tsa-review-question > p.correct {
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+.tsa-review-question > p.wrong {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.tsa-review-question > p.skipped {
+  background: #f9fafb;
+}
+
+.tsa-review-answer button:disabled,
+.tsa-review-answer input:read-only,
+.tsa-review-answer .math-choice-option,
+.tsa-review-answer .drag-blank,
+.tsa-review-answer .drag-bank > div {
+  opacity: 1;
+  cursor: default;
+}
+
+.tsa-review-answer input:read-only {
+  color: #111827;
+  background: #f9fafb;
+}
+
+.tsa-review-answer .matching-choice:disabled {
+  color: #262626;
+  background: #f8fafc;
+}
+
+.tsa-review-key-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.tsa-review-key-summary strong {
+  color: #111827;
+}
+
+.tsa-review-key-values {
+  display: grid;
+  gap: 6px;
+}
+
+.tsa-review-key-values > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #1f2937;
+  background: #fff;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tsa-review-key-values .rich-question-content {
+  line-height: inherit;
+}
+
+.tsa-review-key-summary[data-answer-type="drag_and_drop"] .tsa-review-key-values,
+.tsa-review-key-summary[data-answer-type="fill_in_blank"] .tsa-review-key-values {
+  grid-template-columns: repeat(auto-fit, minmax(120px, max-content));
+}
+
+.tsa-review-result-key {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.tsa-review-result-key .tsa-review-key-summary {
+  padding: 10px;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.tsa-review-result-key .tsa-review-key-summary:last-child {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+}
+
+.tsa-review-no-solution {
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* Source answer-page feedback pattern: compact verdict, red solution toggle and
+   an expandable explanation card instead of an always-open answer block. */
+.tsa-review-feedback-row {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tsa-review-solution-toggle {
+  margin: 0;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  background: #a3111f;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .05);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .2s cubic-bezier(.4, 0, .2, 1);
+}
+
+.tsa-review-solution-toggle:hover {
+  background: #8f0f1b;
+}
+
+.tsa-review-solution-toggle:active {
+  transform: translateY(1px);
+}
+
+.tsa-review-solution-toggle > span {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 500;
+}
+
+.tsa-review-solution-toggle > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tsa-review-verdict {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+.tsa-review-verdict.correct {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.tsa-review-verdict.wrong {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.tsa-review-verdict.attempted {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.tsa-review-verdict.skipped {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: #f9fafb;
+}
+
+.tsa-review-solution-card {
+  margin-top: 12px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #1f2937;
+  background: #f8fafc;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
+  animation: tsa-review-solution-in .18s ease-out;
+}
+
+@keyframes tsa-review-solution-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tsa-review-solution-heading {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1c3664;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.tsa-review-solution-heading > i {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #2563eb;
+  background: #eff6ff;
+  font: 700 13px/1 Arial, sans-serif;
+  font-style: normal;
+}
+
+.tsa-review-solution-card .tsa-review-key-summary {
+  margin-bottom: 12px;
+}
+
+.tsa-review-solution-card .tsa-review-key-values > div {
+  background: #fff;
+}
+
+.tsa-review-solution-copy {
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.tsa-review-solution-copy > p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.tsa-review-question.result-correct .math-choice-option.selected > i {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  margin-top: 0;
+  border: 2px solid #12b76a;
+  background: #ecfdf3;
+}
+
+.tsa-review-question.result-correct .true-false-cell button.selected {
+  border-color: #16a34a;
+  background: #dcfce7;
+}
+
+.tsa-review-question.result-wrong .math-choice-option.selected > i {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  margin-top: 0;
+  border: 2px solid #ef4444;
+  background: #fef2f2;
+}
+
+.tsa-review-question.result-wrong .true-false-cell button.selected {
+  border-color: #dc2626;
+  background: #fee2e2;
+}
+
+.tsa-review-question.result-correct .drag-blank.filled,
+.tsa-review-question.result-correct .matching-choice.selected {
+  border-color: #22c55e;
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.tsa-review-question.result-wrong .drag-blank.filled,
+.tsa-review-question.result-wrong .matching-choice.selected {
+  border-color: #ef4444;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.tsa-review-panel h2 {
+  padding-right: 40px;
+}
+
+@media (max-width: 767px) {
+  .tsa-result-parts article {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 8px auto;
+    gap: 12px 16px;
+    padding: 18px;
+  }
+
+  .tsa-result-parts article > .tsa-result-part-progress {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+
+  .tsa-result-parts article > button {
+    width: 100%;
+    min-height: 44px;
+    grid-column: 1 / 3;
+    grid-row: 3;
+  }
+}
+
+/* Source answer-page shell shared with the exam room on laptop. */
+.tsa-review-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.tsa-review-heading strong {
+  color: #cc1733;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tsa-review-open-menu svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.tsa-review-footer-menu {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: #cd1627;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tsa-review-candidate {
+  flex: 0 0 auto;
+  padding: 12px 15px 0;
+  color: #595959;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tsa-review-candidate p {
+  min-height: 28px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  align-items: start;
+  gap: 12px;
+}
+
+.tsa-review-candidate strong {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  text-align: right;
+}
+
+.tsa-review-indicators {
+  min-height: 76px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #23282c;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.tsa-review-indicators > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tsa-review-indicators i {
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.tsa-review-indicators i.correct { color: #16a34a; background: #dcfce7; }
+.tsa-review-indicators i.wrong { color: #dc2626; background: #fee2e2; }
+.tsa-review-indicators i.marked { color: #d97706; border-color: #f59e0b; background: #fff; }
+
+.tsa-review-completion {
+  flex: 0 0 auto;
+  margin: 0 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f1f3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 12px;
+  row-gap: 8px;
+  color: #1f2937;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.tsa-review-completion > span,
+.tsa-review-completion > strong {
+  align-self: end;
+}
+
+.tsa-review-completion strong {
+  color: #1c3664;
+  font-size: 15px;
+  line-height: 28px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.tsa-review-completion strong em {
+  font-size: 28px;
+  line-height: 28px;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.tsa-review-completion small {
+  color: inherit;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.tsa-review-completion > div {
+  height: 6px;
+  align-self: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f3f4f6;
+}
+
+.tsa-review-completion > div i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #cd1627;
+  transition: width .3s ease;
+}
+
+.tsa-review-completion > div i,
+.tsa-result-part-progress i,
+.math-completion-track i {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+  animation: tsa-progress-edge-glow 1.8s ease-in-out infinite;
+}
+
+.tsa-review-completion > div i::after,
+.tsa-result-part-progress i::after,
+.math-completion-track i::after {
+  content: "";
+  width: 45%;
+  min-width: 18px;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .82), transparent);
+  pointer-events: none;
+  transform: translateX(-125%) skewX(-18deg);
+  animation: tsa-progress-light-sweep 1.8s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+@keyframes tsa-progress-edge-glow {
+  0%, 100% { filter: brightness(1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); }
+  50% { filter: brightness(1.14); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .62); }
+}
+
+@keyframes tsa-progress-light-sweep {
+  0%, 18% { opacity: 0; transform: translateX(-125%) skewX(-18deg); }
+  34% { opacity: .9; }
+  72% { opacity: .9; }
+  88%, 100% { opacity: 0; transform: translateX(360%) skewX(-18deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tsa-review-footer > div button,
+  .tsa-review-footer > div button.is-click-animating,
+  .tsa-review-footer > div button.is-click-animating::before,
+  .tsa-review-completion > div i,
+  .tsa-result-part-progress i,
+  .math-completion-track i,
+  .tsa-review-completion > div i::after,
+  .tsa-result-part-progress i::after,
+  .math-completion-track i::after {
+    animation: none;
+    transition-duration: .01ms;
+  }
+}
+
+.tsa-review-completion > b {
+  min-width: 32px;
+  align-self: center;
+  color: #cd1627;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.tsa-review-connected {
+  flex: 0 0 48px;
+  margin: 0;
+  padding: 14px 24px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #22c55e;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.tsa-review-connected > i {
+  width: 10px;
+  height: 10px;
+  position: relative;
+  flex: 0 0 10px;
+}
+
+.tsa-review-connected > i::before,
+.tsa-review-connected > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.tsa-review-connected > i::before {
+  animation: tsa-review-ping 2s ease-out infinite;
+}
+
+@keyframes tsa-review-ping {
+  0% { opacity: .65; transform: scale(.8); }
+  75%, 100% { opacity: 0; transform: scale(2.25); }
+}
+
+@media (min-width: 1024px) {
+  body.tsa-review-active {
+    overflow: hidden;
+  }
+
+  .tsa-review-page {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 64px minmax(0, 1fr) 80px;
+    color: #1f2937;
+    background: #f8f9fa;
+    overflow: hidden;
+    font-family: var(--tsa-ui-font);
+  }
+
+  .tsa-review-page:not(.grouped-review-page) {
+    grid-template-columns: minmax(0, 1fr) 480px;
+  }
+
+  .tsa-review-page.grouped-review-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tsa-review-header {
+    width: 100%;
+    height: 64px;
+    min-height: 64px;
+    margin: 0;
+    padding: 8px 24px;
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+  }
+
+  .tsa-review-header img {
+    width: 111.75px;
+    height: 48px;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .tsa-review-heading {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .tsa-review-heading h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .tsa-review-header .tsa-review-open-menu {
+    display: none;
+  }
+
+  .tsa-review-card.single,
+  .tsa-review-card.grouped {
+    min-width: 0;
+    min-height: 0;
+    height: calc(100% - 40px);
+    margin: 20px;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: stretch;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+  }
+
+  .tsa-review-card.single {
+    display: block;
+  }
+
+  .tsa-review-card.grouped {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .tsa-review-card.single .tsa-review-questions-pane {
+    width: 100%;
+    height: 100%;
+    padding: 24px 20px 52px 24px;
+    overflow-y: auto;
+  }
+
+  .tsa-review-card.grouped .tsa-review-passage-pane,
+  .tsa-review-card.grouped .tsa-review-questions-pane {
+    min-width: 0;
+    height: 100%;
+    padding: 24px 20px;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .tsa-review-card.grouped .tsa-review-passage-pane {
+    border-right: 1px solid #d1d5db;
+  }
+
+  .tsa-review-card.grouped .tsa-review-questions-pane {
+    padding-left: 24px;
+  }
+
+  .tsa-review-passage-pane > h2 {
+    margin: 0 0 20px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+  }
+
+  .tsa-review-footer {
+    width: 100%;
+    height: 80px;
+    min-height: 80px;
+    margin: 0;
+    padding: 12px 24px 10px 64px;
+    grid-column: 1;
+    grid-row: 3;
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid #f0f1f3;
+    background: #fff;
+  }
+
+  .tsa-review-footer > span {
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .tsa-review-footer > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tsa-review-footer > div button {
+    min-height: 48px;
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    background: #1c3664;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+
+  .tsa-review-footer > div button:disabled {
+    color: #d1d5db;
+    background: #f0f0f0;
+  }
+
+  .tsa-review-footer > div button:last-child {
+    color: #4b5563;
+    background: #f3f4f6;
+  }
+
+  .tsa-review-footer-menu {
+    margin-left: auto;
+  }
+
+  .tsa-review-page:not(.grouped-review-page) .tsa-review-panel-overlay {
+    display: none;
+  }
+
+  .tsa-review-page:not(.grouped-review-page) .tsa-review-panel {
+    width: 480px;
+    min-width: 480px;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 0;
+    grid-column: 2;
+    grid-row: 1 / 4;
+    position: static;
+    z-index: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .tsa-review-page:not(.grouped-review-page) .tsa-review-panel-close {
+    display: none;
+  }
+
+  .tsa-review-page.grouped-review-page .tsa-review-panel {
+    width: 480px;
+    height: 100vh;
+    padding: 0;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 130;
+    transform: translateX(105%);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid #e5e7eb;
+    background: #fff;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, .15);
+    transition: transform .25s ease;
+  }
+
+  .tsa-review-page.grouped-review-page .tsa-review-panel.open {
+    transform: translateX(0);
+  }
+
+  .tsa-review-panel > h2 {
+    height: 64px;
+    min-height: 64px;
+    margin: 0;
+    padding: 24px 24px 0;
+    color: rgba(0, 0, 0, .85);
+    font-size: 17px;
+    line-height: 25.5px;
+    font-weight: 500;
+  }
+
+  .tsa-review-page.grouped-review-page .tsa-review-panel-close {
+    right: 8px;
+    top: 8px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+  }
+
+  .tsa-review-panel .tsa-review-grid {
+    width: auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 8px 24px;
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-auto-rows: 30px;
+    align-content: start;
+    justify-content: space-between;
+    gap: 9px 0;
+    overflow-y: auto;
+  }
+
+  .tsa-review-panel .tsa-review-grid button {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    color: #6b7280;
+    background: #f3f4f6;
+    box-shadow: none;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 19.5px;
+    font-weight: 500;
+  }
+
+  .tsa-review-panel .tsa-review-grid button.correct { color: #15803d; background: #dcfce7; }
+  .tsa-review-panel .tsa-review-grid button.wrong { color: #b91c1c; background: #fee2e2; }
+  .tsa-review-panel .tsa-review-grid button.attempted { color: #fff; background: #1890ff; }
+  .tsa-review-panel .tsa-review-grid button.skipped { color: #6b7280; background: #f3f4f6; }
+  .tsa-review-panel .tsa-review-grid button.current {
+    border-color: #cbd5e1;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px #cbd5e1;
+  }
+
+  .tsa-review-panel .tsa-review-grid button.marked:not(.current) {
+    border: 2px solid #fa8c16;
+  }
+
+  .tsa-review-panel .tsa-review-grid button.current.marked {
+    border-color: #fa8c16;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px #fa8c16;
+  }
+
+  .tsa-review-question {
+    margin-bottom: 32px;
+  }
+
+  .tsa-review-number {
+    width: 36px;
+    height: 36px;
+    background: #f2f2f2;
+    color: #262626;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .tsa-review-page {
+    min-height: 100dvh;
+  }
+
+  .tsa-review-card.single,
+  .tsa-review-card.grouped {
+    margin: 12px;
+    display: block;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tsa-review-passage-pane,
+  .tsa-review-questions-pane {
+    height: auto;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    scrollbar-gutter: auto;
+  }
+
+  .tsa-review-passage-pane {
+    max-height: 42dvh;
+    margin-bottom: 12px;
+    overflow: auto;
+  }
+
+  .tsa-review-questions-pane {
+    overflow: visible;
+  }
+
+  .tsa-review-passage-pane > h2 {
+    font-size: 17px;
+    line-height: 24px;
+  }
+}
+
+@media (max-width: 639px) {
+  .tsa-review-heading {
+    margin-left: 8px;
+  }
+
+  .tsa-review-heading h1 {
+    max-width: calc(100vw - 176px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .tsa-review-heading p {
+    max-width: calc(100vw - 176px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .tsa-review-header button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .tsa-review-question {
+    padding-left: 46px;
+  }
+
+  .tsa-review-number {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tsa-review-question > p.tsa-review-status {
+    min-height: 44px;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .tsa-review-key {
+    padding: 10px;
+  }
+
+  .tsa-review-key-summary[data-answer-type="drag_and_drop"] .tsa-review-key-values,
+  .tsa-review-key-summary[data-answer-type="fill_in_blank"] .tsa-review-key-values {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tsa-review-footer {
+    min-height: calc(68px + env(safe-area-inset-bottom, 0px));
+    height: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .tsa-review-footer button {
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .tsa-review-panel-handle {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .tsa-review-panel-handle > span {
+    width: auto;
+  }
+
+  .tsa-review-panel-handle > span > b {
+    font-size: 0;
+  }
+
+  .tsa-review-panel-handle small {
+    display: none;
+  }
+
+  .tsa-review-panel-handle svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 520px) and (orientation: landscape) {
+  .tsa-review-page {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .tsa-review-card.grouped {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 8px;
+    display: grid;
+    grid-template-columns: minmax(168px, 38%) minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  .tsa-review-card.grouped .tsa-review-passage-pane,
+  .tsa-review-card.grouped .tsa-review-questions-pane {
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 12px;
+    overflow: auto;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .tsa-review-card.grouped .tsa-review-passage-pane {
+    border-right: 1px solid #d1d5db;
+  }
+
+  .tsa-review-card.grouped .tsa-review-questions-pane {
+    border-left: 0;
+  }
+
+  .tsa-review-footer {
+    flex: 0 0 60px;
+    height: 60px;
+    padding: 8px 12px;
+  }
+}
+
+/* Source-aligned result card from the official TSA result flow. */
+body:has(.tsa-source-result-page) {
+  overflow: auto;
+  background: #f8f9fa;
+}
+
+.tsa-result-page.tsa-source-result-page {
+  min-height: 100vh;
+  height: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  color: #111827;
+  background:
+    radial-gradient(circle at 52% 58%, rgba(205, 22, 39, .025) 0 210px, transparent 212px),
+    #f8f9fa;
+  font-family: "Lato Source", Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.tsa-result-brandbar {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 32px;
+  border-bottom: 1px solid #f0f1f3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.tsa-result-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.tsa-result-brand > img {
+  width: 112px;
+  height: 48px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.tsa-result-brand > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tsa-result-brand small {
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.tsa-result-brand strong {
+  color: #111827;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.tsa-result-certificate-button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tsa-source-result-page .tsa-result-certificate-button .tsa-result-icon {
+  width: 17px;
+  height: 17px;
+  color: #cd1627;
+}
+
+.tsa-result-source-shell {
+  width: 100%;
+  max-width: 1512px;
+  margin: auto;
+  padding: 40px 64px 32px;
+}
+
+.tsa-result-source-card {
+  width: 100%;
+  min-height: 542px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(243, 244, 246, .8);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .04);
+}
+
+.tsa-result-source-watermark {
+  width: 680px;
+  height: 680px;
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%) rotate(-16deg);
+  display: grid;
+  place-items: center;
+  opacity: .022;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tsa-result-source-watermark img {
+  width: 100%;
+  height: auto;
+}
+
+.tsa-result-source-card-inner {
+  width: 100%;
+  min-height: 540px;
+  padding: 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.tsa-result-source-heading h1 {
+  margin: 0 0 12px;
+  color: #111827;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+.tsa-result-source-heading p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tsa-result-source-summary {
+  width: 100%;
+  margin: 40px 0 32px;
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  align-items: center;
+  gap: 96px;
+}
+
+.tsa-source-result-page .tsa-result-score {
+  width: 300px;
+  height: 300px;
+  min-width: 0;
+  margin: 0 0 0 40px;
+  position: relative;
+  display: block;
+}
+
+.tsa-source-result-page .tsa-result-score > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+.tsa-source-result-page .tsa-result-score circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.tsa-source-result-page .tsa-result-score-track {
+  stroke: #f3f4f6;
+}
+
+.tsa-source-result-page .tsa-result-score-value {
+  stroke: #cd1627;
+  stroke-dasharray: 100;
+  transition: stroke-dashoffset .35s ease;
+}
+
+.tsa-result-score-copy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.tsa-source-result-page .tsa-result-score > .tsa-result-score-copy {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tsa-source-result-page .tsa-result-score-copy > span {
+  margin-left: 0;
+  margin-bottom: 2px;
+  color: #6b7280;
+  font-size: 16px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+.tsa-result-score-copy > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.tsa-source-result-page .tsa-result-score-copy strong,
+.tsa-source-result-page .tsa-result-score-copy small {
+  color: #111827;
+  font-size: 54px;
+  line-height: 54px;
+  font-weight: 700;
+  letter-spacing: -1.35px;
+  text-shadow: none;
+}
+
+.tsa-source-result-page .tsa-result-parts {
+  min-width: 0;
+  padding: 0 48px 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.tsa-source-result-page .tsa-result-parts article {
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 116px;
+  grid-template-rows: auto 8px;
+  align-items: center;
+  gap: 8px 32px;
+  color: #111827;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tsa-source-result-page .tsa-result-part-copy h2,
+.tsa-source-result-page .tsa-result-parts article > strong {
+  margin: 0;
+  color: #1f2937;
+  font-size: 17px;
+  line-height: 25.5px;
+  font-weight: 700;
+}
+
+.tsa-source-result-page .tsa-result-parts article > strong {
+  grid-column: 2;
+  grid-row: 1;
+  white-space: nowrap;
+}
+
+.tsa-source-result-page .tsa-result-parts article > .tsa-result-part-progress {
+  width: 100%;
+  height: 8px;
+  margin: 0;
+  grid-column: 1 / 3;
+  grid-row: 2;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.tsa-source-result-page .tsa-result-part-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #cd1627;
+  transition: width .3s cubic-bezier(.78, .14, .15, .86);
+}
+
+.tsa-source-result-page .tsa-result-parts article > button {
+  width: 116px;
+  height: 41px;
+  min-height: 41px;
+  padding: 0 20px;
+  grid-column: 3;
+  grid-row: 1 / 3;
+  align-self: center;
+  border: 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #cd1627;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tsa-source-result-page .tsa-result-parts article > button:hover {
+  background: #b01321;
+}
+
+.tsa-source-result-page .tsa-result-parts article > button svg {
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tsa-result-source-footer {
+  width: 100%;
+  min-height: 52px;
+  padding: 16px 32px;
+  border-top: 1px solid #f0f1f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  background: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: .04em;
+}
+
+.tsa-result-source-footer p {
+  margin: 0;
+}
+
+@media (max-width: 1199px) {
+  .tsa-result-source-shell {
+    padding: 32px;
+  }
+
+  .tsa-result-source-card-inner {
+    padding: 40px;
+  }
+
+  .tsa-result-source-summary {
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .tsa-source-result-page .tsa-result-score {
+    width: 260px;
+    height: 260px;
+    margin-left: 0;
+  }
+
+  .tsa-source-result-page .tsa-result-parts {
+    padding: 0;
+    gap: 38px;
+  }
+}
+
+@media (max-width: 767px) {
+  .tsa-result-brandbar {
+    min-height: 64px;
+    padding: 8px 16px;
+  }
+
+  .tsa-result-brand > img {
+    width: 84px;
+    height: 40px;
+  }
+
+  .tsa-result-certificate-button {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .tsa-result-source-shell {
+    padding: 16px;
+  }
+
+  .tsa-result-source-card-inner {
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  .tsa-result-source-heading h1 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .tsa-result-source-summary {
+    margin: 28px 0 8px;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 32px;
+  }
+
+  .tsa-source-result-page .tsa-result-score {
+    width: 230px;
+    height: 230px;
+  }
+
+  .tsa-source-result-page .tsa-result-parts {
+    width: 100%;
+    gap: 28px;
+  }
+
+  .tsa-source-result-page .tsa-result-parts article {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 8px 44px;
+    gap: 10px 16px;
+  }
+
+  .tsa-source-result-page .tsa-result-parts article > .tsa-result-part-progress {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+
+  .tsa-source-result-page .tsa-result-parts article > button {
+    width: 100%;
+    height: 44px;
+    grid-column: 1 / 3;
+    grid-row: 3;
+  }
+}
+
+@media (min-width: 1024px) {
+/* Keep the answer view's question pane aligned with the learner view. The
+   result-only content (answer summary, verdict and solution) remains below
+   the same question body, but the question frame itself uses the grouped
+   exam geometry. */
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 24px 6px 24px 4px;
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 32px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-color: #a3a3a3 transparent;
+  scrollbar-width: thin;
+  font-size: 16px;
+  line-height: 23.2px;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question {
+  min-width: 0;
+  min-height: 90px;
+  margin: 0;
+  padding: 0 50.375px 8px 56px;
+  position: relative;
+  border: 0;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question > .math-question-number.tsa-review-number {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #262626;
+  background: #f2f2f2;
+  font-size: 16px;
+  line-height: 23.2px;
+  font-weight: 700;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question > .math-bookmark.tsa-review-bookmark {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 36px;
+  display: grid;
+  place-items: center;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question > .math-question-body.tsa-review-answer {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  color: #262626;
+  font-size: 16px;
+  line-height: 23.2px;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question .rich-question-content,
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question .math-choice-option {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question .math-choice-list {
+  margin-top: 16px;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question .math-choice-list.columns-2 {
+  column-gap: 12px;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question .true-false-list {
+  margin-top: 15px;
+}
+
+.tsa-review-page .tsa-review-card.grouped > .tsa-review-questions-pane.grouped-questions > .grouped-question.tsa-review-question .true-false-head {
+  min-height: 48px;
+  height: auto;
+}
+}

@@ -1,0 +1,853 @@
+/*
+ * Text layout safety net for product/auth surfaces.
+ * It is intentionally not scoped to .exam-shell, so runner/question/answer
+ * typography and its measured layout remain untouched.
+ */
+
+.ui-shell.student-app.product-shell,
+.ui-shell.admin-app.product-shell,
+.login-page {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell :where(.page-stack, .main-content, .section-card, .profile-card, .overview-summary, .overview-list-card, .course-card, .history-frame, .history-list, .admin-page, .admin-dashboard-v2, .workspace-page, .section-card, .assignment-page, .admin-course-builder, .admin-upload-page, .admin-session-page, .admin-security-page),
+.ui-shell.admin-app.product-shell :where(.page-stack, .main-content, .section-card, .profile-card, .overview-summary, .overview-list-card, .course-card, .history-frame, .history-list, .admin-page, .admin-dashboard-v2, .workspace-page, .section-card, .assignment-page, .admin-course-builder, .admin-upload-page, .admin-session-page, .admin-security-page) {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell :where(.section-head > *, .page-intro > *, .courses-toolbar > *, .overview-user, .overview-number, .overview-role, .overview-list-card li, .two-col > *, .course-body, .course-meta > *, .profile-stat-heading > *, .password-row > *, .detail-row > *, .table-row > *, .content-admin-grid article > *, .enrollment-list > article > *, .builder-header > *, .builder-layout > *, .admin-part-card > summary > *, .lesson-card-head > *, .resource-row > *, .workspace-page-header > *, .workspace-heading-wrap, .workspace-header-actions, .admin-action-item > *, .admin-log-item > *, .admin-upload-library-head > *, .admin-upload-image-card > *, .admin-upload-image-body, .admin-upload-image-title, .admin-upload-url-row),
+.ui-shell.admin-app.product-shell :where(.section-head > *, .page-intro > *, .courses-toolbar > *, .overview-user, .overview-number, .overview-role, .overview-list-card li, .two-col > *, .course-body, .course-meta > *, .profile-stat-heading > *, .password-row > *, .detail-row > *, .table-row > *, .content-admin-grid article > *, .enrollment-list > article > *, .builder-header > *, .builder-layout > *, .admin-part-card > summary > *, .lesson-card-head > *, .resource-row > *, .workspace-page-header > *, .workspace-heading-wrap, .workspace-header-actions, .admin-action-item > *, .admin-log-item > *, .admin-upload-library-head > *, .admin-upload-image-card > *, .admin-upload-image-body, .admin-upload-image-title, .admin-upload-url-row) {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell :where(h1, h2, h3, h4, h5, p, b, strong, small, a, label),
+.ui-shell.admin-app.product-shell :where(h1, h2, h3, h4, h5, p, b, strong, small, a, label) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Card/list content should wrap or clamp; ellipsis is reserved for compact
+ * navigation and single-line controls. */
+.ui-shell.student-app.product-shell :where(.overview-list-card li button, .attempt-list-link, .course-body h3, .course-body p, .history-exam b, .history-exam small, .profile-verified-name > span, .profile-real-name, .attempt-list li b, .breadcrumb-course, .breadcrumb-current, .curriculum-resource b, .course-part-card summary strong),
+.ui-shell.admin-app.product-shell :where(.overview-list-card li button, .attempt-list-link, .course-body h3, .course-body p, .history-exam b, .history-exam small, .profile-verified-name > span, .profile-real-name, .attempt-list li b, .breadcrumb-course, .breadcrumb-current, .curriculum-resource b, .course-part-card summary strong, .admin-action-text b, .admin-action-text small, .admin-log-text, .content-admin-grid h3, .content-admin-grid p, .student-name-email b, .student-name-email small, .part-copy strong, .lesson-card-copy > b, .resource-copy b, .admin-upload-image-title strong, .admin-upload-image-title small, .workspace-heading-wrap h1, .workspace-heading-wrap p, .reference-room-card-title h2, .reference-exam-card-head h3, .admin-exam-toolbar h3, .admin-exam-toolbar p) {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ui-shell.student-app.product-shell :where(.course-body h3, .overview-list-card li button, .history-exam b, .attempt-list li b),
+.ui-shell.admin-app.product-shell :where(.course-body h3, .overview-list-card li button, .history-exam b, .attempt-list li b, .admin-action-text b, .content-admin-grid h3, .reference-room-card-title h2, .reference-exam-card-head h3) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.app-shell.ui-shell.product-shell .reference-room-card-title h2 {
+  overflow-wrap: break-word;
+  text-align: center;
+  word-break: normal;
+}
+
+.app-shell.ui-shell.product-shell .reference-room-card-title .exam-type-badge {
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.ui-shell.student-app.product-shell :where(.course-body p, .history-exam small, .attempt-list li small),
+.ui-shell.admin-app.product-shell :where(.course-body p, .history-exam small, .attempt-list li small, .admin-action-text small, .content-admin-grid p, .student-name-email small, .admin-upload-image-title small) {
+  line-height: 1.45;
+}
+
+.ui-shell.student-app.product-shell .sidebar nav button span,
+.ui-shell.admin-app.product-shell .sidebar nav button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell :where(.primary-btn, .outline-btn, .text-btn, .back-btn, .student-password-btn),
+.ui-shell.admin-app.product-shell :where(.primary-btn, .outline-btn, .workspace-button, .workspace-text-button, .workspace-back, .student-password-btn, .admin-upload-card-actions button, .admin-upload-clear) {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+
+.ui-shell.student-app.product-shell :where(.course-meta, .history-status, .password-row, .profile-stat-heading),
+.ui-shell.admin-app.product-shell :where(.course-meta, .history-status, .password-row, .profile-stat-heading) {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell .course-meta > span,
+.ui-shell.student-app.product-shell .history-status > span,
+.ui-shell.admin-app.product-shell .course-meta > span,
+.ui-shell.admin-app.product-shell .history-status > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell .detail-row b,
+.ui-shell.student-app.product-shell .password-row small,
+.ui-shell.admin-app.product-shell .detail-row b,
+.ui-shell.admin-app.product-shell .password-row small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Long URLs, emails and asset names cannot wrap inside an input. Keep them
+ * readable without widening the containing grid. */
+.ui-shell.student-app.product-shell :where(input, textarea, select),
+.ui-shell.admin-app.product-shell :where(input, textarea, select) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ui-shell.student-app.product-shell :where(input[type="url"], input[type="email"]),
+.ui-shell.admin-app.product-shell :where(input[type="url"], input[type="email"], .admin-upload-url-row input) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-shell.admin-app.product-shell .admin-table {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.ui-shell.admin-app.product-shell .table-row {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell .table-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-strip > button b,
+.ui-shell.admin-app.product-shell .admin-workflow-strip > button small,
+.ui-shell.admin-app.product-shell .admin-topbar-context b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell .admin-reference-room-card .reference-room-card-body .exam-meta-item > b,
+.ui-shell.admin-app.product-shell .reference-room-card-body .exam-meta-item > b {
+  max-width: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.ui-shell.admin-app.product-shell .admin-reference-exam-card .reference-exam-card-head h3 {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-image-title strong,
+.ui-shell.admin-app.product-shell .admin-upload-image-title small,
+.ui-shell.admin-app.product-shell .admin-upload-private-note,
+.ui-shell.admin-app.product-shell .admin-upload-public-note {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.login-page :where(h1, h2, h3, p, label, button, a, span) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.login-page .login-heading p,
+.login-page .login-foot {
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell :where(.section-head, .page-intro, .courses-toolbar, .profile-stat-heading, .password-row),
+  .ui-shell.admin-app.product-shell :where(.section-head, .page-intro, .courses-toolbar, .profile-stat-heading, .password-row) {
+    align-items: stretch;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-workflow-strip > button b,
+  .ui-shell.admin-app.product-shell .admin-workflow-strip > button small {
+    white-space: normal;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Product-wide overflow contract
+ *
+ * Some authoring components are loaded as route-level modules, so their
+ * local styles can otherwise re-introduce fixed flex/grid tracks after the
+ * shared safety net above. These rules deliberately stay inside the normal
+ * product shell. Candidate runners, answer controls and standalone previews
+ * never carry .product-shell and are not affected.
+ * ------------------------------------------------------------------------- */
+
+.app-shell.ui-shell.student-app.product-shell,
+.app-shell.ui-shell.admin-app.product-shell {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell .main-content,
+.app-shell.ui-shell.admin-app.product-shell .main-content,
+.app-shell.ui-shell.student-app.product-shell :where(.page-stack, .admin-page, .admin-dashboard-v2, .admin-exam-manager, .admin-session-page, .admin-upload-page, .admin-security-page, .assignment-page, .workspace-page, .admin-course-builder, .admin-exam-route-shell) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.page-stack > *, .section-head > *, .page-intro > *, .courses-toolbar > *, .overview-summary > *, .overview-lists > *, .two-col > *, .course-study-hero > *, .history-row > *, .profile-grid > *, .profile-stat-heading > *, .password-row > *, .detail-row > *),
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-page > *, .admin-dashboard-v2 > *, .admin-exam-manager > *, .admin-session-page > *, .admin-upload-page > *, .admin-security-page > *, .assignment-page > *, .workspace-page > *, .admin-course-builder > *, .section-head > *, .page-intro > *, .admin-dash-header > *, .admin-exam-header > *, .admin-session-header > *, .workspace-page-header > *, .builder-header > *, .admin-exam-toolbar > *, .admin-exam-content-head > *, .admin-upload-hero > *, .admin-upload-section-heading > *, .admin-upload-library-head > *, .security-admin-head > *, .access-panel-head > *, .workspace-filter-row > *, .workspace-section-heading > *, .room-workspace-hero > *, .exam-editor-overview > *, .form-card-heading > *, .enrollment-list > article > *, .content-admin-grid article > *, .table-row > *) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.overview-user > div, .course-body, .course-meta, .course-study-hero > div, .history-exam, .history-status, .detail-row > div, .password-row > div, .attempt-list li > span, .lesson-card-copy, .resource-copy),
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-topbar-context, .account-menu-wrap, .account-trigger, .admin-dash-header > div:first-child, .admin-exam-header > div:first-child, .admin-session-header > div:first-child, .workspace-heading-wrap, .workspace-filter-row > div:first-child, .workspace-header-actions, .admin-action-text, .admin-log-text, .admin-session-main, .admin-session-meta, .admin-exam-toolbar > div:first-child, .admin-exam-content-head > div:first-child, .content-admin-grid article > div:nth-child(2), .enrollment-list > article > div, .builder-header > div:first-child, .part-copy, .lesson-card-copy, .resource-copy, .admin-upload-hero-copy, .admin-upload-section-heading > div:first-child, .admin-upload-library-head > div:first-child, .admin-upload-image-body, .admin-upload-image-title, .admin-upload-drop-copy, .admin-upload-upload-note > p, .security-admin-head > div:first-child, .security-user-grid > button > span:first-child, .security-device > div, .security-session > span, .access-panel-head > div:first-child, .room-workspace-hero > div:first-child, .room-card-main, .room-card-facts > span, .exam-package-card > header > div:first-child, .admin-reference-exam-card .reference-exam-card-body > div > span, .admin-reference-exam-card .reference-exam-card-body > div > strong) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.overview-user h2, .overview-user p, .overview-card-head b, .course-study-hero h1, .course-study-hero p, .history-exam b, .history-exam small, .profile-verified-name > span, .profile-real-name, .detail-row b, .detail-row small, .password-row small, .attempt-list li b, .attempt-list li small),
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-topbar-context b, .account-trigger > span, .admin-dash-header h1, .admin-dash-header p, .admin-exam-header h2, .admin-exam-header p, .admin-session-header h1, .admin-session-header p, .workspace-heading-wrap h1, .workspace-heading-wrap p, .admin-action-text b, .admin-action-text small, .admin-log-text, .admin-session-main h3, .admin-session-main p, .admin-session-meta b, .admin-session-meta > span, .security-user-grid b, .security-user-grid small, .security-device b, .security-device small, .security-session b, .security-session small, .security-event p, .admin-upload-hero h1, .admin-upload-hero p, .admin-upload-section-heading h2, .admin-upload-section-heading p, .admin-upload-library-head h2, .admin-upload-library-head p, .admin-upload-image-title strong, .admin-upload-image-title small, .admin-upload-private-note, .admin-upload-public-note, .room-card-main h2, .room-card-main p, .room-card-facts b, .room-card-facts small, .room-card-footer > span, .exam-package-card h3, .exam-package-metrics b, .exam-package-metrics small, .admin-reference-exam-card .reference-exam-card-head h3, .admin-reference-exam-card .reference-exam-card-body strong, .admin-exam-toolbar h3, .admin-exam-toolbar p, .admin-exam-summary b, .admin-exam-content-head h3, .admin-exam-content-head p, .enrollment-list b, .enrollment-list small, .part-copy strong, .lesson-card-copy > b, .resource-copy b, .workspace-section-heading h2, .workspace-section-heading p) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Dashboard summary: long names and emails must grow the card, not escape a
+ * fixed-height flex row. At intermediate widths the metrics become a small
+ * two-column grid so the sidebar state cannot squeeze them into a sliver. */
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-summary {
+  height: auto;
+  min-height: 146px;
+  flex-wrap: wrap;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-user {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-number,
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-role {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.overview-card-head, .course-meta, .history-status, .profile-stat-heading, .password-row) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell .course-meta {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.course-part-card > summary, .course-part-lessons > button, .lesson-curriculum-list summary, .curriculum-lesson-title) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.course-part-card > summary strong, .course-part-lessons > button b, .lesson-curriculum-list summary strong, .curriculum-lesson-title b) {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.app-shell.ui-shell.student-app.product-shell :where(.history-row, .history-skeleton-row) {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr);
+}
+
+.app-shell.ui-shell.student-app.product-shell .history-row > *,
+.app-shell.ui-shell.student-app.product-shell .history-skeleton-row > * {
+  min-width: 0;
+}
+
+/* Shared action rows and account chrome. The label remains readable while
+ * icon buttons keep their intrinsic hit area. */
+.app-shell.ui-shell.student-app.product-shell :where(.primary-btn, .outline-btn, .back-btn, .text-btn, .student-password-btn) svg,
+.app-shell.ui-shell.admin-app.product-shell :where(.primary-btn, .outline-btn, .workspace-button, .workspace-text-button, .workspace-back, .admin-session-primary, .admin-session-refresh, .admin-session-action, .admin-upload-refresh, .admin-upload-clear, .security-admin-actions button) svg {
+  flex: 0 0 auto;
+}
+
+.app-shell.ui-shell.student-app.product-shell .account-trigger > span,
+.app-shell.ui-shell.admin-app.product-shell .account-trigger > span {
+  min-width: 0;
+  max-width: clamp(6rem, 18vw, 13rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-topbar-context {
+  max-width: min(34ch, 100%);
+}
+
+/* Admin sessions: the old desktop track had hard minimums whose sum could
+ * exceed the available content width before the mobile breakpoint fired. */
+.app-shell.ui-shell.admin-app.product-shell .admin-session-row {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, .85fr) minmax(0, .85fr) auto;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-session-title-row, .admin-session-meta, .admin-session-main) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-session-title-row {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-session-title-row h3,
+.app-shell.ui-shell.admin-app.product-shell .admin-session-main p,
+.app-shell.ui-shell.admin-app.product-shell .admin-session-meta b,
+.app-shell.ui-shell.admin-app.product-shell .admin-session-meta > span:not(.admin-progress-track) {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-session-action {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+/* Admin library/catalog cards. These selectors intentionally target the
+ * authoring/catalog surface only; learner exam packages and answer views are
+ * rendered outside this shell. */
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-exam-toolbar, .admin-exam-content-head, .workspace-section-heading) {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-exam-toolbar > div:last-child, .admin-exam-content-head > div:last-child, .workspace-header-actions) {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-exam-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-exam-summary > span,
+.app-shell.ui-shell.admin-app.product-shell .admin-exam-summary > span > * {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-exam-summary b {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.room-card-facts, .exam-package-metrics) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.room-card-facts > span, .exam-package-metrics > span) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.room-card-facts b, .room-card-facts small, .room-card-footer > span, .exam-package-card h3, .exam-package-metrics b, .exam-package-metrics small) {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* admin-macos.css uses a more specific :has() rule for this metadata. Keep
+ * the same intent with a stronger, still catalog-only selector. */
+.app-shell.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item > b {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-reference-exam-card .reference-exam-card-head, .admin-reference-exam-card .reference-exam-card-body > div) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-reference-exam-card .reference-exam-card-body > div > * {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-reference-exam-card .reference-exam-card-body strong {
+  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: normal;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-hero {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-hero-stats {
+  min-width: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-hero-stats > span,
+.app-shell.ui-shell.admin-app.product-shell .room-hero-stats b,
+.app-shell.ui-shell.admin-app.product-shell .room-hero-stats small {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Tables keep their horizontal scroll affordance, while regular rows and
+ * cards collapse their text tracks instead of widening the page. */
+.app-shell.ui-shell.admin-app.product-shell .admin-table {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .student-table .table-row {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr) minmax(0, .9fr) minmax(0, 1fr) minmax(0, auto);
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.table-row > span, .student-name-email, .student-name-email > *, .content-admin-grid article > div:nth-child(2), .enrollment-list > article > div) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .enrollment-list > article {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+}
+
+/* Access, policy, operations and security panels use the same shrinking
+ * rules as the main admin workspace. */
+.app-shell.ui-shell.admin-app.product-shell :where(.access-panel-head, .policy-page-header, .policy-toolbar, .operation-qr, .security-admin-head, .security-detail-panel > header, .security-event > div) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .identity-field-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 90px) auto 30px;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .identity-field-row > * {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-user-grid > button {
+  grid-template-columns: minmax(0, 1fr) auto max-content 20px;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-user-grid > button > * {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-account-status {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-device {
+  grid-template-columns: 38px minmax(0, 1fr) max-content auto;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-device > * {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.security-event p, .security-ban-reason small, .security-detail-panel h2, .security-detail-panel p) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.security-event > em, .security-event > button) {
+  display: inline-flex;
+  float: none;
+  max-width: 100%;
+  margin-top: 8px;
+  white-space: normal;
+  text-align: start;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .operation-stats {
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+}
+
+.app-shell.ui-shell.admin-app.product-shell .operation-stats > div,
+.app-shell.ui-shell.admin-app.product-shell .operation-qr > * {
+  min-width: 0;
+}
+
+/* Upload/library headers and file metadata are frequent sources of long
+ * filenames and URLs. The URL input remains single-line by design; visible
+ * labels and notes wrap normally. */
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-upload-hero, .admin-upload-section-heading, .admin-upload-library-head, .admin-upload-upload-card, .admin-upload-library) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell :where(.admin-upload-library-tools, .admin-upload-upload-actions) {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .admin-upload-storage-pill,
+.app-shell.ui-shell.admin-app.product-shell .admin-upload-status-badge {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+@media (max-width: 1050px) {
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-user {
+    grid-column: 1 / -1;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .summary-divider,
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-role {
+    display: none;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .admin-exam-summary,
+  .app-shell.ui-shell.admin-app.product-shell .room-hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .admin-session-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .enrollment-list > article {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .enrollment-list > article > svg {
+    transform: rotate(90deg);
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .student-table .table-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .student-table .table-row > span:nth-child(2),
+  .app-shell.ui-shell.admin-app.product-shell .student-table .table-row > span:nth-child(3),
+  .app-shell.ui-shell.admin-app.product-shell .student-table .table-row > span:nth-child(4),
+  .app-shell.ui-shell.admin-app.product-shell .student-table .table-title {
+    display: none;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .student-table .table-row > span:last-child {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-user-grid > button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-user-grid > button strong,
+  .app-shell.ui-shell.admin-app.product-shell .security-user-grid > button > svg {
+    display: none;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-device {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-device > i {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-user {
+    grid-column: auto;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell .account-trigger > span,
+  .app-shell.ui-shell.admin-app.product-shell .account-trigger > span {
+    max-width: 8rem;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Container-first corrections for the admin workspace
+ *
+ * The exam authoring workspace can be narrow even on a wide monitor when
+ * the sidebar is expanded. Viewport media queries are not enough there: use
+ * the actual content container so cards never get cut off by main-content.
+ * This remains an admin catalog/editor surface, not the learner runner.
+ * ------------------------------------------------------------------------- */
+
+@media (min-width: 851px) {
+  .app-shell.ui-shell.admin-app.product-shell .main-content:has(.room-workspace-page) {
+    height: calc(100dvh - 76px);
+    min-height: 0;
+    padding: 24px 42px 32px;
+    overflow: hidden;
+  }
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-page {
+  container: room-workspace / inline-size;
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-exam-catalog {
+  container: room-catalog / inline-size;
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-exam-catalog > .exam-package-grid {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 18px;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-page .workspace-page-header {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-page .workspace-heading-wrap p {
+  max-width: 66ch;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-workspace-hero,
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-hero-stats {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-hero-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@container room-workspace (max-width: 880px) {
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-workspace-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-hero-stats {
+    width: 100%;
+  }
+}
+
+@container room-workspace (max-width: 720px) {
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .workspace-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .workspace-header-actions {
+    justify-content: flex-start;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-exam-list-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+@container room-workspace (max-width: 520px) {
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .workspace-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .workspace-header-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .room-workspace-page .room-hero-stats {
+    gap: 8px;
+  }
+}
+
+@container room-catalog (max-width: 700px) {
+  .app-shell.ui-shell.admin-app.product-shell .room-exam-catalog > .exam-package-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Security header: wrapping the action is preferable to squeezing the
+ * description into an unreadable strip when the sidebar is open. */
+.app-shell.ui-shell.admin-app.product-shell .admin-security-page {
+  container: security-page / inline-size;
+  min-width: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-admin-head {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-admin-head > div:first-child {
+  min-width: 0;
+  flex: 1 1 360px;
+}
+
+.app-shell.ui-shell.admin-app.product-shell .security-admin-head > button {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+@container security-page (max-width: 620px) {
+  .app-shell.ui-shell.admin-app.product-shell .security-admin-head {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-admin-head > button {
+    align-self: flex-start;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-user-grid > button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell .security-user-grid > button strong,
+  .app-shell.ui-shell.admin-app.product-shell .security-user-grid > button > svg {
+    display: none;
+  }
+}
+
+/* Dashboard list cards must grow with their content. The original fidelity
+ * pass used fixed heights for the reference screenshot, which hid the last
+ * rows on real accounts. This is deliberately limited to the student
+ * product shell; exam runner and answer surfaces do not carry this class. */
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-list-card {
+  height: auto;
+  min-height: 174px;
+  overflow: visible;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .two-col > .section-card {
+  height: auto;
+  min-height: 184px;
+  overflow: visible;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page :where(.overview-card-head, .overview-list-card ul, .attempt-list) {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-card-head {
+  align-items: flex-start;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-card-head > b {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-card-head > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-list-card li,
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list li {
+  min-width: 0;
+  align-items: center;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-list-card li > .dot {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-list-card li > button,
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list-link {
+  display: -webkit-box;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list > li > small,
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list > li > b {
+  flex: 0 0 auto;
+  max-width: 42%;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 575px) {
+  /* Keep the mobile fidelity rules from re-introducing clipping. */
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-list-card,
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .overview-list-card:nth-child(n) {
+    height: auto;
+    min-height: 174px;
+    overflow: visible;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell .dashboard-page .two-col > .section-card {
+    height: auto;
+    min-height: 184px;
+    overflow: visible;
+  }
+}

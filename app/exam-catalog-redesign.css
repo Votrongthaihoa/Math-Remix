@@ -1,0 +1,802 @@
+/*
+ * Catalog-only surface for /exam-room and /exam-room/:roomId.
+ * Runner, answer input, timer, result review and question palette selectors
+ * intentionally do not appear here.
+ */
+
+/* The catalog uses the product shell. These parent rules only activate while
+ * a catalog page exists in the shell; runner pages stay on exam-shell. */
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) {
+  --catalog-shell-bg: #f5f5f7;
+  background: var(--catalog-shell-bg);
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .main-content {
+  min-height: calc(100vh - 76px);
+  margin-left: 84px;
+  padding: 38px 42px 72px;
+  background:
+    radial-gradient(circle at 86% 0%, rgba(88, 86, 214, 0.08), transparent 28rem),
+    radial-gradient(circle at 12% 28%, rgba(0, 122, 255, 0.045), transparent 24rem),
+    #f5f5f7;
+}
+
+.ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .main-content {
+  margin-left: 280px;
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .topbar {
+  height: 76px;
+  margin-left: 84px;
+  padding: 0 34px;
+  border-bottom-color: rgba(60, 60, 67, 0.1);
+  background: rgba(250, 250, 252, 0.78);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+}
+
+.ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .topbar {
+  margin-left: 280px;
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar {
+  width: 84px;
+  border-right-color: rgba(60, 60, 67, 0.1);
+  background: rgba(250, 250, 252, 0.72);
+  box-shadow: 6px 0 26px rgba(40, 40, 50, 0.035);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+}
+
+.ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .sidebar {
+  width: 280px;
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav {
+  padding: 90px 12px 18px;
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button {
+  height: 46px;
+  gap: 13px;
+  margin: 4px 0;
+  padding: 0 15px;
+  border-radius: 12px;
+  color: #6e6e73;
+  transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button:hover,
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button.active {
+  color: #007aff;
+  background: rgba(0, 122, 255, 0.11);
+}
+
+.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button.active::after {
+  display: none;
+}
+
+@media (max-width: 1050px) {
+  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .main-content,
+  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .main-content {
+    margin-left: 84px;
+    padding-inline: 28px;
+  }
+
+  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .topbar,
+  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .topbar {
+    margin-left: 84px;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .main-content,
+  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .main-content {
+    margin-left: 0;
+    padding: 24px 16px 50px;
+  }
+
+  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .topbar,
+  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .topbar {
+    height: 68px;
+    margin-left: 0;
+    padding: 8px 12px;
+  }
+
+  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar {
+    width: min(88vw, 328px);
+    background: rgba(250, 250, 252, 0.94);
+  }
+}
+
+.exam-room-page,
+.exam-list-page {
+  --catalog-ink: #1d1d1f;
+  --catalog-body: #424245;
+  --catalog-muted: #6e6e73;
+  --catalog-subtle: #8e8e93;
+  --catalog-line: rgba(60, 60, 67, 0.14);
+  --catalog-blue: #1d4ed8;
+  --catalog-blue-strong: #1e40af;
+  --catalog-blue-soft: #eff6ff;
+  --catalog-surface: rgba(255, 255, 255, 0.78);
+  --catalog-surface-muted: #f8fafc;
+  --catalog-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(24, 32, 48, 0.06);
+  color: var(--catalog-ink);
+}
+
+.exam-room-page {
+  width: min(1240px, 100%);
+  gap: 24px;
+}
+
+.exam-room-page .reference-room-heading,
+.exam-list-page .exam-package-toolbar {
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--catalog-line);
+}
+
+.exam-room-page .reference-room-heading > span,
+.exam-list-page .exam-page-heading > span {
+  color: var(--catalog-blue);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.45px;
+}
+
+.exam-room-page .reference-room-heading h1,
+.exam-list-page .exam-page-heading h1 {
+  margin: 7px 0 6px;
+  color: var(--catalog-ink);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.7px;
+}
+
+.exam-room-page .reference-room-heading p,
+.exam-list-page .exam-page-heading p {
+  max-width: 66ch;
+  margin: 0;
+  color: var(--catalog-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.exam-room-page .exam-room-type-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px 0 0;
+}
+
+.exam-room-page .exam-room-type-filters button {
+  min-height: 44px;
+  border: 1px solid var(--catalog-line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--catalog-body);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.exam-room-page .exam-room-type-filters button:hover,
+.exam-room-page .exam-room-type-filters button.active {
+  border-color: rgba(29, 78, 216, 0.38);
+  background: var(--catalog-blue-soft);
+  color: var(--catalog-blue);
+  transform: translateY(-1px);
+}
+
+.exam-room-page .exam-room-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.exam-room-page .reference-room-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 360px;
+  padding: 0;
+  border: 1px solid var(--catalog-line);
+  border-radius: 18px;
+  background: var(--catalog-surface);
+  box-shadow: var(--catalog-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  cursor: default;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.exam-room-page .reference-room-card:hover {
+  border-color: rgba(29, 78, 216, 0.3);
+  box-shadow: 0 18px 38px rgba(24, 50, 92, 0.12);
+  transform: translateY(-3px);
+}
+
+.exam-room-page .reference-room-card-title {
+  display: flex;
+  min-width: 0;
+  min-height: 105px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 21px 22px 17px;
+  text-align: center;
+}
+
+.exam-room-page .reference-room-card-title h2 {
+  overflow-wrap: break-word;
+  width: 100%;
+  margin: 0;
+  color: var(--catalog-ink);
+  font-size: 18px;
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  text-align: center;
+  word-break: normal;
+}
+
+.exam-room-page .exam-type-badge {
+  align-self: center;
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  border-radius: 8px;
+  background: var(--catalog-blue-soft);
+  color: var(--catalog-blue);
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.exam-room-page .reference-room-card-body {
+  flex: 1;
+  min-width: 0;
+  padding: 17px 22px;
+  border-top: 1px solid var(--catalog-line);
+}
+
+.exam-room-page .reference-room-description {
+  margin: 0 0 15px;
+  color: var(--catalog-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.exam-room-page .reference-room-card-body .exam-meta-item {
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.exam-room-page .reference-room-card-body .exam-meta-item + .exam-meta-item {
+  margin-top: 0;
+  border-top: 1px solid rgba(60, 60, 67, 0.08);
+}
+
+.exam-room-page .reference-room-card-body .exam-meta-item > span {
+  min-width: 0;
+  gap: 8px;
+}
+
+.exam-room-page .reference-room-card-body .exam-meta-item svg {
+  color: var(--catalog-blue);
+}
+
+.exam-room-page .reference-room-card-body .exam-meta-item small {
+  color: var(--catalog-subtle);
+  font-size: 12px;
+}
+
+.exam-room-page .reference-room-card-body .exam-meta-item > b {
+  min-width: 0;
+  max-width: 58%;
+  overflow-wrap: break-word;
+  color: var(--catalog-body);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.exam-room-page .reference-room-card-footer {
+  min-width: 0;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 14px;
+  padding: 17px 22px 20px;
+  border-top: 1px solid var(--catalog-line);
+}
+
+.exam-room-page .reference-room-completion {
+  width: 100%;
+  max-width: none;
+}
+
+.exam-room-page .reference-room-completion span {
+  color: var(--catalog-muted);
+  font-size: 12px;
+}
+
+.exam-room-page .reference-room-completion b {
+  color: var(--catalog-blue);
+  font-size: 12px;
+}
+
+.exam-room-page .reference-room-card .exam-progress {
+  height: 7px;
+  background: #dbeafe;
+}
+
+.exam-room-page .reference-room-card .exam-progress > span {
+  height: 7px;
+  background: var(--catalog-blue);
+}
+
+.exam-room-page .reference-room-card-footer > :where(a, button) {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--catalog-blue);
+  border-radius: 11px;
+  background: var(--catalog-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.exam-room-page .reference-room-card-footer > :where(a, button):hover {
+  border-color: var(--catalog-blue-strong);
+  background: var(--catalog-blue-strong);
+  box-shadow: 0 8px 18px rgba(30, 64, 175, 0.18);
+  transform: translateY(-1px);
+}
+
+.exam-list-page {
+  width: min(1180px, 100%);
+}
+
+.exam-list-page .exam-back {
+  width: fit-content;
+  min-height: 34px;
+  margin: -3px 0 -6px;
+  padding: 7px 10px 7px 5px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--catalog-muted);
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.exam-list-page .exam-back:hover {
+  color: var(--catalog-blue);
+  background: var(--catalog-blue-soft);
+}
+
+.exam-list-page .exam-package-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.exam-list-page .exam-package-search {
+  width: min(320px, 100%);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  border: 1px solid var(--catalog-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.exam-list-page .exam-package-search:focus-within {
+  border-color: rgba(0, 122, 255, 0.7);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.exam-list-page .exam-package-search svg {
+  width: 17px;
+  color: var(--catalog-subtle);
+}
+
+.exam-list-page .exam-package-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--catalog-ink);
+}
+
+.exam-list-page .exam-list-grid {
+  grid-template-columns: minmax(0, 520px);
+  gap: 18px;
+  justify-content: start;
+  margin-top: 0;
+}
+
+.exam-list-page .reference-exam-card {
+  min-height: 270px;
+  border: 1px solid var(--catalog-line) !important;
+  border-radius: 16px !important;
+  background: var(--catalog-surface);
+  box-shadow: var(--catalog-shadow) !important;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease !important;
+}
+
+.exam-list-page .reference-exam-card:hover {
+  border-color: rgba(0, 122, 255, 0.3) !important;
+  box-shadow: 0 16px 32px rgba(24, 50, 92, 0.11) !important;
+  transform: translateY(-3px) !important;
+}
+
+.exam-list-page .reference-exam-card-head,
+.exam-list-page .reference-exam-card-body,
+.exam-list-page .reference-exam-card-footer {
+  border-color: var(--catalog-line);
+}
+
+.exam-list-page .reference-exam-card-head {
+  padding: 19px 20px;
+}
+
+.exam-list-page .reference-exam-card-head h3 {
+  color: var(--catalog-ink);
+  font-size: 17px;
+  letter-spacing: -0.15px;
+}
+
+.exam-list-page .reference-exam-card-body {
+  flex: 1;
+  padding: 17px 20px;
+}
+
+.exam-list-page .reference-exam-card-body > div {
+  min-height: 32px;
+}
+
+.exam-list-page .reference-exam-card-body > div + div {
+  margin-top: 6px;
+  border-top: 1px solid rgba(60, 60, 67, 0.07);
+}
+
+.exam-list-page .reference-exam-card-body > div > span {
+  color: var(--catalog-subtle);
+  font-size: 12px;
+}
+
+.exam-list-page .reference-exam-card-body strong {
+  color: var(--catalog-body);
+  font-size: 13px;
+}
+
+.exam-list-page .reference-exam-status {
+  border: 1px solid rgba(52, 199, 89, 0.22);
+  background: rgba(52, 199, 89, 0.1);
+  color: #248a41;
+}
+
+.exam-list-page .reference-exam-card-footer {
+  padding: 16px 20px;
+}
+
+.exam-list-page .reference-exam-history {
+  color: var(--catalog-muted);
+}
+
+.exam-list-page .reference-exam-history:hover {
+  color: var(--catalog-blue);
+}
+
+.exam-list-page .reference-exam-history:disabled {
+  color: var(--catalog-subtle);
+  cursor: not-allowed;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.exam-list-page .reference-exam-start {
+  min-height: 40px;
+  border-radius: 11px;
+  background: var(--catalog-blue);
+  color: #fff;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.exam-list-page .reference-exam-start:hover {
+  background: var(--catalog-blue-strong);
+  box-shadow: 0 8px 18px rgba(0, 102, 214, 0.18);
+  transform: translateY(-1px);
+}
+
+.exam-history-shade {
+  position: fixed;
+  z-index: 1300;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.exam-attempt-history-dialog {
+  display: flex;
+  width: min(920px, 100%);
+  max-height: calc(100dvh - 32px);
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--catalog-line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+}
+
+.exam-attempt-history-dialog > header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--catalog-line);
+}
+
+.exam-attempt-history-dialog > header > div {
+  min-width: 0;
+}
+
+.exam-attempt-history-dialog > header span {
+  color: var(--catalog-blue);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.exam-attempt-history-dialog > header h2 {
+  max-width: 100%;
+  margin: 5px 0 2px;
+  color: var(--catalog-ink);
+  font-size: 20px;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  word-break: normal;
+}
+
+.exam-attempt-history-dialog > header p {
+  margin: 0;
+  color: var(--catalog-muted);
+  font-size: 13px;
+}
+
+.exam-attempt-history-dialog > header button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: var(--catalog-surface-muted);
+  color: var(--catalog-muted);
+  touch-action: manipulation;
+}
+
+.exam-attempt-history-dialog > header button:hover {
+  background: var(--catalog-blue-soft);
+  color: var(--catalog-blue);
+}
+
+.exam-attempt-history-list {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 22px 22px;
+}
+
+.exam-attempt-history-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 16px;
+  color: inherit;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.exam-attempt-history-item-head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.exam-attempt-history-item-head > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exam-attempt-history-item-head b {
+  color: var(--catalog-ink);
+  font-size: 15px;
+}
+
+.exam-attempt-history-item-head time {
+  color: var(--catalog-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-attempt-history-item-head > span {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(52, 199, 89, 0.12);
+  color: #248a41;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.exam-attempt-history-summary {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid rgba(29, 78, 216, 0.14);
+  border-radius: 16px;
+  background: var(--catalog-blue-soft);
+  transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.exam-attempt-history-item:hover .exam-attempt-history-summary {
+  border-color: rgba(29, 78, 216, 0.3);
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(29, 78, 216, 0.1);
+}
+
+.exam-attempt-history-score {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.exam-attempt-history-score small {
+  color: var(--catalog-muted);
+  font-size: 12px;
+}
+
+.exam-attempt-history-score strong {
+  margin-top: 3px;
+  color: var(--catalog-blue);
+  font-size: 30px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-attempt-history-summary dl {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  margin: 0;
+}
+
+.exam-attempt-history-summary dl > div {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.exam-attempt-history-summary dt {
+  color: var(--catalog-muted);
+  font-size: 12px;
+}
+
+.exam-attempt-history-summary dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--catalog-body);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: end;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.exam-attempt-history-summary > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--catalog-blue);
+}
+
+.exam-attempt-history-item:focus-visible {
+  outline: 3px solid rgba(29, 78, 216, 0.3);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1100px) {
+  .exam-room-page .exam-room-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.exam-room-page :where(button, input):focus-visible,
+.exam-list-page :where(button, input):focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.3);
+  outline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+  .exam-room-page,
+  .exam-list-page {
+    gap: 18px;
+  }
+
+  .exam-list-page .exam-package-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+.exam-list-page .exam-package-search {
+    width: 100%;
+  }
+
+  .exam-room-page .exam-room-grid,
+  .exam-list-page .exam-list-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-attempt-history-dialog > header {
+    padding: 18px;
+  }
+
+  .exam-attempt-history-list {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .exam-attempt-history-summary {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exam-room-page *,
+  .exam-list-page * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

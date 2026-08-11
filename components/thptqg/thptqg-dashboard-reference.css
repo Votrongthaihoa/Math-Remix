@@ -1,0 +1,46 @@
+.thptqg-dashboard{box-sizing:border-box;height:100%;min-height:100vh;width:100%;padding:40px 16px;background:url('/thi-tsa-bg.jpg') center/cover no-repeat fixed;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:auto}
+.thptqg-dashboard-title{width:min(1024px,100%);margin:0 auto 32px;color:#0a328c;font-size:30px;line-height:36px;font-weight:700;text-align:center;text-transform:uppercase}
+.thptqg-dashboard-shell{width:min(1024px,100%);margin:0 auto}
+.thptqg-dashboard-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-bottom:32px}
+.thptqg-dashboard-info-card,.thptqg-dashboard-subject-panel{border:1px solid #e2e8f0;border-radius:8px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.thptqg-dashboard-info-card{padding:24px}
+.thptqg-dashboard-info-card h2,.thptqg-dashboard-subject-panel>h2{margin:0 0 16px;color:#0a328c;font-size:18px;line-height:24px;font-weight:700;text-transform:uppercase}
+.thptqg-dashboard-info-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;color:#1f2937;font-size:14px;line-height:20px;font-weight:700}
+.thptqg-dashboard-council-values{display:grid;gap:16px;color:#1f2937;font-size:14px;line-height:20px;font-weight:700}
+.thptqg-dashboard-info-values span,.thptqg-dashboard-council-values span{margin-left:8px;color:#000;font-weight:400}
+.thptqg-dashboard-subject-panel{padding:24px;margin-bottom:32px}
+.thptqg-exam-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0}
+.thptqg-exam-cell{display:flex;min-width:0;align-items:center;justify-content:space-between;gap:12px;padding:16px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;background:#fff}
+.thptqg-exam-cell:nth-child(even){background:#fafbfc}
+.thptqg-exam-cell-copy{display:flex;min-width:0;flex:1 1 auto;flex-direction:column;gap:3px}
+.thptqg-exam-cell-copy>span{overflow:hidden;color:#111827;font-size:14px;line-height:20px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.thptqg-exam-cell-copy>small{color:#64748b;font-size:11px;line-height:16px}
+.thptqg-exam-cell-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex:0 0 auto}
+.thptqg-exam-enter-button{display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border:0;border-radius:6px;background:#1d4ed8;color:#fff;font-size:14px;line-height:20px;font-weight:700;cursor:pointer;text-align:center;white-space:nowrap}
+.thptqg-exam-enter-button:hover{background:#1e40af}
+.thptqg-exam-cell.is-unavailable{background:#f8fafc;color:#64748b}
+.thptqg-exam-cell.is-unavailable .thptqg-exam-cell-copy>span{color:#64748b}
+.thptqg-exam-enter-button.is-disabled{width:108px;min-width:108px;max-width:108px;min-height:40px;padding:4px 6px;border:1px solid #e2e8f0;background:#eef2f7;color:#64748b;cursor:not-allowed;line-height:15px;text-align:center;white-space:normal;overflow:visible;text-overflow:clip}
+.thptqg-exam-enter-button.is-disabled:hover{background:#eef2f7;color:#94a3b8}
+.thptqg-exam-result-button{padding:5px 0;border:0;background:transparent;color:#0a328c;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.thptqg-exam-result-button:hover{text-decoration:underline}
+.thptqg-dashboard-logout{display:block;margin:0 auto;padding:8px 32px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#1a49a8;font-size:14px;line-height:20px;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
+.thptqg-dashboard-logout:hover{border-color:#1a49a8;background:#f8fafc}
+
+@media(max-width:1023px){
+  .thptqg-exam-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:767px){
+  .thptqg-dashboard{justify-content:flex-start;padding:28px 12px 36px}
+  .thptqg-dashboard-title{margin-bottom:24px;font-size:24px;line-height:30px}
+  .thptqg-dashboard-info-grid{grid-template-columns:1fr;gap:16px;margin-bottom:24px}
+  .thptqg-dashboard-info-card,.thptqg-dashboard-subject-panel{padding:18px}
+  .thptqg-dashboard-info-values{gap:12px;font-size:13px}
+  .thptqg-exam-cell{padding:13px 12px}
+}
+@media(max-width:560px){
+  .thptqg-exam-grid{grid-template-columns:1fr}
+  .thptqg-dashboard-info-values{grid-template-columns:1fr}
+  .thptqg-exam-cell{align-items:flex-start}
+  .thptqg-exam-cell-actions{flex-direction:column;align-items:flex-end}
+}

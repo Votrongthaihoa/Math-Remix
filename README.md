@@ -1,98 +1,67 @@
-# vinext-starter
+# Remix Study Education
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Nền tảng soạn đề, phòng thi và luyện tập trực tuyến cho Remix Study Education.
+Ứng dụng dùng React/TypeScript trên Vinext, Supabase cho dữ liệu và xác thực,
+Cloudflare Worker/R2 cho triển khai và tài nguyên ảnh.
 
-## Prerequisites
+## Yêu cầu
 
 - Node.js `>=22.13.0`
+- Một project Supabase đang hoạt động cho môi trường chạy thật
+- R2 chỉ bắt buộc khi dùng luồng tải/lưu ảnh đề trên môi trường triển khai
 
-## Quick Start
+## Chạy local
 
 ```bash
+copy .env.example .env.local
 npm install
 npm run dev
+```
+
+Điền các biến Supabase trong `.env.local` trước khi dùng API phòng thi:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` chỉ được dùng ở server route và không được đưa vào
+client bundle. Không commit `.env.local` hoặc bất kỳ secret nào.
+
+## Cơ sở dữ liệu
+
+Migration nằm trong [`supabase/migrations`](supabase/migrations/README.md).
+Project đã có lịch sử migration với hai file dùng tiền tố `007`; không đổi tên
+file đã áp dụng. Với project mới, chạy `supabase/schema.sql` như bootstrap hoặc
+chạy các migration theo manifest.
+
+## Kiểm tra trước khi phát hành
+
+```bash
+npm run typecheck
+npm run lint
+npm test
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+`npm test` đã bao gồm typecheck, build và toàn bộ test Node trong `tests/`.
+CI chạy cùng các bước này trên Node 22.
 
-## Included Shape
+## Các luồng chính
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+- Soạn đề LaTeX, bảng, hình ảnh và các dạng câu hỏi THPTQG.
+- Phòng thi theo cấu trúc THPTQG, HSA 2026/2027 có thể cấu hình, V-SAT và TSA.
+- Luyện tập có tài khoản và thi ngắn hạn cho thí sinh tự do.
+- Kíp thi có thời gian mở/đóng, giới hạn lượt, nhận diện thí sinh, giám sát,
+  xuất đáp án đã chọn và dữ liệu làm bài Excel.
+- Kết quả/đáp án tuân theo cấu hình phát hành của bài thi; server không gửi
+  điểm hoặc đáp án khi chưa được phép.
 
-## Workspace Auth Headers
+## Nguyên tắc phát triển
 
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- Tài liệu audit và roadmap nằm tại [`docs/engineering-roadmap.md`](docs/engineering-roadmap.md).
+- API phải xác thực quyền ở server, giới hạn payload và không trả dữ liệu đáp án
+  khi chưa được phát hành.
+- Thay đổi database chỉ thêm migration mới theo thứ tự; không sửa migration đã
+  chạy trên môi trường dùng thật.

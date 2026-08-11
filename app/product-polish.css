@@ -1,0 +1,268 @@
+/* Final product polish shared by student and teacher surfaces. */
+
+.ui-shell.student-app.product-shell,
+.ui-shell.admin-app.product-shell {
+  --product-bg: #f5f5f7;
+  --product-surface: rgba(255, 255, 255, 0.82);
+  --product-surface-solid: #ffffff;
+  --product-ink: #1d1d1f;
+  --product-body: #424245;
+  --product-muted: #6e6e73;
+  --product-subtle: #8e8e93;
+  --product-line: rgba(60, 60, 67, 0.14);
+  --product-line-soft: rgba(60, 60, 67, 0.09);
+  --product-blue: #007aff;
+  --product-blue-strong: #0066d6;
+  --product-blue-soft: rgba(0, 122, 255, 0.1);
+  --product-radius-sm: 10px;
+  --product-radius-md: 14px;
+  --product-radius-lg: 20px;
+  --product-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(24, 32, 48, 0.055);
+  --product-shadow-hover: 0 16px 36px rgba(24, 50, 92, 0.11);
+}
+
+.ui-shell.student-app.product-shell,
+.ui-shell.admin-app.product-shell {
+  background: var(--product-bg);
+  color: var(--product-ink);
+}
+
+.ui-shell.student-app.product-shell .main-content,
+.ui-shell.admin-app.product-shell .main-content {
+  background:
+    radial-gradient(circle at 92% -4%, rgba(88, 86, 214, 0.055), transparent 25rem),
+    var(--product-bg);
+}
+
+.ui-shell.student-app.product-shell .topbar,
+.ui-shell.admin-app.product-shell .topbar {
+  border-bottom-color: var(--product-line-soft);
+  background: rgba(250, 250, 252, 0.84);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.ui-shell.student-app.product-shell .sidebar,
+.ui-shell.admin-app.product-shell .sidebar {
+  border-right-color: var(--product-line-soft);
+  background: rgba(250, 250, 252, 0.78);
+  box-shadow: 5px 0 24px rgba(40, 40, 50, 0.03);
+}
+
+.ui-shell.student-app.product-shell :where(.section-card, .overview-list-card, .history-frame, .profile-card, .course-curriculum-panel, .viewer-card, .curriculum-panel),
+.ui-shell.admin-app.product-shell :where(.section-card, .admin-kpi-card, .admin-action-panel, .admin-session-list, .policy-card, .access-panel, .admin-upload-library, .workspace-form-card) {
+  border-color: var(--product-line-soft);
+  border-radius: var(--product-radius-md);
+  box-shadow: var(--product-shadow);
+}
+
+.ui-shell.student-app.product-shell .section-card,
+.ui-shell.admin-app.product-shell .section-card {
+  padding: 23px;
+}
+
+.ui-shell.student-app.product-shell :where(h1, h2, h3),
+.ui-shell.admin-app.product-shell :where(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell :where(.primary-btn, .outline-btn, .back-btn, .text-btn),
+.ui-shell.admin-app.product-shell :where(.primary-btn, .outline-btn, .workspace-button, .workspace-text-button, .back-btn) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Student dashboard: a quiet highlight instead of a saturated marketing hero. */
+.ui-shell.student-app.product-shell .overview-summary {
+  border-color: rgba(255, 255, 255, 0.86);
+  background:
+    radial-gradient(circle at 92% 10%, rgba(255, 255, 255, 0.76), transparent 12rem),
+    linear-gradient(135deg, #eaf4ff 0%, #f2f0ff 100%);
+  color: var(--product-ink);
+  box-shadow: 0 14px 34px rgba(56, 82, 145, 0.1);
+}
+
+.ui-shell.student-app.product-shell .overview-avatar {
+  border-color: rgba(0, 122, 255, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--product-blue);
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.08);
+}
+
+.ui-shell.student-app.product-shell .overview-user small,
+.ui-shell.student-app.product-shell .overview-number small,
+.ui-shell.student-app.product-shell .overview-role small {
+  color: var(--product-muted);
+}
+
+.ui-shell.student-app.product-shell .overview-user h2,
+.ui-shell.student-app.product-shell .overview-number b,
+.ui-shell.student-app.product-shell .overview-role b {
+  color: var(--product-ink);
+}
+
+.ui-shell.student-app.product-shell .overview-user p,
+.ui-shell.student-app.product-shell .overview-number span,
+.ui-shell.student-app.product-shell .overview-role span {
+  color: var(--product-body);
+}
+
+.ui-shell.student-app.product-shell .summary-divider {
+  background: var(--product-line);
+}
+
+.ui-shell.student-app.product-shell .overview-number + .overview-number,
+.ui-shell.student-app.product-shell .overview-role {
+  border-left-color: var(--product-line);
+}
+
+.ui-shell.student-app.product-shell .overview-list-card {
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.ui-shell.student-app.product-shell .overview-list-card:hover,
+.ui-shell.student-app.product-shell .section-card:hover {
+  border-color: rgba(0, 122, 255, 0.18);
+}
+
+.ui-shell.student-app.product-shell .course-card,
+.ui-shell.student-app.product-shell .reference-course-card {
+  border-color: var(--product-line-soft);
+  border-radius: var(--product-radius-md);
+  box-shadow: var(--product-shadow);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card:hover {
+  box-shadow: var(--product-shadow-hover);
+}
+
+.ui-shell.student-app.product-shell .reference-course-card .course-body {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.ui-shell.student-app.product-shell .course-study-hero {
+  border-color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--product-shadow-hover);
+}
+
+.ui-shell.student-app.product-shell .history-row:hover,
+.ui-shell.student-app.product-shell .curriculum-resource:hover {
+  background: rgba(0, 122, 255, 0.035);
+}
+
+.ui-shell.student-app.product-shell .profile-card.identity {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.86), rgba(239, 246, 255, 0.72));
+}
+
+/* Teacher dashboard and operational cards. */
+.ui-shell.admin-app.product-shell .admin-kpi-card,
+.ui-shell.admin-app.product-shell .admin-action-panel,
+.ui-shell.admin-app.product-shell .admin-session-list,
+.ui-shell.admin-app.product-shell .policy-card,
+.ui-shell.admin-app.product-shell .access-panel,
+.ui-shell.admin-app.product-shell .admin-upload-library {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.ui-shell.admin-app.product-shell .admin-kpi-card:hover,
+.ui-shell.admin-app.product-shell .admin-reference-room-card:hover,
+.ui-shell.admin-app.product-shell .admin-upload-image-card:hover {
+  box-shadow: var(--product-shadow-hover);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-strip,
+.ui-shell.admin-app.product-shell .workspace-filter-row,
+.ui-shell.admin-app.product-shell .exam-workflow {
+  border-color: var(--product-line);
+  border-radius: var(--product-radius-md);
+  box-shadow: var(--product-shadow);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-intro {
+  background: rgba(0, 122, 255, 0.045);
+}
+
+.ui-shell.admin-app.product-shell .admin-action-panel-head,
+.ui-shell.admin-app.product-shell .admin-session-list-head,
+.ui-shell.admin-app.product-shell .admin-upload-library-head {
+  border-bottom-color: var(--product-line-soft);
+}
+
+.ui-shell.admin-app.product-shell .admin-action-item:hover,
+.ui-shell.admin-app.product-shell .admin-log-item:hover,
+.ui-shell.admin-app.product-shell .admin-session-row:hover {
+  background: rgba(0, 122, 255, 0.035);
+}
+
+.ui-shell.admin-app.product-shell .content-admin-grid article,
+.ui-shell.admin-app.product-shell .enrollment-list > article,
+.ui-shell.admin-app.product-shell .table-row {
+  border-top-color: var(--product-line-soft);
+}
+
+.ui-shell.admin-app.product-shell .admin-table {
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+/* More deliberate control hierarchy: primary actions are blue; destructive
+ * actions keep red but never compete with the page title. */
+.ui-shell.student-app.product-shell :where(.primary-btn, .reference-exam-start),
+.ui-shell.admin-app.product-shell :where(.primary-btn, .workspace-button.primary, .admin-session-primary) {
+  border-radius: 11px;
+  background: var(--product-blue);
+  border-color: var(--product-blue);
+  box-shadow: 0 7px 16px rgba(0, 122, 255, 0.14);
+}
+
+.ui-shell.student-app.product-shell :where(.primary-btn, .reference-exam-start):hover:not(:disabled),
+.ui-shell.admin-app.product-shell :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled) {
+  background: var(--product-blue-strong);
+  border-color: var(--product-blue-strong);
+}
+
+.ui-shell.student-app.product-shell :where(.outline-btn, .back-btn),
+.ui-shell.admin-app.product-shell :where(.outline-btn, .workspace-button.ghost, .workspace-back, .admin-session-refresh, .admin-session-action) {
+  border-color: var(--product-line);
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--product-body);
+}
+
+.ui-shell.student-app.product-shell :where(.outline-btn, .back-btn):hover:not(:disabled),
+.ui-shell.admin-app.product-shell :where(.outline-btn, .workspace-button.ghost, .workspace-back, .admin-session-refresh, .admin-session-action):hover:not(:disabled) {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: var(--product-blue-soft);
+  color: var(--product-blue);
+}
+
+.ui-shell.student-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+.ui-shell.admin-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  border-color: var(--product-line);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.ui-shell.student-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
+.ui-shell.admin-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(0, 122, 255, 0.72);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.ui-shell.student-app.product-shell .empty-state,
+.ui-shell.admin-app.product-shell .admin-route-empty {
+  border-color: var(--product-line);
+  border-radius: var(--product-radius-md);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell .overview-number + .overview-number,
+  .ui-shell.student-app.product-shell .overview-role {
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell *,
+  .ui-shell.admin-app.product-shell * {
+    transition-duration: 0.01ms !important;
+  }
+}

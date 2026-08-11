@@ -1,0 +1,424 @@
+/*
+ * Product-shell UX pass.
+ *
+ * This stylesheet is intentionally loaded last and is scoped to signed-in,
+ * non-exam product pages. The platform adds .protected-exam-surface to
+ * result/catalog and protected admin routes so this layer cannot cross that
+ * boundary.
+ */
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) {
+  --ux-space-xs: 4px;
+  --ux-space-sm: 8px;
+  --ux-space-md: 12px;
+  --ux-space-lg: 16px;
+  --ux-space-xl: 24px;
+  --ux-space-section: 32px;
+  --ux-content-max: 1240px;
+  --ux-control-height: 40px;
+  --ux-field-height: 44px;
+  --ux-focus-ring: 0 0 0 3px rgba(0, 122, 255, 0.22);
+  --ux-line-strong: rgba(60, 60, 67, 0.18);
+  --ux-surface-solid: #fff;
+  --ux-surface-soft: rgba(255, 255, 255, 0.72);
+  --ux-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(24, 32, 48, 0.055);
+  --ux-shadow-hover: 0 12px 28px rgba(24, 50, 92, 0.10);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .main-content,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .main-content,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .product-view-content,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .product-view-content {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.page-stack, .profile-grid, .admin-dashboard-v2, .admin-session-page, .admin-upload-page, .admin-security-page, .assignment-page, .admin-course-builder, .admin-access-page) {
+  width: min(var(--ux-content-max), 100%);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.page-stack, .admin-dashboard-v2, .admin-session-page, .admin-upload-page, .admin-security-page, .assignment-page, .admin-course-builder, .admin-access-page) {
+  gap: var(--ux-space-xl);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(h1, h2, h3, h4),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(h1, h2, h3, h4) {
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(p, small, b, strong, span),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(p, small, b, strong, span) {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.page-intro > *, .courses-toolbar > *, .section-head > *, .overview-user, .overview-number, .overview-role, .course-body, .course-meta > *, .profile-stat-heading > *),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dash-header > *, .admin-session-header > *, .security-admin-head > *, .admin-upload-hero > *, .admin-upload-library-head > *, .section-head > *, .workspace-page-header > *, .builder-header > *, .admin-action-item > *, .admin-log-item > *, .admin-session-row > *, .enrollment-list > article > *) {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea, summary),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea, summary) {
+  touch-action: manipulation;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea, summary):focus-visible,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid #007aff;
+  outline-offset: 3px;
+  box-shadow: var(--ux-focus-ring);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  min-height: var(--ux-field-height);
+  padding-block: 10px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(input, select, textarea):focus,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input, select, textarea):focus {
+  outline: 0;
+  box-shadow: var(--ux-focus-ring);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.modal-shade, .security-detail-shade),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.modal-shade, .security-detail-shade) {
+  overscroll-behavior: contain;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .modal,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .modal {
+  max-height: min(720px, calc(100dvh - 32px));
+  overflow: auto;
+}
+
+/* Sidebar and topbar: grouped, quiet, and safe for long account names. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .sidebar nav,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar nav {
+  align-content: start;
+  gap: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-sidebar-group {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-sidebar-group + .admin-sidebar-group {
+  margin-top: var(--ux-space-lg);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .topbar,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .topbar {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .account-menu-wrap,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .account-menu-wrap,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .account-trigger,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .account-trigger,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-topbar-context {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .account-trigger > span,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .account-trigger > span,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-topbar-context b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Student surfaces. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-study-page,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .real-lesson-page,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .profile-grid {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-summary {
+  gap: var(--ux-space-xl);
+  padding: 22px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-number b,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .profile-score b,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .history-row > strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-lists,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .two-col {
+  gap: var(--ux-space-lg);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-list-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .section-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .profile-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .history-frame {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-toolbar,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .page-intro {
+  gap: var(--ux-space-lg);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-search {
+  flex: 0 1 360px;
+  min-width: min(100%, 260px);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-course-grid {
+  gap: var(--ux-space-lg);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .heatmap-month-short {
+  display: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-course-card:hover,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .section-card:hover {
+  box-shadow: var(--ux-shadow-hover);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-study-hero,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-curriculum-panel,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .real-lesson-page .viewer-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .real-lesson-page .curriculum-panel {
+  min-width: 0;
+}
+
+/* Admin surfaces outside exam authoring. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dashboard-v2, .admin-session-page, .admin-upload-page, .admin-security-page, .assignment-page, .admin-course-builder, .admin-access-page) {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dashboard-v2 {
+  gap: var(--ux-space-xl);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-header,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-header,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page-head,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .builder-header {
+  gap: var(--ux-space-lg);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-header h1,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-header h1,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head h2,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page-head h2,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .builder-header h2 {
+  text-wrap: balance;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-header p,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-header p,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head p,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page-head p,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .builder-header p {
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-status-card .admin-kpi-value,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-summary strong,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-progress b {
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-kpi-card,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-action-panel,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-list,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-upload-library,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-user-grid > button {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-action-item,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-log-item,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-row,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-user-grid > button {
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-table,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .content-admin-grid,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .enrollment-list,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-chapter-list {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .content-admin-grid article,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .enrollment-list > article,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-lesson-card,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .resource-row {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page .enrollment-form,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page .enrollment-form > label,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page .enrollment-form select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page .enrollment-form select {
+  width: 100%;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-upload-image-card img,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-upload-private-thumb,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.course-cover img, .course-study-hero > img) {
+  outline: 1px solid oklch(0 0 0 / 0.10);
+  outline-offset: -1px;
+}
+
+/* Kíp thi / operations: keep the main form readable at tablet widths. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-summary {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-row {
+  min-width: 0;
+}
+
+/* Empty/error states point forward without swallowing the page hierarchy. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.empty-state, .mini-empty, .overview-empty),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-route-empty, .admin-session-empty, .admin-empty-panel, .mini-empty) {
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+@media (max-width: 1050px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dash-header, .admin-session-header, .security-admin-head, .assignment-page-head, .builder-header) {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-summary {
+    gap: 14px 12px;
+    padding: 18px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-number {
+    padding-top: 12px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-search,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .page-intro .search {
+    flex-basis: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .heatmap-months > span {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 9px;
+    letter-spacing: -0.1px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .heatmap-month-full {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .heatmap-month-short {
+    display: inline;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dash-actions, .admin-session-header-actions, .workspace-header-actions, .builder-actions) {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dash-actions, .admin-session-header-actions, .workspace-header-actions, .builder-actions) > * {
+    flex: 1 1 160px;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-status-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-status-card {
+    min-height: 88px;
+    padding: 14px 12px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-status-card .admin-kpi-value {
+    margin-top: 8px;
+    font-size: 22px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .assignment-page .enrollment-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-summary > div:nth-child(3),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-summary > div:nth-child(4) {
+    border-top: 1px solid var(--admin-line, rgba(60, 60, 67, 0.14));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-session-summary > div:nth-child(3) {
+    border-inline-start: 0;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-table, .admin-session-list, .security-user-grid) {
+    overflow-x: auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .table-row {
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-summary {
+    padding: 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dash-actions, .admin-session-header-actions, .workspace-header-actions, .builder-actions) > * {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) *,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea, summary):focus-visible,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea, summary):focus-visible {
+    outline: 2px solid CanvasText;
+    box-shadow: none;
+  }
+}
