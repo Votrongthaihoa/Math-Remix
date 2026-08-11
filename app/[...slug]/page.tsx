@@ -2,15 +2,20 @@ import PlatformApp from "../platform";
 import { notFound } from "next/navigation";
 
 const staticRoutes = new Set(["dashboard", "exam-room", "courses", "exam-history", "profile", "admin", "forgot-password", "reset-password"]);
+const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const guestTokenSegment = /^[A-Za-z0-9_-]{10,100}$/;
 
 export default async function CatchAllPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
   const validStaticRoute = slug.length === 1 && staticRoutes.has(slug[0]);
   const validDetailRoute = slug.length === 2 && (slug[0] === "courses" || slug[0] === "lessons") && Boolean(slug[1]);
-  const validExamRoute = slug.length === 2 && (slug[0] === "exam-room" || slug[0] === "exam") && Boolean(slug[1])
+  const validDirectGuestExamRoute = slug.length === 2 && slug[0] === "exam" && guestTokenSegment.test(slug[1]) && !uuidSegment.test(slug[1]);
+  const validExamRoute = slug.length === 2 && slug[0] === "exam-room" && Boolean(slug[1])
+    || slug.length === 2 && slug[0] === "exam" && uuidSegment.test(slug[1])
     || slug.length === 3 && slug[0] === "exam" && slug[1] === "result" && Boolean(slug[2])
     || slug.length >= 4 && slug[0] === "exam" && Boolean(slug[1]) && slug[2] === "section" && Boolean(slug[3]) && (slug.length === 4 || slug.length === 5 && slug[4] === "confirm");
-  const validGuestExamRoute = slug.length === 3 && slug[0] === "guest" && slug[1] === "exam" && Boolean(slug[2]);
+  const validLegacyGuestExamRoute = slug.length === 3 && slug[0] === "guest" && slug[1] === "exam" && guestTokenSegment.test(slug[2]);
+  const validGuestExamRoute = validDirectGuestExamRoute || validLegacyGuestExamRoute;
   const adminTabs = new Set(["students", "content", "exams", "question-bank", "sessions", "upload", "enrollments", "security"]);
   const validAdminRoute = slug[0] === "admin" && (
     slug.length === 1
@@ -35,5 +40,6 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
     slug.length === 4 && slug[3] === "preview"
     || slug.length === 6 && slug[2] !== "rooms" && slug[3] === "sections" && Boolean(slug[4]) && slug[5] === "preview"
   );
-  return <PlatformApp initialAdminRoute={slug[0] === "admin"} initialStandaloneAdminPreview={standaloneAdminPreview} initialGuestToken={validGuestExamRoute ? slug[2] : undefined} />;
+  const guestToken = validDirectGuestExamRoute ? slug[1] : validLegacyGuestExamRoute ? slug[2] : undefined;
+  return <PlatformApp initialAdminRoute={slug[0] === "admin"} initialStandaloneAdminPreview={standaloneAdminPreview} initialGuestToken={guestToken} />;
 }

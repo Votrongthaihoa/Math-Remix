@@ -1,6 +1,6 @@
 import { ensureActiveAccount } from "../../../../lib/security-server";
 import {
-  GUEST_SLOT_SELECT, hashGuestPassword, isGuestExportWindowValid, normalizeGuestSettings, randomToken, sha256,
+  GUEST_SLOT_SELECT, hashGuestPassword, isGuestExportWindowValid, normalizeGuestSettings, randomGuestLinkToken, sha256,
   type GuestExamSettings,
 } from "../../../../lib/guest-exam-server";
 import { normalizeExamType } from "../../../../lib/exam-config";
@@ -9,6 +9,16 @@ import { finishExamAdminAudit, startExamAdminAudit } from "../../../../lib/admin
 import { runExamPreflight } from "../../../../lib/exam-preflight-server";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
+const PRODUCTION_EXAM_ORIGIN = "https://mathremix.pro.vn";
+
+function guestShareUrl(request: Request, token: string) {
+  const requestUrl = new URL(request.url);
+  const hostname = requestUrl.hostname.toLowerCase();
+  const origin = hostname === "api.mathremix.pro.vn" || hostname === "mathremix.pro.vn" || hostname === "www.mathremix.pro.vn"
+    ? PRODUCTION_EXAM_ORIGIN
+    : requestUrl.origin;
+  return new URL(`/exam/${encodeURIComponent(token)}`, origin).toString();
+}
 
 async function adminRequest(request: Request) {
   const security = await ensureActiveAccount(request);
@@ -177,7 +187,7 @@ export async function POST(request: Request) {
     const exportOpenAt = optionalDate(body.exportOpenAt);
     const exportCloseAt = optionalDate(body.exportCloseAt);
     if ((body.exportOpenAt && !exportOpenAt) || (body.exportCloseAt && !exportCloseAt)) return errorResponse("Thời gian xuất dữ liệu không hợp lệ.");
-    const token = randomToken(24);
+    const token = randomGuestLinkToken();
     const password = String(body.password ?? "").trim();
     const gracePeriodMinutes = boundedInteger(body.gracePeriodMinutes, 30, 0, 1440);
     if (!isGuestExportWindowValid(endsAt, gracePeriodMinutes, exportOpenAt, exportCloseAt)) return errorResponse("Thời gian đóng xuất phải sau thời gian mở xuất.");
@@ -214,8 +224,8 @@ export async function POST(request: Request) {
       return errorResponse(error ? schemaErrorMessage(error.message) : "Không thể tạo kíp thi.", 503);
     }
     await finishExamAdminAudit(admin, audit.audit.id, "succeeded");
-    const shareUrl = new URL(`/guest/exam/${token}`, request.url).toString();
-    return Response.json({ slot, shareUrl }, { status: 201, headers });
+    const shareUrl = guestShareUrl(request, token);
+    return Response.json({ slot, shareUrl, tokenHint: token.slice(-8) }, { status: 201, headers });
   }
 
   if (!body.slotId) return errorResponse("Thiếu mã kíp thi.");
@@ -224,7 +234,7 @@ export async function POST(request: Request) {
   if (!currentSlot) return errorResponse("Không tìm thấy kíp thi.", 404);
 
   if (action === "rotate_slot") {
-    const token = randomToken(24);
+    const token = randomGuestLinkToken();
     const audit = await startExamAdminAudit(admin, {
       adminId: security.user.id,
       examId,
@@ -239,7 +249,7 @@ export async function POST(request: Request) {
       return errorResponse(result.error.message, 503);
     }
     await finishExamAdminAudit(admin, audit.audit.id, "succeeded");
-    return Response.json({ shareUrl: new URL(`/guest/exam/${token}`, request.url).toString(), tokenHint: token.slice(-8) }, { headers });
+    return Response.json({ shareUrl: guestShareUrl(request, token), tokenHint: token.slice(-8) }, { headers });
   }
 
   if (action === "release_results") {

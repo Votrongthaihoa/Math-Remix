@@ -227,6 +227,14 @@ export function randomToken(byteLength = 24) {
   return btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
+/**
+ * Ten URL-safe characters provide 60 bits of entropy. Guest links are also
+ * hashed at rest, rate-limited, and bounded by the kíp window.
+ */
+export function randomGuestLinkToken() {
+  return randomToken(8).slice(0, 10);
+}
+
 export function readCookie(request: Request, name: string) {
   const raw = request.headers.get("cookie") ?? "";
   for (const item of raw.split(";")) {
@@ -318,7 +326,7 @@ export function guestAttemptSecondsRemaining(
 }
 
 export async function loadGuestSlot(admin: SupabaseClient, token: string) {
-  if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return null;
+  if (!/^[A-Za-z0-9_-]{10,100}$/.test(token)) return null;
   const tokenHash = await sha256(token);
   const { data: slot } = await admin.from("exam_access_slots").select(GUEST_SLOT_SELECT).eq("token_hash", tokenHash).maybeSingle();
   if (!slot) return null;
