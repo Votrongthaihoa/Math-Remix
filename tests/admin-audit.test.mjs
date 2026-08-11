@@ -71,22 +71,28 @@ test("admin exam-access mutations preflight audit and export no longer uses acco
   assert.doesNotMatch(exportRoute, /admin_actions/);
 });
 
-test("empty exam slots can be deleted without cascading candidate history", async () => {
-  const [adminRoute, accessUi, accessCss] = await Promise.all([
+test("closed exam slots can be deleted with audited cascading data cleanup", async () => {
+  const [adminRoute, accessUi, accessCss, schema] = await Promise.all([
     source("app/api/admin/exam-access/route.ts"),
     source("app/admin-exam-access.tsx"),
     source("app/admin-exam-access.css"),
+    source("supabase/schema.sql"),
   ]);
 
   assert.match(adminRoute, /"delete_slot"/);
-  assert.match(adminRoute, /Không thể xóa kíp đang mở hoặc còn trong thời gian gia hạn/);
+  assert.match(adminRoute, /currentSlot\.enabled && now >= startsAt && now <= closesAt/);
+  assert.match(adminRoute, /Hãy đóng kíp thi trước khi xóa/);
   for (const table of ["guest_exam_attempts", "exam_slot_candidates", "exam_attempt_adjustments", "exam_attempt_grants"]) {
     assert.match(adminRoute, new RegExp(`from\\("${table}"\\)[\\s\\S]*?head: true`));
+    assert.match(schema, new RegExp(`create table if not exists public\\.${table}[\\s\\S]*?slot_id uuid(?: not null)? references public\\.exam_access_slots\\(id\\) on delete cascade`, "i"));
   }
-  assert.match(adminRoute, /if \(relatedCount > 0\)/);
-  assert.match(adminRoute, /changed_fields: "deleted"/);
+  assert.doesNotMatch(adminRoute, /if \(relatedCount > 0\)/);
+  assert.match(adminRoute, /changed_fields: "deleted_with_related_data"/);
+  assert.match(adminRoute, /related_row_count: relatedCount/);
+  assert.match(adminRoute, /deletedRelatedRows: relatedCount/);
   assert.match(adminRoute, /\.delete\(\)[\s\S]*?\.eq\("id", slotId\)[\s\S]*?\.eq\("exam_id", examId\)/);
   assert.match(accessUi, /Xóa vĩnh viễn kíp/);
+  assert.match(accessUi, /toàn bộ bài làm, kết quả, danh sách thí sinh và dữ liệu vận hành liên quan/);
   assert.match(accessUi, /action: "delete_slot"/);
   assert.match(accessUi, /aria-label=\{`Xóa kíp \$\{slot\.name\}`\}/);
   assert.match(accessUi, /Đang xóa…/);

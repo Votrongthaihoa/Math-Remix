@@ -221,7 +221,7 @@ export default function AdminExamAccess({ exam, room, navigate }: { exam: Exam; 
     try { await post({ action: "update_slot", examId: exam.id, slotId: slot.id, enabled: !slot.enabled }); await load(selectedSlotId); } catch (value) { setError(value instanceof Error ? value.message : "Không thể cập nhật kíp thi."); }
   }
   async function deleteSlot(slot: Slot) {
-    const confirmed = window.confirm(`Xóa vĩnh viễn kíp “${slot.name}”?\n\nChỉ kíp chưa có bài làm hoặc dữ liệu thí sinh mới được xóa. Thao tác này không thể hoàn tác.`);
+    const confirmed = window.confirm(`Xóa vĩnh viễn kíp “${slot.name}” cùng toàn bộ bài làm, kết quả, danh sách thí sinh và dữ liệu vận hành liên quan?\n\nNếu kíp đang hoạt động, hãy đóng kíp trước. Thao tác này không thể hoàn tác.`);
     if (!confirmed) return;
     setDeletingSlotId(slot.id);
     setError("");

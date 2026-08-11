@@ -264,9 +264,9 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
     {pendingDelete ? <MacAlert
       open
       title="Xóa kíp thi này?"
-      description={`Xóa vĩnh viễn “${pendingDelete.name}”? Chỉ kíp không đang mở và chưa có bài làm hoặc dữ liệu thí sinh mới được xóa. Thao tác này không thể hoàn tác.`}
+      description={`Xóa vĩnh viễn “${pendingDelete.name}” cùng toàn bộ bài làm, kết quả, danh sách thí sinh và dữ liệu vận hành liên quan? Nếu kíp đang hoạt động, hãy đóng kíp trước. Thao tác này không thể hoàn tác.`}
       secondaryAction={{ label: "Hủy", onClick: () => setPendingDelete(null), disabled: Boolean(deletingSessionId) }}
-      primaryAction={{ label: deletingSessionId ? "Đang xóa…" : "Xóa kíp", onClick: () => void deleteSession(pendingDelete), disabled: Boolean(deletingSessionId) }}
+      primaryAction={{ label: deletingSessionId ? "Đang xóa…" : "Xóa kíp và dữ liệu", onClick: () => void deleteSession(pendingDelete), disabled: Boolean(deletingSessionId) }}
       onClose={() => { if (!deletingSessionId) setPendingDelete(null); }}
     /> : null}
   </div>;

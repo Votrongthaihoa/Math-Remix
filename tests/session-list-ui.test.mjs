@@ -20,6 +20,8 @@ test("admin session list keeps dates safe and mobile rows non-overlapping", asyn
   assert.match(component, /session\.kind !== "account"/);
   assert.match(component, /aria-label=\{`Xóa kíp \$\{session\.name\}`\}/);
   assert.match(component, /<MacAlert/);
+  assert.match(component, /Xóa kíp và dữ liệu/);
+  assert.match(component, /toàn bộ bài làm, kết quả, danh sách thí sinh và dữ liệu vận hành liên quan/);
   assert.match(css, /\.admin-session-delete/);
   assert.match(css, /\.admin-session-row-actions/);
 });

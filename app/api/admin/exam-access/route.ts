@@ -238,8 +238,8 @@ export async function POST(request: Request) {
     const closesAt = new Date(currentSlot.ends_at).getTime() + Math.max(0, Number(currentSlot.grace_period_minutes) || 0) * 60_000;
     const now = Date.now();
     if (!Number.isFinite(startsAt) || !Number.isFinite(closesAt)) return errorResponse("Thời gian kíp thi không hợp lệ.", 409);
-    if (now >= startsAt && now <= closesAt) {
-      return errorResponse("Không thể xóa kíp đang mở hoặc còn trong thời gian gia hạn. Hãy đóng kíp và giữ lại để bảo toàn bài làm.", 409);
+    if (currentSlot.enabled && now >= startsAt && now <= closesAt) {
+      return errorResponse("Kíp đang hoạt động hoặc còn trong thời gian gia hạn. Hãy đóng kíp thi trước khi xóa.", 409);
     }
     const relatedResults = await Promise.all([
       admin.from("guest_exam_attempts").select("id", { count: "exact", head: true }).eq("slot_id", slotId),
@@ -250,9 +250,6 @@ export async function POST(request: Request) {
     const relatedError = relatedResults.find(result => result.error)?.error;
     if (relatedError) return errorResponse(schemaErrorMessage(relatedError.message), 503);
     const relatedCount = relatedResults.reduce((total, result) => total + (result.count ?? 0), 0);
-    if (relatedCount > 0) {
-      return errorResponse("Kíp đã có dữ liệu thí sinh hoặc dữ liệu vận hành nên không thể xóa. Hãy đóng kíp để giữ nguyên lịch sử.", 409);
-    }
     const audit = await startExamAdminAudit(admin, {
       adminId: security.user.id,
       examId,
@@ -260,7 +257,7 @@ export async function POST(request: Request) {
       // Reuse the deployed constrained audit action; metadata distinguishes
       // this irreversible lifecycle update without requiring a schema change.
       action: "update_exam_access_slot",
-      metadata: { changed_fields: "deleted", deleted: true, related_row_count: 0 },
+      metadata: { changed_fields: "deleted_with_related_data", deleted: true, related_row_count: relatedCount },
     });
     if (!audit.ok) return auditUnavailableResponse();
     const { data: deletedSlot, error: deleteError } = await admin
@@ -274,8 +271,8 @@ export async function POST(request: Request) {
       await finishExamAdminAudit(admin, audit.audit.id, "failed");
       return errorResponse(deleteError ? schemaErrorMessage(deleteError.message) : "Kíp thi đã thay đổi. Hãy tải lại trang.", deleteError ? 503 : 409);
     }
-    await finishExamAdminAudit(admin, audit.audit.id, "succeeded", { changed_fields: "deleted", deleted: true, related_row_count: 0 });
-    return Response.json({ deleted: true, slotId }, { headers });
+    await finishExamAdminAudit(admin, audit.audit.id, "succeeded", { changed_fields: "deleted_with_related_data", deleted: true, related_row_count: relatedCount });
+    return Response.json({ deleted: true, slotId, deletedRelatedRows: relatedCount }, { headers });
   }
 
   if (action === "rotate_slot") {
