@@ -193,9 +193,19 @@ export default function GuestExamModule({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [networkState, setNetworkState] = useState("online");
+  const activeAttemptId = attempt?.id ?? "";
   const submitStarted = useRef(false);
   const progressVersion = useRef(0);
-  const latestProgress = useRef<{ attemptId: string; answers: Record<string, AnswerValue>; flaggedQuestions: string[]; progressVersion: number } | null>(null);
+  const attemptRef = useRef<Attempt | null>(null);
+  const answersRef = useRef<Record<string, AnswerValue>>({});
+  const flaggedQuestionsRef = useRef<string[]>([]);
+  const pendingMonitorEventsRef = useRef<string[]>([]);
+  const monitorFlushTimerRef = useRef<number | null>(null);
+  const progressWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => { attemptRef.current = attempt; }, [attempt]);
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { flaggedQuestionsRef.current = flaggedQuestions; }, [flaggedQuestions]);
 
   const load = useCallback(async () => {
     setPhase("loading"); setError("");
@@ -301,10 +311,39 @@ export default function GuestExamModule({ token }: { token: string }) {
     else void start();
   };
 
+  const queueProgressWrite = useCallback((allowWhileSubmitting = false) => {
+    const currentAttempt = attemptRef.current;
+    if (!currentAttempt || (submitStarted.current && !allowWhileSubmitting)) return;
+    const monitorEvents = pendingMonitorEventsRef.current.splice(0, 20);
+    const snapshot = {
+      attemptId: currentAttempt.id,
+      answers: answersRef.current,
+      flaggedQuestions: flaggedQuestionsRef.current,
+      progressVersion: ++progressVersion.current,
+      ...(monitorEvents.length ? { monitorEvents } : {}),
+    };
+    setNetworkState("saving");
+    const write = async () => {
+      try {
+        const response = await api<{ deadlineAt?: string }>({ action: "progress", token, ...snapshot, networkState: "saving" });
+        if (response?.deadlineAt) setAttempt(current => current ? { ...current, deadline_at: response.deadlineAt } : current);
+        setNetworkState("saved");
+      } catch {
+        if (snapshot.monitorEvents?.length) {
+          pendingMonitorEventsRef.current = [...snapshot.monitorEvents, ...pendingMonitorEventsRef.current].slice(-20);
+        }
+        setNetworkState(typeof navigator !== "undefined" && navigator.onLine ? "failed" : "offline");
+      }
+    };
+    progressWriteQueueRef.current = progressWriteQueueRef.current.then(write, write);
+  }, [token]);
+
   const submit = useCallback(async (nextAnswers?: Record<string, AnswerValue>) => {
     if (!attempt || submitStarted.current) return;
     submitStarted.current = true; setBusy(true); setError("");
     try {
+      queueProgressWrite(true);
+      await progressWriteQueueRef.current;
       const payload = await api<{ result: Result }>({ action: "submit", token, attemptId: attempt.id, answers: nextAnswers ?? answers, flaggedQuestions });
       setResult(resultWithGuestMedia(payload.result)); setPhase("submitted"); await leaveExamFullscreen(); window.localStorage.setItem(guestResultStorageKey(token), payload.result.attempt.id); window.localStorage.removeItem(guestStorageKey(token)); window.localStorage.removeItem(guestIdentityStorageKey(token));
     } catch (value) {
@@ -318,39 +357,36 @@ export default function GuestExamModule({ token }: { token: string }) {
       throw value instanceof Error ? value : new Error(message);
     }
     finally { setBusy(false); }
-  }, [answers, attempt, flaggedQuestions, token]);
+  }, [answers, attempt, flaggedQuestions, queueProgressWrite, token]);
 
   useEffect(() => {
-    if (phase !== "exam" || !attempt) return;
-    const version = ++progressVersion.current;
-    const snapshot = { attemptId: attempt.id, answers, flaggedQuestions, progressVersion: version };
-    latestProgress.current = snapshot;
-    // This is the visible state transition for a debounced server save.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setNetworkState("saving");
-    const save = window.setTimeout(() => { void api<{ deadlineAt?: string }>({ action: "progress", token, ...snapshot, networkState: "saving" }).then(response => { if (response?.deadlineAt) setAttempt(current => current ? { ...current, deadline_at: response.deadlineAt } : current); setNetworkState("saved"); }).catch(() => setNetworkState(navigator.onLine ? "failed" : "offline")); }, 800);
+    if (phase !== "exam" || !activeAttemptId) return;
+    const save = window.setTimeout(queueProgressWrite, 800);
     return () => window.clearTimeout(save);
-  }, [answers, attempt, flaggedQuestions, phase, token]);
+  }, [activeAttemptId, answers, flaggedQuestions, phase, queueProgressWrite]);
 
   useEffect(() => {
-    if (phase !== "exam" || !attempt) return;
+    if (phase !== "exam" || !activeAttemptId) return;
     const retryLatestProgress = () => {
-      const snapshot = latestProgress.current;
-      if (!snapshot || snapshot.attemptId !== attempt.id) return;
       setNetworkState("retrying");
-      void api<{ deadlineAt?: string }>({ action: "progress", token, ...snapshot, networkState: "retrying" })
-        .then(response => { if (response?.deadlineAt) setAttempt(current => current ? { ...current, deadline_at: response.deadlineAt } : current); setNetworkState("saved"); })
-        .catch(() => setNetworkState(navigator.onLine ? "failed" : "offline"));
+      queueProgressWrite();
     };
     window.addEventListener("online", retryLatestProgress);
     return () => window.removeEventListener("online", retryLatestProgress);
-  }, [attempt, phase, token]);
+  }, [activeAttemptId, phase, queueProgressWrite]);
 
   useEffect(() => {
-    if (phase !== "exam" || !attempt || !meta) return;
+    if (phase !== "exam" || !activeAttemptId || !meta) return;
     const integrity = meta.policy?.integrity;
-    if (!integrity || (!integrity.visibilityMonitoring && !integrity.focusMonitoring && !integrity.copyProtection && !integrity.pasteProtection && !integrity.contextMenuProtection)) return;
-    const sendMonitorEvent = (monitorEvent: "visibility_hidden" | "visibility_visible" | "fullscreen_exit" | "fullscreen_enter" | "window_blur" | "window_focus" | "copy" | "paste" | "cut" | "context_menu") => { const version = ++progressVersion.current; void api({ action: "progress", token, attemptId: attempt.id, answers, flaggedQuestions, monitorEvent, networkState, progressVersion: version }); };
+    if (!integrity || (!integrity.visibilityMonitoring && !integrity.focusMonitoring && !integrity.warnOnExit && !integrity.copyProtection && !integrity.pasteProtection && !integrity.contextMenuProtection)) return;
+    const sendMonitorEvent = (monitorEvent: "visibility_hidden" | "visibility_visible" | "fullscreen_exit" | "fullscreen_enter" | "window_blur" | "window_focus" | "copy" | "paste" | "cut" | "context_menu") => {
+      pendingMonitorEventsRef.current = [...pendingMonitorEventsRef.current, monitorEvent].slice(-20);
+      if (monitorFlushTimerRef.current !== null) return;
+      monitorFlushTimerRef.current = window.setTimeout(() => {
+        monitorFlushTimerRef.current = null;
+        queueProgressWrite();
+      }, 80);
+    };
     const onVisibility = () => sendMonitorEvent(document.hidden ? "visibility_hidden" : "visibility_visible");
     const onFullscreen = () => sendMonitorEvent(document.fullscreenElement ? "fullscreen_enter" : "fullscreen_exit");
     const observeFullscreen = integrity.warnOnExit;
@@ -373,6 +409,8 @@ export default function GuestExamModule({ token }: { token: string }) {
     if (integrity.copyProtection) document.addEventListener("cut", onCut);
     if (integrity.contextMenuProtection) document.addEventListener("contextmenu", onContextMenu);
     return () => {
+      if (monitorFlushTimerRef.current !== null) window.clearTimeout(monitorFlushTimerRef.current);
+      monitorFlushTimerRef.current = null;
       if (observeVisibility) document.removeEventListener("visibilitychange", onVisibility);
       if (observeFullscreen) document.removeEventListener("fullscreenchange", onFullscreen);
       if (observeFocus) {
@@ -384,7 +422,7 @@ export default function GuestExamModule({ token }: { token: string }) {
       if (integrity.copyProtection) document.removeEventListener("cut", onCut);
       if (integrity.contextMenuProtection) document.removeEventListener("contextmenu", onContextMenu);
     };
-  }, [answers, attempt, flaggedQuestions, meta, networkState, phase, token]);
+  }, [activeAttemptId, meta, phase, queueProgressWrite]);
 
   if (phase === "loading") return <div className="guest-exam-state"><LoadingIndicator label="Đang mở kíp thi…" /></div>;
   if (phase === "error") return <GuestState title="Không thể mở link thi" message={error} onRetry={() => void load()} />;

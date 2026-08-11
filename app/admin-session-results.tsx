@@ -3,6 +3,7 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarClock, CheckCircle2, ClipboardCheck, Clock3, ExternalLink, Link2, RefreshCw, Search, ShieldAlert, TimerReset, TrendingUp, UserRound, Users } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
+import { analyzeExamMonitorEvents, examMonitorEventDuration, examMonitorEventLabel, formatExamMonitorDuration, type ExamMonitorEvent } from "../lib/exam-monitor";
 import LoadingIndicator from "./loading-indicator";
 import "./admin-session-results.css";
 
@@ -20,12 +21,12 @@ type Attempt = {
   total_questions?: number | null;
   answers?: Record<string, unknown> | null;
   network_state?: string | null;
-  monitor_events?: Array<{ type?: string; at?: string }>;
+  monitor_events?: ExamMonitorEvent[];
   started_at?: string | null;
   submitted_at?: string | null;
   duration_seconds?: number | null;
 };
-type Stats = { total: number; inProgress: number; submitted: number; expired: number; offline: number; autosaveErrors: number; monitorEvents: number; fullscreenExits: number; visibilityEvents: number; focusEvents: number; averageScore?: number | null; completionRate?: number };
+type Stats = { total: number; inProgress: number; submitted: number; expired: number; offline: number; autosaveErrors: number; monitorEvents: number; fullscreenExits: number; visibilityEvents: number; focusEvents: number; tabExits: number; suspectedAppSwitches: number; attentionAwaySeconds: number; longestAwaySeconds: number; fullscreenAwaySeconds: number; averageScore?: number | null; completionRate?: number };
 type QuestionStat = { id: string; prompt: string; attempted: number; correct: number; accuracy: number };
 type SessionMeta = { id: string; name: string; mode: SessionMode; examTitle: string; examType: string; roomId: string; startsAt: string | null; endsAt: string | null; enabled: boolean; resultsReleasedAt: string | null; tokenHint: string | null };
 type ResultsPayload = { session?: SessionMeta; attempts?: Attempt[]; stats?: Stats; questionStats?: QuestionStat[]; error?: string };
@@ -67,25 +68,16 @@ function statusClass(status: string) {
   return "neutral";
 }
 
-function monitorLabel(type: string) {
-  const labels: Record<string, string> = {
-    visibility_hidden: "Rời tab",
-    visibility_visible: "Quay lại tab",
-    fullscreen_exit: "Thoát toàn màn hình",
-    fullscreen_enter: "Vào toàn màn hình",
-    window_blur: "Mất focus",
-    window_focus: "Có focus",
-    copy: "Sao chép",
-    paste: "Dán",
-    cut: "Cắt",
-    context_menu: "Menu chuột phải",
-  };
-  return (labels[type] ?? type) || "Sự kiện";
-}
-
 function guestClass(attempt: Attempt) {
   const identity = attempt.guest_identity ?? {};
   return identity.class_name || identity.class || "";
+}
+
+function MonitorDetails({ events }: { events?: ExamMonitorEvent[] }) {
+  const analysis = analyzeExamMonitorEvents(events);
+  if (!events?.length) return <span className="admin-session-results-no-monitor">Không có cảnh báo</span>;
+  const rows = events.map((event, index) => ({ event, index })).slice(-12);
+  return <details className="admin-session-results-monitor"><summary><Activity aria-hidden="true" />{analysis.eventCount} sự kiện · {analysis.suspectedAppSwitches} nghi chuyển tab/ứng dụng</summary><ul><li><b>Rời tab: {analysis.tabExits} lần</b><small>Tổng thời gian mất focus: {formatExamMonitorDuration(analysis.attentionAwayMs)} · lâu nhất {formatExamMonitorDuration(analysis.longestAttentionAwayMs)}</small></li><li><b>Thoát toàn màn hình: {analysis.fullscreenExits} lần</b><small>Tổng thời gian ngoài toàn màn hình: {formatExamMonitorDuration(analysis.fullscreenAwayMs)}</small></li>{rows.map(({ event, index }) => { const duration = examMonitorEventDuration(events, index); return <li key={`${event.at ?? "event"}-${index}`}>{examMonitorEventLabel(event.type)}<small>{event.at ? formatDateTime(event.at) : ""}{duration ? ` · kéo dài ${formatExamMonitorDuration(duration)}` : ""}</small></li>; })}</ul></details>;
 }
 
 function StatCard({ icon: Icon, label, value, detail, tone }: { icon: typeof Users; label: string; value: string | number; detail: string; tone: string }) {
@@ -183,7 +175,7 @@ export default function AdminSessionResults({ navigate }: { navigate: (path: str
     : `/admin/exams/${encodeURIComponent(examId)}/access${slotId ? `?slotId=${encodeURIComponent(slotId)}` : ""}`;
   const wizardPath = `/admin/sessions/new?roomId=${encodeURIComponent(session?.roomId ?? "")}&examId=${encodeURIComponent(examId)}`;
   const currentMode = session?.mode ?? mode;
-  const displayStats = stats ?? { total: 0, inProgress: 0, submitted: 0, expired: 0, offline: 0, autosaveErrors: 0, monitorEvents: 0, fullscreenExits: 0, visibilityEvents: 0, focusEvents: 0, averageScore: null, completionRate: 0 };
+  const displayStats = stats ?? { total: 0, inProgress: 0, submitted: 0, expired: 0, offline: 0, autosaveErrors: 0, monitorEvents: 0, fullscreenExits: 0, visibilityEvents: 0, focusEvents: 0, tabExits: 0, suspectedAppSwitches: 0, attentionAwaySeconds: 0, longestAwaySeconds: 0, fullscreenAwaySeconds: 0, averageScore: null, completionRate: 0 };
 
   if (loading && !session) return <div className="admin-session-results-loading"><LoadingIndicator label="Đang tải kết quả kíp thi…" /></div>;
 
@@ -219,13 +211,13 @@ export default function AdminSessionResults({ navigate }: { navigate: (path: str
       <section className="admin-session-results-panel admin-session-results-participants" aria-labelledby="participants-title" aria-busy={loading || refreshing}>
         <div className="admin-session-results-panel-head"><div><span className="admin-session-results-kicker">DANH SÁCH BÀI LÀM</span><h2 id="participants-title">Người tham gia</h2><p>Chỉ hiển thị dữ liệu vận hành của kíp; đáp án và lời giải không nằm ở trang này.</p></div><span className="admin-session-results-count">{filteredAttempts.length}/{attempts.length}</span></div>
         <div className="admin-session-results-filters"><label className="admin-session-results-search"><Search aria-hidden="true" /><span className="sr-only">Tìm người tham gia</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm tên, mã hoặc lớp…" /></label><label className="admin-session-results-select"><span className="sr-only">Lọc trạng thái</span><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Tất cả trạng thái</option><option value="in_progress">Đang làm</option><option value="submitted">Đã nộp</option><option value="completed">Hoàn thành</option><option value="graded">Đã chấm</option><option value="expired">Hết giờ</option></select></label></div>
-        {loading && !attempts.length ? <div className="admin-session-results-empty"><LoadingIndicator label="Đang tải người tham gia…" /></div> : filteredAttempts.length ? <div className="admin-session-results-participant-list" role="list">{filteredAttempts.map(attempt => <article className="admin-session-results-participant" role="listitem" key={`${attempt.kind}-${attempt.id}`}><div className="admin-session-results-participant-identity"><span className="admin-session-results-avatar">{attempt.kind === "account" ? <UserRound aria-hidden="true" /> : <Link2 aria-hidden="true" />}</span><div><b>{attempt.candidate_name || "Thí sinh"}</b><span>{attempt.candidate_code || (attempt.kind === "guest" ? "Người tham gia qua link" : "Tài khoản học viên")}{guestClass(attempt) ? ` · ${guestClass(attempt)}` : ""}</span></div></div><div className="admin-session-results-participant-progress"><small>Tiến độ</small><b>{answerCount(attempt.answers)}/{attempt.total_questions ?? 0} câu</b><span><i style={{ width: `${attempt.total_questions ? Math.min(100, Math.round(answerCount(attempt.answers) / attempt.total_questions * 100)) : 0}%` }} /></span></div><div className="admin-session-results-participant-score"><small>Điểm</small><b>{attempt.score ?? "—"}</b><span>{attempt.correct_answers ?? 0}/{attempt.total_questions ?? 0} đúng</span></div><div className="admin-session-results-participant-status"><span className={`admin-session-results-status ${statusClass(attempt.status)}`}><i aria-hidden="true" />{attemptStatusLabel(attempt.status)}</span><small>{attempt.submitted_at ? `Nộp ${formatDateTime(attempt.submitted_at)}` : attempt.started_at ? `Bắt đầu ${formatDateTime(attempt.started_at)}` : "Chưa có thời gian"}</small></div>{attempt.monitor_events?.length ? <details className="admin-session-results-monitor"><summary><Activity aria-hidden="true" />{attempt.monitor_events.length} sự kiện</summary><ul>{attempt.monitor_events.slice(-8).map((event, index) => <li key={`${event.at ?? "event"}-${index}`}>{monitorLabel(String(event.type ?? "unknown"))}<small>{event.at ? formatDateTime(event.at) : ""}</small></li>)}</ul></details> : <span className="admin-session-results-no-monitor">Không có cảnh báo</span>}</article>)}</div> : <div className="admin-session-results-empty"><Users aria-hidden="true" /><h3>{query || statusFilter !== "all" ? "Không có người phù hợp" : "Chưa có lượt tham gia"}</h3><p>{query || statusFilter !== "all" ? "Hãy thử từ khóa hoặc trạng thái khác." : "Dữ liệu sẽ xuất hiện khi học viên bắt đầu hoặc nộp bài."}</p></div>}
+        {loading && !attempts.length ? <div className="admin-session-results-empty"><LoadingIndicator label="Đang tải người tham gia…" /></div> : filteredAttempts.length ? <div className="admin-session-results-participant-list" role="list">{filteredAttempts.map(attempt => <article className="admin-session-results-participant" role="listitem" key={`${attempt.kind}-${attempt.id}`}><div className="admin-session-results-participant-identity"><span className="admin-session-results-avatar">{attempt.kind === "account" ? <UserRound aria-hidden="true" /> : <Link2 aria-hidden="true" />}</span><div><b>{attempt.candidate_name || "Thí sinh"}</b><span>{attempt.candidate_code || (attempt.kind === "guest" ? "Người tham gia qua link" : "Tài khoản học viên")}{guestClass(attempt) ? ` · ${guestClass(attempt)}` : ""}</span></div></div><div className="admin-session-results-participant-progress"><small>Tiến độ</small><b>{answerCount(attempt.answers)}/{attempt.total_questions ?? 0} câu</b><span><i style={{ width: `${attempt.total_questions ? Math.min(100, Math.round(answerCount(attempt.answers) / attempt.total_questions * 100)) : 0}%` }} /></span></div><div className="admin-session-results-participant-score"><small>Điểm</small><b>{attempt.score ?? "—"}</b><span>{attempt.correct_answers ?? 0}/{attempt.total_questions ?? 0} đúng</span></div><div className="admin-session-results-participant-status"><span className={`admin-session-results-status ${statusClass(attempt.status)}`}><i aria-hidden="true" />{attemptStatusLabel(attempt.status)}</span><small>{attempt.submitted_at ? `Nộp ${formatDateTime(attempt.submitted_at)}` : attempt.started_at ? `Bắt đầu ${formatDateTime(attempt.started_at)}` : "Chưa có thời gian"}</small></div><MonitorDetails events={attempt.monitor_events} /></article>)}</div> : <div className="admin-session-results-empty"><Users aria-hidden="true" /><h3>{query || statusFilter !== "all" ? "Không có người phù hợp" : "Chưa có lượt tham gia"}</h3><p>{query || statusFilter !== "all" ? "Hãy thử từ khóa hoặc trạng thái khác." : "Dữ liệu sẽ xuất hiện khi học viên bắt đầu hoặc nộp bài."}</p></div>}
       </section>
 
       <aside className="admin-session-results-side">
         <section className="admin-session-results-panel admin-session-results-session-card" aria-busy={releasingResults}><div className="admin-session-results-panel-head"><div><span className="admin-session-results-kicker">THÔNG TIN KÍP</span><h2>Trạng thái vận hành</h2></div><CalendarClock aria-hidden="true" /></div><dl><div><dt>Trạng thái</dt><dd><span className={`admin-session-results-status ${session?.enabled === false ? "warning" : "live"}`}><i aria-hidden="true" />{session?.enabled === false ? "Đã khóa" : "Đang theo dõi"}</span></dd></div><div><dt>Mở kíp</dt><dd>{formatDateTime(session?.startsAt)}</dd></div><div><dt>Kết thúc</dt><dd>{formatDateTime(session?.endsAt)}</dd></div><div><dt>Kết quả</dt><dd>{session?.resultsReleasedAt ? "Đã công bố" : "Chưa công bố"}</dd></div></dl><div className="admin-session-results-side-actions"><button type="button" className="admin-session-results-primary" onClick={() => void releaseResults()} disabled={Boolean(session?.resultsReleasedAt) || releasingResults}>{releasingResults ? "Đang công bố…" : session?.resultsReleasedAt ? "Đã công bố kết quả" : "Công bố kết quả"}</button></div></section>
         <section className="admin-session-results-panel admin-session-results-analysis"><div className="admin-session-results-panel-head"><div><span className="admin-session-results-kicker">PHÂN TÍCH CÂU HỎI</span><h2>Câu cần xem lại</h2></div><Activity aria-hidden="true" /></div>{questionStats.length ? <div className="admin-session-results-question-list">{questionStats.slice(0, 8).map((question, index) => <div className="admin-session-results-question" key={question.id}><div><b>Câu {index + 1}</b><span title={question.prompt}>{question.prompt}</span></div><strong>{question.accuracy}%</strong><span className="admin-session-results-question-bar"><i style={{ width: `${question.accuracy}%` }} /></span><small>{question.correct}/{question.attempted} lượt đúng</small></div>)}</div> : <p className="admin-session-results-muted">Chưa đủ dữ liệu để phân tích câu hỏi.</p>}</section>
-        <section className="admin-session-results-panel admin-session-results-signal"><ShieldAlert aria-hidden="true" /><div><b>Giám sát kỹ thuật</b><p>{displayStats.monitorEvents ? `${displayStats.monitorEvents} sự kiện được ghi nhận · ${displayStats.fullscreenExits} lần thoát toàn màn hình.` : "Chưa ghi nhận sự kiện giám sát."}</p><small>Dữ liệu chỉ là tín hiệu để giáo viên xem lại, không tự động kết luận vi phạm.</small></div></section>
+        <section className="admin-session-results-panel admin-session-results-signal"><ShieldAlert aria-hidden="true" /><div><b>Giám sát nâng cao</b><p>{displayStats.monitorEvents ? `${displayStats.monitorEvents} sự kiện · ${displayStats.tabExits} lần rời tab · ${displayStats.suspectedAppSwitches} lần nghi chuyển tab/ứng dụng · ${displayStats.fullscreenExits} lần thoát toàn màn hình. Tổng thời gian mất focus: ${formatExamMonitorDuration(displayStats.attentionAwaySeconds * 1_000)}.` : "Chưa ghi nhận sự kiện giám sát."}</p><small>“Nghi chuyển tab/ứng dụng” là chuỗi mất focus kèm ẩn tab hoặc thoát toàn màn hình, có thể do đổi tab, Alt+Tab hoặc Win+Tab. Đây là tín hiệu để giáo viên xem lại, không phải kết luận vi phạm.</small></div></section>
       </aside>
     </div>
   </div>;

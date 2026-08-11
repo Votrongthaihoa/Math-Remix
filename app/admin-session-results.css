@@ -102,10 +102,10 @@
 .ui-shell.admin-app.product-shell .admin-session-results-status.warning { border-color: #f2d9a7; background: #fff9ed; color: #9a6714; }
 .ui-shell.admin-app.product-shell .admin-session-results-status.neutral { background: #f7f8fa; color: #758298; }
 .ui-shell.admin-app.product-shell .admin-session-results-monitor { position: relative; min-width: 0; }
-.ui-shell.admin-app.product-shell .admin-session-results-monitor summary { display: inline-flex; align-items: center; gap: 4px; color: #5c7191; font-size: 10px; font-weight: 800; cursor: pointer; list-style: none; }
+.ui-shell.admin-app.product-shell .admin-session-results-monitor summary { display: inline-flex; max-width: 100%; flex-wrap: wrap; align-items: center; gap: 4px; color: #5c7191; font-size: 10px; font-weight: 800; white-space: normal; overflow-wrap: anywhere; cursor: pointer; list-style: none; }
 .ui-shell.admin-app.product-shell .admin-session-results-monitor summary::-webkit-details-marker { display: none; }
 .ui-shell.admin-app.product-shell .admin-session-results-monitor summary svg { width: 13px; height: 13px; }
-.ui-shell.admin-app.product-shell .admin-session-results-monitor ul { position: absolute; z-index: 1; right: 0; top: 24px; display: grid; min-width: 180px; gap: 6px; margin: 0; padding: 10px 12px 10px 26px; border: 1px solid #dbe4ee; border-radius: 9px; background: #fff; box-shadow: 0 10px 24px rgba(29, 40, 56, .12); color: var(--results-body); font-size: 10px; line-height: 1.4; }
+.ui-shell.admin-app.product-shell .admin-session-results-monitor ul { position: absolute; z-index: 1; right: 0; top: 24px; display: grid; width: max-content; min-width: 180px; max-width: min(320px, calc(100vw - 32px)); gap: 6px; margin: 0; padding: 10px 12px 10px 26px; border: 1px solid #dbe4ee; border-radius: 9px; background: #fff; box-shadow: 0 10px 24px rgba(29, 40, 56, .12); color: var(--results-body); font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
 .ui-shell.admin-app.product-shell .admin-session-results-monitor li small { display: block; color: var(--results-subtle); font-size: 9px; }
 .ui-shell.admin-app.product-shell .admin-session-results-no-monitor { color: #a1abb7; font-size: 10px; text-align: end; overflow-wrap: anywhere; }
 .ui-shell.admin-app.product-shell .admin-session-results-empty { display: grid; min-height: 180px; place-items: center; align-content: center; gap: 6px; padding: 24px 16px; color: var(--results-subtle); text-align: center; }

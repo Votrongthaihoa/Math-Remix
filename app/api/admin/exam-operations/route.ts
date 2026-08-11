@@ -2,6 +2,7 @@ import { ensureActiveAccount } from "../../../../lib/security-server";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { finishExamAdminAudit, startExamAdminAudit } from "../../../../lib/admin-audit-server";
 import { answersMatch, hasAnswerValue } from "../../../../lib/exam-answers";
+import { analyzeExamMonitorEvents } from "../../../../lib/exam-monitor";
 import { normalizeExamPolicy } from "../../../../lib/exam-policy";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
@@ -68,13 +69,19 @@ export async function GET(request: Request) {
     if (String(attempt.network_state) === "offline") output.offline += 1;
     if (["failed", "conflict"].includes(String(attempt.network_state))) output.autosaveErrors += 1;
     if (Array.isArray(attempt.monitor_events)) {
-      output.monitorEvents += attempt.monitor_events.length;
-      output.fullscreenExits += attempt.monitor_events.filter(event => event && typeof event === "object" && (event as Record<string, unknown>).type === "fullscreen_exit").length;
+      const analysis = analyzeExamMonitorEvents(attempt.monitor_events);
+      output.monitorEvents += analysis.eventCount;
+      output.fullscreenExits += analysis.fullscreenExits;
+      output.tabExits += analysis.tabExits;
+      output.suspectedAppSwitches += analysis.suspectedAppSwitches;
+      output.attentionAwaySeconds += Math.round(analysis.attentionAwayMs / 1_000);
+      output.longestAwaySeconds = Math.max(output.longestAwaySeconds, Math.round(analysis.longestAttentionAwayMs / 1_000));
+      output.fullscreenAwaySeconds += Math.round(analysis.fullscreenAwayMs / 1_000);
       output.visibilityEvents += attempt.monitor_events.filter(event => event && typeof event === "object" && String((event as Record<string, unknown>).type).startsWith("visibility_")).length;
       output.focusEvents += attempt.monitor_events.filter(event => event && typeof event === "object" && String((event as Record<string, unknown>).type).startsWith("window_")).length;
     }
     return output;
-  }, { total: attempts.length, inProgress: 0, submitted: 0, expired: 0, offline: 0, autosaveErrors: 0, monitorEvents: 0, fullscreenExits: 0, visibilityEvents: 0, focusEvents: 0 });
+  }, { total: attempts.length, inProgress: 0, submitted: 0, expired: 0, offline: 0, autosaveErrors: 0, monitorEvents: 0, fullscreenExits: 0, visibilityEvents: 0, focusEvents: 0, tabExits: 0, suspectedAppSwitches: 0, attentionAwaySeconds: 0, longestAwaySeconds: 0, fullscreenAwaySeconds: 0 });
   const scoredAttempts = attempts.filter(attempt => ["submitted", "completed", "graded"].includes(String(attempt.status)) && Number.isFinite(Number(attempt.score)));
   const averageScore = scoredAttempts.length ? Math.round(scoredAttempts.reduce((sum, attempt) => sum + Number(attempt.score), 0) / scoredAttempts.length * 10) / 10 : null;
   const completionRate = counts.total ? Math.round(counts.submitted / counts.total * 100) : 0;

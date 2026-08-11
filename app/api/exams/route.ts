@@ -5,6 +5,7 @@ import { applyQuestionSnapshotOrder, EXAM_ATTEMPT_SELECT, EXAM_ROOM_SELECT, EXAM
 import { latexPartSequence, parseLatexQuestion } from "../../../lib/exam-latex";
 import { buildHsaQuestionLoadPlan, filterHsaQuestionsForCombination, getHsaCombination, HSA_PART3_SELECTION_PENDING_KEY, HSA_SELECTION_ANSWER_KEY, type HsaCombination } from "../../../lib/hsa-exam";
 import { createAttemptPolicy, examCodes, examReleaseVisibility, isExamCodeAllowed, normalizeExamCode, policyFromExamSettings, prepareQuestionIdentityForPolicy, publicExamPolicy, resolveAttemptPolicy, type ExamPolicy, type ExamPolicyMode } from "../../../lib/exam-policy";
+import { safeExamMonitorEvents } from "../../../lib/exam-monitor";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
 
@@ -26,7 +27,6 @@ type LoadedExamQuestion = {
 const SECTION_PROGRESS_KEY = "__exam_section_progress";
 const NETWORK_STATES = ["online", "saving", "saved", "offline", "retrying", "conflict", "failed"] as const;
 type NetworkState = typeof NETWORK_STATES[number];
-const MONITOR_EVENTS = ["visibility_hidden", "visibility_visible", "fullscreen_exit", "fullscreen_enter", "window_blur", "window_focus", "copy", "paste", "cut", "context_menu"] as const;
 
 function isHsaExam(roomType: string | null | undefined, examType: string | null | undefined) {
   return normalizeExamType(roomType) === "HSA" || normalizeExamType(examType) === "HSA";
@@ -98,10 +98,6 @@ function safeFlaggedQuestions(value: unknown) {
 
 function safeNetworkState(value: unknown): NetworkState {
   return typeof value === "string" && (NETWORK_STATES as readonly string[]).includes(value) ? value as NetworkState : "online";
-}
-
-function safeMonitorEvent(value: unknown) {
-  return typeof value === "string" && (MONITOR_EVENTS as readonly string[]).includes(value) ? value : null;
 }
 
 function optionValuesForQuestion(question: { question_type?: string | null; options?: unknown; latex_source?: string | null }) {
@@ -472,7 +468,7 @@ export async function POST(request: Request) {
   const authentication = await authenticate(request, admin);
   if (!authentication.ok) return authentication.response;
   const user = authentication.user;
-  const parsedBody = await readJsonBody<{ action?: "start" | "progress" | "submit" | "submit_section"; examId?: string; attemptId?: string; sectionId?: string; mode?: "practice" | "exam"; examCode?: string; hsaSelectionCode?: string; answers?: Record<string, ExamAnswerValue>; flaggedQuestions?: string[]; networkState?: string; progressVersion?: number; monitorEvent?: string }>(request);
+  const parsedBody = await readJsonBody<{ action?: "start" | "progress" | "submit" | "submit_section"; examId?: string; attemptId?: string; sectionId?: string; mode?: "practice" | "exam"; examCode?: string; hsaSelectionCode?: string; answers?: Record<string, ExamAnswerValue>; flaggedQuestions?: string[]; networkState?: string; progressVersion?: number; monitorEvent?: string; monitorEvents?: string[] }>(request);
   if (!parsedBody.ok) return Response.json(jsonBodyError(parsedBody.error), { status: parsedBody.error === "payload_too_large" ? 413 : 400 });
   const body = {
     ...parsedBody.body,
@@ -680,11 +676,13 @@ export async function POST(request: Request) {
     };
     const flaggedQuestions = body.flaggedQuestions === undefined ? safeFlaggedQuestions(attempt.flagged_questions) : safeFlaggedQuestions(body.flaggedQuestions);
     const events = Array.isArray(attempt.monitor_events) ? attempt.monitor_events.slice(-199) : [];
-    const monitorEvent = safeMonitorEvent(body.monitorEvent);
-    if (monitorEvent) events.push({ type: monitorEvent, at: new Date().toISOString() });
+    const monitorEvents = safeExamMonitorEvents(body.monitorEvents ?? body.monitorEvent);
+    const eventTime = new Date().toISOString();
+    for (const monitorEvent of monitorEvents) events.push({ type: monitorEvent, at: eventTime });
+    const boundedMonitorEvents = events.slice(-200);
     const requestedVersion = Number.isInteger(body.progressVersion) ? Math.min(2_000_000_000, Math.max(1, Number(body.progressVersion))) : null;
     const durationSeconds = attemptDurationSeconds(attempt, progressPolicy);
-    const update = { answers: mergedAnswers, flagged_questions: flaggedQuestions, monitor_events: events, network_state: safeNetworkState(body.networkState), duration_seconds: durationSeconds, ...(requestedVersion ? { progress_version: requestedVersion } : {}) };
+    const update = { answers: mergedAnswers, flagged_questions: flaggedQuestions, monitor_events: boundedMonitorEvents, network_state: safeNetworkState(body.networkState), duration_seconds: durationSeconds, ...(requestedVersion ? { progress_version: requestedVersion } : {}) };
     let progressQuery = admin.from("exam_attempts").update(update).eq("id", attempt.id).eq("status", "in_progress");
     if (requestedVersion) progressQuery = progressQuery.lt("progress_version", requestedVersion);
     const { data: saved, error } = await progressQuery.select("id,progress_version,network_state").maybeSingle();

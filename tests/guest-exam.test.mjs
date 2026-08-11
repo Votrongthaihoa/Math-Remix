@@ -178,9 +178,10 @@ test("guest access migrations define admin-only attempts, structure profiles, an
 });
 
 test("THPTQG guest links reuse the authenticated runner and safe result review", async () => {
-  const [guestModule, guestApi, resultComponent, confirmation, thptqgCss] = await Promise.all([
+  const [guestModule, guestApi, monitorLib, resultComponent, confirmation, thptqgCss] = await Promise.all([
     readFile(new URL("../app/guest-exam.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/guest-exams/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/exam-monitor.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/thptqg/GuestThptqgResult.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/thptqg/ThptqgConfirmation.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/thptqg/thptqg.css", import.meta.url), "utf8"),
@@ -200,7 +201,8 @@ test("THPTQG guest links reuse the authenticated runner and safe result review",
   assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*font-family:MathRemixBrand,sans-serif/);
   assert.match(guestApi, /question: publicQuestions\[index\]/);
   assert.match(guestApi, /identity: safeIdentity/);
-  assert.match(guestApi, /context_menu/);
+  assert.match(guestApi, /safeExamMonitorEvents/);
+  assert.match(monitorLib, /context_menu/);
   assert.match(guestModule, /resetQuestionIndex=\{meta\.settings\.resetQuestionIndex\}/);
   assert.match(resultComponent, /resultReview/);
   assert.match(resultComponent, /Xem lại đáp án/);

@@ -56,7 +56,7 @@ type AnswerKey = { question_id: string; correct_answer: AnswerValue | null; expl
 type ResultAttempt = Omit<Attempt, "score" | "correct_answers"> & { score: number | null; correct_answers: number | null };
 type ExamRouteStep = "list" | "confirm" | "take";
 type RouteState = { page: "rooms" | "room" | "exam" | "result"; id?: string; mode?: "practice" | "exam"; sectionId?: string; examStep?: ExamRouteStep; hsaSelectionCode?: string };
-type ThptqgProgressSnapshot = { attemptId: string; sectionId: string; answers: Record<string, AnswerValue>; flaggedQuestions: string[]; progressVersion: number; networkState: string; monitorEvent?: string };
+type ThptqgProgressSnapshot = { attemptId: string; sectionId: string; answers: Record<string, AnswerValue>; flaggedQuestions: string[]; progressVersion: number; networkState: string; monitorEvents?: string[] };
 type ExamContentManifest = { activeSectionId: string | null; questionCounts: Record<string, number> };
 type QuestionGroupPayload = { kind: "question-group"; attemptId: string; sectionId: string; requestedIndex: number; questionCount: number; questions: Question[]; serverTime: string };
 type ExamBundle = { room: Room; exam: Exam; sections: Section[]; questions: Question[]; questionCounts: Record<string, number>; policy?: ExamPolicy; activeAttempt?: Attempt | null; subjectAttempts?: Attempt[] };
@@ -716,7 +716,7 @@ function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navi
     progressSavingRef.current = true;
     const request = examApi<{ saved?: boolean; stale?: boolean; networkState?: string; deadlineAt?: string | null }>("/api/exams", {
       method: "POST",
-      body: JSON.stringify({ action: "progress", attemptId: snapshot.attemptId, sectionId: snapshot.sectionId, answers: snapshot.answers, flaggedQuestions: snapshot.flaggedQuestions, progressVersion: snapshot.progressVersion, networkState: "saving", monitorEvent: snapshot.monitorEvent }),
+      body: JSON.stringify({ action: "progress", attemptId: snapshot.attemptId, sectionId: snapshot.sectionId, answers: snapshot.answers, flaggedQuestions: snapshot.flaggedQuestions, progressVersion: snapshot.progressVersion, networkState: "saving", monitorEvents: snapshot.monitorEvents }),
     });
     void request.then(response => {
       if (response?.deadlineAt) setAttempt(current => current ? { ...current, deadline_at: response.deadlineAt } : current);
@@ -730,6 +730,12 @@ function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navi
       // Keep the failed snapshot for an online retry unless a newer snapshot
       // has already replaced it while this request was in flight.
       if (!pendingProgressRef.current) pendingProgressRef.current = snapshot;
+      else if (snapshot.monitorEvents?.length) {
+        pendingProgressRef.current = {
+          ...pendingProgressRef.current,
+          monitorEvents: [...snapshot.monitorEvents, ...(pendingProgressRef.current.monitorEvents ?? [])].slice(-20),
+        };
+      }
       setNetworkState(typeof navigator !== "undefined" && navigator.onLine ? "failed" : "offline");
     }).finally(() => {
       progressSavingRef.current = false;
@@ -755,8 +761,10 @@ function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navi
     const currentAttempt = attemptRef.current;
     if (!currentAttempt?.id) return;
     const progressVersion = ++progressVersionRef.current;
+    const pendingMonitorEvents = pendingProgressRef.current?.monitorEvents ?? [];
+    const monitorEvents = monitorEvent ? [...pendingMonitorEvents, monitorEvent].slice(-20) : pendingMonitorEvents;
     setNetworkState("saving");
-    pendingProgressRef.current = { attemptId: currentAttempt.id, sectionId, answers: nextAnswers, flaggedQuestions: nextFlags, progressVersion, networkState: "saving", ...(monitorEvent ? { monitorEvent } : {}) };
+    pendingProgressRef.current = { attemptId: currentAttempt.id, sectionId, answers: nextAnswers, flaggedQuestions: nextFlags, progressVersion, networkState: "saving", ...(monitorEvents.length ? { monitorEvents } : {}) };
     scheduleProgress();
   }, [scheduleProgress]);
   const saveThptqgProgress = useCallback((progress: ThptqgProgress) => {

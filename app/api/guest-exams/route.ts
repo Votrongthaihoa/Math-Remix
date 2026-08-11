@@ -8,6 +8,7 @@ import {
   type GuestExamRow, type GuestExamSettings, type GuestRoomRow, type GuestSection, type GuestSlotRow,
 } from "../../../lib/guest-exam-server";
 import { createAttemptPolicy, examCodes, examReleaseVisibility, isExamCodeAllowed, normalizeExamCode, policyFromGuestSettings, publicExamPolicy, resolveAttemptPolicy, type ExamPolicy } from "../../../lib/exam-policy";
+import { safeExamMonitorEvents } from "../../../lib/exam-monitor";
 
 type Body = {
   action?: "start" | "resume" | "progress" | "submit";
@@ -17,6 +18,7 @@ type Body = {
   identity?: Record<string, unknown>;
   answers?: Record<string, ExamAnswerValue>;
   monitorEvent?: string;
+  monitorEvents?: string[];
   progressVersion?: number;
   flaggedQuestions?: string[];
   networkState?: string;
@@ -37,13 +39,6 @@ function safeIdentity(value: unknown) {
       .slice(0, 20)
       .map(([key, item]) => [key, String(item).slice(0, 200)]),
   );
-}
-
-function safeMonitorEvent(value: unknown) {
-  return typeof value === "string" && [
-    "visibility_hidden", "visibility_visible", "fullscreen_exit", "fullscreen_enter",
-    "window_blur", "window_focus", "copy", "paste", "cut", "context_menu",
-  ].includes(value) ? value : "";
 }
 
 type GuestAttemptRow = Record<string, unknown> & {
@@ -424,15 +419,17 @@ export async function POST(request: Request) {
   if (body.action === "progress") {
     const answers = safeAnswers(body.answers);
     const events = Array.isArray(current.attempt.monitor_events) ? current.attempt.monitor_events.slice(-99) : [];
-    const event = safeMonitorEvent(body.monitorEvent);
-    if (event) events.push({ type: event, at: new Date().toISOString() });
+    const monitorEvents = safeExamMonitorEvents(body.monitorEvents ?? body.monitorEvent);
+    const eventTime = new Date().toISOString();
+    for (const monitorEvent of monitorEvents) events.push({ type: monitorEvent, at: eventTime });
+    const boundedMonitorEvents = events.slice(-100);
     const durationSeconds = attemptDurationSeconds(current, current.attempt);
     const progressVersion = Number.isInteger(body.progressVersion) ? Math.min(2_000_000_000, Math.max(1, Number(body.progressVersion))) : null;
     const flaggedQuestions = body.flaggedQuestions === undefined
       ? (Array.isArray(current.attempt.flagged_questions) ? current.attempt.flagged_questions : [])
       : [...new Set(body.flaggedQuestions.filter(item => typeof item === "string").map(item => item.trim()).filter(Boolean))].slice(0, 2000);
     const networkState = typeof body.networkState === "string" && ["online", "saving", "saved", "offline", "retrying", "conflict", "failed"].includes(body.networkState) ? body.networkState : "online";
-    let progressUpdate = admin.from("guest_exam_attempts").update({ answers, flagged_questions: flaggedQuestions, network_state: networkState, monitor_events: events, duration_seconds: durationSeconds, ...(progressVersion ? { progress_version: progressVersion } : {}) }).eq("id", current.attempt.id).eq("status", "in_progress");
+    let progressUpdate = admin.from("guest_exam_attempts").update({ answers, flagged_questions: flaggedQuestions, network_state: networkState, monitor_events: boundedMonitorEvents, duration_seconds: durationSeconds, ...(progressVersion ? { progress_version: progressVersion } : {}) }).eq("id", current.attempt.id).eq("status", "in_progress");
     if (progressVersion) progressUpdate = progressUpdate.lt("progress_version", progressVersion);
     const { data: saved, error } = await progressUpdate.select("id").maybeSingle();
     if (error) return json({ error: "Không thể lưu đáp án tạm thời." }, 500);
