@@ -6,6 +6,7 @@ import { normalizeExamType } from "../lib/exam-config";
 import type { ExamPolicy } from "../lib/exam-policy";
 import { identityDisplayId, identityDisplayName } from "../lib/guest-identity";
 import { retryAfterMilliseconds, retryWithBackoff } from "../lib/request-retry";
+import { apiRequestUrl } from "../lib/api-url";
 import RemixStudyEduExamRenderer, { type SourceQuestion as RemixSourceQuestion } from "../components/remixstudyedu/ExamRendererAdapter";
 import GuestThptqgResult, { type GuestResultQuestion, type GuestThptqgResultData } from "../components/thptqg/GuestThptqgResult";
 import ThptqgConfirmation from "../components/thptqg/ThptqgConfirmation";
@@ -71,7 +72,7 @@ function attemptSecondsLeft(attempt: Attempt) {
 
 async function api<T>(body: Record<string, unknown>) {
   const request = async () => {
-    const response = await fetch("/api/guest-exams", { method: "POST", headers: { "content-type": "application/json" }, cache: "no-store", body: JSON.stringify(body) });
+    const response = await fetch(apiRequestUrl("/api/guest-exams"), { method: "POST", headers: { "content-type": "application/json" }, cache: "no-store", body: JSON.stringify(body) });
     const payload = await response.json().catch(() => null) as T & { error?: string } | null;
     if (!response.ok) {
       const error = Object.assign(new Error(payload?.error || "Không thể kết nối kíp thi."), {
@@ -108,7 +109,7 @@ export default function GuestExamModule({ token }: { token: string }) {
   const load = useCallback(async () => {
     setPhase("loading"); setError("");
     try {
-      const response = await fetch(`/api/guest-exams?token=${encodeURIComponent(token)}`, { cache: "no-store" });
+      const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store" });
       const payload = await response.json() as Meta & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Link thi không tồn tại.");
       setMeta(payload);
@@ -162,7 +163,7 @@ export default function GuestExamModule({ token }: { token: string }) {
     let active = true;
     const refreshPhase = async () => {
       try {
-        const response = await fetch(`/api/guest-exams?token=${encodeURIComponent(token)}`, { cache: "no-store" });
+        const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store" });
         if (!response.ok || !active) return;
         const payload = await response.json() as Meta;
         if (active) setMeta(payload);

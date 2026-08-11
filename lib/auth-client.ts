@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { Session } from "@supabase/supabase-js";
+import { apiRequestUrl } from "./api-url";
 
 const SESSION_EXPIRY_SKEW_MS = 30_000;
 let refreshPromise: Promise<Session | null> | null = null;
@@ -59,6 +60,7 @@ function withAuthorization(init: RequestInit | undefined, token: string): Reques
 }
 
 export async function authenticatedFetch(input: RequestInfo | URL, init?: RequestInit) {
+  const requestUrl = apiRequestUrl(input);
   let token: string;
   try {
     token = await activeSessionToken();
@@ -69,7 +71,7 @@ export async function authenticatedFetch(input: RequestInfo | URL, init?: Reques
       headers: { "content-type": "application/json", "cache-control": "private, no-store" },
     });
   }
-  let response = await fetch(input, withAuthorization(init, token));
+  let response = await fetch(requestUrl, withAuthorization(init, token));
   if (response.status !== 401 || !supabase) return response;
 
   const refreshed = await refreshAuthSession();
@@ -78,7 +80,7 @@ export async function authenticatedFetch(input: RequestInfo | URL, init?: Reques
     await clearInvalidLocalSession(token);
     return response;
   }
-  response = await fetch(input, withAuthorization(init, refreshedToken));
+  response = await fetch(requestUrl, withAuthorization(init, refreshedToken));
   if (response.status === 401) {
     try {
       // A local route can fail to validate a perfectly valid Supabase token

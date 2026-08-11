@@ -1,0 +1,56 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+const PRODUCTION_WEB_ORIGINS = new Set([
+  "https://mathremix.pro.vn",
+  "https://www.mathremix.pro.vn",
+]);
+
+const CORS_HEADERS = {
+  "access-control-allow-headers": "Authorization, Content-Type, X-Supabase-Access-Token",
+  "access-control-allow-methods": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
+  "access-control-max-age": "86400",
+};
+
+function isAllowedOrigin(origin: string) {
+  if (PRODUCTION_WEB_ORIGINS.has(origin)) return true;
+  try {
+    const url = new URL(origin);
+    return (url.protocol === "http:" || url.protocol === "https:")
+      && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+  } catch {
+    return false;
+  }
+}
+
+function addCorsHeaders(response: NextResponse, origin: string) {
+  response.headers.set("access-control-allow-origin", origin);
+  response.headers.set("vary", "Origin");
+  for (const [name, value] of Object.entries(CORS_HEADERS)) response.headers.set(name, value);
+  return response;
+}
+
+export function proxy(request: NextRequest) {
+  const origin = request.headers.get("origin") ?? "";
+
+  // Leave non-browser OPTIONS requests to each route's existing handler.
+  if (!origin) return NextResponse.next();
+  if (!isAllowedOrigin(origin)) {
+    if (request.method === "OPTIONS") {
+      return NextResponse.json({ error: "Origin không được phép." }, {
+        status: 403,
+        headers: { "cache-control": "private, no-store", vary: "Origin" },
+      });
+    }
+    return NextResponse.next();
+  }
+
+  if (request.method === "OPTIONS") {
+    return addCorsHeaders(new NextResponse(null, { status: 204 }), origin);
+  }
+  return addCorsHeaders(NextResponse.next(), origin);
+}
+
+export const config = {
+  matcher: "/api/:path*",
+};
