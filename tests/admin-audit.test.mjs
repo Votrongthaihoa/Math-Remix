@@ -71,6 +71,28 @@ test("admin exam-access mutations preflight audit and export no longer uses acco
   assert.doesNotMatch(exportRoute, /admin_actions/);
 });
 
+test("empty exam slots can be deleted without cascading candidate history", async () => {
+  const [adminRoute, accessUi, accessCss] = await Promise.all([
+    source("app/api/admin/exam-access/route.ts"),
+    source("app/admin-exam-access.tsx"),
+    source("app/admin-exam-access.css"),
+  ]);
+
+  assert.match(adminRoute, /"delete_slot"/);
+  assert.match(adminRoute, /Không thể xóa kíp đang mở hoặc còn trong thời gian gia hạn/);
+  for (const table of ["guest_exam_attempts", "exam_slot_candidates", "exam_attempt_adjustments", "exam_attempt_grants"]) {
+    assert.match(adminRoute, new RegExp(`from\\("${table}"\\)[\\s\\S]*?head: true`));
+  }
+  assert.match(adminRoute, /if \(relatedCount > 0\)/);
+  assert.match(adminRoute, /changed_fields: "deleted"/);
+  assert.match(adminRoute, /\.delete\(\)[\s\S]*?\.eq\("id", slotId\)[\s\S]*?\.eq\("exam_id", examId\)/);
+  assert.match(accessUi, /Xóa vĩnh viễn kíp/);
+  assert.match(accessUi, /action: "delete_slot"/);
+  assert.match(accessUi, /aria-label=\{`Xóa kíp \$\{slot\.name\}`\}/);
+  assert.match(accessUi, /Đang xóa…/);
+  assert.match(accessCss, /\.slot-delete-button/);
+});
+
 test("new exam creation is draft-first and cannot publish before preflight", async () => {
   const [workspace, legacyManager, policyRoute, auditServer, publishMigration] = await Promise.all([
     source("app/admin-exam-workspace.tsx"),

@@ -82,6 +82,7 @@ export default function AdminExamAccess({ exam, room, navigate }: { exam: Exam; 
   const [slotForm, setSlotForm] = useState<SlotForm>(() => emptySlotForm());
   const [slotErrors, setSlotErrors] = useState<SlotFormErrors>({});
   const [editingSlotId, setEditingSlotId] = useState("");
+  const [deletingSlotId, setDeletingSlotId] = useState("");
   const [slotScheduleMode, setSlotScheduleMode] = useState<"now" | "schedule">("now");
   const independentSubjectExam = normalizeExamType(exam.exam_type) === "VSAT" || normalizeExamType(exam.exam_type) === "THPTQG";
   const selectedSection = sections.find(section => section.id === slotForm.sectionId);
@@ -220,6 +221,25 @@ export default function AdminExamAccess({ exam, room, navigate }: { exam: Exam; 
     if (slot.enabled && !window.confirm(`Khóa kíp “${slot.name}”? Thí sinh sẽ không thể dùng link này cho đến khi bạn mở lại.`)) return;
     try { await post({ action: "update_slot", examId: exam.id, slotId: slot.id, enabled: !slot.enabled }); await load(selectedSlotId); } catch (value) { setError(value instanceof Error ? value.message : "Không thể cập nhật kíp thi."); }
   }
+  async function deleteSlot(slot: Slot) {
+    const confirmed = window.confirm(`Xóa vĩnh viễn kíp “${slot.name}”?\n\nChỉ kíp chưa có bài làm hoặc dữ liệu thí sinh mới được xóa. Thao tác này không thể hoàn tác.`);
+    if (!confirmed) return;
+    setDeletingSlotId(slot.id);
+    setError("");
+    setNotice("");
+    try {
+      await post({ action: "delete_slot", examId: exam.id, slotId: slot.id });
+      if (selectedSlotId === slot.id) { setSelectedSlotId(""); setAttempts([]); }
+      if (editingSlotId === slot.id) cancelEdit();
+      setShareUrl("");
+      setNotice(`Đã xóa kíp “${slot.name}”.`);
+      await load();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Không thể xóa kíp thi.");
+    } finally {
+      setDeletingSlotId("");
+    }
+  }
   async function showAttempts(slot: Slot) { setShareUrl(""); setSelectedSlotId(slot.id); await load(slot.id); }
   async function exportSlot(slot: Slot) {
     const response = await authenticatedFetch(`/api/admin/exam-access/export?examId=${encodeURIComponent(exam.id)}&slotId=${encodeURIComponent(slot.id)}`, { cache: "no-store" });
@@ -279,7 +299,7 @@ export default function AdminExamAccess({ exam, room, navigate }: { exam: Exam; 
         </form> : <div className="slot-management-guidance"><div className="slot-management-guidance-icon"><CalendarClock aria-hidden="true"/></div><div><h3>Kíp thi được tạo từ trình tạo chung</h3><p>Trang này chỉ dùng để theo dõi, vận hành và chỉnh sửa các kíp đã có. Muốn tạo kíp mới, hãy chọn đề từ phòng trong một luồng riêng.</p>{!slots.length && <button type="button" className="workspace-button ghost" onClick={() => navigate(`/admin/sessions/new?roomId=${encodeURIComponent(room.id)}&examId=${encodeURIComponent(exam.id)}`)}><ArrowLeft aria-hidden="true"/>Mở trình tạo chung</button>}</div></div>}
         {independentSubjectExam && !sections.length && <p className="access-empty">Đề chưa có môn để gắn vào link kíp.</p>}
         {shareUrl && <div className="share-url-box"><small>LINK VỪA TẠO</small><code>{shareUrl}</code>{isLocalDevelopment() && <small className="share-url-warning">Đang chạy local: link chỉ mở được khi server này còn chạy và không dùng được trên máy học sinh khác. Hãy deploy ứng dụng hoặc dùng domain công khai trước khi gửi link.</small>}<button type="button" onClick={() => void navigator.clipboard?.writeText(shareUrl)}><Copy aria-hidden="true"/>Sao chép link</button></div>}
-        <div className="slot-list">{slots.length ? slots.map(slot => <article className={`slot-card${selectedSlotId === slot.id ? " is-selected" : ""}`} key={slot.id}><div className="slot-card-head"><div><b>{slot.name}</b><small>{slot.section_title ? `${slot.section_title} · ` : ""}<span className={`slot-state slot-state-${slotStatusClass(slot, settings.guestEnabled)}`}>{slotStatus(slot, settings.guestEnabled)}</span> · {dateLabel(slot.starts_at)} → {dateLabel(slot.ends_at)} · đóng sau {slot.grace_period_minutes} phút</small></div><span className="slot-token"><small>Mã link</small><code>{slot.token_hint}</code></span></div><div className="slot-card-actions"><button type="button" onClick={() => editSlot(slot)}><Pencil aria-hidden="true"/>Chỉnh sửa</button><button type="button" aria-label={`Dữ liệu ${slot.name}`} onClick={() => void showAttempts(slot)}><ClipboardList aria-hidden="true"/>Xem dữ liệu</button><button type="button" onClick={() => void exportSlot(slot)}><Download aria-hidden="true"/>Tải Excel</button><button type="button" onClick={() => void rotate(slot)}><RefreshCw aria-hidden="true"/>Đổi link</button><button type="button" onClick={() => void release(slot)} disabled={Boolean(slot.results_released_at)}><Eye aria-hidden="true"/>{slot.results_released_at ? "Đã công bố kết quả" : "Công bố kết quả"}</button><button type="button" onClick={() => void toggle(slot)}><ShieldCheck aria-hidden="true"/>{slot.enabled ? "Đóng kíp thi" : "Mở kíp thi"}</button></div></article>) : <div className="slot-empty-state"><b>Chưa có kíp thi</b><span>Chưa có kíp nào cho đề này. Hãy mở trình tạo chung để tạo kíp đầu tiên.</span></div>}</div>
+        <div className="slot-list">{slots.length ? slots.map(slot => <article className={`slot-card${selectedSlotId === slot.id ? " is-selected" : ""}`} key={slot.id}><div className="slot-card-head"><div><b>{slot.name}</b><small>{slot.section_title ? `${slot.section_title} · ` : ""}<span className={`slot-state slot-state-${slotStatusClass(slot, settings.guestEnabled)}`}>{slotStatus(slot, settings.guestEnabled)}</span> · {dateLabel(slot.starts_at)} → {dateLabel(slot.ends_at)} · đóng sau {slot.grace_period_minutes} phút</small></div><span className="slot-token"><small>Mã link</small><code>{slot.token_hint}</code></span></div><div className="slot-card-actions"><button type="button" onClick={() => editSlot(slot)}><Pencil aria-hidden="true"/>Chỉnh sửa</button><button type="button" aria-label={`Dữ liệu ${slot.name}`} onClick={() => void showAttempts(slot)}><ClipboardList aria-hidden="true"/>Xem dữ liệu</button><button type="button" onClick={() => void exportSlot(slot)}><Download aria-hidden="true"/>Tải Excel</button><button type="button" onClick={() => void rotate(slot)}><RefreshCw aria-hidden="true"/>Đổi link</button><button type="button" onClick={() => void release(slot)} disabled={Boolean(slot.results_released_at)}><Eye aria-hidden="true"/>{slot.results_released_at ? "Đã công bố kết quả" : "Công bố kết quả"}</button><button type="button" onClick={() => void toggle(slot)}><ShieldCheck aria-hidden="true"/>{slot.enabled ? "Đóng kíp thi" : "Mở kíp thi"}</button><button type="button" className="slot-delete-button" onClick={() => void deleteSlot(slot)} disabled={deletingSlotId === slot.id} aria-label={`Xóa kíp ${slot.name}`}><Trash2 aria-hidden="true"/>{deletingSlotId === slot.id ? "Đang xóa…" : "Xóa kíp"}</button></div></article>) : <div className="slot-empty-state"><b>Chưa có kíp thi</b><span>Chưa có kíp nào cho đề này. Hãy mở trình tạo chung để tạo kíp đầu tiên.</span></div>}</div>
       </section>
     </section>
     {selectedSlotId && slots.find(slot => slot.id === selectedSlotId) && <AdminExamOperations examId={exam.id} slot={{ id: selectedSlotId, name: slots.find(slot => slot.id === selectedSlotId)?.name ?? "Kíp thi" }} shareUrl={shareUrl} />}

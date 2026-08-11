@@ -102,7 +102,7 @@ export async function GET(request: Request) {
 }
 
 type Body = {
-  action?: "save_config" | "create_slot" | "update_slot" | "rotate_slot" | "release_results";
+  action?: "save_config" | "create_slot" | "update_slot" | "rotate_slot" | "release_results" | "delete_slot";
   examId?: string;
   slotId?: string;
   settings?: unknown;
@@ -232,6 +232,51 @@ export async function POST(request: Request) {
   const slotId = body.slotId;
   const { data: currentSlot } = await admin.from("exam_access_slots").select(GUEST_SLOT_SELECT).eq("id", slotId).eq("exam_id", examId).maybeSingle();
   if (!currentSlot) return errorResponse("Không tìm thấy kíp thi.", 404);
+
+  if (action === "delete_slot") {
+    const startsAt = new Date(currentSlot.starts_at).getTime();
+    const closesAt = new Date(currentSlot.ends_at).getTime() + Math.max(0, Number(currentSlot.grace_period_minutes) || 0) * 60_000;
+    const now = Date.now();
+    if (!Number.isFinite(startsAt) || !Number.isFinite(closesAt)) return errorResponse("Thời gian kíp thi không hợp lệ.", 409);
+    if (now >= startsAt && now <= closesAt) {
+      return errorResponse("Không thể xóa kíp đang mở hoặc còn trong thời gian gia hạn. Hãy đóng kíp và giữ lại để bảo toàn bài làm.", 409);
+    }
+    const relatedResults = await Promise.all([
+      admin.from("guest_exam_attempts").select("id", { count: "exact", head: true }).eq("slot_id", slotId),
+      admin.from("exam_slot_candidates").select("id", { count: "exact", head: true }).eq("slot_id", slotId),
+      admin.from("exam_attempt_adjustments").select("id", { count: "exact", head: true }).eq("slot_id", slotId),
+      admin.from("exam_attempt_grants").select("id", { count: "exact", head: true }).eq("slot_id", slotId),
+    ]);
+    const relatedError = relatedResults.find(result => result.error)?.error;
+    if (relatedError) return errorResponse(schemaErrorMessage(relatedError.message), 503);
+    const relatedCount = relatedResults.reduce((total, result) => total + (result.count ?? 0), 0);
+    if (relatedCount > 0) {
+      return errorResponse("Kíp đã có dữ liệu thí sinh hoặc dữ liệu vận hành nên không thể xóa. Hãy đóng kíp để giữ nguyên lịch sử.", 409);
+    }
+    const audit = await startExamAdminAudit(admin, {
+      adminId: security.user.id,
+      examId,
+      slotId,
+      // Reuse the deployed constrained audit action; metadata distinguishes
+      // this irreversible lifecycle update without requiring a schema change.
+      action: "update_exam_access_slot",
+      metadata: { changed_fields: "deleted", deleted: true, related_row_count: 0 },
+    });
+    if (!audit.ok) return auditUnavailableResponse();
+    const { data: deletedSlot, error: deleteError } = await admin
+      .from("exam_access_slots")
+      .delete()
+      .eq("id", slotId)
+      .eq("exam_id", examId)
+      .select("id")
+      .maybeSingle();
+    if (deleteError || !deletedSlot) {
+      await finishExamAdminAudit(admin, audit.audit.id, "failed");
+      return errorResponse(deleteError ? schemaErrorMessage(deleteError.message) : "Kíp thi đã thay đổi. Hãy tải lại trang.", deleteError ? 503 : 409);
+    }
+    await finishExamAdminAudit(admin, audit.audit.id, "succeeded", { changed_fields: "deleted", deleted: true, related_row_count: 0 });
+    return Response.json({ deleted: true, slotId }, { headers });
+  }
 
   if (action === "rotate_slot") {
     const token = randomGuestLinkToken();
