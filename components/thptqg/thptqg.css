@@ -1937,6 +1937,13 @@
 
 /* The THPTQG confirmation mirrors the TSA confirmation canvas while keeping
    THPTQG branding and data. The result page remains inside the app shell. */
+@font-face{
+  font-family:MathRemixBrand;
+  src:url('/assets/MathRemix.ttf') format('truetype');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
 .thptqg-confirmation-page{
   position:fixed;
   inset:0;
@@ -1980,7 +1987,7 @@
   align-items:center;
   justify-content:center;
   color:#004aad;
-  font-family:"Math Remix",sans-serif;
+  font-family:MathRemixBrand,sans-serif;
   font-size:38px;
   font-weight:400;
   line-height:1;

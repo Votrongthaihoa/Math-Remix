@@ -165,7 +165,8 @@ test("THPTQG guest links reuse the authenticated runner and safe result review",
   assert.match(confirmation, /tsa-math-remix-logo thptqg-confirmation-wordmark/);
   assert.match(confirmation, /aria-label="MATH REMIX"/);
   assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*color:#004aad/);
-  assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*font-family:"Math Remix",sans-serif/);
+  assert.match(thptqgCss, /@font-face\s*\{[^}]*font-family:MathRemixBrand;[^}]*MathRemix\.ttf/);
+  assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*font-family:MathRemixBrand,sans-serif/);
   assert.match(guestApi, /question: publicQuestions\[index\]/);
   assert.match(guestApi, /identity: safeIdentity/);
   assert.match(guestApi, /context_menu/);
