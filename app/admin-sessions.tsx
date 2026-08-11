@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, ChevronRight, ClipboardCheck, FilePlus2, RefreshCw, Search } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronRight, ClipboardCheck, FilePlus2, RefreshCw, Search, Trash2 } from "lucide-react";
+import MacAlert from "../components/macos/MacAlert";
 import { authenticatedFetch } from "../lib/auth-client";
 import { sessionState, sessionStateLabel, type SessionState } from "../lib/session-catalog";
 import LoadingIndicator from "./loading-indicator";
@@ -72,6 +73,9 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<SessionRow | null>(null);
+  const [deletingSessionId, setDeletingSessionId] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [resultTotal, setResultTotal] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -173,6 +177,31 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
     navigate(path);
   }
 
+  async function deleteSession(session: SessionRow) {
+    if (session.kind === "account" || deletingSessionId) return;
+    setDeletingSessionId(session.id);
+    setError("");
+    setNotice("");
+    try {
+      const response = await authenticatedFetch("/api/admin/exam-access", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "delete_slot", examId: session.exam_id, slotId: session.id }),
+      });
+      const payload = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Không thể xóa kíp thi.");
+      setPendingDelete(null);
+      setNotice(`Đã xóa kíp “${session.name}”.`);
+      if (sessions.length === 1 && page > 1) setPage(current => Math.max(1, current - 1));
+      else await load();
+    } catch (value) {
+      setPendingDelete(null);
+      setError(value instanceof Error ? value.message : "Không thể xóa kíp thi.");
+    } finally {
+      setDeletingSessionId("");
+    }
+  }
+
   return <div className="admin-session-page">
     <header className="admin-session-header">
       <div>
@@ -193,6 +222,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
       <button type="button" className={!stateFilter ? "active" : ""} aria-pressed={!stateFilter} onClick={() => updateFilter("")}><small>Tất cả kíp thi</small><strong>{loading ? "—" : total}</strong></button>
     </div>
 
+    {notice && <div className="admin-session-notice" role="status"><span>{notice}</span><button type="button" onClick={() => setNotice("")} aria-label="Đóng thông báo">×</button></div>}
     {error && <div className="admin-session-error" role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>Thử lại</button></div>}
 
     <section className="admin-session-list" aria-labelledby="session-list-title" aria-busy={loading || refreshing}>
@@ -220,7 +250,10 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
             <div className="admin-session-meta"><small>Thời gian</small><b>{formatRange(session)}</b><span>{formatDateTime(session.starts_at)} → {formatDateTime(session.ends_at)}</span></div>
             <div className="admin-session-meta admin-session-progress"><small>Người tham gia</small><b>{submitted}/{totalAttempts} đã nộp</b><span className="admin-progress-track"><i style={{ width: `${totalAttempts ? Math.round((submitted / totalAttempts) * 100) : 0}%` }} /></span></div>
             <div className="admin-session-meta admin-session-results"><small>Kết quả</small><b>{session.results_released_at ? "Đã công bố" : "Chưa công bố"}</b><span>{state === "ended" && !session.results_released_at ? "Cần xem lại" : "Theo cấu hình kíp thi"}</span></div>
-            <Link className="admin-session-action" href={actionPath} onClick={event => openPath(event, actionPath)}>{actionLabel}<ChevronRight aria-hidden="true" /></Link>
+            <div className="admin-session-row-actions">
+              <Link className="admin-session-action" href={actionPath} onClick={event => openPath(event, actionPath)}>{actionLabel}<ChevronRight aria-hidden="true" /></Link>
+              {session.kind !== "account" ? <button type="button" className="admin-session-action admin-session-delete" disabled={deletingSessionId === session.id} aria-label={`Xóa kíp ${session.name}`} onClick={() => setPendingDelete(session)}><Trash2 aria-hidden="true" />{deletingSessionId === session.id ? "Đang xóa…" : "Xóa kíp"}</button> : null}
+            </div>
           </article>;
         })}
       </div> : <div className="admin-session-empty"><span><CalendarClock aria-hidden="true" /></span><h3>{query || stateFilter ? "Không có kíp phù hợp" : "Chưa có kíp thi nào"}</h3><p>{query || stateFilter ? "Thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ kíp thi." : "Chọn phòng và đề để tạo kíp thi đầu tiên."}</p>{query || stateFilter ? <button type="button" className="admin-session-primary" onClick={() => { setQuery(""); updateFilter(""); }}>Xóa bộ lọc</button> : <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><ClipboardCheck aria-hidden="true" />Tạo kíp thi</Link>}</div>}
@@ -228,5 +261,13 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
     </section>
 
     <p className="admin-session-note"><CheckCircle2 aria-hidden="true" />Sự kiện giám sát chỉ là dữ liệu kỹ thuật để giáo viên xem lại, không tự động kết luận gian lận.</p>
+    {pendingDelete ? <MacAlert
+      open
+      title="Xóa kíp thi này?"
+      description={`Xóa vĩnh viễn “${pendingDelete.name}”? Chỉ kíp không đang mở và chưa có bài làm hoặc dữ liệu thí sinh mới được xóa. Thao tác này không thể hoàn tác.`}
+      secondaryAction={{ label: "Hủy", onClick: () => setPendingDelete(null), disabled: Boolean(deletingSessionId) }}
+      primaryAction={{ label: deletingSessionId ? "Đang xóa…" : "Xóa kíp", onClick: () => void deleteSession(pendingDelete), disabled: Boolean(deletingSessionId) }}
+      onClose={() => { if (!deletingSessionId) setPendingDelete(null); }}
+    /> : null}
   </div>;
 }

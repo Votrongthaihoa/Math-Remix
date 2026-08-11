@@ -16,4 +16,10 @@ test("admin session list keeps dates safe and mobile rows non-overlapping", asyn
   assert.match(component, /url\.searchParams\.set\("status"/);
   assert.match(component, /pageSize/);
   assert.match(component, /href=\{actionPath\}/);
+  assert.match(component, /action: "delete_slot"/);
+  assert.match(component, /session\.kind !== "account"/);
+  assert.match(component, /aria-label=\{`Xóa kíp \$\{session\.name\}`\}/);
+  assert.match(component, /<MacAlert/);
+  assert.match(css, /\.admin-session-delete/);
+  assert.match(css, /\.admin-session-row-actions/);
 });
