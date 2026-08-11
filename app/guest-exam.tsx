@@ -72,19 +72,64 @@ function display(value: unknown) {
 function guestMediaUrl(value: string | null | undefined) {
   const mediaUrl = value?.trim();
   if (!mediaUrl) return value ?? null;
-  const resolved = apiRequestUrl(mediaUrl);
+  let requestPath = mediaUrl;
+  try {
+    const absolute = new URL(mediaUrl);
+    if (["mathremix.pro.vn", "www.mathremix.pro.vn"].includes(absolute.hostname.toLowerCase()) && absolute.pathname.startsWith("/api/guest-exams/images/")) {
+      requestPath = `${absolute.pathname}${absolute.search}${absolute.hash}`;
+    }
+  } catch {
+    // Relative application paths are expected here.
+  }
+  const resolved = apiRequestUrl(requestPath);
   return typeof resolved === "string" ? resolved : resolved instanceof URL ? resolved.toString() : mediaUrl;
 }
 
+function guestTextWithMediaOrigin(value: string | null | undefined) {
+  if (!value) return value ?? null;
+  return value.replace(/(?:https?:\/\/(?:www\.)?mathremix\.pro\.vn)?\/api\/guest-exams\/images\/[^\s"'<>})\]]+/gi, mediaPath => guestMediaUrl(mediaPath) ?? mediaPath);
+}
+
+function guestOptionWithMedia(option: Option): Option {
+  if (typeof option === "string") return guestTextWithMediaOrigin(option) ?? "";
+  return {
+    ...option,
+    label: option.label == null ? option.label : guestTextWithMediaOrigin(option.label) ?? "",
+    text: option.text == null ? option.text : guestTextWithMediaOrigin(option.text) ?? "",
+  };
+}
+
+type GuestMediaQuestion = Pick<Question, "prompt" | "options"> & Partial<Pick<Question, "passage" | "media_url" | "instruction" | "solution" | "matching">>;
+
+function questionWithGuestMedia<T extends GuestMediaQuestion>(question: T): T {
+  return {
+    ...question,
+    prompt: guestTextWithMediaOrigin(question.prompt) ?? "",
+    options: question.options.map(guestOptionWithMedia),
+    passage: guestTextWithMediaOrigin(question.passage),
+    media_url: guestMediaUrl(question.media_url),
+    instruction: guestTextWithMediaOrigin(question.instruction),
+    solution: guestTextWithMediaOrigin(question.solution),
+    matching: question.matching ? {
+      leftItems: question.matching.leftItems.map(item => ({ ...item, label: guestTextWithMediaOrigin(item.label) ?? "" })),
+      rightItems: question.matching.rightItems.map(item => ({ ...item, label: guestTextWithMediaOrigin(item.label) ?? "" })),
+    } : undefined,
+  } as T;
+}
+
 function questionsWithGuestMedia(questions: Question[]) {
-  return questions.map(question => ({ ...question, media_url: guestMediaUrl(question.media_url) }));
+  return questions.map(questionWithGuestMedia);
 }
 
 function resultWithGuestMedia(result: Result) {
   return {
     ...result,
     questions: result.questions?.map(row => row.question
-      ? { ...row, question: { ...row.question, media_url: guestMediaUrl(row.question.media_url) } }
+      ? {
+          ...row,
+          explanation: guestTextWithMediaOrigin(row.explanation) ?? "",
+          question: questionWithGuestMedia(row.question),
+        }
       : row),
   };
 }

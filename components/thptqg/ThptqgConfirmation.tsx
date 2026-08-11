@@ -30,7 +30,7 @@ export default function ThptqgConfirmation({ room, exam, section, questionCount,
   return <main className="exam-confirmation-page thptqg-confirmation-page" aria-labelledby="thptqg-confirmation-title">
     <section className="exam-confirmation-card thptqg-confirmation-card">
        <div className="exam-confirmation-logo-wrap thptqg-confirmation-logo-wrap">
-         <div className="exam-confirmation-logo thptqg-confirmation-logo">{examType === "THPTQG" ? <img src="/logo_thptqg.svg" alt="THPTQG" /> : <span className="thptqg-confirmation-type-mark">V-SAT</span>}</div>
+         <div className="exam-confirmation-logo thptqg-confirmation-logo">{examType === "THPTQG" ? <span className="tsa-math-remix-logo thptqg-confirmation-wordmark" aria-label="MATH REMIX">MATH <b>REMIX</b></span> : <span className="thptqg-confirmation-type-mark">V-SAT</span>}</div>
       </div>
       <h1 id="thptqg-confirmation-title" className="exam-confirmation-title thptqg-confirmation-title">Xác nhận thông tin dự thi</h1>
       <div className="exam-confirmation-info thptqg-confirmation-info">

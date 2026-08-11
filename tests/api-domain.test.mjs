@@ -18,6 +18,13 @@ test("client API requests use the dedicated configurable origin", async () => {
   assert.match(guestExam, /credentials: "include"/);
   assert.match(guestExam, /questionsWithGuestMedia/);
   assert.match(guestExam, /media_url: guestMediaUrl/);
+  assert.match(guestExam, /function guestTextWithMediaOrigin/);
+  assert.match(guestExam, /prompt: guestTextWithMediaOrigin/);
+  assert.match(guestExam, /options: question\.options\.map\(guestOptionWithMedia\)/);
+  assert.match(guestExam, /passage: guestTextWithMediaOrigin/);
+  assert.match(guestExam, /instruction: guestTextWithMediaOrigin/);
+  assert.match(guestExam, /www\.mathremix\.pro\.vn/);
+  assert.match(guestExam, /absolute\.pathname\.startsWith\("\/api\/guest-exams\/images\/"\)/);
 });
 
 test("API proxy permits only approved web origins and required auth headers", async () => {

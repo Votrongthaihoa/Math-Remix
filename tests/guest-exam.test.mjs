@@ -151,15 +151,20 @@ test("guest access migrations define admin-only attempts, structure profiles, an
 });
 
 test("THPTQG guest links reuse the authenticated runner and safe result review", async () => {
-  const [guestModule, guestApi, resultComponent] = await Promise.all([
+  const [guestModule, guestApi, resultComponent, confirmation, thptqgCss] = await Promise.all([
     readFile(new URL("../app/guest-exam.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/guest-exams/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/thptqg/GuestThptqgResult.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/thptqg/ThptqgConfirmation.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/thptqg/thptqg.css", import.meta.url), "utf8"),
   ]);
   assert.match(guestModule, /GuestThptqgConfirmation/);
   assert.match(guestModule, /ThptqgExamRenderer/);
   assert.match(guestModule, /ExamFullscreenGuard/);
   assert.match(guestModule, /resetQuestionIndex/);
+  assert.match(confirmation, /tsa-math-remix-logo thptqg-confirmation-wordmark/);
+  assert.match(confirmation, /aria-label="MATH REMIX"/);
+  assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*color:#004aad/);
   assert.match(guestApi, /question: publicQuestions\[index\]/);
   assert.match(guestApi, /identity: safeIdentity/);
   assert.match(guestApi, /context_menu/);
