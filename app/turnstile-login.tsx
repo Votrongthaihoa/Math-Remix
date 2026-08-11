@@ -83,7 +83,7 @@ export default function TurnstileChallenge({
         onReady={renderWidget}
       />
       <div ref={containerRef} className="login-turnstile-widget" />
-      <p id={helpId} className="login-turnstile-help">Hoàn tất bước xác minh trước khi đăng nhập.</p>
+      <p id={helpId} className="login-turnstile-help">Hoàn tất bước xác minh để tiếp tục.</p>
     </div>
   );
 }
