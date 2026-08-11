@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const source = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("admin exam workspace reads protected content through an authenticated server route", async () => {
+  const [route, workspace] = await Promise.all([
+    source("app/api/admin/exam-content/route.ts"),
+    source("app/admin-exam-workspace.tsx"),
+  ]);
+
+  assert.match(route, /ensureActiveAccount\(request\)/);
+  assert.match(route, /security\.profile\.role !== "admin"/);
+  assert.match(route, /Promise\.all\(\[/);
+  assert.match(route, /from\("exam_sections"\)/);
+  assert.match(route, /from\("exam_questions"\)/);
+  assert.match(route, /from\("exam_question_keys"\)/);
+  assert.match(route, /private, no-store/);
+  assert.match(workspace, /authenticatedFetch\("\/api\/admin\/exam-content"/);
+
+  const loadStart = workspace.indexOf("const load = useCallback");
+  const loadEnd = workspace.indexOf("const isPreviewRoute", loadStart);
+  const loadSource = workspace.slice(loadStart, loadEnd);
+  assert.doesNotMatch(loadSource, /supabase\.from\("exam_questions"\)/);
+  assert.doesNotMatch(loadSource, /supabase\.from\("exam_question_keys"\)/);
+});

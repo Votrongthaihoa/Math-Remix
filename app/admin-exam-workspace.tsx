@@ -543,26 +543,26 @@ export default function AdminExamWorkspace() {
   const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
-    if (!supabase) { setError("Chưa cấu hình Supabase."); setLoading(false); return; }
     setLoading(true); setError("");
-    const roomResult = await supabase.from("exam_rooms").select(ROOM_SELECT).order("sort_order").order("created_at");
-    if (roomResult.error) { setError(explainExamSchemaError(roomResult.error, "Không thể tải phòng khảo thí.")); setLoading(false); return; }
-    const rooms = (roomResult.data ?? []) as Room[];
-    const roomIds = rooms.map(room => room.id);
-    const examResult = roomIds.length ? await supabase.from("exams").select(EXAM_SELECT).in("room_id", roomIds).order("sort_order").order("created_at") : { data: [], error: null };
-    const exams = (examResult.data ?? []) as Exam[];
-    const examIds = exams.map(exam => exam.id);
-    const sectionResult = examIds.length ? await supabase.from("exam_sections").select(SECTION_SELECT).in("exam_id", examIds).order("sort_order") : { data: [], error: null };
-    const sections = (sectionResult.data ?? []) as Section[];
-    const sectionIds = sections.map(section => section.id);
-    const questionResult = sectionIds.length ? await supabase.from("exam_questions").select(QUESTION_SELECT).in("section_id", sectionIds).order("sort_order") : { data: [], error: null };
-    const questions = (questionResult.data ?? []) as Question[];
-    const questionIds = questions.map(question => question.id);
-    const keyResult = questionIds.length ? await supabase.from("exam_question_keys").select("question_id,correct_answer,explanation").in("question_id", questionIds) : { data: [], error: null };
-    const firstError = examResult.error ?? sectionResult.error ?? questionResult.error ?? keyResult.error;
-    if (firstError) setError(explainExamSchemaError(firstError, "Không thể tải dữ liệu khảo thí."));
-    setData({ rooms, exams, sections, questions, keys: (keyResult.data ?? []) as KeyRow[] });
-    setLoading(false);
+    try {
+      const response = await authenticatedFetch("/api/admin/exam-content", {
+        headers: { accept: "application/json" },
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({})) as Partial<DataState> & { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Không thể tải dữ liệu khảo thí.");
+      setData({
+        rooms: Array.isArray(payload.rooms) ? payload.rooms : [],
+        exams: Array.isArray(payload.exams) ? payload.exams : [],
+        sections: Array.isArray(payload.sections) ? payload.sections : [],
+        questions: Array.isArray(payload.questions) ? payload.questions : [],
+        keys: Array.isArray(payload.keys) ? payload.keys : [],
+      });
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Không thể tải dữ liệu khảo thí.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const isPreviewRoute = route.page === "section-preview" || route.page === "exam-preview";
