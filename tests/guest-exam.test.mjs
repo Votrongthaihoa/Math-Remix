@@ -164,6 +164,10 @@ test("THPTQG guest links reuse the authenticated runner and safe result review",
   assert.match(guestModule, /resetQuestionIndex/);
   assert.match(confirmation, /tsa-math-remix-logo thptqg-confirmation-wordmark/);
   assert.match(confirmation, /aria-label="MATH REMIX"/);
+  assert.match(confirmation, /HƯỚNG DẪN DỰ THI THPTQG/);
+  assert.match(confirmation, /Phần I: 12 câu trắc nghiệm 4 lựa chọn/);
+  assert.match(confirmation, /đúng 1 ý được 0,10 điểm; 2 ý được 0,25 điểm; 3 ý được 0,50 điểm; cả 4 ý được 1,00 điểm/);
+  assert.match(confirmation, /Phần III: 6 câu trả lời ngắn, mỗi câu đúng được 0,50 điểm/);
   assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*color:#004aad/);
   assert.match(thptqgCss, /@font-face\s*\{[^}]*font-family:MathRemixBrand;[^}]*MathRemix\.ttf/);
   assert.match(thptqgCss, /\.thptqg-confirmation-logo \.thptqg-confirmation-wordmark\s*\{[^}]*font-family:MathRemixBrand,sans-serif/);
