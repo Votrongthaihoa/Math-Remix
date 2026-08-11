@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const API_HOSTNAME = "api.mathremix.pro.vn";
+
 const PRODUCTION_WEB_ORIGINS = new Set([
   "https://mathremix.pro.vn",
   "https://www.mathremix.pro.vn",
@@ -30,7 +32,31 @@ function addCorsHeaders(response: NextResponse, origin: string) {
   return response;
 }
 
+function isApiPath(pathname: string) {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
+function apiHostNotFound() {
+  return NextResponse.json({ error: "Not Found" }, {
+    status: 404,
+    headers: {
+      "cache-control": "private, no-store",
+      "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
 export function proxy(request: NextRequest) {
+  const apiPath = isApiPath(request.nextUrl.pathname);
+
+  // The dedicated API hostname must never render the website, login, account
+  // recovery, static assets, or any other application page.
+  if (request.nextUrl.hostname.toLowerCase() === API_HOSTNAME && !apiPath) {
+    return apiHostNotFound();
+  }
+  if (!apiPath) return NextResponse.next();
+
   const origin = request.headers.get("origin") ?? "";
 
   // Leave non-browser OPTIONS requests to each route's existing handler.
@@ -52,5 +78,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: "/:path*",
 };

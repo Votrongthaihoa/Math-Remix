@@ -19,9 +19,13 @@ test("client API requests use the dedicated configurable origin", async () => {
 
 test("API proxy permits only approved web origins and required auth headers", async () => {
   const proxy = await source("proxy.ts");
+  assert.match(proxy, /api\.mathremix\.pro\.vn/);
+  assert.match(proxy, /request\.nextUrl\.hostname/);
+  assert.match(proxy, /!apiPath/);
+  assert.match(proxy, /status: 404/);
   assert.match(proxy, /https:\/\/www\.mathremix\.pro\.vn/);
   assert.match(proxy, /X-Supabase-Access-Token/);
   assert.match(proxy, /request\.method === "OPTIONS"/);
-  assert.match(proxy, /matcher: "\/api\/:path\*"/);
+  assert.match(proxy, /matcher: "\/:path\*"/);
   assert.match(proxy, /status: 403/);
 });
