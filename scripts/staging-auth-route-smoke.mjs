@@ -3,6 +3,7 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
+import { createAdminIssuedSmokeSession } from "./smoke-auth.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -77,10 +78,8 @@ try {
   }, { onConflict: "id" });
   assert.equal(profile.error, null, profile.error?.message ?? "failed to prepare auth smoke profile");
 
-  const signedIn = await publicClient.auth.signInWithPassword({ email, password });
-  assert.equal(signedIn.error, null, signedIn.error?.message ?? "password login failed");
-  const token = signedIn.data.session?.access_token;
-  assert.ok(token, "password login did not return an access token");
+  const session = await createAdminIssuedSmokeSession({ admin, client: publicClient, email });
+  const token = session.access_token;
 
   const response = await fetch(`${baseUrl}/api/exams?scope=rooms`, {
     headers: { authorization: `Bearer ${token}`, "x-supabase-access-token": token },
@@ -88,7 +87,7 @@ try {
   const payload = await response.json().catch(() => ({}));
   assert.equal(response.status, 200, JSON.stringify(payload));
   assert.ok(Array.isArray(payload.rooms));
-  console.log(JSON.stringify({ login: "PASS", serverAuthentication: "PASS", examsRoute: "PASS", status: response.status }));
+  console.log(JSON.stringify({ adminIssuedSmokeSession: "PASS", serverAuthentication: "PASS", examsRoute: "PASS", status: response.status }));
 } finally {
   if (userId) {
     await admin.from("profiles").delete().eq("id", userId);

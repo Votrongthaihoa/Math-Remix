@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { createClient } from "@supabase/supabase-js";
+import { createAdminIssuedSmokeSession } from "./smoke-auth.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -66,8 +67,7 @@ async function signIn(email) {
   const client = createClient(url, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const result = await client.auth.signInWithPassword({ email, password });
-  assert.equal(result.error, null, result.error?.message ?? "failed to sign in staging identity");
+  await createAdminIssuedSmokeSession({ admin, client, email });
   return client;
 }
 

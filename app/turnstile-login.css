@@ -1,0 +1,45 @@
+.login-turnstile {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.login-turnstile-widget {
+  display: flex;
+  min-width: 0;
+  min-height: 65px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-turnstile-widget > div,
+.login-turnstile-widget iframe {
+  max-width: 100%;
+}
+
+.login-turnstile-help,
+.login-turnstile-config-error {
+  margin: 0;
+  color: #667085;
+  font-size: 11px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.login-turnstile-config-error {
+  margin-top: 18px;
+  padding: 9px;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #b42318;
+}
+
+@media (forced-colors: active) {
+  .login-turnstile-config-error {
+    border: 1px solid CanvasText;
+  }
+}

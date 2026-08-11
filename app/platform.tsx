@@ -7,6 +7,7 @@ import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import VideoPlayer, { type SecureLessonResource } from "./video-player";
 import LoadingIndicator from "./loading-indicator";
 import AccountSecurityGuard from "./account-security-guard";
+import TurnstileChallenge from "./turnstile-login";
 import { normalizeExamType } from "../lib/exam-config";
 import AdminSecurity from "./admin-security";
 import { useAdminDialogFocus } from "./admin-dialog";
@@ -55,6 +56,8 @@ type AuthPageProps = {
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
   authError: string;
   loading: boolean;
+  setTurnstileToken: React.Dispatch<React.SetStateAction<string>>;
+  turnstileResetNonce: number;
   login: (event: React.FormEvent) => Promise<void>;
   onForgot: () => void;
 };
@@ -180,6 +183,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [assignedCourses, setAssignedCourses] = useState<CourseData[]>([]);
   const [practiceRooms, setPracticeRooms] = useState<PracticeRoomData[]>([]);
@@ -421,14 +426,20 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
   async function login(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
+    setAuthError("");
+    if (!turnstileToken) {
+      setAuthError("Vui lòng hoàn tất xác minh chống spam trước khi đăng nhập.");
+      return;
+    }
     // Invalidate the one-time bootstrap check. It may still be validating a
     // stale session restored from storage while this fresh login is running.
     authOperationRef.current += 1;
     setLoading(true);
-    setAuthError("");
     if (!supabase) {
       setAuthError("Chưa cấu hình Supabase.");
       setLoading(false);
+      setTurnstileToken("");
+      setTurnstileResetNonce(value => value + 1);
       return;
     }
 
@@ -441,6 +452,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
+        options: { captchaToken: turnstileToken },
       });
       if (error) {
         if (currentSession.session) await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
@@ -450,8 +462,11 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
         const status = Number(error.status ?? 0);
         const code = String(error.code ?? "").toLowerCase();
         const message = String(error.message ?? "").toLowerCase();
+        const captchaFailed = code.includes("captcha") || message.includes("captcha");
         setAuthError(
-          status === 429 || code.includes("rate")
+          captchaFailed
+            ? "Xác minh chống spam không thành công. Vui lòng thử lại."
+            : status === 429 || code.includes("rate")
             ? "Bạn thử đăng nhập quá nhiều lần. Hãy chờ một lát rồi thử lại."
             : code === "email_not_confirmed" || message.includes("email not confirmed")
               ? "Email tài khoản chưa được xác minh."
@@ -510,6 +525,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
         ? "Không thể kết nối dịch vụ đăng nhập. Hãy kiểm tra máy chủ rồi thử lại."
         : "Không thể hoàn tất đăng nhập. Hãy thử lại.");
     } finally {
+      setTurnstileToken("");
+      setTurnstileResetNonce(value => value + 1);
       setLoading(false);
     }
   }
@@ -522,8 +539,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
   if (initialGuestToken && !adminRouteRequested) return <Suspense fallback={<LoadingIndicator label="Đang mở link thi…" fullPage />}><GuestExamModule token={initialGuestToken} /></Suspense>;
   if (authMode === "forgot") return <ForgotPasswordPage initialEmail={email} onBack={showLogin} />;
   if (authMode === "reset") return <ResetPasswordPage onComplete={showLogin} />;
-  if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
-  if (!signedIn) return <LoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
+  if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
+  if (!signedIn) return <LoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
 
   const go = (next: View, pathOverride?: string) => {
     if (next === "admin" && !isAdmin) {
@@ -540,7 +557,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
   };
-  if (!profileData) return <LoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError: "Không tìm thấy hồ sơ tài khoản hợp lệ.", loading: false, login, onForgot: () => { setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
+  if (!profileData) return <LoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError: "Không tìm thấy hồ sơ tài khoản hợp lệ.", loading: false, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
   if (standaloneAdminPreview) return <div className="ui-shell admin-app admin-exam-preview-host"><Suspense fallback={<LoadingIndicator label="Đang mở preview đề thi…" />}><AdminExamManager /></Suspense></div>;
   const activeProfile = profileData;
   const currentView: View = view;
@@ -636,6 +653,7 @@ function LoginPage(p: AuthPageProps) {
         <div className="login-heading"><span className="kicker">CHÀO MỪNG TRỞ LẠI</span><h1>Đăng nhập</h1><p>Tài khoản học tập được cấp bởi quản trị viên.</p></div>
         <label htmlFor="login-email">Email<div className="field"><Mail aria-hidden="true" /><input id="login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(e) => p.setEmail(e.target.value)} placeholder="hocvien@example.com" required /></div></label>
         <div className="login-field-group"><label htmlFor="login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true" /><input id="login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required /><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></div></div>
+        <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
         {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
         <button className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
@@ -653,6 +671,7 @@ function AdminLoginPage(p: AuthPageProps) {
         <div className="login-heading"><span className="kicker">KHÔNG GIAN GIÁO VIÊN</span><h1>Đăng nhập để quản lý</h1><p>Soạn đề, tổ chức đợt thi và xem kết quả ở một nơi.</p></div>
         <label htmlFor="admin-login-email">Email<div className="field"><Mail aria-hidden="true"/><input id="admin-login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setEmail(event.target.value)} placeholder="admin@example.com" required/></div></label>
         <div className="login-field-group"><label htmlFor="admin-login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true"/><input id="admin-login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu admin" required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div></div>
+        <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
         {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
         <button className="primary-btn" disabled={p.loading}>{p.loading ? "Đang xác thực…" : "Vào trang quản trị"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
@@ -667,16 +686,36 @@ function ForgotPasswordPage({ initialEmail, onBack }: { initialEmail: string; on
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
 
   async function sendRecovery(event: React.FormEvent) {
     event.preventDefault();
-    setSending(true); setMessage(""); setError("");
-    if (!supabase) { setError("Chưa cấu hình Supabase."); setSending(false); return; }
-    const redirectTo = `${window.location.origin}/reset-password`;
-    const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), { redirectTo });
-    setSending(false);
-    if (recoveryError) { setError(recoveryError.message); return; }
-    setMessage("Đã gửi liên kết đặt lại mật khẩu. Hãy kiểm tra hộp thư và thư rác.");
+    setMessage(""); setError("");
+    if (!turnstileToken) {
+      setError("Vui lòng hoàn tất xác minh chống spam trước khi gửi liên kết.");
+      return;
+    }
+    setSending(true);
+    try {
+      if (!supabase) { setError("Chưa cấu hình Supabase."); return; }
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), {
+        redirectTo,
+        captchaToken: turnstileToken,
+      });
+      if (recoveryError) {
+        setError(/captcha/i.test(recoveryError.message)
+          ? "Xác minh chống spam không thành công. Vui lòng thử lại."
+          : recoveryError.message);
+        return;
+      }
+      setMessage("Đã gửi liên kết đặt lại mật khẩu. Hãy kiểm tra hộp thư và thư rác.");
+    } finally {
+      setTurnstileToken("");
+      setTurnstileResetNonce(value => value + 1);
+      setSending(false);
+    }
   }
 
   return <main className="login-page auth-flow-page">
@@ -685,6 +724,7 @@ function ForgotPasswordPage({ initialEmail, onBack }: { initialEmail: string; on
       <form className="login-card" onSubmit={sendRecovery}>
         <div className="login-heading"><span className="kicker">KHÔI PHỤC TÀI KHOẢN</span><h1>Quên mật khẩu</h1><p>Nhập email đã được cấp để nhận liên kết đặt lại mật khẩu.</p></div>
         <label htmlFor="recovery-email">Email<div className="field"><Mail aria-hidden="true" /><input id="recovery-email" name="email" type="email" autoComplete="username" spellCheck={false} value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} placeholder="hocvien@example.com" required /></div></label>
+        <TurnstileChallenge action="password_reset" onTokenChange={setTurnstileToken} resetSignal={turnstileResetNonce} />
         {error && <p className="form-error" role="alert">{error}</p>}
         {message && <p className="form-success" role="status" aria-live="polite">{message}</p>}
         <button className="primary-btn" disabled={sending}>{sending ? "Đang gửi…" : "Gửi liên kết đặt lại"}</button>
