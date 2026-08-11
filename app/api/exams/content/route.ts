@@ -10,7 +10,7 @@ import {
   orderedRows,
   questionIdsFromSnapshot,
 } from "../../../../lib/exam-content-server";
-import { latexPartInstruction, parseLatexQuestion, type LatexPartNumber } from "../../../../lib/exam-latex";
+import { latexPartInstruction, latexPartSequence, parseLatexQuestion, type LatexPartNumber } from "../../../../lib/exam-latex";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -67,26 +67,27 @@ export async function POST(request: Request) {
     ? metadataQuery.in("id", snapshotQuestionIds)
     : metadataQuery).order("sort_order");
   if (metadataError) return error("Không thể tải cấu trúc phần thi.", 503);
+  const sourceMetadata = (metadataRows ?? []) as Array<{ id: string; section_id: string; passage?: string | null; sort_order?: number | null; latex_source?: string | null }>;
+  const sourceParts = latexPartSequence(sourceMetadata);
+  const partByQuestion = new Map(sourceMetadata.map((question, index) => [question.id, sourceParts[index]]));
   const metadata = applyQuestionSnapshotOrder(
-    (metadataRows ?? []) as Array<{ id: string; section_id: string; passage?: string | null; sort_order?: number | null; latex_source?: string | null }>,
+    sourceMetadata,
     context.attempt.question_order,
     context.attempt.option_order,
   );
   if (Number(body.index) >= metadata.length) return error("Câu hỏi không hợp lệ.", 404);
 
   const requestedIndex = Number(body.index);
-  const structuralParts = metadata.map(question => {
-    try { return question.latex_source?.trim() ? parseLatexQuestion(question.latex_source).part : undefined; }
-    catch { return undefined; }
-  });
-  const partStarts = structuralParts.flatMap((part, index) => part ? [{ part, index }] : []);
+  const structuralParts = metadata.map(question => partByQuestion.get(question.id));
+  const partStarts = structuralParts.flatMap((part, index) => part && (index === 0 || part !== structuralParts[index - 1]) ? [{ part, index }] : []);
   const displayMeta = (index: number) => {
     const start = partStarts.filter(item => item.index <= index).at(-1);
-    if (!start) return { displayNumber: index + 1, partInstruction: undefined };
+    if (!start) return { displayNumber: index + 1, partInstruction: undefined, part: undefined };
     const nextStart = partStarts.find(item => item.index > start.index)?.index ?? metadata.length;
     return {
       displayNumber: index - start.index + 1,
       partInstruction: index === start.index ? latexPartInstruction(start.part as LatexPartNumber, nextStart - start.index) : undefined,
+      part: index === start.index ? start.part as LatexPartNumber : undefined,
     };
   };
   const requestedPassage = String(metadata[requestedIndex]?.passage ?? "").trim();
@@ -137,12 +138,10 @@ export async function POST(request: Request) {
   const orderedQuestionRows = applyQuestionSnapshotOrder(questionRows ?? [], context.attempt.question_order, context.attempt.option_order);
   const questions = orderedRows(orderedQuestionRows, questionIds).map((question, offset) => {
     let optionColumns = 1;
-    let part: 1 | 2 | 3 | undefined;
     let matching: { leftItems: Array<{ value: string; label: string }>; rightItems: Array<{ value: string; label: string }> } | undefined;
     try {
       const parsed = question.latex_source?.trim() ? parseLatexQuestion(question.latex_source) : null;
       optionColumns = parsed?.optionColumns ?? 1;
-      part = parsed?.part;
       if (parsed?.matching) matching = {
         leftItems: parsed.matching.leftItems.map(item => ({ value: item.value, label: item.label })),
         rightItems: parsed.matching.rightItems.map(item => ({ value: item.value, label: item.label })),
@@ -157,7 +156,7 @@ export async function POST(request: Request) {
     const optionOrder = context.attempt.option_order && typeof context.attempt.option_order === "object" && !Array.isArray(context.attempt.option_order)
       ? (context.attempt.option_order as Record<string, unknown>)[question.id]
       : undefined;
-    return { ...safeQuestion, option_order: Array.isArray(optionOrder) ? optionOrder : undefined, option_columns: optionColumns, part, matching, index, _displayNumber: presentation.displayNumber, _partInstruction: presentation.partInstruction };
+    return { ...safeQuestion, option_order: Array.isArray(optionOrder) ? optionOrder : undefined, option_columns: optionColumns, part: presentation.part, matching, index, _displayNumber: presentation.displayNumber, _partInstruction: presentation.partInstruction };
   });
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
   const binding: ExamEnvelopeBinding = {

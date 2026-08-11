@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { buildAnswerKeySnapshot, hasAnswerValue, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, type ExamAnswerValue } from "../../../lib/exam-answers";
 import { isIndependentSubjectExamType, normalizeExamType } from "../../../lib/exam-config";
 import { applyQuestionSnapshotOrder, EXAM_ATTEMPT_SELECT, EXAM_ROOM_SELECT, EXAM_SELECT, optionIdentity, questionIdsFromSnapshot } from "../../../lib/exam-content-server";
-import { parseLatexQuestion } from "../../../lib/exam-latex";
+import { latexPartSequence, parseLatexQuestion } from "../../../lib/exam-latex";
 import { buildHsaQuestionLoadPlan, filterHsaQuestionsForCombination, getHsaCombination, HSA_PART3_SELECTION_PENDING_KEY, HSA_SELECTION_ANSWER_KEY, type HsaCombination } from "../../../lib/hsa-exam";
 import { createAttemptPolicy, examCodes, examReleaseVisibility, isExamCodeAllowed, normalizeExamCode, policyFromExamSettings, prepareQuestionIdentityForPolicy, publicExamPolicy, resolveAttemptPolicy, type ExamPolicy, type ExamPolicyMode } from "../../../lib/exam-policy";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
@@ -104,19 +104,23 @@ function safeMonitorEvent(value: unknown) {
   return typeof value === "string" && (MONITOR_EVENTS as readonly string[]).includes(value) ? value : null;
 }
 
-function optionValuesForQuestion(question: { options?: unknown; latex_source?: string | null }) {
+function optionValuesForQuestion(question: { question_type?: string | null; options?: unknown; latex_source?: string | null }) {
   if (question.latex_source?.trim()) {
     try {
       const parsed = parseLatexQuestion(question.latex_source);
+      if (!["single", "multiple"].includes(parsed.questionType)) return [];
       if (parsed.options.length) return parsed.options.map((option, index) => option.value || String.fromCharCode(65 + index));
     } catch { /* structured options remain the compatibility fallback */ }
   }
+  if (!["single", "multiple"].includes(String(question.question_type ?? ""))) return [];
   return (Array.isArray(question.options) ? question.options : []).map(optionIdentity);
 }
 
-function prepareAccountQuestions<T extends { id: string; options?: unknown; latex_source?: string | null; section_id?: string | null; passage?: string | null }>(questions: T[], policy: ExamPolicy) {
-  const prepared = prepareQuestionIdentityForPolicy(questions.map(question => ({
+function prepareAccountQuestions<T extends { id: string; question_type?: string | null; options?: unknown; latex_source?: string | null; section_id?: string | null; passage?: string | null }>(questions: T[], policy: ExamPolicy) {
+  const sourceParts = policy.examType === "THPTQG" ? latexPartSequence(questions) : questions.map(() => undefined);
+  const prepared = prepareQuestionIdentityForPolicy(questions.map((question, index) => ({
     ...question,
+    randomizationGroup: sourceParts[index] ? `part:${sourceParts[index]}` : null,
     optionValues: optionValuesForQuestion(question),
   })), policy);
   const optionOrder = prepared.optionOrder;

@@ -8,10 +8,12 @@ import {
   hashGuestPassword,
   isGuestExportWindowValid,
   normalizeGuestSettings,
+  prepareQuestionsForPolicy,
   publicGuestQuestion,
   slotPhase,
   verifyGuestPassword,
 } from "../lib/guest-exam-server.ts";
+import { normalizeExamPolicy } from "../lib/exam-policy.ts";
 import {
   HSA_STRUCTURE_PROFILES,
   HSA_SCIENCE_SUBJECTS,
@@ -74,6 +76,31 @@ test("guest settings and public question projection remove authoring secrets", (
     media_url: "/api/exam-images/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.png",
   }, "33333333-3333-4333-8333-333333333333");
   assert.match(guestImage.media_url, /\/api\/guest-exams\/images\/11111111-1111-4111-8111-111111111111\/22222222-2222-4222-8222-222222222222\.png\?attemptId=33333333-3333-4333-8333-333333333333/);
+});
+
+test("THPTQG guest shuffling preserves part markers and selectable option identity", () => {
+  const latexSingle = (part, prompt) => `${part ? `\\phan${part}\n` : ""}\\begin{ex}${prompt}\\choice{A}{B}{C}{D}\\end{ex}`;
+  const latexTrueFalse = (part, prompt) => `${part ? `\\phan${part}\n` : ""}\\begin{ex}${prompt}\\choiceTF{A}{B}{C}{D}\\end{ex}`;
+  const questions = [
+    { id: "p1-q1", section_id: "math", prompt: "1", question_type: "single", options: [], points: 0.25, sort_order: 0, latex_source: latexSingle(1, "P1Q1") },
+    { id: "p1-q2", section_id: "math", prompt: "2", question_type: "single", options: [], points: 0.25, sort_order: 1, latex_source: latexSingle(null, "P1Q2") },
+    { id: "p1-q3", section_id: "math", prompt: "3", question_type: "single", options: [], points: 0.25, sort_order: 2, latex_source: latexSingle(null, "P1Q3") },
+    { id: "p2-q1", section_id: "math", prompt: "4", question_type: "true_false", options: [], points: 1, sort_order: 3, latex_source: latexTrueFalse(2, "P2Q1") },
+    { id: "p2-q2", section_id: "math", prompt: "5", question_type: "true_false", options: [], points: 1, sort_order: 4, latex_source: latexTrueFalse(null, "P2Q2") },
+    { id: "p3-q1", section_id: "math", prompt: "6", question_type: "text", options: [], points: 0.5, sort_order: 5, latex_source: "\\phan3\n\\begin{ex}P3Q1\\shortans{1}\\end{ex}" },
+    { id: "p3-q2", section_id: "math", prompt: "7", question_type: "text", options: [], points: 0.5, sort_order: 6, latex_source: "\\begin{ex}P3Q2\\shortans{2}\\end{ex}" },
+  ];
+  const policy = normalizeExamPolicy({
+    randomization: { enabled: true, shuffleQuestions: true, shuffleOptions: true, randomizationMode: "per_attempt", seedStrategy: "attempt", seed: "guest-thptqg-seed" },
+  }, { examType: "THPTQG", audience: "guest" });
+  const prepared = prepareQuestionsForPolicy(questions, policy);
+  const publicQuestions = prepared.questions.map(question => publicGuestQuestion(question));
+
+  assert.deepEqual(publicQuestions.flatMap((question, index) => question.part ? [[index, question.part]] : []), [[0, 1], [3, 2], [5, 3]]);
+  assert.deepEqual(new Set(prepared.questionOrder.slice(0, 3)), new Set(["p1-q1", "p1-q2", "p1-q3"]));
+  assert.deepEqual(new Set(prepared.questionOrder.slice(3, 5)), new Set(["p2-q1", "p2-q2"]));
+  assert.equal(prepared.optionOrder["p1-q1"].length, 4);
+  assert.deepEqual(prepared.optionOrder["p2-q1"], []);
 });
 
 test("guest answer visibility follows release and threshold settings", () => {
@@ -174,6 +201,7 @@ test("THPTQG guest links reuse the authenticated runner and safe result review",
   assert.match(guestApi, /question: publicQuestions\[index\]/);
   assert.match(guestApi, /identity: safeIdentity/);
   assert.match(guestApi, /context_menu/);
+  assert.match(guestModule, /resetQuestionIndex=\{meta\.settings\.resetQuestionIndex\}/);
   assert.match(resultComponent, /resultReview/);
   assert.match(resultComponent, /Xem lại đáp án/);
 });

@@ -501,21 +501,32 @@ export function shuffleWithSeed<T>(items: T[], seed?: string | null) {
 export type PolicyQuestionIdentity = {
   id: string;
   section_id?: string | null;
+  /**
+   * Optional stable boundary for question randomization inside one section.
+   * THPTQG uses this to keep Parts I/II/III independent while preserving the
+   * immutable per-attempt question snapshot.
+   */
+  randomizationGroup?: string | null;
   passage?: string | null;
   optionValues?: string[];
 };
 
 export function prepareQuestionIdentityForPolicy<T extends PolicyQuestionIdentity>(questions: T[], policy: ExamPolicy) {
-  const bySection = new Map<string, T[]>();
+  const bySectionGroup = new Map<string, { seedKey: string; questions: T[] }>();
   for (const question of questions) {
     const section = question.section_id ?? "__default";
-    const list = bySection.get(section) ?? [];
-    list.push(question);
-    bySection.set(section, list);
+    const randomizationGroup = question.randomizationGroup ?? "__default";
+    const groupKey = JSON.stringify([section, randomizationGroup]);
+    const entry = bySectionGroup.get(groupKey) ?? {
+      seedKey: `${section}:${randomizationGroup}`,
+      questions: [],
+    };
+    entry.questions.push(question);
+    bySectionGroup.set(groupKey, entry);
   }
   const selected: T[] = [];
   const optionOrder: Record<string, string[]> = {};
-  for (const [sectionId, sectionQuestions] of bySection) {
+  for (const { seedKey, questions: sectionQuestions } of bySectionGroup.values()) {
     const groups: T[][] = [];
     let previousGroupKey = "";
     for (const question of sectionQuestions) {
@@ -529,10 +540,10 @@ export function prepareQuestionIdentityForPolicy<T extends PolicyQuestionIdentit
       previousGroupKey = groupKey;
     }
     let orderedGroups = policy.randomization.shuffleQuestions
-      ? shuffleWithSeed(groups, policy.randomization.seed ? `${policy.randomization.seed}:questions:${sectionId}` : null)
+      ? shuffleWithSeed(groups, policy.randomization.seed ? `${policy.randomization.seed}:questions:${seedKey}` : null)
       : groups;
-    if (policy.randomization.questionPoolSize > 0 && bySection.size === 1 && policy.randomization.questionPoolSize < sectionQuestions.length) {
-      orderedGroups = shuffleWithSeed(orderedGroups, policy.randomization.seed ? `${policy.randomization.seed}:pool:${sectionId}` : null);
+    if (policy.randomization.questionPoolSize > 0 && bySectionGroup.size === 1 && policy.randomization.questionPoolSize < sectionQuestions.length) {
+      orderedGroups = shuffleWithSeed(orderedGroups, policy.randomization.seed ? `${policy.randomization.seed}:pool:${seedKey}` : null);
       let remaining = policy.randomization.questionPoolSize;
       orderedGroups = orderedGroups.filter(group => {
         if (remaining <= 0) return false;

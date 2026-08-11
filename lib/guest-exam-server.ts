@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { parseLatexQuestion, type LatexMatchingData, type LatexPartNumber } from "./exam-latex.ts";
+import { latexPartSequence, parseLatexQuestion, type LatexMatchingData, type LatexPartNumber } from "./exam-latex.ts";
 import {
   policyFromGuestSettings,
   prepareQuestionIdentityForPolicy,
@@ -84,6 +84,8 @@ export type GuestQuestion = {
   option_columns?: number | null;
   matching?: LatexMatchingData;
   part?: LatexPartNumber;
+  /** Explicit presentation marker after applying a shuffled part-safe order. */
+  display_part?: LatexPartNumber | null;
   option_order?: string[];
 };
 
@@ -373,28 +375,56 @@ function optionValue(option: unknown, index: number) {
   return String(record.value ?? record.id ?? index);
 }
 
+function shuffleableOptionValues(question: GuestQuestion) {
+  if (question.latex_source?.trim()) {
+    try {
+      const parsed = parseLatexQuestion(question.latex_source);
+      if (!["single", "multiple"].includes(parsed.questionType)) return [];
+      if (parsed.options.length) return parsed.options.map((option, index) => option.value || String.fromCharCode(65 + index));
+    } catch { /* fall back to the structured projection */ }
+  }
+  if (!["single", "multiple"].includes(question.question_type)) return [];
+  return (Array.isArray(question.options) ? question.options : []).map(optionValue);
+}
+
+function applyGuestPartPresentation(sourceQuestions: GuestQuestion[], orderedQuestions: GuestQuestion[], examType?: string) {
+  if (examType && examType !== "THPTQG") return orderedQuestions;
+  const sourceParts = latexPartSequence(sourceQuestions);
+  if (!sourceParts.some(Boolean)) return orderedQuestions;
+  const partByQuestion = new Map(sourceQuestions.map((question, index) => [question.id, sourceParts[index]]));
+  let previousSection = "";
+  let previousPart: LatexPartNumber | undefined;
+  return orderedQuestions.map(question => {
+    const part = partByQuestion.get(question.id);
+    const startsPart = Boolean(part) && (question.section_id !== previousSection || part !== previousPart);
+    previousSection = question.section_id;
+    previousPart = part;
+    return { ...question, display_part: startsPart ? part : null };
+  });
+}
+
 export function prepareQuestionsForPolicy(questions: GuestQuestion[], policy: ExamPolicy) {
+  const sourceParts = policy.examType === "THPTQG" ? latexPartSequence(questions) : questions.map(() => undefined);
+  const partByQuestion = new Map(questions.map((question, index) => [question.id, sourceParts[index]]));
   const prepared = prepareQuestionIdentityForPolicy(questions.map(question => ({
     ...question,
-    optionValues: (() => {
-      if (question.latex_source?.trim()) {
-        try {
-          const parsed = parseLatexQuestion(question.latex_source);
-          if (parsed.options.length) return parsed.options.map((option, index) => option.value || String.fromCharCode(65 + index));
-        } catch { /* fall back to the structured projection */ }
-      }
-      return (Array.isArray(question.options) ? question.options : []).map(optionValue);
-    })(),
+    randomizationGroup: partByQuestion.get(question.id) ? `part:${partByQuestion.get(question.id)}` : null,
+    optionValues: shuffleableOptionValues(question),
   })), policy);
   const output = prepared.questions.map(question => {
     const options = Array.isArray(question.options) ? [...question.options] : [];
     const keyedOptions = options.map((option, index) => ({ option, value: optionValue(option, index) }));
-    const orderedValues = prepared.optionOrder[question.id] ?? keyedOptions.map(item => item.value);
+    const savedOrder = prepared.optionOrder[question.id] ?? [];
+    const orderedValues = savedOrder.length ? savedOrder : keyedOptions.map(item => item.value);
     const optionMap = new Map(keyedOptions.map(item => [item.value, item.option]));
     const orderedOptions: unknown[] = orderedValues.map(value => optionMap.get(value)).filter(option => option !== undefined);
-    return { ...question, options: orderedOptions, option_order: prepared.optionOrder[question.id] ?? [] };
+    return { ...question, options: orderedOptions, option_order: savedOrder };
   });
-  return { questions: output, questionOrder: prepared.questionOrder, optionOrder: prepared.optionOrder };
+  return {
+    questions: applyGuestPartPresentation(questions, output, policy.examType),
+    questionOrder: prepared.questionOrder,
+    optionOrder: prepared.optionOrder,
+  };
 }
 
 export function prepareGuestQuestions(questions: GuestQuestion[], settings: GuestExamSettings) {
@@ -414,12 +444,13 @@ export function applyGuestOrdering(questions: GuestQuestion[], questionOrder: un
   const source = new Map(questions.map(question => [question.id, question]));
   const ordered = ids.length ? ids.map(id => source.get(id)).filter((question): question is GuestQuestion => Boolean(question)) : questions;
   const optionsByQuestion = asRecord(optionOrder);
-  return ordered.map(question => {
+  const orderedOptions = ordered.map(question => {
     const values = Array.isArray(optionsByQuestion[question.id]) ? optionsByQuestion[question.id] as string[] : [];
     if (!values.length) return question;
     const optionMap = new Map((Array.isArray(question.options) ? question.options : []).map((option, index) => [typeof option === "string" ? option : String(asRecord(option).value ?? asRecord(option).id ?? index), option]));
     return { ...question, options: values.map(value => optionMap.get(value)).filter(option => option !== undefined), option_order: values };
   });
+  return applyGuestPartPresentation(questions, orderedOptions);
 }
 
 export function answerVisibility(settings: GuestExamSettings, slot: GuestSlotRow, score: number, now = Date.now()) {
@@ -518,7 +549,7 @@ export function publicGuestQuestion(question: GuestQuestion, attemptId?: string)
     instruction: guestText(question.instruction, attemptId),
     option_columns: parsed?.optionColumns ?? question.option_columns ?? null,
     matching: safeParsedMatching(parsed?.matching ?? question.matching, attemptId),
-    part: parsed?.part ?? question.part,
+    part: question.display_part === null ? undefined : question.display_part ?? parsed?.part ?? question.part,
     option_order: Array.isArray(question.option_order) ? question.option_order : undefined,
   };
 }

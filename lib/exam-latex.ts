@@ -1458,6 +1458,25 @@ export function parseLatexDocument(input: string) {
   return splitLatexQuestions(input).map(parseLatexQuestion);
 }
 
+/**
+ * Resolve the active \phan marker for every question in source order. Authoring
+ * stores the marker only on the first question of a part, so consumers must
+ * carry it forward before applying a shuffled attempt snapshot.
+ */
+export function latexPartSequence<T extends { latex_source?: string | null }>(questions: readonly T[]) {
+  let activePart: LatexPartNumber | undefined;
+  return questions.map(question => {
+    try {
+      const marker = question.latex_source?.trim() ? parseLatexQuestion(question.latex_source).part : undefined;
+      if (marker) activePart = marker;
+    } catch {
+      // Keep the previous structural part when one malformed question cannot
+      // be parsed; the next explicit marker can still recover the sequence.
+    }
+    return activePart;
+  });
+}
+
 export function parseLatexQuestion(input: string): ParsedLatexQuestion {
   const source = ensureExEnvironment(input);
   const body = extractBody(source);

@@ -47,6 +47,9 @@ type WizardForm = {
   password: string;
   monitorMode: MonitorMode;
   releaseMode: ReleaseMode;
+  shuffleQuestions: boolean;
+  shuffleAnswers: boolean;
+  resetQuestionIndex: boolean;
 };
 
 type CatalogPayload = { rooms?: Room[]; exams?: Exam[]; sections?: Section[]; error?: string };
@@ -141,6 +144,9 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
       password: "",
       monitorMode: "exit",
       releaseMode: "after_slot",
+      shuffleQuestions: true,
+      shuffleAnswers: true,
+      resetQuestionIndex: true,
     };
   });
   const [roomQuery, setRoomQuery] = useState("");
@@ -426,6 +432,16 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
             durationMinutes: Math.max(1, Number(selectedSection?.duration_minutes ?? selectedExam.duration_minutes) || 1),
             gracePeriodMinutes: Number(form.gracePeriodMinutes),
           },
+          randomization: {
+            ...currentPolicy.randomization,
+            enabled: form.shuffleQuestions || form.shuffleAnswers || currentPolicy.randomization.questionPoolSize > 0,
+            shuffleQuestions: form.shuffleQuestions,
+            shuffleOptions: form.shuffleAnswers,
+            randomizationMode: form.shuffleQuestions || form.shuffleAnswers || currentPolicy.randomization.questionPoolSize > 0
+              ? currentPolicy.randomization.randomizationMode === "none" ? "per_attempt" : currentPolicy.randomization.randomizationMode
+              : "none",
+            seedStrategy: form.shuffleQuestions || form.shuffleAnswers || currentPolicy.randomization.questionPoolSize > 0 ? "attempt" : "none",
+          },
           release: {
             ...currentPolicy.release,
             score: form.releaseMode,
@@ -449,6 +465,9 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
         showScore: form.releaseMode,
         showAnswers: "never",
         hideWrongAnswers: true,
+        shuffleQuestions: form.shuffleQuestions,
+        shuffleAnswers: form.shuffleAnswers,
+        resetQuestionIndex: form.resetQuestionIndex,
       };
       await post("/api/admin/exam-access", { action: "save_config", examId: selectedExam.id, settings });
       const payload = await post("/api/admin/exam-access", {
@@ -505,7 +524,9 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
 
       {step === 3 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-time-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 3 / 4</span><h2 id="wizard-time-title">Thiết lập thời gian và quy tắc</h2><p>Thời lượng đề là thời gian làm bài; thời gian kíp là khoảng cho phép người tham gia bắt đầu.</p></div><CalendarClock aria-hidden="true" /></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Lịch mở kíp</b><span>Thời lượng đề: {formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</span></div><div className="admin-session-quick-actions"><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("now")}><CalendarClock aria-hidden="true" /><span><b>Mở sau 5 phút</b><small>Phù hợp khi cần chia sẻ ngay</small></span></button><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("later")}><CalendarClock aria-hidden="true" /><span><b>Đặt lịch sau 1 giờ</b><small>Có thể chỉnh lại ngày giờ bên dưới</small></span></button></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Thời điểm mở</span><input type="datetime-local" value={form.startsAt} onChange={event => updateForm({ startsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Thời điểm kết thúc nhận bài</span><input type="datetime-local" value={form.endsAt} onChange={event => updateForm({ endsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Gia hạn sau giờ kết thúc (phút)</span><input type="number" min={0} max={1440} value={form.gracePeriodMinutes} onChange={event => updateForm({ gracePeriodMinutes: Number(event.target.value) })} /><small>Khuyến nghị 30 phút để lượt đang làm có thể hoàn tất.</small></label></div></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Thông tin kíp</b><span>{form.mode === "account" ? "Tên kíp giúp nhận biết lịch tài khoản." : form.mode === "both" ? "Một kíp, hai cách tham gia; người có tài khoản không cần điền lại thông tin." : "Tên này sẽ xuất hiện trong danh sách link."}</span></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Tên kíp thi</span><input value={form.name} maxLength={120} onChange={event => updateForm({ name: event.target.value })} placeholder="Ví dụ: Kíp sáng · Lớp 12A1" required /><small>Dùng tên ngắn, dễ phân biệt khi theo dõi.</small></label><label className="admin-session-field"><span>Số lượt làm tối đa</span><input type="number" min={0} max={1000} value={form.maxAttempts} onChange={event => updateForm({ maxAttempts: Number(event.target.value) })} /><small>0 = không giới hạn.</small></label></div>{(form.mode === "account" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người có tài khoản</b><small>Đăng nhập để dùng thông tin đã có trong hồ sơ.</small></div><label><span>Phạm vi học viên</span><select value={form.rosterMode} onChange={event => updateForm({ rosterMode: event.target.value as RosterMode })}><option value="open">Tất cả học viên có quyền vào phòng</option><option value="enrolled">Chỉ học viên được phân quyền</option></select></label></div>}{(form.mode === "link_qr" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người chưa có tài khoản</b><small>Vào bằng link/QR và chỉ điền thông tin được yêu cầu.</small></div><label><span>Giám sát kỹ thuật</span><select value={form.monitorMode} onChange={event => updateForm({ monitorMode: event.target.value as MonitorMode })}><option value="off">Tắt</option><option value="exit">Ghi nhận rời tab / toàn màn hình</option><option value="advanced">Nâng cao: thêm mất focus, copy/dán</option></select></label>{independentSubjectExam && <label className="admin-session-field admin-session-subject-field"><span>Môn thi áp dụng cho link</span><select value={form.sectionId} onChange={event => updateForm({ sectionId: event.target.value })} required><option value="">Chọn môn thi</option>{sections.map(section => <option value={section.id} key={section.id}>{section.title}{section.duration_minutes ? ` · ${section.duration_minutes} phút` : ""}</option>)}</select><small>Đề {normalizeExamType(selectedExam?.exam_type)} gồm các phần độc lập; mỗi link nên gắn với một môn.</small></label>}<label className="admin-session-field admin-session-password-field"><span><LockKeyhole aria-hidden="true" /> Mật khẩu kíp (tùy chọn)</span><input type="password" autoComplete="new-password" value={form.password} maxLength={120} onChange={event => updateForm({ password: event.target.value })} placeholder="Bỏ trống nếu không dùng" /></label></div>}<div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Công bố kết quả</b><small>Chọn thời điểm công bố điểm thi cho thí sinh.</small></div><label><span>Công bố điểm</span><select value={form.releaseMode} onChange={event => updateForm({ releaseMode: event.target.value as ReleaseMode })}><option value="after_submit">Ngay sau khi nộp bài</option><option value="after_slot">Sau khi kíp kết thúc</option><option value="manual">Giáo viên công bố thủ công</option><option value="never">Không công bố điểm</option></select></label></div></div></section>}
 
-      {step === 4 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-review-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 4 / 4</span><h2 id="wizard-review-title">Kiểm tra trước khi tạo</h2><p>Kiểm tra nhanh các thông tin chính. Bạn vẫn có thể quay lại chỉnh sửa.</p></div><CheckCircle2 aria-hidden="true" /></div><div className="admin-session-review"><div className="admin-session-review-hero"><span className="admin-session-review-type">{form.mode === "account" ? <UserRound aria-hidden="true" /> : form.mode === "both" ? <ClipboardCheck aria-hidden="true" /> : <Link2 aria-hidden="true" />}{modeLabel(form.mode)}</span><h3>{form.name || selectedExam?.title}</h3><p>{selectedExam?.title} · {selectedRoom?.title}</p></div><dl><div><dt>Thời gian kíp</dt><dd>{formatDateTime(form.startsAt)} → {formatDateTime(form.endsAt)}</dd></div><div><dt>Thời lượng mỗi lượt</dt><dd>{formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</dd></div><div><dt>Gia hạn</dt><dd>{form.gracePeriodMinutes} phút</dd></div><div><dt>Lượt làm tối đa</dt><dd>{form.maxAttempts === 0 ? "Không giới hạn" : `${form.maxAttempts} lượt`}</dd></div><div><dt>Người có tài khoản</dt><dd>{form.mode === "link_qr" ? "Không áp dụng" : form.rosterMode === "enrolled" ? "Học viên được phân quyền" : "Học viên có quyền vào phòng"}</dd></div><div><dt>Người chưa có tài khoản</dt><dd>{form.mode === "account" ? "Không áp dụng" : "Điền thông tin qua link / QR"}</dd></div><div><dt>Giám sát kỹ thuật</dt><dd>{form.mode === "account" ? "Không áp dụng" : form.monitorMode === "advanced" ? "Nâng cao (Rời tab, focus, copy/dán)" : form.monitorMode === "exit" ? "Ghi nhận rời tab / toàn màn hình" : "Tắt"}</dd></div><div><dt>Kết quả</dt><dd>{form.releaseMode === "manual" ? "Giáo viên công bố thủ công" : form.releaseMode === "after_submit" ? "Ngay sau khi nộp bài" : form.releaseMode === "never" ? "Không công bố điểm" : "Sau khi kíp kết thúc"}</dd></div></dl></div><div className="admin-session-review-note"><ShieldCheck aria-hidden="true" /><p>{form.mode === "account" ? "Hệ thống sẽ lưu lịch vào quy tắc tài khoản của đề. Các lượt thi mới dùng snapshot quy tắc này." : loadingGuestSettings ? "Đang kiểm tra cấu hình link hiện tại…" : form.mode === "both" ? "Hệ thống sẽ lưu cùng thời gian cho tài khoản và link/QR, sau đó tạo token chia sẻ. Người có tài khoản không cần nhập lại thông tin hồ sơ." : "Hệ thống sẽ lưu cấu hình link trước rồi tạo token mới. Link cũ của các kíp khác không bị ảnh hưởng."}</p></div></section>}
+      {step === 3 && <RandomizationControls form={form} updateForm={updateForm} thptqg={normalizeExamType(selectedExam?.exam_type) === "THPTQG"} />}
+
+      {step === 4 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-review-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 4 / 4</span><h2 id="wizard-review-title">Kiểm tra trước khi tạo</h2><p>Kiểm tra nhanh các thông tin chính. Bạn vẫn có thể quay lại chỉnh sửa.</p></div><CheckCircle2 aria-hidden="true" /></div><div className="admin-session-review"><div className="admin-session-review-hero"><span className="admin-session-review-type">{form.mode === "account" ? <UserRound aria-hidden="true" /> : form.mode === "both" ? <ClipboardCheck aria-hidden="true" /> : <Link2 aria-hidden="true" />}{modeLabel(form.mode)}</span><h3>{form.name || selectedExam?.title}</h3><p>{selectedExam?.title} · {selectedRoom?.title}</p></div><dl><div><dt>Thời gian kíp</dt><dd>{formatDateTime(form.startsAt)} → {formatDateTime(form.endsAt)}</dd></div><div><dt>Thời lượng mỗi lượt</dt><dd>{formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</dd></div><div><dt>Gia hạn</dt><dd>{form.gracePeriodMinutes} phút</dd></div><div><dt>Lượt làm tối đa</dt><dd>{form.maxAttempts === 0 ? "Không giới hạn" : `${form.maxAttempts} lượt`}</dd></div><div><dt>Người có tài khoản</dt><dd>{form.mode === "link_qr" ? "Không áp dụng" : form.rosterMode === "enrolled" ? "Học viên được phân quyền" : "Học viên có quyền vào phòng"}</dd></div><div><dt>Người chưa có tài khoản</dt><dd>{form.mode === "account" ? "Không áp dụng" : "Điền thông tin qua link / QR"}</dd></div><div><dt>Giám sát kỹ thuật</dt><dd>{form.mode === "account" ? "Không áp dụng" : form.monitorMode === "advanced" ? "Nâng cao (Rời tab, focus, copy/dán)" : form.monitorMode === "exit" ? "Ghi nhận rời tab / toàn màn hình" : "Tắt"}</dd></div><div><dt>Kết quả</dt><dd>{form.releaseMode === "manual" ? "Giáo viên công bố thủ công" : form.releaseMode === "after_submit" ? "Ngay sau khi nộp bài" : form.releaseMode === "never" ? "Không công bố điểm" : "Sau khi kíp kết thúc"}</dd></div></dl></div><RandomizationReview form={form} /><div className="admin-session-review-note"><ShieldCheck aria-hidden="true" /><p>{form.mode === "account" ? "Hệ thống sẽ lưu lịch vào quy tắc tài khoản của đề. Các lượt thi mới dùng snapshot quy tắc này." : loadingGuestSettings ? "Đang kiểm tra cấu hình link hiện tại…" : form.mode === "both" ? "Hệ thống sẽ lưu cùng thời gian cho tài khoản và link/QR, sau đó tạo token chia sẻ. Người có tài khoản không cần nhập lại thông tin hồ sơ." : "Hệ thống sẽ lưu cấu hình link trước rồi tạo token mới. Link cũ của các kíp khác không bị ảnh hưởng."}</p></div></section>}
 
       <footer className="admin-session-wizard-footer"><button type="button" className="admin-session-wizard-secondary" onClick={step === 1 ? () => navigate("/admin/sessions") : previousStep}><ArrowLeft aria-hidden="true" />{step === 1 ? "Hủy" : "Quay lại"}</button><span className="admin-session-wizard-footer-hint">{step < 4 ? "Bạn có thể kiểm tra lại ở bước cuối." : "Các thay đổi chỉ áp dụng cho lượt thi mới."}</span>{step < 4 ? <button type="submit" className="admin-session-wizard-primary" disabled={loadingExam || !selectedExam}>{step === 1 ? "Tiếp tục" : "Tiếp tục"}<ArrowRight aria-hidden="true" /></button> : <button type="submit" className="admin-session-wizard-primary" disabled={saving || loadingGuestSettings}>{saving ? "Đang tạo…" : form.mode === "account" ? "Lưu lịch tài khoản" : "Tạo kíp & sinh link"}<Check aria-hidden="true" /></button>}</footer>
     </form>
@@ -514,4 +535,31 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
 
 function SearchIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>;
+}
+
+function RandomizationControls({ form, updateForm, thptqg }: {
+  form: WizardForm;
+  updateForm: (changes: Partial<WizardForm>) => void;
+  thptqg: boolean;
+}) {
+  return <section className="admin-session-wizard-panel admin-session-randomization-panel" aria-labelledby="wizard-randomization-title">
+    <div className="admin-session-section-title">
+      <b id="wizard-randomization-title">Thứ tự đề thi</b>
+      <span>{thptqg ? "THPTQG: câu hỏi chỉ đảo bên trong từng phần." : "Áp dụng cho các lượt thi mới."}</span>
+    </div>
+    <div className="admin-session-randomization-grid">
+      <label><input type="checkbox" checked={form.shuffleQuestions} onChange={event => updateForm({ shuffleQuestions: event.target.checked })} /><span><b>Đảo câu hỏi</b><small>THPTQG giữ nguyên ranh giới Phần I, II và III.</small></span></label>
+      <label><input type="checkbox" checked={form.shuffleAnswers} onChange={event => updateForm({ shuffleAnswers: event.target.checked })} /><span><b>Đảo đáp án</b><small>Đảo lựa chọn của câu một hoặc nhiều đáp án; không đảo các ý Đúng/Sai.</small></span></label>
+      <label><input type="checkbox" checked={form.resetQuestionIndex} onChange={event => updateForm({ resetQuestionIndex: event.target.checked })} /><span><b>Mỗi phần bắt đầu từ Câu 1</b><small>Phần I, II và III có dãy số câu độc lập.</small></span></label>
+    </div>
+  </section>;
+}
+
+function RandomizationReview({ form }: { form: WizardForm }) {
+  const enabled = [
+    form.shuffleQuestions ? "Đảo câu hỏi theo từng phần" : "Giữ nguyên thứ tự câu hỏi",
+    form.shuffleAnswers ? "Đảo đáp án lựa chọn" : "Giữ nguyên thứ tự đáp án",
+    form.resetQuestionIndex ? "Mỗi phần bắt đầu từ Câu 1" : "Đánh số liên tục toàn đề",
+  ];
+  return <div className="admin-session-randomization-review" aria-label="Quy tắc thứ tự đề"><b>Thứ tự đề thi</b><span>{enabled.join(" · ")}</span></div>;
 }

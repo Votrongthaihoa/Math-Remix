@@ -80,6 +80,37 @@ test("question randomization keeps adjacent passage groups atomic", async () => 
   assert.ok(Array.isArray(result.optionOrder.q1));
 });
 
+test("question randomization keeps explicit THPTQG part groups independent", async () => {
+  const { normalizeExamPolicy, prepareQuestionIdentityForPolicy } = await import("../lib/exam-policy.ts");
+  const policy = normalizeExamPolicy({
+    randomization: {
+      enabled: true,
+      shuffleQuestions: true,
+      shuffleOptions: true,
+      randomizationMode: "per_attempt",
+      seedStrategy: "attempt",
+      seed: "thptqg-part-safe-seed",
+    },
+  }, { examType: "THPTQG", audience: "guest" });
+  const sourceQuestions = [
+    { id: "p1-q1", section_id: "math", randomizationGroup: "part:1", optionValues: ["A", "B", "C", "D"] },
+    { id: "p1-q2", section_id: "math", randomizationGroup: "part:1", optionValues: ["A", "B", "C", "D"] },
+    { id: "p1-q3", section_id: "math", randomizationGroup: "part:1", optionValues: ["A", "B", "C", "D"] },
+    { id: "p2-q1", section_id: "math", randomizationGroup: "part:2", optionValues: [] },
+    { id: "p2-q2", section_id: "math", randomizationGroup: "part:2", optionValues: [] },
+    { id: "p3-q1", section_id: "math", randomizationGroup: "part:3", optionValues: [] },
+    { id: "p3-q2", section_id: "math", randomizationGroup: "part:3", optionValues: [] },
+  ];
+  const result = prepareQuestionIdentityForPolicy(sourceQuestions, policy);
+
+  assert.deepEqual(new Set(result.questionOrder.slice(0, 3)), new Set(["p1-q1", "p1-q2", "p1-q3"]));
+  assert.deepEqual(new Set(result.questionOrder.slice(3, 5)), new Set(["p2-q1", "p2-q2"]));
+  assert.deepEqual(new Set(result.questionOrder.slice(5, 7)), new Set(["p3-q1", "p3-q2"]));
+  assert.notDeepEqual(result.questionOrder, sourceQuestions.map(question => question.id));
+  assert.equal(result.optionOrder["p1-q1"].length, 4);
+  assert.deepEqual(result.optionOrder["p2-q1"], []);
+});
+
 test("policy snapshots are added to both authenticated and guest attempts", async () => {
   const [migration, schema, examRoute, guestRoute] = await Promise.all([
     source("supabase/migrations/023_exam_policy_snapshots.sql"),

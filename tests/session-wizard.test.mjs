@@ -17,6 +17,13 @@ test("the session wizard is reachable as a first-class admin route", async () =>
   assert.match(wizard, /action: "save_policy"/);
   assert.match(wizard, /action: "create_slot"/);
   assert.match(wizard, /role="listbox"/);
+  assert.match(wizard, />Đảo câu hỏi</);
+  assert.match(wizard, />Đảo đáp án</);
+  assert.match(wizard, />Mỗi phần bắt đầu từ Câu 1</);
+  assert.match(wizard, /shuffleQuestions: form\.shuffleQuestions/);
+  assert.match(wizard, /shuffleAnswers: form\.shuffleAnswers/);
+  assert.match(wizard, /resetQuestionIndex: form\.resetQuestionIndex/);
+  assert.match(wizard, /Đảo câu hỏi theo từng phần/);
   assert.match(wizard, /Tạo kíp & sinh link/);
 });
 

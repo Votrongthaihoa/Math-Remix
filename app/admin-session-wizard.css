@@ -301,6 +301,17 @@
 .ui-shell.admin-app.product-shell .admin-session-password-field > span { display: inline-flex; align-items: center; gap: 5px; }
 .ui-shell.admin-app.product-shell .admin-session-password-field svg { width: 14px; height: 14px; }
 
+.ui-shell.admin-app.product-shell .admin-session-randomization-panel { margin-top: 18px; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-grid label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; min-width: 0; padding: 12px; border: 1px solid var(--wizard-line); border-radius: 9px; background: #fff; color: var(--wizard-body); cursor: pointer; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-grid input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--wizard-blue); }
+.ui-shell.admin-app.product-shell .admin-session-randomization-grid label > span { display: grid; min-width: 0; gap: 4px; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-grid b { color: var(--wizard-ink); font-size: 11px; overflow-wrap: anywhere; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-grid small { color: var(--wizard-muted); font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-review { display: grid; grid-template-columns: minmax(120px, .35fr) minmax(0, 1fr); gap: 12px; margin-top: 14px; padding: 12px 14px; border: 1px solid var(--wizard-line); border-radius: 9px; background: #fff; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-review b { color: var(--wizard-ink); font-size: 11px; }
+.ui-shell.admin-app.product-shell .admin-session-randomization-review span { min-width: 0; color: var(--wizard-body); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+
 .ui-shell.admin-app.product-shell .admin-session-review { overflow: hidden; border: 1px solid var(--wizard-line); border-radius: 12px; background: #fff; }
 .ui-shell.admin-app.product-shell .admin-session-review-hero { padding: 20px; border-bottom: 1px solid var(--wizard-line); background: linear-gradient(135deg, #f5fbfd, #fff); }
 .ui-shell.admin-app.product-shell .admin-session-review-type { display: inline-flex; align-items: center; gap: 6px; color: var(--wizard-blue); font-size: 10px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
@@ -350,6 +361,7 @@
   .ui-shell.admin-app.product-shell .admin-session-result-card { grid-template-columns: 1fr; }
   .ui-shell.admin-app.product-shell .admin-session-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ui-shell.admin-app.product-shell .admin-session-rule-group { grid-template-columns: 1fr; gap: 12px; }
+  .ui-shell.admin-app.product-shell .admin-session-randomization-grid { grid-template-columns: 1fr; }
   .ui-shell.admin-app.product-shell .admin-session-rule-group .admin-session-subject-field,
   .ui-shell.admin-app.product-shell .admin-session-rule-group .admin-session-password-field { grid-column: auto; }
   .ui-shell.admin-app.product-shell .admin-session-qr { justify-self: center; }
@@ -363,6 +375,7 @@
   .ui-shell.admin-app.product-shell .admin-session-stepper > div { justify-content: center; padding: 10px 4px; }
   .ui-shell.admin-app.product-shell .admin-session-stepper b { display: none; }
   .ui-shell.admin-app.product-shell .admin-session-mode-grid { grid-template-columns: 1fr; }
+  .ui-shell.admin-app.product-shell .admin-session-randomization-review { grid-template-columns: 1fr; }
   .ui-shell.admin-app.product-shell .admin-session-wizard-panel { padding: 18px 15px; border-radius: 12px; }
   .ui-shell.admin-app.product-shell .admin-session-field-grid,
   .ui-shell.admin-app.product-shell .admin-session-option-row,
