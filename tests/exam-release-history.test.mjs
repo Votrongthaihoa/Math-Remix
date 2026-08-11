@@ -74,6 +74,7 @@ test("result content is snapshot-ordered and only exposes release-safe projectio
   assert.match(resultRoute, /questions: visibility\.answersVisible \? projectResultQuestions\(questions\) : \[\]/);
   assert.match(resultRoute, /delete safeQuestion\.latex_source/);
   assert.match(resultRoute, /resultVisibility: visibility/);
+  assert.match(resultRoute, /scoreExamQuestionsWithOverridesForContext/);
   assert.match(guestRoute, /isExamCodeAllowed\(policy, body\.examCode\)/);
   assert.match(guestRoute, /exam_code: requestedExamCode/);
   assert.match(examRoom, /resultVisibility/);

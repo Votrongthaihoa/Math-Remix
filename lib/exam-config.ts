@@ -26,7 +26,7 @@ export const THPTQG_SUBJECT_TEMPLATES: Array<{
   { code: "vatly", title: "Vật lí", duration_minutes: 50, question_count: 28, structure: "18 câu nhiều lựa chọn; 4 câu Đúng/Sai; 6 câu trả lời ngắn" },
   { code: "hoahoc", title: "Hóa học", duration_minutes: 50, question_count: 28, structure: "18 câu nhiều lựa chọn; 4 câu Đúng/Sai; 6 câu trả lời ngắn" },
   { code: "tienganh", title: "Tiếng Anh", duration_minutes: 50, question_count: 40, structure: "40 câu trắc nghiệm nhiều lựa chọn" },
-  { code: "tinhoc", title: "Tin học", duration_minutes: 50, question_count: 30, structure: "24 câu nhiều lựa chọn; 6 câu Đúng/Sai, thí sinh làm 4 câu" },
+  { code: "tinhoc", title: "Tin học", duration_minutes: 50, question_count: 28, structure: "24 câu nhiều lựa chọn; 4 câu Đúng/Sai" },
   { code: "lichsu", title: "Lịch sử", duration_minutes: 50, question_count: 28, structure: "24 câu nhiều lựa chọn; 4 câu Đúng/Sai" },
   { code: "dialy", title: "Địa lí", duration_minutes: 50, question_count: 28, structure: "18 câu nhiều lựa chọn; 4 câu Đúng/Sai; 6 câu trả lời ngắn" },
 ] as const;

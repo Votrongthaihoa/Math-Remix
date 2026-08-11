@@ -109,6 +109,61 @@ export type ScoringQuestion = {
   question_type: string;
 };
 
+export type ExamScoringContext = {
+  examType?: string | null;
+  subjectCode?: string | null;
+  subjectTitle?: string | null;
+};
+
+type ThptqgScoringGroup = "math" | "natural" | "social_technology" | "foreign_language";
+
+const THPTQG_TRUE_FALSE_POINTS = [0, 0.1, 0.25, 0.5, 1] as const;
+
+function normalizedSubject(value: string | null | undefined) {
+  return String(value ?? "")
+    .replace(/[đĐ]/g, "d")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("vi")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function thptqgScoringGroup(context: ExamScoringContext): ThptqgScoringGroup | null {
+  if (String(context.examType ?? "").trim().toUpperCase() !== "THPTQG") return null;
+  const subject = `${normalizedSubject(context.subjectCode)}${normalizedSubject(context.subjectTitle)}`;
+  if (/(^|.*)toan/.test(subject)) return "math";
+  if (/(vatly|vatli|hoahoc|sinhhoc|dialy|diali)/.test(subject)) return "natural";
+  if (/(lichsu|gdktpl|giaoduckinhtevaphapluat|congnghe|tinhoc)/.test(subject)) return "social_technology";
+  if (/(tieng(anh|trung|phap|nga|duc|nhat|han)|english|chinese|french|russian|german|japanese|korean)/.test(subject)) return "foreign_language";
+  return null;
+}
+
+function matchingTrueFalseItems(answer: unknown, correct: unknown) {
+  if (!Array.isArray(answer) || !Array.isArray(correct)) return 0;
+  let matching = 0;
+  for (let index = 0; index < Math.min(4, correct.length); index += 1) {
+    if (answersMatch(answer[index], correct[index], true)) matching += 1;
+  }
+  return matching;
+}
+
+function thptqgQuestionPoints(question: ScoringQuestion, answer: unknown, correct: unknown, group: ThptqgScoringGroup) {
+  if (question.question_type === "true_false") {
+    return THPTQG_TRUE_FALSE_POINTS[matchingTrueFalseItems(answer, correct)] ?? 1;
+  }
+  if (!answersMatch(answer, correct, ["inline", "ordering", "drag_drop"].includes(question.question_type))) return 0;
+  if (question.question_type === "single") return 0.25;
+  if (question.question_type === "text" || question.question_type === "inline") {
+    if (group === "math") return 0.5;
+    if (group === "natural") return 0.25;
+  }
+  return 0;
+}
+
+function roundedThptqgScore(score: number) {
+  return Math.min(10, Math.round((score + Number.EPSILON) * 100) / 100);
+}
+
 export type QuestionScoringOverride = {
   override_mode: "normal" | "accept_multiple" | "void_question" | "award_all";
   accepted_answers?: unknown;
@@ -142,6 +197,35 @@ export function scoreExamQuestions(
   };
 }
 
+/**
+ * Apply the official 10-point THPTQG rubric only when both the exam type and
+ * subject identify a supported THPTQG subject group. Other exam types (and
+ * manually graded subjects such as Ngữ văn) keep the legacy percentage score.
+ */
+export function scoreExamQuestionsForContext(
+  questions: readonly ScoringQuestion[],
+  answers: Record<string, unknown>,
+  answerKeys: ReadonlyMap<string, unknown>,
+  context: ExamScoringContext,
+) {
+  const group = thptqgScoringGroup(context);
+  if (!group) return scoreExamQuestions(questions, answers, answerKeys);
+  let correctAnswers = 0;
+  let score = 0;
+  for (const question of questions) {
+    if (!answerKeys.has(question.id)) continue;
+    const correct = answerKeys.get(question.id);
+    const ordered = ["inline", "true_false", "ordering", "drag_drop"].includes(question.question_type);
+    if (answersMatch(answers[question.id], correct, ordered)) correctAnswers += 1;
+    score += thptqgQuestionPoints(question, answers[question.id], correct, group);
+  }
+  return {
+    correctAnswers,
+    totalQuestions: questions.length,
+    score: roundedThptqgScore(score),
+  };
+}
+
 export function scoreExamQuestionsWithOverrides(
   questions: readonly ScoringQuestion[],
   answers: Record<string, unknown>,
@@ -171,5 +255,50 @@ export function scoreExamQuestionsWithOverrides(
     totalQuestions,
     voidedQuestions,
     score: totalQuestions ? Math.round(correctAnswers / totalQuestions * 100) : 0,
+  };
+}
+
+
+export function scoreExamQuestionsWithOverridesForContext(
+  questions: readonly ScoringQuestion[],
+  answers: Record<string, unknown>,
+  answerKeys: ReadonlyMap<string, unknown>,
+  overrides: ReadonlyMap<string, QuestionScoringOverride>,
+  context: ExamScoringContext,
+) {
+  const group = thptqgScoringGroup(context);
+  if (!group) return scoreExamQuestionsWithOverrides(questions, answers, answerKeys, overrides);
+  let correctAnswers = 0;
+  let totalQuestions = 0;
+  let voidedQuestions = 0;
+  let score = 0;
+  for (const question of questions) {
+    const override = overrides.get(question.id);
+    if (override?.override_mode === "void_question") {
+      voidedQuestions += 1;
+      continue;
+    }
+    totalQuestions += 1;
+    const ordered = ["inline", "true_false", "ordering", "drag_drop"].includes(question.question_type);
+    const accepted = Array.isArray(override?.accepted_answers) ? override.accepted_answers : [];
+    const candidates = override?.override_mode === "accept_multiple" ? accepted : [answerKeys.get(question.id)];
+    const fullCredit = override?.override_mode === "award_all"
+      || candidates.some(candidate => answersMatch(answers[question.id], candidate, ordered));
+    if (fullCredit) correctAnswers += 1;
+    if (override?.override_mode === "award_all") {
+      const syntheticCorrect = question.question_type === "true_false" ? ["true", "true", "true", "true"] : "correct";
+      const syntheticAnswer = syntheticCorrect;
+      score += thptqgQuestionPoints(question, syntheticAnswer, syntheticCorrect, group);
+    } else if (override?.override_mode === "accept_multiple") {
+      score += Math.max(0, ...candidates.map(candidate => thptqgQuestionPoints(question, answers[question.id], candidate, group)));
+    } else if (answerKeys.has(question.id)) {
+      score += thptqgQuestionPoints(question, answers[question.id], answerKeys.get(question.id), group);
+    }
+  }
+  return {
+    correctAnswers,
+    totalQuestions,
+    voidedQuestions,
+    score: roundedThptqgScore(score),
   };
 }

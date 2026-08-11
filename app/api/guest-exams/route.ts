@@ -1,4 +1,4 @@
-import { answersMatch, buildAnswerKeySnapshot, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, type ExamAnswerValue, type QuestionScoringOverride } from "../../../lib/exam-answers";
+import { answersMatch, buildAnswerKeySnapshot, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestionsForContext, type ExamAnswerValue, type QuestionScoringOverride } from "../../../lib/exam-answers";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
 import { consumeRequestBudget } from "../../../lib/rate-limit-server";
 import {
@@ -451,7 +451,12 @@ export async function POST(request: Request) {
       ? await admin.from("exam_question_keys").select("question_id,correct_answer").in("question_id", questionIds)
       : { data: [] };
     const keyMap = snapshotKeyMap(current.attempt.answer_key_snapshot, keys ?? []);
-    const scored = scoreExamQuestions(questions, answerMap, keyMap);
+    const examType = [current.room.exam_type, current.exam.exam_type].find(value => String(value ?? "").trim().toUpperCase() === "THPTQG") ?? current.exam.exam_type;
+    const scored = scoreExamQuestionsForContext(questions, answerMap, keyMap, {
+      examType,
+      subjectCode: current.section?.subject_code,
+      subjectTitle: current.section?.title,
+    });
     const correctAnswers = scored.correctAnswers;
     const score = scored.score;
     const durationSeconds = attemptDurationSeconds(current, current.attempt);

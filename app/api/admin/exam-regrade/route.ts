@@ -1,4 +1,4 @@
-import { readAnswerKeySnapshot, scoreExamQuestionsWithOverrides, type QuestionScoringOverride } from "../../../../lib/exam-answers";
+import { readAnswerKeySnapshot, scoreExamQuestionsWithOverridesForContext, type QuestionScoringOverride } from "../../../../lib/exam-answers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { applyQuestionSnapshotOrder } from "../../../../lib/exam-content-server";
 import { ensureActiveAccount } from "../../../../lib/security-server";
@@ -20,22 +20,35 @@ function asRecord(value: unknown): Record<string, unknown> { return value && typ
 
 type AttemptRow = { id: string; exam_id: string; section_id?: string | null; answers: unknown; question_order: unknown; option_order: unknown; answer_key_snapshot?: unknown; score?: number | null; correct_answers?: number | null; total_questions?: number | null; status: string; scoring_version?: number | null; original_score?: number | null; original_correct_answers?: number | null; original_total_questions?: number | null };
 type QuestionRow = { id: string; section_id: string; question_type: string; options?: unknown[]; sort_order?: number | null };
+type SectionRow = { id: string; title: string; subject_code?: string | null };
 type OverrideRow = { question_id: string; override_mode: QuestionScoringOverride["override_mode"]; accepted_answers: unknown };
 
 async function scoringInputs(admin: SupabaseClient, examId: string, slotId?: string) {
-  const sections = (await admin.from("exam_sections").select("id").eq("exam_id", examId)).data ?? [];
+  const [sectionResult, examResult, slotResult] = await Promise.all([
+    admin.from("exam_sections").select("id,title,subject_code").eq("exam_id", examId),
+    admin.from("exams").select("id,room_id,exam_type").eq("id", examId).maybeSingle(),
+    slotId
+      ? admin.from("exam_access_slots").select("section_id").eq("id", slotId).eq("exam_id", examId).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const sections = (sectionResult.data ?? []) as SectionRow[];
   const sectionIds = sections.map(section => section.id);
   const questions = sectionIds.length ? ((await admin.from("exam_questions").select("id,section_id,question_type,options,sort_order").in("section_id", sectionIds).order("sort_order")).data ?? []) as QuestionRow[] : [];
   const keys = questions.length ? ((await admin.from("exam_question_keys").select("question_id,correct_answer").in("question_id", questions.map(question => question.id))).data ?? []) : [];
+  const room = examResult.data?.room_id
+    ? (await admin.from("exam_rooms").select("exam_type").eq("id", examResult.data.room_id).maybeSingle()).data
+    : null;
+  const examType = [room?.exam_type, examResult.data?.exam_type].find(value => String(value ?? "").trim().toUpperCase() === "THPTQG") ?? examResult.data?.exam_type ?? room?.exam_type;
   const attemptQuery = slotId
     ? admin.from("guest_exam_attempts").select("id,exam_id,question_order,option_order,answer_key_snapshot,answers,score,correct_answers,total_questions,status,scoring_version,original_score,original_correct_answers,original_total_questions").eq("exam_id", examId).eq("slot_id", slotId).neq("status", "in_progress")
     : admin.from("exam_attempts").select("id,exam_id,section_id,question_order,option_order,answer_key_snapshot,answers,score,correct_answers,total_questions,status,scoring_version,original_score,original_correct_answers,original_total_questions").eq("exam_id", examId).neq("status", "in_progress");
   const attempts = (await attemptQuery).data ?? [];
-  return { questions, keys, attempts: attempts as AttemptRow[] };
+  return { questions, keys, attempts: attempts as AttemptRow[], sections, examType, guestSectionId: slotResult.data?.section_id ?? null };
 }
 
-function scoreAttempt(attempt: AttemptRow, questions: QuestionRow[], keys: Array<{ question_id: string; correct_answer: unknown }>, overrides: Map<string, OverrideRow>) {
-  const scoped = attempt.section_id ? questions.filter(question => question.section_id === attempt.section_id) : questions;
+function scoreAttempt(attempt: AttemptRow, questions: QuestionRow[], keys: Array<{ question_id: string; correct_answer: unknown }>, overrides: Map<string, OverrideRow>, context: { sections: SectionRow[]; examType?: string | null; guestSectionId?: string | null }) {
+  const sectionId = attempt.section_id ?? context.guestSectionId;
+  const scoped = sectionId ? questions.filter(question => question.section_id === sectionId) : questions;
   const ordered = applyQuestionSnapshotOrder(scoped, attempt.question_order, attempt.option_order);
   const snapshot = readAnswerKeySnapshot(attempt.answer_key_snapshot);
   const keyMap = snapshot.size
@@ -43,7 +56,12 @@ function scoreAttempt(attempt: AttemptRow, questions: QuestionRow[], keys: Array
     : new Map(keys.map(key => [key.question_id, key.correct_answer]));
   const answerMap = asRecord(attempt.answers);
   const overrideMap = new Map<string, QuestionScoringOverride>([...overrides.entries()].map(([id, value]) => [id, { override_mode: value.override_mode, accepted_answers: value.accepted_answers }]));
-  return scoreExamQuestionsWithOverrides(ordered, answerMap, keyMap, overrideMap);
+  const section = sectionId ? context.sections.find(item => item.id === sectionId) : undefined;
+  return scoreExamQuestionsWithOverridesForContext(ordered, answerMap, keyMap, overrideMap, {
+    examType: context.examType,
+    subjectCode: section?.subject_code,
+    subjectTitle: section?.title,
+  });
 }
 
 async function readOverrides(admin: SupabaseClient, versionId: string) {
@@ -120,7 +138,7 @@ export async function POST(request: Request) {
     const inputs = await scoringInputs(admin, examId, body.slotId);
     const overrides = await readOverrides(admin, created.version.id);
     const impacts = inputs.attempts.map(attempt => {
-      const next = scoreAttempt(attempt, inputs.questions, inputs.keys, overrides);
+      const next = scoreAttempt(attempt, inputs.questions, inputs.keys, overrides, inputs);
       return { id: attempt.id, before: Number(attempt.score ?? 0), after: next.score, correctBefore: Number(attempt.correct_answers ?? 0), correctAfter: next.correctAnswers, totalBefore: Number(attempt.total_questions ?? 0), totalAfter: next.totalQuestions };
     });
     const affected = impacts.filter(item => item.before !== item.after || item.correctBefore !== item.correctAfter || item.totalBefore !== item.totalAfter);
@@ -139,7 +157,7 @@ export async function POST(request: Request) {
     if (!audit.ok) return errorResponse("Không thể ghi nhật ký thao tác.", 503);
     const inputs = await scoringInputs(admin, examId, body.slotId);
     const overrides = await readOverrides(admin, body.versionId);
-    const impacts = inputs.attempts.map(attempt => ({ attempt, next: scoreAttempt(attempt, inputs.questions, inputs.keys, overrides) }));
+    const impacts = inputs.attempts.map(attempt => ({ attempt, next: scoreAttempt(attempt, inputs.questions, inputs.keys, overrides, inputs) }));
     const affected = impacts.filter(item => Number(item.attempt.score ?? 0) !== item.next.score || Number(item.attempt.correct_answers ?? 0) !== item.next.correctAnswers || Number(item.attempt.total_questions ?? 0) !== item.next.totalQuestions);
     const updatedAttempts: Array<{ guest: boolean; id: string; payload: Record<string, unknown> }> = [];
     for (const item of impacts) {

@@ -1,4 +1,4 @@
-import { answersMatch, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestionsWithOverrides, type QuestionScoringOverride } from "../../../../lib/exam-answers";
+import { answersMatch, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestionsWithOverridesForContext, type QuestionScoringOverride } from "../../../../lib/exam-answers";
 import { encryptExamPayload, validateExamPublicKey, type ExamEnvelopeBinding } from "../../../../lib/exam-content-crypto";
 import {
   EXAM_QUESTION_SELECT,
@@ -167,7 +167,13 @@ export async function POST(request: Request) {
       overrides = new Map((rows ?? []).map(row => [row.question_id, { override_mode: row.override_mode as QuestionScoringOverride["override_mode"], accepted_answers: row.accepted_answers }]));
     }
   }
-  const scored = scoreExamQuestionsWithOverrides(questions, submittedAnswers, keyMap, overrides);
+  const subjectSection = context.attempt.section_id ? context.sections.find(section => section.id === context.attempt.section_id) : undefined;
+  const examType = [context.room.exam_type, context.exam.exam_type].find(value => String(value ?? "").trim().toUpperCase() === "THPTQG") ?? context.exam.exam_type;
+  const scored = scoreExamQuestionsWithOverridesForContext(questions, submittedAnswers, keyMap, overrides, {
+    examType,
+    subjectCode: subjectSection?.subject_code,
+    subjectTitle: subjectSection?.title,
+  });
   const correctAnswers = scored.correctAnswers;
   const score = scored.score;
   const currentKeyDetails = new Map((keys ?? []).map(key => [key.question_id, key]));

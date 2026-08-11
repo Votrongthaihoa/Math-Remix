@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { buildAnswerKeySnapshot, hasAnswerValue, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, type ExamAnswerValue } from "../../../lib/exam-answers";
+import { buildAnswerKeySnapshot, hasAnswerValue, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, type ExamAnswerValue } from "../../../lib/exam-answers";
 import { isIndependentSubjectExamType, normalizeExamType } from "../../../lib/exam-config";
 import { applyQuestionSnapshotOrder, EXAM_ATTEMPT_SELECT, EXAM_ROOM_SELECT, EXAM_SELECT, optionIdentity, questionIdsFromSnapshot } from "../../../lib/exam-content-server";
 import { parseLatexQuestion } from "../../../lib/exam-latex";
@@ -30,6 +30,12 @@ const MONITOR_EVENTS = ["visibility_hidden", "visibility_visible", "fullscreen_e
 
 function isHsaExam(roomType: string | null | undefined, examType: string | null | undefined) {
   return normalizeExamType(roomType) === "HSA" || normalizeExamType(examType) === "HSA";
+}
+
+function scoringContext(room: { exam_type?: string | null }, exam: { exam_type?: string | null }, sections: Array<{ id: string; subject_code?: string | null; title?: string | null }>, sectionId?: string | null) {
+  const section = sectionId ? sections.find(item => item.id === sectionId) : undefined;
+  const examType = [room.exam_type, exam.exam_type].find(value => normalizeExamType(value) === "THPTQG") ?? exam.exam_type ?? room.exam_type;
+  return { examType, subjectCode: section?.subject_code, subjectTitle: section?.title };
 }
 
 function hsaPart3SectionId(sections: Array<{ id: string; sort_order?: number | null }>) {
@@ -440,7 +446,7 @@ export async function GET(request: Request) {
       : {};
     const submittedAnswers = withoutSectionProgress(answerMap);
     const keyMap = snapshotKeyMap(attempt.answer_key_snapshot, keys);
-     const scored = scoreExamQuestions(orderedQuestions, submittedAnswers, keyMap);
+     const scored = scoreExamQuestionsForContext(orderedQuestions, submittedAnswers, keyMap, scoringContext(bundle.room, bundle.exam, bundle.sections, attempt.section_id));
      const isRegraded = Number(attempt.scoring_version ?? 1) > 1;
      const correctAnswers = isRegraded ? Number(attempt.correct_answers ?? scored.correctAnswers) : scored.correctAnswers;
      const score = isRegraded ? Number(attempt.score ?? scored.score) : scored.score;
@@ -811,7 +817,7 @@ export async function POST(request: Request) {
          ...body.answers,
          ...(isHsa && storedAnswers[HSA_SELECTION_ANSWER_KEY] ? { [HSA_SELECTION_ANSWER_KEY]: storedAnswers[HSA_SELECTION_ANSWER_KEY] } : {}),
        };
-     const scored = scoreExamQuestions(orderedQuestions, scoringAnswers, keyMap);
+     const scored = scoreExamQuestionsForContext(orderedQuestions, scoringAnswers, keyMap, scoringContext(bundle.room, bundle.exam, bundle.sections, attempt.section_id));
      const correctAnswers = scored.correctAnswers;
      const score = scored.score;
      const durationSeconds = attemptDurationSeconds(attempt, attemptPolicy);
