@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Computer, FilePenLine, List, Maximize2, Menu, Timer, ZoomIn, ZoomOut, X } from "lucide-react";
-import { RichQuestionContent as BaseRichQuestionContent } from "../remixstudyedu/MathExam";
+import { isGuestExamImage, RichQuestionContent as BaseRichQuestionContent } from "../remixstudyedu/MathExam";
 import { formatLatexAnswerForDisplay, latexPartInstruction, normalizeLatexContent, resolveBaidocQuestionRange, type LatexPartNumber } from "../../lib/exam-latex";
 import "./thptqg.css";
 
@@ -309,7 +309,7 @@ function QuestionCard({ question, index, number, partInstruction: partHeading, v
         mathDisplayStyle
         renderBlank={question.question_type === "inline" ? (blankIndex: number) => <input className="thptqg-inline-input" value={inlineValues[blankIndex] ?? ""} onChange={event => { const next = [...inlineValues]; next[blankIndex] = event.target.value; onAnswer(next); }} disabled={readOnly} aria-label={`Ô trả lời ${blankIndex + 1}`} /> : undefined}
       />
-      {question.media_url && <figure className="thptqg-question-media"><img src={question.media_url} alt="Hình minh họa câu hỏi"/><a href={question.media_url} target="_blank" rel="noreferrer"><Maximize2/>Mở ảnh</a></figure>}
+      {question.media_url && <figure className="thptqg-question-media"><img src={question.media_url} alt="Hình minh họa câu hỏi" crossOrigin={isGuestExamImage(question.media_url) ? "use-credentials" : undefined}/><a href={question.media_url} target="_blank" rel="noreferrer"><Maximize2/>Mở ảnh</a></figure>}
     </div>
     {question.question_type === "text" && <ShortAnswerField value={typeof value === "string" ? value : ""} number={number} readOnly={readOnly} onAnswer={onAnswer} />}
     {question.question_type === "true_false" && <div className="thptqg-true-false true-false-list" role="table" aria-label="Các khẳng định đúng sai"><div className="true-false-head" role="row"><span>Phát biểu</span><span>Đúng</span><span>Sai</span></div>{options.map((option, index) => { const statement = `${String.fromCharCode(97 + index)}) ${option.label}`; return <div className="true-false-row" role="row" key={`${option.value}-${index}`}><TsaRichQuestionContent content={richContent(statement)} renderBlank={undefined} inline /><div className="true-false-cell"><button type="button" className={inlineValues[index] === "true" ? "selected true" : ""} onClick={() => { const next = [...inlineValues]; next[index] = "true"; onAnswer(next); }} disabled={readOnly} aria-label={`${statement}: Đúng`} aria-pressed={inlineValues[index] === "true"} /></div><div className="true-false-cell"><button type="button" className={inlineValues[index] === "false" ? "selected false" : ""} onClick={() => { const next = [...inlineValues]; next[index] = "false"; onAnswer(next); }} disabled={readOnly} aria-label={`${statement}: Sai`} aria-pressed={inlineValues[index] === "false"} /></div></div>; })}</div>}
@@ -397,6 +397,7 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
   const submitRef = useRef(onSubmit);
   const progressRef = useRef(onProgress);
   const autoSubmitted = useRef(false);
+  const deadlineAtRef = useRef<number | null>(null);
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { submitRef.current = onSubmit; }, [onSubmit]);
   useEffect(() => { progressRef.current = onProgress; }, [onProgress]);
@@ -406,25 +407,40 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
   }, [answers, marked, current, preview, questionSeconds, resultReview, secondsLeft]);
   useEffect(() => {
     if (preview || resultReview) return undefined;
-    const timer = window.setInterval(() => setSecondsLeft(value => {
-      if (value <= 1) {
-        if (!autoSubmitted.current) {
-          autoSubmitted.current = true;
-          setSubmitError("");
-          setSubmitting(true);
-          void Promise.resolve(submitRef.current(answersRef.current))
-            .catch(value => {
-              setSubmitError(value instanceof Error ? value.message : "Không thể nộp bài thi.");
-              setConfirmOpen(true);
-            })
-            .finally(() => setSubmitting(false));
-        }
-        return 0;
-      }
-      return value - 1;
-    }), 1000);
-    return () => window.clearInterval(timer);
-  }, [preview, resultReview]);
+    if (deadlineAtRef.current === null) {
+      deadlineAtRef.current = Date.now() + Math.max(0, initialRemainingSeconds) * 1_000;
+    }
+    const updateRemainingTime = () => {
+      const deadlineAt = deadlineAtRef.current;
+      if (deadlineAt === null) return;
+      const remaining = Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1_000));
+      setSecondsLeft(remaining);
+    };
+    const timer = window.setInterval(updateRemainingTime, 1_000);
+    document.addEventListener("visibilitychange", updateRemainingTime);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", updateRemainingTime);
+    };
+  }, [initialRemainingSeconds, preview, resultReview]);
+  useEffect(() => {
+    if (preview || resultReview || secondsLeft > 0 || autoSubmitted.current) return undefined;
+    const task = window.setTimeout(() => {
+      if (autoSubmitted.current) return;
+      autoSubmitted.current = true;
+      setConfirmOpen(false);
+      setSubmitError("");
+      setSubmitting(true);
+      void Promise.resolve(submitRef.current(answersRef.current))
+        .catch(value => {
+          autoSubmitted.current = false;
+          setSubmitError(value instanceof Error ? value.message : "Không thể nộp bài thi.");
+          setConfirmOpen(true);
+        })
+        .finally(() => setSubmitting(false));
+    }, 0);
+    return () => window.clearTimeout(task);
+  }, [preview, resultReview, secondsLeft]);
   useEffect(() => {
     const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", syncFullscreen);

@@ -19,6 +19,10 @@ import { consumeRequestBudget } from "../../../../../../lib/rate-limit-server";
 type ImageRouteContext = { params: Promise<{ sectionId: string; asset: string }> };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const guestImageHeaders = {
+  ...examImageHeaders,
+  "cross-origin-resource-policy": "cross-origin",
+};
 
 async function guestImageAccess(request: Request, attemptId: string, sectionId: string) {
   const admin = guestServerClient();
@@ -58,10 +62,10 @@ async function handleImage(request: Request, context: ImageRouteContext) {
   const sectionId = decodeURIComponent(params.sectionId ?? "");
   const assetName = safeImageAsset(decodeURIComponent(params.asset ?? ""));
   const attemptId = new URL(request.url).searchParams.get("attemptId")?.trim() ?? "";
-  if (!assetName) return new Response(null, { status: 404, headers: examImageHeaders });
+  if (!assetName) return new Response(null, { status: 404, headers: guestImageHeaders });
 
   const admin = await guestImageAccess(request, attemptId, sectionId);
-  if (!admin) return new Response(null, { status: 404, headers: examImageHeaders });
+  if (!admin) return new Response(null, { status: 404, headers: guestImageHeaders });
   const budget = await consumeRequestBudget(
     admin,
     "guest_image",
@@ -69,7 +73,7 @@ async function handleImage(request: Request, context: ImageRouteContext) {
     { capacity: 120, refillSeconds: 1 },
   );
   const rateLimitHeaders = {
-    ...examImageHeaders,
+    ...guestImageHeaders,
     "content-type": "application/json; charset=utf-8",
     "retry-after": String(budget.retryAfterSeconds),
   };
@@ -80,14 +84,14 @@ async function handleImage(request: Request, context: ImageRouteContext) {
     return new Response(image.bytes as unknown as BodyInit, {
       status: 200,
       headers: {
-        ...examImageHeaders,
+        ...guestImageHeaders,
         "content-type": imageResponseContentType(image.contentType, assetName),
         "content-disposition": "inline",
         "content-length": String(image.bytes.byteLength),
       },
     });
   } catch {
-    return new Response(null, { status: 404, headers: examImageHeaders });
+    return new Response(null, { status: 404, headers: guestImageHeaders });
   }
 }
 

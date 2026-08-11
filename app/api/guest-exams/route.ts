@@ -408,7 +408,7 @@ export async function POST(request: Request) {
   const currentPhase = slotPhase(current.slot);
   const currentDeadline = new Date(attemptDeadline(current, current.attempt)).getTime();
   const pastDeadline = Number.isFinite(currentDeadline) && Date.now() > currentDeadline + 5_000;
-  if (current.attempt.status === "in_progress" && (currentPhase === "disabled" || pastDeadline)) {
+  if (current.attempt.status === "in_progress" && body.action !== "submit" && (currentPhase === "disabled" || pastDeadline)) {
     await admin.from("guest_exam_attempts").update({ status: "expired", submitted_at: new Date().toISOString(), duration_seconds: attemptDurationSeconds(current, current.attempt) }).eq("id", current.attempt.id).eq("status", "in_progress");
     if (body.action === "resume") return json({ error: "Thời gian làm bài đã kết thúc.", phase: currentPhase }, 410);
     return json({ error: "Thời gian làm bài đã kết thúc." }, 410);
@@ -443,7 +443,10 @@ export async function POST(request: Request) {
     return json({ saved: true, deadlineAt: attemptDeadline(current, current.attempt) });
   }
   if (body.action === "submit") {
-    const answerMap = safeAnswers(body.answers);
+    // A delayed browser timer must still be able to finalize the attempt. Once
+    // the five-second delivery allowance has passed, only score the last
+    // server-saved snapshot so late client edits can never extend exam time.
+    const answerMap = safeAnswers(pastDeadline || currentPhase === "disabled" ? current.attempt.answers : body.answers);
     const loaded = await loadGuestQuestions(admin, current.exam.id, Array.isArray(current.attempt.question_order) ? current.attempt.question_order : undefined, current.section?.id);
     const questions = applyGuestOrdering(loaded.questions, current.attempt.question_order, current.attempt.option_order);
     const questionIds = questions.map(question => question.id);

@@ -114,14 +114,31 @@ function isPrivateExamImage(url) {
   }
 }
 
+export function isGuestExamImage(url) {
+  if (url.startsWith("/api/guest-exams/images/")) return true;
+  try {
+    const parsed = new URL(url);
+    if (!parsed.pathname.startsWith("/api/guest-exams/images/")) return false;
+    return parsed.hostname === "api.mathremix.pro.vn"
+      || parsed.hostname === "mathremix.pro.vn"
+      || parsed.hostname === "www.mathremix.pro.vn"
+      || parsed.hostname === "localhost"
+      || parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 function QuestionImage({ url, width, align = "left", display = "inline", rowColumns = 0 }) {
   const PREVIEW_MIN_SCALE = 1;
   const PREVIEW_MAX_SCALE = 6;
   const [failed, setFailed] = useState(false);
   const privateImage = isPrivateExamImage(url);
+  const guestImage = isGuestExamImage(url);
+  const protectedImage = privateImage || guestImage;
   const filename = url.split("/").pop() || "exam-image.webp";
   const fallbackSrc = url.startsWith("http") || url.startsWith("/") ? url : `${LOCAL_IMAGE_ROOT}${filename}`;
-  const [src, setSrc] = useState(privateImage ? "" : fallbackSrc);
+  const [src, setSrc] = useState(protectedImage ? "" : fallbackSrc);
   const [preview, setPreview] = useState(false);
   const [previewTransform, setPreviewTransform] = useState({ scale: 1, x: 0, y: 0, rotate: 0, flipX: 1, flipY: 1 });
   const [dragging, setDragging] = useState(false);
@@ -137,17 +154,23 @@ function QuestionImage({ url, width, align = "left", display = "inline", rowColu
     // Reset the image state whenever the author changes the source URL.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setFailed(false);
-    if (!privateImage) {
+    if (!protectedImage) {
       setSrc(fallbackSrc);
       return () => undefined;
     }
     setSrc("");
     (async () => {
       try {
-        const response = await authenticatedFetch(url, {
-          headers: { accept: "image/*" },
-          cache: "no-store",
-        });
+        const response = guestImage
+          ? await fetch(url, {
+            credentials: "include",
+            headers: { accept: "image/*" },
+            cache: "no-store",
+          })
+          : await authenticatedFetch(url, {
+            headers: { accept: "image/*" },
+            cache: "no-store",
+          });
         if (!response.ok) throw new Error("image request failed");
         const blob = await response.blob();
         if (!blob.size) throw new Error("empty image");
@@ -166,7 +189,7 @@ function QuestionImage({ url, width, align = "left", display = "inline", rowColu
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [fallbackSrc, privateImage, url]);
+  }, [fallbackSrc, guestImage, protectedImage, url]);
 
   useEffect(() => {
     if (!preview) return undefined;

@@ -205,3 +205,33 @@ test("THPTQG guest links reuse the authenticated runner and safe result review",
   assert.match(resultComponent, /resultReview/);
   assert.match(resultComponent, /Xem lại đáp án/);
 });
+
+test("guest exam images carry the kíp cookie across the production API origin", async () => {
+  const [mathExam, thptqgRenderer, imageRoute] = await Promise.all([
+    readFile(new URL("../components/remixstudyedu/MathExam.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/thptqg/ThptqgExamRenderer.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/guest-exams/images/[sectionId]/[asset]/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(mathExam, /export function isGuestExamImage/);
+  assert.match(mathExam, /parsed\.hostname === "api\.mathremix\.pro\.vn"/);
+  assert.match(mathExam, /guestImage\s*\?\s*await fetch\(url,\s*\{[\s\S]*?credentials: "include"/);
+  assert.match(mathExam, /:\s*await authenticatedFetch\(url/);
+  assert.match(thptqgRenderer, /crossOrigin=\{isGuestExamImage\(question\.media_url\) \? "use-credentials" : undefined\}/);
+  assert.match(imageRoute, /const guestImageHeaders = \{[\s\S]*?"cross-origin-resource-policy": "cross-origin"/);
+  assert.match(imageRoute, /headers: guestImageHeaders/);
+});
+
+test("THPTQG timeout finalizes a delayed guest attempt without trusting late edits", async () => {
+  const [renderer, guestApi] = await Promise.all([
+    readFile(new URL("../components/thptqg/ThptqgExamRenderer.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/guest-exams/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(renderer, /deadlineAtRef = useRef<number \| null>\(null\)/);
+  assert.match(renderer, /deadlineAtRef\.current = Date\.now\(\) \+ Math\.max\(0, initialRemainingSeconds\) \* 1_000/);
+  assert.match(renderer, /Math\.ceil\(\(deadlineAt - Date\.now\(\)\) \/ 1_000\)/);
+  assert.match(renderer, /document\.addEventListener\("visibilitychange", updateRemainingTime\)/);
+  assert.match(renderer, /secondsLeft > 0 \|\| autoSubmitted\.current/);
+  assert.match(renderer, /submitRef\.current\(answersRef\.current\)/);
+  assert.match(guestApi, /body\.action !== "submit" && \(currentPhase === "disabled" \|\| pastDeadline\)/);
+  assert.match(guestApi, /safeAnswers\(pastDeadline \|\| currentPhase === "disabled" \? current\.attempt\.answers : body\.answers\)/);
+});
