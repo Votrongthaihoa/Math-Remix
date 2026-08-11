@@ -59,11 +59,6 @@ type Question = {
 type KeyRow = { question_id: string; correct_answer: string | string[]; explanation: string };
 type DataState = { rooms: Room[]; exams: Exam[]; sections: Section[]; questions: Question[]; keys: KeyRow[] };
 
-const ROOM_SELECT = "id,title,description,exam_type,access_mode,registration_start,registration_end,exam_start,exam_end,published,sort_order,created_at";
-const EXAM_SELECT = "id,room_id,title,description,dashboard_title,exam_type,mode,duration_minutes,structure_config,published,sort_order,created_at";
-const SECTION_SELECT = "id,exam_id,title,duration_minutes,subject_code,source_latex,sort_order";
-const QUESTION_SELECT = "id,section_id,prompt,question_type,options,points,sort_order,passage,media_url,instruction,latex_source,solution_source";
-
 type PreviewHeaderSection = { id: string; title: string };
 
 function PreviewHeaderControls({ sections = [], activeSectionId = "", onSectionChange, mode, onModeChange, onClose, hsaLayout = false, hsaCombinationCode, onHsaCombinationChange }: { sections?: PreviewHeaderSection[]; activeSectionId?: string; onSectionChange?: (sectionId: string) => void; mode: "exam" | "answer"; onModeChange: (mode: "exam" | "answer") => void; onClose: () => void; hsaLayout?: boolean; hsaCombinationCode?: string; onHsaCombinationChange?: (code: string) => void }) {
@@ -1343,34 +1338,31 @@ function storedPreviewItems(section: Section, data: DataState) {
 }
 
 async function loadLiveExamPreviewDraft(examId: string): Promise<ExamPreviewDraft> {
-  if (!supabase) throw new Error("Chưa cấu hình Supabase.");
-  const examResult = await supabase.from("exams").select(EXAM_SELECT).eq("id", examId).single();
-  if (examResult.error || !examResult.data) throw new Error(explainExamSchemaError(examResult.error, "Không thể tải đề thi xem trước."));
-  const exam = examResult.data as Exam;
-  const roomResult = await supabase.from("exam_rooms").select(ROOM_SELECT).eq("id", exam.room_id).single();
-  if (roomResult.error || !roomResult.data) throw new Error(explainExamSchemaError(roomResult.error, "Không thể tải phòng khảo thí."));
-  const sectionResult = await supabase.from("exam_sections").select(SECTION_SELECT).eq("exam_id", exam.id).order("sort_order");
-  if (sectionResult.error) throw new Error(explainExamSchemaError(sectionResult.error, "Không thể tải các phần thi."));
-  const sections = (sectionResult.data ?? []) as Section[];
+  const response = await authenticatedFetch(`/api/admin/exam-content?examId=${encodeURIComponent(examId)}`, {
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  });
+  const payload = await response.json().catch(() => ({})) as Partial<DataState> & { error?: string };
+  if (!response.ok) throw new Error(payload.error || "Không thể tải đề thi xem trước.");
+  const data: DataState = {
+    rooms: Array.isArray(payload.rooms) ? payload.rooms : [],
+    exams: Array.isArray(payload.exams) ? payload.exams : [],
+    sections: Array.isArray(payload.sections) ? payload.sections : [],
+    questions: Array.isArray(payload.questions) ? payload.questions : [],
+    keys: Array.isArray(payload.keys) ? payload.keys : [],
+  };
+  const exam = data.exams.find(item => item.id === examId);
+  if (!exam) throw new Error("Không tìm thấy đề thi để xem trước.");
+  const room = data.rooms.find(item => item.id === exam.room_id);
+  if (!room) throw new Error("Không tìm thấy phòng khảo thí.");
+  const sections = data.sections.filter(section => section.exam_id === exam.id).sort((left, right) => left.sort_order - right.sort_order);
   if (!sections.length) throw new Error("Đề thi chưa có phần để xem trước.");
-  const sectionIds = sections.map(section => section.id);
-  const questionResult = sectionIds.length
-    ? await supabase.from("exam_questions").select(QUESTION_SELECT).in("section_id", sectionIds).order("sort_order")
-    : { data: [], error: null };
-  if (questionResult.error) throw new Error(explainExamSchemaError(questionResult.error, "Không thể tải câu hỏi của đề."));
-  const questions = (questionResult.data ?? []) as Question[];
-  const questionIds = questions.map(question => question.id);
-  const keyResult = questionIds.length
-    ? await supabase.from("exam_question_keys").select("question_id,correct_answer,explanation").in("question_id", questionIds)
-    : { data: [], error: null };
-  if (keyResult.error) throw new Error(explainExamSchemaError(keyResult.error, "Không thể tải đáp án của đề."));
-  const data: DataState = { rooms: [roomResult.data as Room], exams: [exam], sections, questions, keys: (keyResult.data ?? []) as KeyRow[] };
   return {
     version: 2,
-    examType: normalizeExamType((roomResult.data as Room).exam_type || exam.exam_type),
+    examType: normalizeExamType(room.exam_type || exam.exam_type),
     examTitle: exam.title,
     dashboardTitle: exam.dashboard_title ?? "",
-    roomTitle: (roomResult.data as Room).title,
+    roomTitle: room.title,
     durationMinutes: exam.duration_minutes,
     activeSectionId: sections[0]?.id ?? "",
     sections: sections.map(section => ({

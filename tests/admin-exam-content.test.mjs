@@ -18,10 +18,20 @@ test("admin exam workspace reads protected content through an authenticated serv
   assert.match(route, /from\("exam_question_keys"\)/);
   assert.match(route, /private, no-store/);
   assert.match(workspace, /authenticatedFetch\("\/api\/admin\/exam-content"/);
+  assert.match(route, /searchParams\.get\("examId"\)/);
+  assert.match(route, /from\("exams"\)\.select\(EXAM_SELECT\)\.eq\("id", examId\)/);
+  assert.match(workspace, /authenticatedFetch\(`\/api\/admin\/exam-content\?examId=\$\{encodeURIComponent\(examId\)\}`/);
 
   const loadStart = workspace.indexOf("const load = useCallback");
   const loadEnd = workspace.indexOf("const isPreviewRoute", loadStart);
   const loadSource = workspace.slice(loadStart, loadEnd);
   assert.doesNotMatch(loadSource, /supabase\.from\("exam_questions"\)/);
   assert.doesNotMatch(loadSource, /supabase\.from\("exam_question_keys"\)/);
+
+  const previewLoadStart = workspace.indexOf("async function loadLiveExamPreviewDraft");
+  const previewLoadEnd = workspace.indexOf("function signalExamPreviewRefresh", previewLoadStart);
+  const previewLoadSource = workspace.slice(previewLoadStart, previewLoadEnd);
+  assert.doesNotMatch(previewLoadSource, /supabase\.from\("exam_sections"\)/);
+  assert.doesNotMatch(previewLoadSource, /supabase\.from\("exam_questions"\)/);
+  assert.doesNotMatch(previewLoadSource, /supabase\.from\("exam_question_keys"\)/);
 });
