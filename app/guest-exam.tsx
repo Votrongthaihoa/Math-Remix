@@ -29,18 +29,64 @@ function formatDuration(seconds: number) {
   return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
 }
 
-function entryTime(value: string) {
+function entryTime(value: string | number) {
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—";
 }
 
-function entryDate(value: string) {
+function entryClock(value: string | number) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
+}
+
+function entryDate(value: string | number) {
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? date.toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 }
 
+function initialServerTime(serverTime?: string) {
+  const value = new Date(serverTime ?? "").getTime();
+  return Number.isFinite(value) ? value : Date.now();
+}
+
+function GuestLinkTimePanel({ serverTime, endsAt }: { serverTime?: string; endsAt: string }) {
+  const [now, setNow] = useState(() => initialServerTime(serverTime));
+  const serverStartedAt = useRef(now);
+
+  useEffect(() => {
+    const clientStartedAt = Date.now();
+    const timer = window.setInterval(() => setNow(serverStartedAt.current + Date.now() - clientStartedAt), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return <section className="guest-link-time-panel" aria-label="Thời gian hiệu lực của link thi">
+    <div><Clock3 aria-hidden="true"/><span><small>Thời gian hiện tại</small><time dateTime={new Date(now).toISOString()}><b>{entryClock(now)}</b><em>{entryDate(now)}</em></time></span></div>
+    <div><CalendarDays aria-hidden="true"/><span><small>Link hết hạn</small><time dateTime={endsAt}><b>{entryTime(endsAt)}</b><em>{entryDate(endsAt)}</em></time></span></div>
+  </section>;
+}
+
 function display(value: unknown) {
   return Array.isArray(value) ? value.join(", ") : value == null ? "" : String(value);
+}
+
+function guestMediaUrl(value: string | null | undefined) {
+  const mediaUrl = value?.trim();
+  if (!mediaUrl) return value ?? null;
+  const resolved = apiRequestUrl(mediaUrl);
+  return typeof resolved === "string" ? resolved : resolved instanceof URL ? resolved.toString() : mediaUrl;
+}
+
+function questionsWithGuestMedia(questions: Question[]) {
+  return questions.map(question => ({ ...question, media_url: guestMediaUrl(question.media_url) }));
+}
+
+function resultWithGuestMedia(result: Result) {
+  return {
+    ...result,
+    questions: result.questions?.map(row => row.question
+      ? { ...row, question: { ...row.question, media_url: guestMediaUrl(row.question.media_url) } }
+      : row),
+  };
 }
 
 function guestStorageKey(token: string) { return `guest-exam-attempt:${token}`; }
@@ -72,7 +118,7 @@ function attemptSecondsLeft(attempt: Attempt) {
 
 async function api<T>(body: Record<string, unknown>) {
   const request = async () => {
-    const response = await fetch(apiRequestUrl("/api/guest-exams"), { method: "POST", headers: { "content-type": "application/json" }, cache: "no-store", body: JSON.stringify(body) });
+    const response = await fetch(apiRequestUrl("/api/guest-exams"), { method: "POST", headers: { "content-type": "application/json" }, cache: "no-store", credentials: "include", body: JSON.stringify(body) });
     const payload = await response.json().catch(() => null) as T & { error?: string } | null;
     if (!response.ok) {
       const error = Object.assign(new Error(payload?.error || "Không thể kết nối kíp thi."), {
@@ -109,7 +155,7 @@ export default function GuestExamModule({ token }: { token: string }) {
   const load = useCallback(async () => {
     setPhase("loading"); setError("");
     try {
-      const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store" });
+      const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store", credentials: "include" });
       const payload = await response.json() as Meta & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Link thi không tồn tại.");
       setMeta(payload);
@@ -121,14 +167,14 @@ export default function GuestExamModule({ token }: { token: string }) {
           if (resumed.result) {
             if (resumed.result.identity && Object.keys(resumed.result.identity).length) setIdentity(resumed.result.identity);
             window.localStorage.setItem(guestResultStorageKey(token), resumed.result.attempt.id);
-            setResult(resumed.result); setPhase("submitted"); return;
+            setResult(resultWithGuestMedia(resumed.result)); setPhase("submitted"); return;
           }
           if (resumed.attempt && resumed.questions) {
             progressVersion.current = resumed.attempt.progress_version ?? 0;
             setFlaggedQuestions(resumed.attempt.flagged_questions ?? []);
             setNetworkState(resumed.attempt.network_state ?? "online");
             if (resumed.attempt.identity && Object.keys(resumed.attempt.identity).length) setIdentity(resumed.attempt.identity);
-            setAttempt(resumed.attempt); setSecondsLeft(attemptSecondsLeft(resumed.attempt)); setAnswers(resumed.attempt.answers ?? {}); setQuestions(resumed.questions); setPhase("exam"); return;
+            setAttempt(resumed.attempt); setSecondsLeft(attemptSecondsLeft(resumed.attempt)); setAnswers(resumed.attempt.answers ?? {}); setQuestions(questionsWithGuestMedia(resumed.questions)); setPhase("exam"); return;
           }
         } catch { window.localStorage.removeItem(guestStorageKey(token)); }
       }
@@ -138,7 +184,7 @@ export default function GuestExamModule({ token }: { token: string }) {
           const resumed = await api<{ result?: Result }>({ action: "resume", token, attemptId: savedResultId });
           if (resumed.result) {
             if (resumed.result.identity && Object.keys(resumed.result.identity).length) setIdentity(resumed.result.identity);
-            setResult(resumed.result); setPhase("submitted"); return;
+            setResult(resultWithGuestMedia(resumed.result)); setPhase("submitted"); return;
           }
         } catch {
           window.localStorage.removeItem(guestResultStorageKey(token));
@@ -163,7 +209,7 @@ export default function GuestExamModule({ token }: { token: string }) {
     let active = true;
     const refreshPhase = async () => {
       try {
-        const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store" });
+        const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store", credentials: "include" });
         if (!response.ok || !active) return;
         const payload = await response.json() as Meta;
         if (active) setMeta(payload);
@@ -189,7 +235,7 @@ export default function GuestExamModule({ token }: { token: string }) {
       setFlaggedQuestions(payload.attempt.flagged_questions ?? []);
       setNetworkState(payload.attempt.network_state ?? "online");
       if (payload.attempt.identity && Object.keys(payload.attempt.identity).length) setIdentity(payload.attempt.identity);
-      setAttempt(payload.attempt); setSecondsLeft(attemptSecondsLeft(payload.attempt)); setQuestions(payload.questions); setAnswers(payload.attempt.answers ?? {}); setPhase("exam");
+      setAttempt(payload.attempt); setSecondsLeft(attemptSecondsLeft(payload.attempt)); setQuestions(questionsWithGuestMedia(payload.questions)); setAnswers(payload.attempt.answers ?? {}); setPhase("exam");
       window.localStorage.setItem(guestStorageKey(token), payload.attempt.id);
       window.localStorage.removeItem(guestResultStorageKey(token));
       window.localStorage.setItem(guestIdentityStorageKey(token), JSON.stringify(identity));
@@ -215,7 +261,7 @@ export default function GuestExamModule({ token }: { token: string }) {
     submitStarted.current = true; setBusy(true); setError("");
     try {
       const payload = await api<{ result: Result }>({ action: "submit", token, attemptId: attempt.id, answers: nextAnswers ?? answers, flaggedQuestions });
-      setResult(payload.result); setPhase("submitted"); await leaveExamFullscreen(); window.localStorage.setItem(guestResultStorageKey(token), payload.result.attempt.id); window.localStorage.removeItem(guestStorageKey(token)); window.localStorage.removeItem(guestIdentityStorageKey(token));
+      setResult(resultWithGuestMedia(payload.result)); setPhase("submitted"); await leaveExamFullscreen(); window.localStorage.setItem(guestResultStorageKey(token), payload.result.attempt.id); window.localStorage.removeItem(guestStorageKey(token)); window.localStorage.removeItem(guestIdentityStorageKey(token));
     } catch (value) {
       submitStarted.current = false;
       const message = value instanceof Error ? value.message : "Không thể nộp bài.";
@@ -321,7 +367,7 @@ function GuestIdentityForm({ meta, identity, password, error, busy, onChange, on
   const thptqg = examType === "THPTQG";
   const brandTitle = thptqg ? "KỲ THI TỐT NGHIỆP THPT" : examType === "TSA" ? "ĐÁNH GIÁ TƯ DUY TSA" : examType === "HSA" ? "ĐÁNH GIÁ NĂNG LỰC HSA" : examType === "VSAT" ? "KỲ THI V-SAT" : "LINK THI KÍP NGẮN HẠN";
   const brandType = thptqg ? "THPTQG" : examType;
-  return <main className={`guest-exam-page guest-entry-page guest-entry-${examType.toLowerCase()}`}><div className="guest-entry-glow guest-entry-glow-one" aria-hidden="true"/><div className="guest-entry-glow guest-entry-glow-two" aria-hidden="true"/><div className="guest-entry-shell"><header className="guest-exam-hero"><div className="guest-hero-topline"><span className="guest-hero-kicker"><i aria-hidden="true"/>{brandTitle}</span><span className="guest-hero-type">{brandType}</span></div><div className="guest-hero-copy"><div><h1>{meta.exam.title}</h1>{meta.section?.title && <strong className="guest-exam-subject">Môn thi: {meta.section.title}</strong>}<p>{meta.exam.description || (thptqg ? "Bài thi theo cấu trúc kỳ thi tốt nghiệp THPT." : "Nhập thông tin để bắt đầu bài thi.")}</p></div><div className={`guest-hero-mark${thptqg ? " has-brand-logo" : ""}`} aria-hidden="true">{thptqg ? <img src="/logo_thptqg.svg" alt="" /> : <><ShieldCheck/><small>THI ONLINE</small></>}</div></div><div className="guest-hero-facts"><div><Clock3/><span><small>Khung giờ</small><b>{entryTime(meta.slot.starts_at)} – {entryTime(meta.slot.ends_at)}</b><em>{entryDate(meta.slot.starts_at)}</em></span></div><div><CalendarDays/><span><small>Phòng thi</small><b>{meta.room.title}</b><em>{meta.section?.title || "Toàn bộ bài thi"}</em></span></div><div><UserRound/><span><small>Trạng thái</small><b>{phaseLabel}</b><em>Không cần tài khoản</em></span></div></div></header><section className="guest-card guest-identity-card"><div className="guest-card-heading"><span className="guest-step-badge">01</span><div className="guest-card-heading-copy"><div className="guest-heading-line"><h2>Xác thực thông tin học sinh</h2><span className="guest-secure-label"><ShieldCheck/> Bảo mật</span></div><p>Điền chính xác thông tin để hệ thống ghi nhận bài làm và trả kết quả cho đúng thí sinh.</p></div></div><div className="guest-form-intro"><span>THÔNG TIN DỰ THI</span><p>Không cần đăng ký tài khoản. Vui lòng kiểm tra lại trước khi bắt đầu.</p></div><form onSubmit={onSubmit}><div className="guest-identity-fields">{meta.settings.identityFields.map(field => <label key={field.key}><span className="guest-field-label">{field.label}{field.required && <em>*</em>}</span><span className="guest-input-shell"><UserRound aria-hidden="true"/><input type={field.type} value={identity[field.key] ?? ""} onChange={event => onChange(field.key, event.target.value)} required={field.required} autoComplete={field.type === "email" ? "email" : field.key.includes("name") ? "name" : "off"} /></span></label>)}</div>{meta.slot.has_password && <label className="guest-password-field"><span className="guest-field-label">Mật khẩu đề thi<em>*</em></span><span className="guest-input-shell"><KeyRound aria-hidden="true"/><input type="password" value={password} onChange={event => onPassword(event.target.value)} required autoComplete="current-password" /></span></label>}{error && <p className="guest-error">{error}</p>}<div className="guest-form-footer"><button type="submit" className="guest-primary" disabled={busy || meta.phase !== "open"}><span>{actionLabel}</span><ArrowRight/></button><small><LockKeyhole/> Thông tin chỉ được dùng để ghi nhận bài làm của kíp thi.</small></div></form></section></div></main>;
+  return <main className={`guest-exam-page guest-entry-page guest-entry-${examType.toLowerCase()}`}><div className="guest-entry-glow guest-entry-glow-one" aria-hidden="true"/><div className="guest-entry-glow guest-entry-glow-two" aria-hidden="true"/><div className="guest-entry-shell"><header className="guest-exam-hero"><div className="guest-hero-topline"><span className="guest-hero-kicker"><i aria-hidden="true"/>{brandTitle}</span><span className="guest-hero-type">{brandType}</span></div><div className="guest-hero-copy"><div><h1>{meta.exam.title}</h1>{meta.section?.title && <strong className="guest-exam-subject">Môn thi: {meta.section.title}</strong>}<p>{meta.exam.description || (thptqg ? "Bài thi theo cấu trúc kỳ thi tốt nghiệp THPT." : "Nhập thông tin để bắt đầu bài thi.")}</p></div><div className={`guest-hero-mark${thptqg ? " has-brand-logo" : ""}`} aria-hidden="true">{thptqg ? <img src="/logo_thptqg.svg" alt="" /> : <><ShieldCheck/><small>THI ONLINE</small></>}</div></div><div className="guest-hero-facts"><div><Clock3 aria-hidden="true"/><span><small>Khung giờ</small><b>{entryTime(meta.slot.starts_at)} – {entryTime(meta.slot.ends_at)}</b><em>{entryDate(meta.slot.starts_at)}</em></span></div><div><CalendarDays aria-hidden="true"/><span><small>Phòng thi</small><b>{meta.room.title}</b><em>{meta.section?.title || "Toàn bộ bài thi"}</em></span></div><div><UserRound aria-hidden="true"/><span><small>Trạng thái</small><b>{phaseLabel}</b><em>Không cần tài khoản</em></span></div></div><GuestLinkTimePanel serverTime={meta.serverTime} endsAt={meta.slot.ends_at}/></header><section className="guest-card guest-identity-card"><div className="guest-card-heading"><span className="guest-step-badge">01</span><div className="guest-card-heading-copy"><div className="guest-heading-line"><h2>Xác thực thông tin học sinh</h2><span className="guest-secure-label"><ShieldCheck aria-hidden="true"/> Bảo mật</span></div><p>Điền chính xác thông tin để hệ thống ghi nhận bài làm và trả kết quả cho đúng thí sinh.</p></div></div><div className="guest-form-intro"><span>THÔNG TIN DỰ THI</span><p>Không cần đăng ký tài khoản. Vui lòng kiểm tra lại trước khi bắt đầu.</p></div><form onSubmit={onSubmit}><div className="guest-identity-fields">{meta.settings.identityFields.map(field => <label key={field.key}><span className="guest-field-label">{field.label}{field.required && <em>*</em>}</span><span className="guest-input-shell"><UserRound aria-hidden="true"/><input type={field.type} value={identity[field.key] ?? ""} onChange={event => onChange(field.key, event.target.value)} required={field.required} autoComplete={field.type === "email" ? "email" : field.key.includes("name") ? "name" : "off"} /></span></label>)}</div>{meta.slot.has_password && <label className="guest-password-field"><span className="guest-field-label">Mật khẩu đề thi<em>*</em></span><span className="guest-input-shell"><KeyRound aria-hidden="true"/><input type="password" value={password} onChange={event => onPassword(event.target.value)} required autoComplete="current-password" /></span></label>}{error && <p className="guest-error">{error}</p>}<div className="guest-form-footer"><button type="submit" className="guest-primary" disabled={busy || meta.phase !== "open"}><span>{actionLabel}</span><ArrowRight aria-hidden="true"/></button><small><LockKeyhole aria-hidden="true"/> Thông tin chỉ được dùng để ghi nhận bài làm của kíp thi.</small></div></form></section></div></main>;
 }
 
 function GuestThptqgConfirmation({ meta, candidateName, error, busy, onStart, onExit }: { meta: Meta; candidateName: string; error: string; busy: boolean; onStart: () => void; onExit: () => void }) {

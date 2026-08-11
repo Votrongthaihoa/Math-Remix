@@ -330,9 +330,9 @@
 .ui-shell.admin-app.product-shell .admin-session-wizard input:focus-visible,
 .ui-shell.admin-app.product-shell .admin-session-wizard select:focus-visible { outline: 2px solid #1c668f; outline-offset: 2px; }
 
-.ui-shell.admin-app.product-shell .admin-session-result-card { display: grid; grid-template-columns: minmax(230px, .7fr) minmax(0, 1.3fr); align-items: center; gap: 24px; padding: 22px; border: 1px solid #d9eaf1; border-radius: 14px; background: #f7fbfd; }
-.ui-shell.admin-app.product-shell .admin-session-qr { display: grid; min-height: 230px; place-items: center; border: 1px solid var(--wizard-line); border-radius: 11px; background: #fff; color: var(--wizard-blue); }
-.ui-shell.admin-app.product-shell .admin-session-qr img { display: block; max-width: 100%; height: auto; }
+.ui-shell.admin-app.product-shell .admin-session-result-card { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 20px; padding: 22px; border: 1px solid #d9eaf1; border-radius: 14px; background: #f7fbfd; }
+.ui-shell.admin-app.product-shell .admin-session-qr { display: inline-grid; width: fit-content; max-width: 100%; min-height: 0; place-items: center; justify-self: start; padding: 8px; border: 1px solid var(--wizard-line); border-radius: 11px; background: #fff; color: var(--wizard-blue); }
+.ui-shell.admin-app.product-shell .admin-session-qr img { display: block; width: 220px; max-width: 100%; height: auto; outline: 1px solid oklch(0 0 0 / .1); border-radius: 3px; }
 .ui-shell.admin-app.product-shell .admin-session-result-copy { min-width: 0; }
 .ui-shell.admin-app.product-shell .admin-session-result-copy h2 { margin: 8px 0 6px; color: var(--wizard-ink); font-size: 19px; text-wrap: balance; }
 .ui-shell.admin-app.product-shell .admin-session-result-copy p { margin: 0 0 13px; color: var(--wizard-muted); font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
@@ -352,7 +352,7 @@
   .ui-shell.admin-app.product-shell .admin-session-rule-group { grid-template-columns: 1fr; gap: 12px; }
   .ui-shell.admin-app.product-shell .admin-session-rule-group .admin-session-subject-field,
   .ui-shell.admin-app.product-shell .admin-session-rule-group .admin-session-password-field { grid-column: auto; }
-  .ui-shell.admin-app.product-shell .admin-session-qr { min-height: 220px; }
+  .ui-shell.admin-app.product-shell .admin-session-qr { justify-self: center; }
 }
 
 @media (max-width: 600px) {
