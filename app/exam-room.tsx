@@ -10,6 +10,7 @@ import {
   Maximize2, Play, RotateCcw, Search, Send, Timer, UserRound, X
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
+import { preloadAuthenticatedExamImages } from "../lib/exam-image-client";
 import { retryWithBackoff } from "../lib/request-retry";
 import { answersMatch, hasAnswerValue, isExamAnswerComplete } from "../lib/exam-answers";
 import {
@@ -747,6 +748,17 @@ function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navi
           payload = await requestOnce();
         }
         if (contentContextRef.current !== requestContext || payload.attemptId !== attempt.id || payload.sectionId !== activeSection.id) return;
+        // The server has authorized and encrypted only this small question
+        // window. Warm its protected images now so navigation does not wait on
+        // the image authorization + R2 path after the question is displayed.
+        const preloadOrder = [...payload.questions].sort((left, right) => {
+          const leftIndex = Number(left.index ?? 0);
+          const rightIndex = Number(right.index ?? 0);
+          if (leftIndex === index) return -1;
+          if (rightIndex === index) return 1;
+          return Math.abs(leftIndex - index) - Math.abs(rightIndex - index);
+        });
+        preloadAuthenticatedExamImages(preloadOrder);
         const additions = Object.fromEntries(payload.questions
           .filter(question => Number.isInteger(question.index) && Number(question.index) >= 0 && Number(question.index) < activeQuestionCount)
           .map(question => [Number(question.index), question]));

@@ -209,15 +209,17 @@ test("THPTQG guest links reuse the authenticated runner and safe result review",
 });
 
 test("guest exam images carry the kíp cookie across the production API origin", async () => {
-  const [mathExam, thptqgRenderer, imageRoute] = await Promise.all([
+  const [mathExam, thptqgRenderer, imageRoute, imageClient] = await Promise.all([
     readFile(new URL("../components/remixstudyedu/MathExam.jsx", import.meta.url), "utf8"),
     readFile(new URL("../components/thptqg/ThptqgExamRenderer.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/guest-exams/images/[sectionId]/[asset]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/exam-image-client.ts", import.meta.url), "utf8"),
   ]);
   assert.match(mathExam, /export function isGuestExamImage/);
   assert.match(mathExam, /parsed\.hostname === "api\.mathremix\.pro\.vn"/);
   assert.match(mathExam, /guestImage\s*\?\s*await fetch\(url,\s*\{[\s\S]*?credentials: "include"/);
-  assert.match(mathExam, /:\s*await authenticatedFetch\(url/);
+  assert.match(mathExam, /:\s*await loadAuthenticatedExamImage\(url\)/);
+  assert.match(imageClient, /authenticatedFetch\(url/);
   assert.match(thptqgRenderer, /crossOrigin=\{isGuestExamImage\(question\.media_url\) \? "use-credentials" : undefined\}/);
   assert.match(imageRoute, /const guestImageHeaders = \{[\s\S]*?"cross-origin-resource-policy": "cross-origin"/);
   assert.match(imageRoute, /headers: guestImageHeaders/);

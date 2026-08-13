@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import katex from "katex";
-import { authenticatedFetch } from "../../lib/auth-client";
+import { isAuthenticatedExamImage, loadAuthenticatedExamImage, preloadAuthenticatedExamImages } from "../../lib/exam-image-client";
 import { alphabeticLabel, formatLatexAnswerForDisplay, LATEX_TABLE_ALIGN_END, LATEX_TABLE_ALIGN_START, LATEX_TABLE_COLSPAN_END, LATEX_TABLE_COLSPAN_START, LATEX_TABLE_META_END, LATEX_TABLE_META_START, LATEX_TABLE_ROWSPAN_END, LATEX_TABLE_ROWSPAN_START, normalizeLatexContent } from "../../lib/exam-latex";
 import "katex/dist/katex.min.css";
 import "./math-exam.css";
@@ -103,17 +103,6 @@ function MathToken({ value, displayStyle = false }) {
   return <span className={`math-token ${isDisplayMath ? "math-token-display" : ""}`} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-function isPrivateExamImage(url) {
-  if (url.startsWith("/api/exam-images/")) return true;
-  if (typeof window === "undefined") return false;
-  try {
-    const parsed = new URL(url, window.location.href);
-    return parsed.origin === window.location.origin && parsed.pathname.startsWith("/api/exam-images/");
-  } catch {
-    return false;
-  }
-}
-
 export function isGuestExamImage(url) {
   if (url.startsWith("/api/guest-exams/images/")) return true;
   try {
@@ -133,7 +122,7 @@ function QuestionImage({ url, width, align = "left", display = "inline", rowColu
   const PREVIEW_MIN_SCALE = 1;
   const PREVIEW_MAX_SCALE = 6;
   const [failed, setFailed] = useState(false);
-  const privateImage = isPrivateExamImage(url);
+  const privateImage = isAuthenticatedExamImage(url);
   const guestImage = isGuestExamImage(url);
   const protectedImage = privateImage || guestImage;
   const filename = url.split("/").pop() || "exam-image.webp";
@@ -161,18 +150,16 @@ function QuestionImage({ url, width, align = "left", display = "inline", rowColu
     setSrc("");
     (async () => {
       try {
-        const response = guestImage
+        const blob = guestImage
           ? await fetch(url, {
             credentials: "include",
             headers: { accept: "image/*" },
             cache: "default",
+          }).then(async response => {
+            if (!response.ok) throw new Error("image request failed");
+            return response.blob();
           })
-          : await authenticatedFetch(url, {
-            headers: { accept: "image/*" },
-            cache: "default",
-          });
-        if (!response.ok) throw new Error("image request failed");
-        const blob = await response.blob();
+          : await loadAuthenticatedExamImage(url);
         if (!blob.size) throw new Error("empty image");
         const nextUrl = URL.createObjectURL(blob);
         if (cancelled) {
@@ -1077,6 +1064,9 @@ export default function MathExam({ onSubmit, onProgress, onQuestionRequest, part
   const currentQuestion = questions[currentIndex];
   const currentReviewStatus = answerPreview ? reviewStatuses[currentIndex] || "unanswered" : "";
   const bookmarkDisabled = readOnly && !allowBookmarkInReadOnly;
+  useEffect(() => {
+    preloadAuthenticatedExamImages(questions.slice(currentIndex, currentIndex + 5));
+  }, [currentIndex, questions]);
   const groupedQuestions = currentQuestion?._groupId ? questions.filter((question) => question._groupId === currentQuestion._groupId) : null;
   const isGroupedPart = Boolean(groupedQuestions);
   const groupStartIndex = groupedQuestions ? questions.findIndex((question) => question.id === groupedQuestions[0].id) : currentIndex;

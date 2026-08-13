@@ -1,6 +1,7 @@
 import { streamR2Object } from "../../../../../lib/r2-server";
 import {
   EXAM_IMAGE_MAX_STORED_BYTES,
+  EXAM_IMAGE_SECTION_PATTERN,
   examImageAssetHeaders,
   examImageHeaders,
   examImageKey,
@@ -19,10 +20,15 @@ export async function GET(request: Request, context: ImageRouteContext) {
   const params = await context.params;
   const sectionId = decodeURIComponent(params.sectionId ?? "");
   const assetName = safeImageAsset(decodeURIComponent(params.asset ?? ""));
-  if (!assetName) return new Response(null, { status: 404, headers: examImageHeaders });
+  if (!EXAM_IMAGE_SECTION_PATTERN.test(sectionId) || !assetName) return new Response(null, { status: 404, headers: examImageHeaders });
 
-  const access = await loadExamSectionAccess(authentication.admin, authentication.user, sectionId);
-  if (!access) return new Response(null, { status: 404, headers: examImageHeaders });
+  // Active admins already passed server-side account and role validation. They
+  // may preview draft assets, so skip the student-only section/exam/room
+  // visibility waterfall. Students still require the complete access check.
+  if (authentication.user.role !== "admin") {
+    const access = await loadExamSectionAccess(authentication.admin, authentication.user, sectionId);
+    if (!access) return new Response(null, { status: 404, headers: examImageHeaders });
+  }
 
   try {
     const image = await streamR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);

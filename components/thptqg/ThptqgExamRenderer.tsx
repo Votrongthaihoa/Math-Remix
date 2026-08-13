@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Computer, FilePenLine, List, Maximize2, Menu, Timer, ZoomIn, ZoomOut, X } from "lucide-react";
 import { isGuestExamImage, RichQuestionContent as BaseRichQuestionContent } from "../remixstudyedu/MathExam";
+import { preloadAuthenticatedExamImages } from "../../lib/exam-image-client";
 import { formatLatexAnswerForDisplay, latexPartInstruction, normalizeLatexContent, resolveBaidocQuestionRange, type LatexPartNumber } from "../../lib/exam-latex";
 import { positionalOptionParts } from "../../lib/exam-option-display";
 import { isExamAnswerComplete } from "../../lib/exam-answers";
@@ -446,6 +447,11 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
   const displayMeta = useMemo(() => questionDisplayMeta(questions, resetQuestionIndex), [questions, resetQuestionIndex]);
   const passageGroups = useMemo(() => buildPassageGroups(questions, displayMeta), [displayMeta, questions]);
   const currentQuestion = questions[current];
+  useEffect(() => {
+    if (preview || resultReview) {
+      preloadAuthenticatedExamImages(questions.slice(current, current + 5));
+    }
+  }, [current, preview, questions, resultReview]);
   const currentMeta = displayMeta[current] ?? { number: current + 1 };
   const currentPassageGroup = useMemo(
     () => passageGroups.find(group => group.items.some(item => item.index === current)),
