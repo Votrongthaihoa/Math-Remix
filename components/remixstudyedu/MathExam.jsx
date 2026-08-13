@@ -165,11 +165,11 @@ function QuestionImage({ url, width, align = "left", display = "inline", rowColu
           ? await fetch(url, {
             credentials: "include",
             headers: { accept: "image/*" },
-            cache: "no-store",
+            cache: "default",
           })
           : await authenticatedFetch(url, {
             headers: { accept: "image/*" },
-            cache: "no-store",
+            cache: "default",
           });
         if (!response.ok) throw new Error("image request failed");
         const blob = await response.blob();
@@ -293,13 +293,13 @@ function QuestionImage({ url, width, align = "left", display = "inline", rowColu
   };
   return <>
     <span className={`question-image-wrap ${rowColumns > 1 ? "row-item" : display === "block" ? "block" : "inline"} align-${align}`} style={{ width: wrapperWidth }}>
-      <span className="question-image-content"><img className="question-image" src={src} alt="Minh họa câu hỏi" onError={() => setFailed(true)} /></span>
+      <span className="question-image-content"><img className="question-image" src={src} alt="Minh họa câu hỏi" decoding="async" onError={() => setFailed(true)} /></span>
       <button ref={previewTriggerRef} type="button" className="question-image-zoom" aria-label="Phóng to ảnh" aria-haspopup="dialog" aria-expanded={preview} data-tooltip="Phóng to ảnh" onClick={(event) => { event.stopPropagation(); resetPreviewTransform(); setPreview(true); }}><ExamIcon name="zoom" size={18} /></button>
     </span>
     {preview && <div ref={previewDialogRef} className="question-image-preview" role="dialog" aria-modal="true" aria-label="Xem trước ảnh" tabIndex={-1} onMouseDown={(event) => { if (event.target === event.currentTarget) setPreview(false); }}>
       <button ref={previewCloseRef} type="button" className="question-image-preview-close" aria-label="Đóng ảnh" onClick={() => setPreview(false)}><ExamIcon name="close" /></button>
       <div ref={previewStageRef} className={`question-image-preview-stage ${previewTransform.scale > PREVIEW_MIN_SCALE ? "can-pan" : ""} ${dragging ? "is-panning" : ""}`} onWheel={zoomAtPoint} onPointerDown={startPan} onPointerMove={movePan} onPointerUp={endPan} onPointerCancel={endPan}>
-        <img src={src} alt="Ảnh xem trước" draggable="false" style={{ transform: `translate3d(${previewTransform.x}px, ${previewTransform.y}px, 0) rotate(${previewTransform.rotate}deg) scale(${previewTransform.scale * previewTransform.flipX}, ${previewTransform.scale * previewTransform.flipY})` }} />
+        <img src={src} alt="Ảnh xem trước" decoding="async" draggable="false" style={{ transform: `translate3d(${previewTransform.x}px, ${previewTransform.y}px, 0) rotate(${previewTransform.rotate}deg) scale(${previewTransform.scale * previewTransform.flipX}, ${previewTransform.scale * previewTransform.flipY})` }} />
       </div>
       <span className="question-image-preview-hint">Lăn chuột để zoom · Kéo để di chuyển</span>
       <div className="question-image-preview-toolbar" role="toolbar" aria-label="Công cụ xem ảnh">

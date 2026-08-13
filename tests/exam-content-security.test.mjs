@@ -61,6 +61,8 @@ test("student exam payloads use an encrypted lazy-content boundary", async () =>
   assert.match(examScope, /includeQuestions:\s*false/);
   assert.match(examApi, /questionCounts/);
   assert.match(examClient, /\/api\/exams\/content/);
+  assert.match(examClient, /routeStep !== "confirm"[\s\S]*createExamClientKeyPair/);
+  assert.match(examClient, /routeStep !== "take"[\s\S]*void loadQuestion\(0\)/);
   assert.match(examClient, /\/api\/exams\/result-content/);
   assert.doesNotMatch(examClient, /scope=result&attemptId/);
   assert.match(contentApi, /requireInProgress:\s*true/);

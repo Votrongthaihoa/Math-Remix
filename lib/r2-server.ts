@@ -307,6 +307,23 @@ export async function loadR2Object(key: string, maxBytes: number) {
   };
 }
 
+export async function streamR2Object(key: string, maxBytes: number) {
+  const config = requireR2();
+  const response = await signedR2Request(config, { method: "GET", key });
+  if (!response.ok) await throwR2ResponseError(response);
+  const declaredSize = Number(response.headers.get("content-length") ?? 0);
+  if (!response.body || !declaredSize || declaredSize > maxBytes) {
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("Object R2 không có dữ liệu hoặc vượt quá giới hạn dung lượng.");
+  }
+  return {
+    body: response.body,
+    contentLength: declaredSize,
+    contentType: response.headers.get("content-type") ?? "application/octet-stream",
+    cacheControl: response.headers.get("cache-control"),
+  };
+}
+
 export const R2_PRESIGNED_URL_EXPIRES_SECONDS = MAX_PRESIGNED_URL_SECONDS;
 
 export async function createR2ReadUrl(key: string, expiresIn = R2_PRESIGNED_URL_EXPIRES_SECONDS) {

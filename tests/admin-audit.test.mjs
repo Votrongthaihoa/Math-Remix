@@ -142,7 +142,7 @@ test("guest exam image access is rate-limited after attempt authorization", asyn
   assert.match(imageRoute, /status: 429/);
   const authorizationCall = imageRoute.indexOf("const admin = await guestImageAccess");
   const rateLimitCall = imageRoute.indexOf("const budget = await consumeRequestBudget");
-  const r2Call = imageRoute.indexOf("loadR2Object(examImageKey");
+  const r2Call = imageRoute.indexOf("streamR2Object(examImageKey");
   assert.ok(authorizationCall >= 0 && authorizationCall < rateLimitCall);
   assert.ok(rateLimitCall < r2Call);
 });

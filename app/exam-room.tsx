@@ -681,13 +681,17 @@ function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navi
   useEffect(() => {
     contentContextRef.current = contentContextKey;
     loadedQuestionsRef.current = {};
-    contentKeyPairRef.current = null;
     contentInFlightRef.current.clear();
     activeContentLoadsRef.current = 0;
     contentLoadWaitersRef.current.splice(0).forEach(resolve => resolve());
     setLoadedQuestions({});
     setQuestionLoadErrors({});
   }, [contentContextKey]);
+
+  useEffect(() => {
+    if (!bundle || routeStep !== "confirm" || !activeSection?.id) return;
+    if (!contentKeyPairRef.current) contentKeyPairRef.current = createExamClientKeyPair();
+  }, [activeSection?.id, bundle, routeStep]);
 
   const acquireContentLoad = useCallback(async () => {
     if (activeContentLoadsRef.current < 2) {
@@ -768,6 +772,11 @@ function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navi
     contentInFlightRef.current.set(requestSlot, work);
     return work;
   }, [acquireContentLoad, activeQuestionCount, activeSection?.id, attempt?.id, releaseContentLoad]);
+
+  useEffect(() => {
+    if (routeStep !== "take" || !attempt?.id || !activeSection?.id || activeQuestionCount < 1) return;
+    void loadQuestion(0);
+  }, [activeQuestionCount, activeSection?.id, attempt?.id, loadQuestion, routeStep]);
 
   const activeQuestions = useMemo(() => Array.from({ length: activeQuestionCount }, (_, index) => {
     const loaded = loadedQuestions[index];

@@ -1,6 +1,7 @@
-import { loadR2Object } from "../../../../../../lib/r2-server";
+import { streamR2Object } from "../../../../../../lib/r2-server";
 import {
   EXAM_IMAGE_MAX_STORED_BYTES,
+  examImageAssetHeaders,
   examImageHeaders,
   examImageKey,
   imageResponseContentType,
@@ -23,6 +24,10 @@ const guestImageHeaders = {
   ...examImageHeaders,
   "cross-origin-resource-policy": "cross-origin",
 };
+const guestImageAssetHeaders = {
+  ...examImageAssetHeaders,
+  "cross-origin-resource-policy": "cross-origin",
+};
 
 async function guestImageAccess(request: Request, attemptId: string, sectionId: string) {
   const admin = guestServerClient();
@@ -34,20 +39,21 @@ async function guestImageAccess(request: Request, attemptId: string, sectionId: 
     .maybeSingle();
   if (!attempt || !["in_progress", "submitted"].includes(String(attempt.status))) return null;
 
-  const { data: slot } = await admin
-    .from("exam_access_slots")
-    .select("id,exam_id,section_id,starts_at,ends_at,grace_period_minutes,enabled")
-    .eq("id", attempt.slot_id)
-    .eq("exam_id", attempt.exam_id)
-    .maybeSingle();
+  const [{ data: slot }, { data: section }] = await Promise.all([
+    admin
+      .from("exam_access_slots")
+      .select("id,exam_id,section_id,starts_at,ends_at,grace_period_minutes,enabled")
+      .eq("id", attempt.slot_id)
+      .eq("exam_id", attempt.exam_id)
+      .maybeSingle(),
+    admin
+      .from("exam_sections")
+      .select("id")
+      .eq("id", sectionId)
+      .eq("exam_id", attempt.exam_id)
+      .maybeSingle(),
+  ]);
   if (!slot || (slot.section_id && slot.section_id !== sectionId)) return null;
-
-  const { data: section } = await admin
-    .from("exam_sections")
-    .select("id")
-    .eq("id", sectionId)
-    .eq("exam_id", attempt.exam_id)
-    .maybeSingle();
   if (!section) return null;
 
   const session = readCookie(request, guestCookieName(slot.id));
@@ -80,14 +86,14 @@ async function handleImage(request: Request, context: ImageRouteContext) {
   if (!budget.ready && !budget.allowed) return new Response(JSON.stringify({ error: "Dịch vụ bảo vệ kíp thi chưa sẵn sàng." }), { status: 503, headers: rateLimitHeaders });
   if (!budget.allowed) return new Response(JSON.stringify({ error: "Quá nhiều yêu cầu ảnh. Hãy thử lại sau." }), { status: 429, headers: rateLimitHeaders });
   try {
-    const image = await loadR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);
-    return new Response(image.bytes as unknown as BodyInit, {
+    const image = await streamR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);
+    return new Response(image.body, {
       status: 200,
       headers: {
-        ...guestImageHeaders,
+        ...guestImageAssetHeaders,
         "content-type": imageResponseContentType(image.contentType, assetName),
         "content-disposition": "inline",
-        "content-length": String(image.bytes.byteLength),
+        "content-length": String(image.contentLength),
       },
     });
   } catch {
@@ -101,5 +107,6 @@ export async function GET(request: Request, context: ImageRouteContext) {
 
 export async function HEAD(request: Request, context: ImageRouteContext) {
   const response = await handleImage(request, context);
+  await response.body?.cancel().catch(() => undefined);
   return new Response(null, { status: response.status, headers: response.headers });
 }

@@ -18,6 +18,15 @@ export const examImageHeaders = {
   "x-content-type-options": "nosniff",
 };
 
+// Question assets are immutable UUID-named objects. Cache only successful
+// asset responses (not admin JSON or error responses) in the candidate's own
+// browser, with auth state included in the cache key.
+export const examImageAssetHeaders = {
+  ...examImageHeaders,
+  "cache-control": "private, max-age=300, stale-while-revalidate=60",
+  vary: "authorization, x-supabase-access-token, cookie, origin",
+};
+
 export const publicImageHeaders = {
   "cache-control": "public, max-age=31536000, immutable",
   "content-security-policy": "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'",

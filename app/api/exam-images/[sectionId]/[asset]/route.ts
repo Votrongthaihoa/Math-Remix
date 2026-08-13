@@ -1,6 +1,7 @@
-import { loadR2Object } from "../../../../../lib/r2-server";
+import { streamR2Object } from "../../../../../lib/r2-server";
 import {
   EXAM_IMAGE_MAX_STORED_BYTES,
+  examImageAssetHeaders,
   examImageHeaders,
   examImageKey,
   imageResponseContentType,
@@ -24,14 +25,14 @@ export async function GET(request: Request, context: ImageRouteContext) {
   if (!access) return new Response(null, { status: 404, headers: examImageHeaders });
 
   try {
-    const image = await loadR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);
-    return new Response(image.bytes as unknown as BodyInit, {
+    const image = await streamR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);
+    return new Response(image.body, {
       status: 200,
       headers: {
-        ...examImageHeaders,
+        ...examImageAssetHeaders,
         "content-type": imageResponseContentType(image.contentType, assetName),
         "content-disposition": "inline",
-        "content-length": String(image.bytes.byteLength),
+        "content-length": String(image.contentLength),
       },
     });
   } catch {
@@ -41,5 +42,6 @@ export async function GET(request: Request, context: ImageRouteContext) {
 
 export async function HEAD(request: Request, context: ImageRouteContext) {
   const response = await GET(request, context);
+  await response.body?.cancel().catch(() => undefined);
   return new Response(null, { status: response.status, headers: response.headers });
 }
