@@ -299,12 +299,16 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
     const background = shouldIsolate
       ? Array.from(document.querySelectorAll<HTMLElement>(".ui-shell.product-shell > .topbar, .ui-shell.product-shell > .main-content"))
       : [];
+    const savedInertStates = background.map(element => {
+      const original = element.inert;
+      element.inert = true;
+      return { element, original };
+    });
     document.body.style.overflow = "hidden";
-    background.forEach(element => { element.inert = true; });
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
-      background.forEach(element => { element.inert = false; });
+      savedInertStates.forEach(({ element, original }) => { element.inert = original; });
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [closeMobileMenu, mobileOpen, runnerShellPath]);
@@ -632,7 +636,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       )}
       <main id="main-content" className={`main-content ${currentView === "lesson" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"}`}>
         {currentView === "overview" && <Overview onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} />}
-        {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} onOpen={courseId => go("course", `/courses/${encodeURIComponent(String(courseId))}`)} />}
+        {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} onBack={() => go("courses")} onLesson={lessonId => go("lesson", `/lessons/${encodeURIComponent(lessonId)}`)} />}
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onBack={courseId => courseId ? go("course", `/courses/${encodeURIComponent(courseId)}`) : go("courses")} onLesson={(nextLessonId, resourceId) => go("lesson", `/lessons/${encodeURIComponent(nextLessonId)}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ""}`)} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
@@ -829,17 +833,28 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
 
 function Stat({ icon: Icon, value, label, color }: { icon: IconComponent; value: string | number; label: string; color: string }) { return <article className="stat-card"><span className={`stat-icon ${color}`}><Icon /></span><div><b>{value}</b><small>{label}</small></div></article>; }
 
-function Courses({ courses: courseItems, isAdmin, onOpen }: { courses: CourseData[]; isAdmin: boolean; onOpen: (courseId: string | number) => void }) {
+function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isAdmin: boolean }) {
   const [courseSearch, setCourseSearch] = useState("");
   const filteredCourses = useMemo(() => {
     const query = courseSearch.trim().toLocaleLowerCase("vi");
     if (!query) return courseItems;
     return courseItems.filter(course => `${course.title} ${course.description}`.toLocaleLowerCase("vi").includes(query));
   }, [courseItems, courseSearch]);
-  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học</p></div><label className="course-search"><Search/><input value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm kiếm giáo trình..."/></label></div>{filteredCourses.length ? <div className="course-grid reference-course-grid">{filteredCourses.map(course => <CourseCard key={course.id} course={course} onOpen={onOpen} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} />}</div>;
+  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học</p></div><label className="course-search"><Search aria-hidden="true" /><input value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm kiếm giáo trình..." aria-label="Tìm kiếm giáo trình" /></label></div>{filteredCourses.length ? <div className="course-grid reference-course-grid">{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} />}</div>;
 }
 
-function CourseCard({ course, onOpen }: { course: CourseData; onOpen: (courseId: string | number) => void }) { return <article className="course-card reference-course-card" style={courseColorStyle(course.color)}><button className="course-card-action" onClick={()=>onOpen(course.id)} aria-label={`Vào học ${course.title}`}><div className="course-cover">{course.cover_url?<img src={course.cover_url} alt={course.title} width={640} height={360} loading="lazy" decoding="async"/>:<div className="course-cover-fallback"><span>REMIX</span><BookOpen/><small>LEARNING SERIES</small></div>}{course.published===false&&<span className="course-draft-badge">Bản nháp</span>}</div><div className="course-body"><h3>{course.title}</h3><div className="course-meta"><span><CirclePlay/> {course.lessons} bài học</span><b>Vào học</b></div></div></button></article>; }
+function CourseCard({ course }: { course: CourseData }) {
+  const href = `/courses/${encodeURIComponent(String(course.id))}`;
+  return <article className="course-card reference-course-card" style={courseColorStyle(course.color)}>
+    <Link className="course-card-action" href={href} aria-label={`Vào học ${course.title}`}>
+      <div className="course-cover">
+        {course.cover_url ? <img src={course.cover_url} alt={course.title} width={640} height={360} loading="lazy" decoding="async" /> : <div className="course-cover-fallback"><span>REMIX</span><BookOpen aria-hidden="true" /><small>LEARNING SERIES</small></div>}
+        {course.published === false && <span className="course-draft-badge">Bản nháp</span>}
+      </div>
+      <div className="course-body"><h3>{course.title}</h3><div className="course-meta"><span><CirclePlay aria-hidden="true" /> {course.lessons} bài học</span><b>Vào học</b></div></div>
+    </Link>
+  </article>;
+}
 
 function CourseDetail({ course, showDrafts, onBack, onLesson }: { course: CourseData | null; showDrafts: boolean; onBack: () => void; onLesson: (lessonId: string) => void }) {
   const [chapters, setChapters] = useState<ChapterData[]>([]);
@@ -877,7 +892,7 @@ function CourseDetail({ course, showDrafts, onBack, onLesson }: { course: Course
     <section className="course-curriculum-panel">
       <div className="course-curriculum-head"><h2>Nội dung giáo trình</h2><p>{chapters.length} phần • {courseLessons.length} bài học</p></div>
       {contentError && <p className="form-error">{contentError}</p>}
-      {loadingContent ? <LoadingIndicator label="Đang tải nội dung…" /> : chapters.length ? <div className="course-curriculum-list">{chapters.map((chapter,partIndex)=>{const lessons=courseLessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="course-part-card" key={chapter.id} open={partIndex===0}><summary><strong>{formatPartTitle(chapter.title,chapter.sort_order)}</strong><ChevronRight/></summary><div className="course-part-lessons">{lessons.length?lessons.map(lesson=><button className={lesson.published?"published":"draft"} key={lesson.id} onClick={()=>onLesson(lesson.id)}><b>{formatLessonTitle(lesson.title,lesson.sort_order)}</b></button>):<p>Phần này chưa có bài học {showDrafts?"nào":"được xuất bản"}.</p>}</div></details>})}</div> : <MiniEmpty text={showDrafts?"Khóa học chưa có phần hoặc bài học.":"Khóa học chưa có phần hoặc bài học được xuất bản."} />}
+      {loadingContent ? <LoadingIndicator label="Đang tải nội dung…" /> : chapters.length ? <div className="course-curriculum-list">{chapters.map((chapter,partIndex)=>{const lessons=courseLessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="course-part-card" key={chapter.id} open={partIndex===0}><summary><strong>{formatPartTitle(chapter.title,chapter.sort_order)}</strong><ChevronRight/></summary>{lessons.length ? <ul className="course-part-lessons">{lessons.map(lesson=><li key={lesson.id}><button className={lesson.published?"published":"draft"} onClick={()=>onLesson(lesson.id)}><b>{formatLessonTitle(lesson.title,lesson.sort_order)}</b></button></li>)}</ul> : <p className="course-part-lessons-empty">Phần này chưa có bài học {showDrafts?"nào":"được xuất bản"}.</p>}</details>})}</div> : <MiniEmpty text={showDrafts?"Khóa học chưa có phần hoặc bài học.":"Khóa học chưa có phần hoặc bài học được xuất bản."} />}
     </section>
   </div>;
 }
@@ -1027,7 +1042,7 @@ function ExamHistory({ attempts, onOpen }: { attempts: AttemptData[]; onOpen: (a
             <strong>{attempt.correct_answers}/{attempt.total_questions}</strong>
             <div className="history-status"><span>{statusLabel(attempt.status)}</span><Link href={`/exam/result/${encodeURIComponent(attempt.id)}`} onClick={event => openHistoryItem(event, attempt.id)}>Xem chi tiết<ChevronRight aria-hidden="true" /></Link></div>
           </article>)}</section>
-        : <EmptyState icon={History} title={searchTerm ? "Không tìm thấy bài thi" : "Bạn chưa có lịch sử làm bài"} text={searchTerm ? "Thử tìm bằng tên đề thi khác." : "Kết quả sẽ xuất hiện tại đây sau khi bạn nộp bài thi."} />;
+        : <EmptyState icon={History} title={searchTerm ? "Không tìm thấy bài thi" : "Bạn chưa có lịch sử làm bài"} text={searchTerm ? "Thử tìm bằng tên đề thi khác." : "Kết quả sẽ xuất hiện tại đây sau khi bạn nộp bài thi."} role="status" ariaLive="polite" />;
 
   return <div className={`page-stack ${thptqgHistory ? "thptqg-history" : ""}`}>
     <div className="page-intro"><div><span className="eyebrow">KẾT QUẢ HỌC TẬP</span><h2>Lịch sử làm bài</h2><p>Xem lại kết quả các bài thi đã thực hiện.</p></div><label className="search"><Search aria-hidden="true" /><input name="historySearch" type="search" autoComplete="off" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Tìm kiếm bài thi…" aria-label="Tìm kiếm bài thi" /></label></div>
@@ -1743,5 +1758,5 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   </section>;
 }
 
-function EmptyState({ icon: Icon, title, text }: { icon: IconComponent; title: string; text: string }) { return <section className="empty-state"><span><Icon /></span><h2>{title}</h2><p>{text}</p></section>; }
+function EmptyState({ icon: Icon, title, text, role, ariaLive }: { icon: IconComponent; title: string; text: string; role?: "status" | "alert"; ariaLive?: "polite" | "assertive" }) { return <section className="empty-state" role={role} aria-live={ariaLive}><span><Icon aria-hidden="true" /></span><h2>{title}</h2><p>{text}</p></section>; }
 function MiniEmpty({text}:{text:string}){return <div className="mini-empty"><ClipboardCheck/><p>{text}</p></div>}

@@ -259,11 +259,11 @@
   row-gap: 8px;
 }
 
-.app-shell.ui-shell.student-app.product-shell :where(.course-part-card > summary, .course-part-lessons > button, .lesson-curriculum-list summary, .curriculum-lesson-title) {
+.app-shell.ui-shell.student-app.product-shell :where(.course-part-card > summary, .course-part-lessons > li > button, .lesson-curriculum-list summary, .curriculum-lesson-title) {
   min-width: 0;
 }
 
-.app-shell.ui-shell.student-app.product-shell :where(.course-part-card > summary strong, .course-part-lessons > button b, .lesson-curriculum-list summary strong, .curriculum-lesson-title b) {
+.app-shell.ui-shell.student-app.product-shell :where(.course-part-card > summary strong, .course-part-lessons > li > button b, .lesson-curriculum-list summary strong, .curriculum-lesson-title b) {
   min-width: 0;
   overflow: visible;
   text-overflow: clip;

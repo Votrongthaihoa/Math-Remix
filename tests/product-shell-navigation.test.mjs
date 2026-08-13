@@ -13,5 +13,7 @@ test("product shell navigation exposes state and keyboard menu behavior", async 
   assert.match(platform, /<Link key=\{item\.id\} href=\{pathsByView\[item\.id\]\}/);
   assert.match(platform, /!examRunnerSurface && <a className="skip-link"/);
   assert.match(platform, /element\.inert = true/);
+  assert.match(platform, /const original = element\.inert;/);
+  assert.match(platform, /element\.inert = original;/);
   assert.match(platform, /aria-label="Vị trí hiện tại"/);
 });

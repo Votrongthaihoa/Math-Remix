@@ -55,3 +55,32 @@ test("independent-subject results return to the room package instead of the subj
   assert.doesNotMatch(resultBranch, /onBack=\{\(\) => navigate\(examListPath\(data\.exam\.id/);
   assert.match(resultBranch, /onRetake=\{\(\) => subjectSection && navigate\(examSectionPath\(data\.exam\.id, subjectSection\.id, "practice", "confirm"\)\)\}/);
 });
+
+test("pre-exam enhancements: roving tabindex, ModeDialog access, Escape, inert cleanup, and resume button label", async () => {
+  const source = await readFile(new URL("../app/exam-room.tsx", import.meta.url), "utf8");
+
+  // 1. Roving tabindex arrow behavior:
+  assert.match(source, /onKeyDown=\{handleKeyDown\}/);
+  assert.match(source, /tabIndex=\{typeFilter === "ALL" \? 0 : -1\}/);
+  assert.match(source, /tabIndex=\{typeFilter === type \? 0 : -1\}/);
+
+  // 2. ModeDialog accessible name / describedby:
+  assert.match(source, /aria-labelledby="exam-mode-title"/);
+  assert.match(source, /aria-describedby="exam-mode-desc"/);
+
+  // 3. Escape key down listener:
+  assert.match(source, /if \(event\.key === "Escape"\)/);
+
+  // 4. Inert background elements clean-up & preservation check:
+  assert.match(source, /const original = element\.inert;/);
+  assert.match(source, /element\.inert = original;/);
+
+  // 5. Active attempt resume label:
+  assert.match(source, /active \? "Tiếp tục làm bài" : "Bắt đầu làm bài"/);
+  assert.match(source, /className=\{`reference-exam-start \$\{active \? "is-resume" : ""\}\`/);
+
+  // 6. Valid HTML semantic structuring of options cards:
+  assert.match(source, /<div className="exam-mode-option-card">/);
+  assert.match(source, /<div className="exam-mode-option-card is-simulation">/);
+  assert.match(source, /<button type="button" className="exam-mode-action-btn"/);
+});

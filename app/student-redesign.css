@@ -598,21 +598,21 @@
   background: rgba(255, 255, 255, 0.6);
 }
 
-.ui-shell.student-app.product-shell .course-part-lessons > button {
+.ui-shell.student-app.product-shell .course-part-lessons > li > button {
   color: var(--mac-body);
   border-bottom-color: var(--mac-line-soft);
 }
 
-.ui-shell.student-app.product-shell .course-part-lessons > button:hover {
+.ui-shell.student-app.product-shell .course-part-lessons > li > button:hover {
   background: rgba(0, 122, 255, 0.055);
 }
 
-.ui-shell.student-app.product-shell .course-part-lessons > button:hover b,
-.ui-shell.student-app.product-shell .course-part-lessons > button.published b {
+.ui-shell.student-app.product-shell .course-part-lessons > li > button:hover b,
+.ui-shell.student-app.product-shell .course-part-lessons > li > button.published b {
   color: var(--mac-blue);
 }
 
-.ui-shell.student-app.product-shell .course-part-lessons > button:before {
+.ui-shell.student-app.product-shell .course-part-lessons > li > button:before {
   background: var(--mac-blue);
 }
 

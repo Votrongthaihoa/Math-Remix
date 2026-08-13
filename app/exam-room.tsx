@@ -300,9 +300,9 @@ export default function ExamRoomModule() {
 }
 
 function PageState({ loading, error, empty, onRetry }: { loading?: boolean; error?: string; empty?: string; onRetry?: () => void }) {
-  if (loading) return <div className="exam-page-state"><LoadingIndicator label="Đang tải dữ liệu khảo thí…" /></div>;
-  if (error) return <div className="exam-page-state error"><CircleAlert/><h3>Không thể tải dữ liệu</h3><p>{error}</p>{onRetry && <button onClick={onRetry}><RotateCcw/>Thử lại</button>}</div>;
-  return <div className="exam-page-state"><BookOpenCheck/><h3>Chưa có phòng thi</h3><p>{empty}</p></div>;
+  if (loading) return <div className="exam-page-state" role="status" aria-live="polite"><LoadingIndicator label="Đang tải dữ liệu khảo thí…" /></div>;
+  if (error) return <div className="exam-page-state error" role="alert"><CircleAlert aria-hidden="true"/><h3>Không thể tải dữ liệu</h3><p>{error}</p>{onRetry && <button type="button" className="exam-retry-btn" onClick={onRetry}><RotateCcw aria-hidden="true"/>Thử lại</button>}</div>;
+  return <div className="exam-page-state"><BookOpenCheck aria-hidden="true"/><h3>Chưa có phòng thi</h3><p>{empty}</p></div>;
 }
 
 function ExamRoomCatalog() {
@@ -314,19 +314,43 @@ function ExamRoomCatalog() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  const availableTypes = useMemo(() => {
+    if (!data) return [];
+    return Array.from(new Set(data.rooms.map(room => normalizeExamType(room.exam_type)))).sort((left, right) => {
+      const leftIndex = EXAM_ROOM_TYPE_OPTIONS.findIndex(option => option.value === left);
+      const rightIndex = EXAM_ROOM_TYPE_OPTIONS.findIndex(option => option.value === right);
+      return (leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex) - (rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex);
+    });
+  }, [data]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const filters = ["ALL", ...availableTypes];
+    const activeIndex = filters.indexOf(typeFilter);
+    let nextIndex = activeIndex;
+    if (event.key === "ArrowRight") {
+      nextIndex = (activeIndex + 1) % filters.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex = (activeIndex - 1 + filters.length) % filters.length;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    const nextFilter = filters[nextIndex];
+    setTypeFilter(nextFilter);
+    const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>("button");
+    buttons[nextIndex]?.focus();
+  };
+
   if (!data) return <PageState loading={!error} error={error} onRetry={load} />;
   if (!data.rooms.length) return <PageState empty="Phòng thi sẽ xuất hiện sau khi quản trị viên xuất bản và cấp quyền cho bạn." />;
-  const availableTypes = Array.from(new Set(data.rooms.map(room => normalizeExamType(room.exam_type)))).sort((left, right) => {
-    const leftIndex = EXAM_ROOM_TYPE_OPTIONS.findIndex(option => option.value === left);
-    const rightIndex = EXAM_ROOM_TYPE_OPTIONS.findIndex(option => option.value === right);
-    return (leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex) - (rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex);
-  });
   const visibleRooms = data.rooms.filter(room => typeFilter === "ALL" || normalizeExamType(room.exam_type) === typeFilter);
+
   return <div className="exam-page exam-room-page">
     <header className="exam-page-heading reference-room-heading"><span>PHÒNG KHẢO THÍ</span><h1>Chọn loại phòng và đề thi</h1><p>Mỗi phòng có nhiều đề; chọn đúng loại kỳ thi trước khi bắt đầu.</p></header>
-    <div className="exam-room-type-filters" role="tablist" aria-label="Loại phòng khảo thí">
-      <button type="button" role="tab" aria-selected={typeFilter === "ALL"} className={typeFilter === "ALL" ? "active" : ""} onClick={() => setTypeFilter("ALL")}>Tất cả</button>
-      {availableTypes.map(type => <button type="button" role="tab" aria-selected={typeFilter === type} key={type} className={typeFilter === type ? "active" : ""} onClick={() => setTypeFilter(type)}>{roomTypeLabel(type)}</button>)}
+    <div className="exam-room-type-filters" role="tablist" aria-label="Loại phòng khảo thí" onKeyDown={handleKeyDown}>
+      <button type="button" role="tab" tabIndex={typeFilter === "ALL" ? 0 : -1} aria-selected={typeFilter === "ALL"} className={typeFilter === "ALL" ? "active" : ""} onClick={() => setTypeFilter("ALL")}>Tất cả</button>
+      {availableTypes.map(type => <button type="button" role="tab" tabIndex={typeFilter === type ? 0 : -1} aria-selected={typeFilter === type} key={type} className={typeFilter === type ? "active" : ""} onClick={() => setTypeFilter(type)}>{roomTypeLabel(type)}</button>)}
     </div>
     {!visibleRooms.length ? <PageState empty="Chưa có phòng thuộc loại này." /> : <div className="exam-room-grid">{visibleRooms.map(room => {
       const exams = data.exams.filter(exam => exam.room_id === room.id);
@@ -372,15 +396,24 @@ function ExamList({ roomId, navigate }: { roomId: string; navigate: (path: strin
       const attempts = data.attempts.filter(attempt => attempt.exam_id === exam.id);
       const history = completedAttempts(attempts);
       const active = attempts.filter(attempt => attempt.status === "in_progress").sort((left, right) => new Date(right.started_at ?? 0).getTime() - new Date(left.started_at ?? 0).getTime())[0];
-      return <article className="exam-paper-card reference-exam-card" key={exam.id}>
+      return <article className={`exam-paper-card reference-exam-card${active ? " has-active-attempt" : ""}`} key={exam.id}>
+        <div className="reference-paper-label"><span className="exam-type-badge">{roomTypeLabel(data.room.exam_type)}</span></div>
         <div className="reference-exam-card-head"><h3 title={exam.title}>{exam.title}</h3></div>
         <div className="reference-exam-card-body">
+          {active && <div className="reference-exam-resume-banner">⚠️ Có bài làm chưa nộp</div>}
           <div><span>Trạng thái:</span><b className="reference-exam-status">{exam.published ? "Đang mở" : "Chưa mở"}</b></div>
           <div><span>{isIndependentSubjectExamType(data.room.exam_type) ? "Môn thi:" : "Số phần thi:"}</span><strong>{data.sections.filter(section => section.exam_id === exam.id).length} {isIndependentSubjectExamType(data.room.exam_type) ? "môn" : "phần"}</strong></div>
           <div><span>Hình thức:</span><strong>{exam.mode === "scheduled" ? "Theo lịch" : "Miễn phí"}</strong></div>
           <div><span>Ngày tạo:</span><strong>{exam.created_at ? formatDate(exam.created_at) : "—"}</strong></div>
         </div>
-        <div className="reference-exam-card-footer"><button type="button" className="reference-exam-history" disabled={!history.length} onClick={event => { historyTriggerRef.current = event.currentTarget; setHistoryExam(exam); }}>{history.length ? `Xem lịch sử (${history.length})` : "Chưa có lịch sử"}</button><button type="button" className="reference-exam-start" onClick={() => active ? navigate(`/exam/${encodeURIComponent(exam.id)}?mode=practice`) : setModeExam(exam)}>{active ? "Tiếp tục" : "Vào làm"}<Play/></button></div>
+        <div className="reference-exam-card-footer">
+          <button type="button" className="reference-exam-history" disabled={!history.length} onClick={event => { historyTriggerRef.current = event.currentTarget; setHistoryExam(exam); }}>
+            {history.length ? `Xem lịch sử (${history.length})` : "Chưa có lịch sử"}
+          </button>
+          <button type="button" className={`reference-exam-start ${active ? "is-resume" : ""}`} onClick={() => active ? navigate(`/exam/${encodeURIComponent(exam.id)}?mode=practice`) : setModeExam(exam)}>
+            {active ? "Tiếp tục làm bài" : "Bắt đầu làm bài"}<Play aria-hidden="true"/>
+          </button>
+        </div>
       </article>;
     })}</div>}
     {modeExam && <ModeDialog exam={modeExam} onClose={() => setModeExam(null)} onChoose={mode => navigate(`/exam/${encodeURIComponent(modeExam.id)}?mode=${mode}`)} />}
@@ -398,7 +431,16 @@ function ExamAttemptHistoryDialog({ exam, attempts, onClose, onOpen }: { exam: E
     const page = dialog.closest(".exam-list-page");
     const background = page ? Array.from(page.children).filter(element => !element.contains(dialog)) : [];
     const previousOverflow = document.body.style.overflow;
-    background.forEach(element => { if (element instanceof HTMLElement) element.inert = true; });
+
+    const savedInertStates = background.map(element => {
+      if (element instanceof HTMLElement) {
+        const original = element.inert;
+        element.inert = true;
+        return { element, original };
+      }
+      return null;
+    }).filter(Boolean) as Array<{ element: HTMLElement; original: boolean }>;
+
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
 
@@ -420,7 +462,9 @@ function ExamAttemptHistoryDialog({ exam, attempts, onClose, onOpen }: { exam: E
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      background.forEach(element => { if (element instanceof HTMLElement) element.inert = false; });
+      savedInertStates.forEach(({ element, original }) => {
+        element.inert = original;
+      });
     };
   }, [onClose]);
 
@@ -452,7 +496,100 @@ function ExamAttemptHistoryDialog({ exam, attempts, onClose, onOpen }: { exam: E
 }
 
 function ModeDialog({ exam, onClose, onChoose }: { exam: Exam; onClose: () => void; onChoose: (mode: "practice" | "exam") => void }) {
-  return <div className="exam-modal-shade" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section className="exam-mode-dialog" role="dialog" aria-modal="true" aria-labelledby="exam-mode-title"><button className="exam-modal-close" onClick={onClose} aria-label="Đóng"><X/></button><span>CHỌN CHẾ ĐỘ</span><h2 id="exam-mode-title">{exam.title}</h2><p>Luyện tập vẫn tính giờ theo từng phần và cho phép xem lại đáp án; thực chiến mô phỏng thời gian thi thật.</p><div className="exam-mode-options"><button onClick={() => onChoose("practice")}><BookOpenCheck/><b>Luyện tập</b><small>Có thời gian theo từng phần</small></button><button onClick={() => onChoose("exam")}><Timer/><b>Thực chiến</b><small>{exam.duration_minutes} phút</small></button></div><button className="exam-cancel" onClick={onClose}>Hủy</button></section></div>;
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const page = dialog.closest(".exam-list-page");
+    const background = page ? Array.from(page.children).filter(element => !element.contains(dialog)) : [];
+    const previousOverflow = document.body.style.overflow;
+
+    const savedInertStates = background.map(element => {
+      if (element instanceof HTMLElement) {
+        const original = element.inert;
+        element.inert = true;
+        return { element, original };
+      }
+      return null;
+    }).filter(Boolean) as Array<{ element: HTMLElement; original: boolean }>;
+
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex]:not([tabindex="-1"])')).filter(element => !element.hasAttribute("hidden"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      savedInertStates.forEach(({ element, original }) => {
+        element.inert = original;
+      });
+      previouslyFocused?.focus();
+    };
+  }, [onClose]);
+
+  return (
+    <div className="exam-modal-shade" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+      <section ref={dialogRef} className="exam-mode-dialog" role="dialog" aria-modal="true" aria-labelledby="exam-mode-title" aria-describedby="exam-mode-desc">
+        <button ref={closeRef} className="exam-modal-close" onClick={onClose} aria-label="Đóng hộp thoại"><X/></button>
+        <span className="exam-mode-subtitle">BẮT ĐẦU BÀI THI</span>
+        <h2 id="exam-mode-title">{exam.title}</h2>
+        <p id="exam-mode-desc" className="exam-mode-desc-main">Hãy chọn chế độ làm bài phù hợp với nhu cầu ôn tập của bạn.</p>
+
+        <div className="exam-mode-options-container">
+          <div className="exam-mode-option-card">
+            <div className="exam-mode-option-header">
+              <BookOpenCheck aria-hidden="true" />
+              <h3>Chế độ Luyện tập</h3>
+            </div>
+            <ul id="desc-practice" className="exam-mode-option-details">
+              <li>⏱️ Đồng hồ tính giờ độc lập theo từng phần thi</li>
+              <li>💡 Cho phép xem lại đáp án & giải thích chi tiết</li>
+              <li>🔄 Không giới hạn thời gian tổng toàn bài</li>
+            </ul>
+            <button type="button" className="exam-mode-action-btn" onClick={() => onChoose("practice")} aria-describedby="desc-practice">Luyện tập ngay</button>
+          </div>
+
+          <div className="exam-mode-option-card is-simulation">
+            <div className="exam-mode-option-header">
+              <Timer aria-hidden="true" />
+              <h3>Chế độ Thực chiến</h3>
+            </div>
+            <ul id="desc-simulation" className="exam-mode-option-details">
+              <li>⏱️ Tổng thời gian làm bài: <b>{exam.duration_minutes} phút</b></li>
+              <li>🎯 Làm bài liên tục mô phỏng thời gian thi thật</li>
+              <li>🔒 Nộp bài để hiển thị đầy đủ kết quả thi</li>
+            </ul>
+            <button type="button" className="exam-mode-action-btn primary" onClick={() => onChoose("exam")} aria-describedby="desc-simulation">Bắt đầu thi</button>
+          </div>
+        </div>
+
+        <button className="exam-cancel" onClick={onClose}>Hủy bỏ</button>
+      </section>
+    </div>
+  );
 }
 
 function ExamRunner({ examId, mode, sectionId, routeStep, hsaSelectionCode, navigate }: { examId: string; mode: "practice" | "exam"; sectionId?: string; routeStep: ExamRouteStep; hsaSelectionCode?: string; navigate: (path: string) => void }) {

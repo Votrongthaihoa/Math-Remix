@@ -32,6 +32,25 @@ test("student activity month labels have a narrow-screen fallback", async () => 
   assert.match(platform, /aria-label=\{`Tháng \$\{index \+ 1\}`\}/);
 });
 
+test("courses use native links and curriculum list semantics", async () => {
+  const [platform, studyCss] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/study.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /<Link className="course-card-action" href=\{href\}/);
+  assert.doesNotMatch(platform, /<button className="course-card-action"/);
+  assert.match(platform, /<ul className="course-part-lessons">/);
+  assert.match(platform, /<li key=\{lesson\.id\}><button/);
+  assert.match(studyCss, /\.course-part-lessons>li>button/);
+});
+
+test("history empty states announce filter results", async () => {
+  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+
+  assert.match(platform, /<EmptyState icon=\{History\}[\s\S]*?role="status" ariaLive="polite"/);
+});
+
 test("dashboard list dots align with the center of their linked labels", async () => {
   const css = await readFile(new URL("../app/text-overflow-polish.css", import.meta.url), "utf8");
 
