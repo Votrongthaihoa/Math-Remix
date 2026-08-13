@@ -30,6 +30,7 @@ const requestedRoutes = new Set((process.env.SMOKE_ROUTES ?? "").split(",").map(
 const auditRoutes = requestedRoutes.size ? safeRoutes.filter(([name]) => requestedRoutes.has(name)) : safeRoutes;
 const startPath = process.env.SMOKE_START_PATH ?? "/admin";
 const stressEnabled = process.env.SMOKE_STRESS === "1";
+const extendedInteractions = process.env.SMOKE_EXTENDED_INTERACTIONS !== "0";
 
 await mkdir("artifacts/product-shell-ui-audit", { recursive: true });
 const browser = await chromium.launch({ headless: true });
@@ -351,29 +352,31 @@ if (authenticated) {
     for (const width of auditWidths) await inspect(name, path, width, width === 1440 || width === 390 || requestedWidths.includes(width));
     if (stressEnabled) await inspectStress(name, path, Math.min(...auditWidths));
   }
-  await inspectDrawer(mockRole === "admin" ? "/admin" : "/dashboard");
-  if (mockRole === "admin") {
-    await inspectCollapsedAdminSidebar();
-    await inspectDashboardDotAlignment();
-  }
-  if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
-  await inspectExamHistoryDialog();
-  const catalogRoutes = [["student-exam-catalog-shell", "/exam-room"]];
-  if (mockRole === "admin") catalogRoutes.push(["admin-exam-catalog-shell", "/admin/exams"]);
-  for (const [name, path] of catalogRoutes) {
-    await inspect(name, path, 1440, true);
-    const latest = report.at(-1);
-    if (!latest?.shell?.includes("product-shell") || latest.shell.includes("protected-exam-surface")) {
-      throw new Error(`${name} did not expose the standardized product shell: ${latest?.shell}`);
+  if (extendedInteractions) {
+    await inspectDrawer(mockRole === "admin" ? "/admin" : "/dashboard");
+    if (mockRole === "admin") {
+      await inspectCollapsedAdminSidebar();
+      await inspectDashboardDotAlignment();
     }
-  }
-  const protectedRoutes = [["protected-exam-runner", "/exam/mock-exam?mode=practice"]];
-  if (mockRole === "admin") protectedRoutes.push(["protected-admin-authoring", "/admin/exams/mock-exam"]);
-  for (const [name, path] of protectedRoutes) {
-    await inspect(name, path, 1440, true);
-    const latest = report.at(-1);
-    if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
-      throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+    if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
+    await inspectExamHistoryDialog();
+    const catalogRoutes = [["student-exam-catalog-shell", "/exam-room"]];
+    if (mockRole === "admin") catalogRoutes.push(["admin-exam-catalog-shell", "/admin/exams"]);
+    for (const [name, path] of catalogRoutes) {
+      await inspect(name, path, 1440, true);
+      const latest = report.at(-1);
+      if (!latest?.shell?.includes("product-shell") || latest.shell.includes("protected-exam-surface")) {
+        throw new Error(`${name} did not expose the standardized product shell: ${latest?.shell}`);
+      }
+    }
+    const protectedRoutes = [["protected-exam-runner", "/exam/mock-exam?mode=practice"]];
+    if (mockRole === "admin") protectedRoutes.push(["protected-admin-authoring", "/admin/exams/mock-exam"]);
+    for (const [name, path] of protectedRoutes) {
+      await inspect(name, path, 1440, true);
+      const latest = report.at(-1);
+      if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
+        throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+      }
     }
   }
 }

@@ -30,6 +30,29 @@ test("student activity month labels have a narrow-screen fallback", async () => 
 
   assert.match(platform, /heatmap-month-short/);
   assert.match(platform, /aria-label=\{`Tháng \$\{index \+ 1\}`\}/);
+  assert.match(platform, /role="img" aria-label=\{`Biểu đồ hoạt động năm/);
+  assert.doesNotMatch(platform, /aria-label=\{inYear \? detail/);
+});
+
+test("dashboard provides one semantic next-step action without entering protected exam UI", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/product-shell-ux.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /const nextStep = nextRoom/);
+  assert.match(platform, /<Link className="dashboard-next-step-action"/);
+  assert.match(platform, /<h1>\{profile\.full_name\}<\/h1>/);
+  assert.doesNotMatch(platform, /<b>Bài thi IRT<\/b>/);
+  assert.match(css, /\.dashboard-next-step-action/);
+  assert.match(css, /\.student-app\.product-shell:not\(\.protected-exam-surface\) \.dashboard-next-step/);
+});
+
+test("product-shell smoke can focus on requested routes without unrelated interactions", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /SMOKE_EXTENDED_INTERACTIONS/);
+  assert.match(smoke, /if \(extendedInteractions\) \{/);
 });
 
 test("courses use native links and curriculum list semantics", async () => {

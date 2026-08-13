@@ -807,25 +807,65 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
   const activityDateFormat = new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const recent = completedAttempts.slice(0, 5);
   const top = [...completedAttempts].sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)).slice(0, 5);
+  const nextRoom = practiceRooms[0];
+  const nextCourse = userCourses[0];
+  const nextStep = nextRoom
+    ? {
+        eyebrow: "PHÒNG LUYỆN ĐANG MỞ",
+        title: nextRoom.title,
+        description: `${nextRoom.examCount} đề đang sẵn sàng. Mở phòng để xem đề và bắt đầu khi bạn sẵn sàng.`,
+        href: `/exam-room/${encodeURIComponent(nextRoom.id)}`,
+        actionLabel: "Vào phòng luyện",
+        onOpen: () => onOpenRoom(nextRoom.id),
+        icon: ClipboardCheck,
+      }
+    : nextCourse
+      ? {
+          eyebrow: "TIẾP TỤC HỌC",
+          title: nextCourse.title,
+          description: "Mở khóa học để tiếp tục bài học và tài liệu được giao cho bạn.",
+          href: "/courses",
+          actionLabel: "Mở khóa học",
+          onOpen: onCourses,
+          icon: BookOpen,
+        }
+      : {
+          eyebrow: "BẮT ĐẦU TỪ ĐÂY",
+          title: "Khám phá phòng khảo thí",
+          description: "Xem các phòng luyện và đề thi đang được mở cho tài khoản của bạn.",
+          href: "/exam-room",
+          actionLabel: "Xem phòng khảo thí",
+          onOpen: onExams,
+          icon: ClipboardCheck,
+        };
+  const NextStepIcon = nextStep.icon;
   return <div className="page-stack dashboard-page">
     <section className="overview-summary">
-      <div className="overview-user"><span className="overview-avatar"><UserRound /></span><div><small>Xin chào,</small><h2>{profile.full_name}</h2><p>{profile.email}</p></div></div>
+      <div className="overview-user"><span className="overview-avatar"><UserRound aria-hidden="true" /></span><div><small>Xin chào,</small><h1>{profile.full_name}</h1><p>{profile.email}</p></div></div>
       <i className="summary-divider" />
       <div className="overview-number"><small>Tổng bài đã làm</small><b>{completedAttempts.length}</b><span>bài thi</span></div>
       <div className="overview-number"><small>Trong năm {year}</small><b>{yearAttempts.length}</b><span>bài thi</span></div>
       <div className="overview-role"><small>Vai trò</small><b>{profile.role === "admin" ? "QUẢN TRỊ VIÊN" : "HỌC SINH"}</b><span>{profile.student_code}</span></div>
     </section>
+    <section className="dashboard-next-step" aria-labelledby="dashboard-next-step-title">
+      <span className="dashboard-next-step-icon" aria-hidden="true"><NextStepIcon /></span>
+      <div className="dashboard-next-step-copy">
+        <span className="dashboard-next-step-eyebrow">{nextStep.eyebrow}</span>
+        <h2 id="dashboard-next-step-title">{nextStep.title}</h2>
+        <p>{nextStep.description}</p>
+      </div>
+      <Link className="dashboard-next-step-action" href={nextStep.href} onClick={event => followLink(event, nextStep.onOpen)}>{nextStep.actionLabel}<ChevronRight aria-hidden="true" /></Link>
+    </section>
     <section className="overview-lists">
       <article className="overview-list-card"><div className="overview-card-head"><b>Khóa học</b><Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link></div>{userCourses.length ? <ul>{userCourses.map(c=><li key={c.id}><i className="dot blue"/><Link href="/courses" onClick={event => followLink(event, onCourses)}>{c.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa được phân khóa học</div>}</article>
       <article className="overview-list-card"><div className="overview-card-head"><b>Phòng luyện</b><Link href="/exam-room" onClick={event => followLink(event, onExams)}>Xem tất cả</Link></div>{practiceRooms.length ? <ul>{practiceRooms.slice(0,5).map(room=><li key={room.id}><i className="dot blue"/><Link href={`/exam-room/${encodeURIComponent(room.id)}`} onClick={event => followLink(event, () => onOpenRoom(room.id))} title={`${room.title} · ${room.examCount} đề`}>{room.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa có phòng luyện nào</div>}</article>
-      <article className="overview-list-card"><div className="overview-card-head"><b>Bài thi IRT</b><span className="overview-card-status">Sắp ra mắt</span></div><div className="overview-empty">Chưa có bài thi IRT nào.</div></article>
     </section>
     <section className="two-col"><div className="section-card"><div className="section-head"><h2>Bài thi gần đây</h2></div>{recent.length ? <ul className="attempt-list">{recent.map(item=><li key={item.id}><button className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><small>{new Date(item.submitted_at).toLocaleDateString("vi-VN")}</small></li>)}</ul> : <MiniEmpty text="Chưa có bài thi nào được thực hiện." />}</div><div className="section-card"><div className="section-head"><h2>Top 5 điểm cao nhất</h2></div>{top.length ? <ul className="attempt-list">{top.map(item=><li key={item.id}><button className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><b>{item.score}</b></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu xếp hạng." />}</div></section>
     <section className="section-card activity-card">
       <div className="section-head"><h2>Thống kê làm bài ({year})</h2><small className="muted">{yearAttempts.length} bài thi trong năm {year}</small></div>
       <span className="activity-year" aria-label={`Năm ${year}`}>{year}</span>
-      <div className="heatmap-months">{Array.from({ length: 12 }, (_, index) => <span key={index} aria-label={`Tháng ${index + 1}`}><span className="heatmap-month-full">Th.{index + 1}</span><span className="heatmap-month-short">T{index + 1}</span></span>)}</div>
-      <div className="heatmap dashboard-heatmap">{activityDays.map(({ date, count, inYear }, index) => { const detail = `${activityDateFormat.format(date)}: ${count} bài thi`; return <i key={`${date.toISOString()}-${index}`} className={inYear ? `level-${Math.min(count,4)}` : "outside-year"} title={inYear ? detail : undefined} aria-label={inYear ? detail : undefined} aria-hidden={inYear ? undefined : true} />; })}</div>
+      <div className="heatmap-months">{Array.from({ length: 12 }, (_, index) => <span key={index} aria-label={`Tháng ${index + 1}`}><span className="heatmap-month-full">Th.{index + 1}</span><span className="heatmap-month-short">{index + 1}</span></span>)}</div>
+      <div className="heatmap dashboard-heatmap" role="img" aria-label={`Biểu đồ hoạt động năm ${year}: ${yearAttempts.length} bài thi đã hoàn thành`}>{activityDays.map(({ date, count, inYear }, index) => { const detail = `${activityDateFormat.format(date)}: ${count} bài thi`; return <i key={`${date.toISOString()}-${index}`} className={inYear ? `level-${Math.min(count,4)}` : "outside-year"} title={inYear ? detail : undefined} aria-hidden="true" />; })}</div>
       <div className="activity-footer"><span>{yearAttempts.length} bài thi trong năm</span><div className="heatmap-legend"><span>Ít</span><i/><i/><i/><i/><i/><span>Nhiều</span></div></div>
     </section>
   </div>;
