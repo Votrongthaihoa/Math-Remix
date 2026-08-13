@@ -1,27 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
-import { hashedRequestIp, resolveAuthUser } from "../../../../lib/security-server";
+import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 
-function accessTokenFrom(request: Request) {
-  const authorization = request.headers.get("authorization");
-  return authorization?.replace(/^Bearer\s+/i, "").trim()
-    || request.headers.get("x-supabase-access-token")?.trim()
-    || "";
-}
-
 export async function GET(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return Response.json({ error: "Chưa cấu hình khóa quản trị." }, { status: 503 });
-
-  const token = accessTokenFrom(request);
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  if (!token) return Response.json({ error: "Chưa đăng nhập hoặc phiên đăng nhập đã bị mất.", code: "AUTH_REQUIRED" }, { status: 401, headers: { "cache-control": "private, no-store" } });
-  const user = await resolveAuthUser(token, admin);
-  if (!user) return Response.json({ error: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.", code: "AUTH_SESSION_INVALID" }, { status: 401, headers: { "cache-control": "private, no-store" } });
-  const { data: profile } = await admin.from("profiles").select("role,status").eq("id", user.id).single();
-  if (profile?.role !== "admin" || profile.status !== "active") return Response.json({ error: "Không có quyền quản trị." }, { status: 403 });
+  const security = await ensureActiveAccount(request);
+  if (!security.ok) return security.response;
+  const { user, profile, admin } = security;
+  if (profile.role !== "admin") return Response.json({ error: "Không có quyền quản trị." }, { status: 403 });
   try {
     const budget = await consumeRequestBudget(admin, "admin-users-list", `${user.id}:${await hashedRequestIp(request)}`, { capacity: 30, refillSeconds: 2 });
     if (!budget.allowed) return Response.json({ error: "Bạn tải danh sách quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { "retry-after": String(budget.retryAfterSeconds), "cache-control": "private, no-store" } });
@@ -41,17 +26,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return Response.json({ error: "Chưa cấu hình khóa quản trị." }, { status: 503 });
-
-  const token = accessTokenFrom(request);
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  if (!token) return Response.json({ error: "Chưa đăng nhập hoặc phiên đăng nhập đã bị mất.", code: "AUTH_REQUIRED" }, { status: 401, headers: { "cache-control": "private, no-store" } });
-  const user = await resolveAuthUser(token, admin);
-  if (!user) return Response.json({ error: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.", code: "AUTH_SESSION_INVALID" }, { status: 401, headers: { "cache-control": "private, no-store" } });
-  const { data: profile } = await admin.from("profiles").select("role,status").eq("id", user.id).single();
-  if (profile?.role !== "admin" || profile.status !== "active") return Response.json({ error: "Không có quyền quản trị." }, { status: 403 });
+  const security = await ensureActiveAccount(request);
+  if (!security.ok) return security.response;
+  const { user, profile, admin } = security;
+  if (profile.role !== "admin") return Response.json({ error: "Không có quyền quản trị." }, { status: 403 });
   try {
     const budget = await consumeRequestBudget(admin, "admin-users-create", `${user.id}:${await hashedRequestIp(request)}`, { capacity: 5, refillSeconds: 120 });
     if (!budget.allowed) return Response.json({ error: "Bạn tạo tài khoản quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { "retry-after": String(budget.retryAfterSeconds), "cache-control": "private, no-store" } });
@@ -74,17 +52,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return Response.json({ error: "Chưa cấu hình khóa quản trị." }, { status: 503 });
-
-  const token = accessTokenFrom(request);
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  if (!token) return Response.json({ error: "Chưa đăng nhập hoặc phiên đăng nhập đã bị mất.", code: "AUTH_REQUIRED" }, { status: 401, headers: { "cache-control": "private, no-store" } });
-  const user = await resolveAuthUser(token, admin);
-  if (!user) return Response.json({ error: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.", code: "AUTH_SESSION_INVALID" }, { status: 401, headers: { "cache-control": "private, no-store" } });
-  const { data: adminProfile } = await admin.from("profiles").select("role,status").eq("id", user.id).single();
-  if (adminProfile?.role !== "admin" || adminProfile.status !== "active") return Response.json({ error: "Không có quyền quản trị." }, { status: 403 });
+  const security = await ensureActiveAccount(request);
+  if (!security.ok) return security.response;
+  const { user, profile, admin } = security;
+  if (profile.role !== "admin") return Response.json({ error: "Không có quyền quản trị." }, { status: 403 });
   try {
     const budget = await consumeRequestBudget(admin, "admin-users-password-reset", `${user.id}:${await hashedRequestIp(request)}`, { capacity: 5, refillSeconds: 120 });
     if (!budget.allowed) return Response.json({ error: "Bạn đổi mật khẩu quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { "retry-after": String(budget.retryAfterSeconds), "cache-control": "private, no-store" } });

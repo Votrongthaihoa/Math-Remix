@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { buildAnswerKeySnapshot, hasAnswerValue, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, type ExamAnswerValue } from "../../../lib/exam-answers";
+import { buildAnswerKeySnapshot, isExamAnswerComplete, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, type ExamAnswerValue } from "../../../lib/exam-answers";
 import { isIndependentSubjectExamType, normalizeExamType } from "../../../lib/exam-config";
 import { applyQuestionSnapshotOrder, EXAM_ATTEMPT_SELECT, EXAM_ROOM_SELECT, EXAM_SELECT, optionIdentity, questionIdsFromSnapshot } from "../../../lib/exam-content-server";
 import { latexPartSequence, parseLatexQuestion } from "../../../lib/exam-latex";
@@ -160,15 +160,6 @@ function questionCountsForAttempt(questions: Array<{ id: string; section_id?: st
   const counts: Record<string, number> = Object.fromEntries(sections.map(section => [section.id, 0]));
   selected.forEach(question => { if (question.section_id) counts[question.section_id] = (counts[question.section_id] ?? 0) + 1; });
   return counts;
-}
-
-function answerCompleteOnServer(question: { question_type: string; prompt?: string | null }, value: unknown) {
-  if (Array.isArray(value)) {
-    if (!value.length || value.some(item => !hasAnswerValue(item))) return false;
-    if (question.question_type === "inline") return value.length >= Math.max(1, (question.prompt?.match(/_{3,}/g) ?? []).length);
-    return true;
-  }
-  return hasAnswerValue(value);
 }
 
 function serverClient() {
@@ -451,11 +442,8 @@ export async function GET(request: Request) {
      const correctAnswers = isRegraded ? Number(attempt.correct_answers ?? scored.correctAnswers) : scored.correctAnswers;
      const score = isRegraded ? Number(attempt.score ?? scored.score) : scored.score;
     const totalQuestions = isRegraded ? Number(attempt.total_questions ?? orderedQuestions.length) : orderedQuestions.length;
-    const repairedAttempt = { ...attempt, correct_answers: correctAnswers, total_questions: totalQuestions, score };
-    if (!isRegraded && (attempt.correct_answers !== correctAnswers || attempt.total_questions !== totalQuestions || attempt.score !== score)) {
-      await admin.from("exam_attempts").update({ correct_answers: correctAnswers, total_questions: totalQuestions, score }).eq("id", attempt.id);
-    }
-    const safeAttempt = publicResultAttempt({ ...repairedAttempt }, bundle.policy, bundle.exam.results_released_at);
+     const projectedAttempt = { ...attempt, correct_answers: correctAnswers, total_questions: totalQuestions, score };
+     const safeAttempt = publicResultAttempt(projectedAttempt, bundle.policy, bundle.exam.results_released_at);
     return Response.json({ room: bundle.room, exam: bundle.exam, sections: bundle.sections, attempt: safeAttempt }, { headers: privateHeaders });
   }
 
@@ -719,7 +707,7 @@ export async function POST(request: Request) {
     if (nextSection && !deadlineExpired) {
       if (attemptPolicy.navigation.requireAnswerBeforeNext) {
         const currentQuestions = orderedAllQuestions.filter(question => question.section_id === body.sectionId);
-        const missing = currentQuestions.some(question => !answerCompleteOnServer(question, body.answers?.[question.id]));
+        const missing = currentQuestions.some(question => !isExamAnswerComplete(question, body.answers?.[question.id]));
         if (missing) return Response.json({ error: "Hãy trả lời đầy đủ phần hiện tại trước khi chuyển phần." }, { status: 409 });
       }
       const part3SectionId = hsaPart3SectionId(bundle.sections);

@@ -76,7 +76,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /"\/dashboard"/);
   assert.match(platform, /"\/courses"/);
   assert.doesNotMatch(platform, /demo-course|demo-lesson/);
-  assert.match(platform, /`\/courses\/\$\{encodeURIComponent\(String\(courseId\)\)\}`/);
+  assert.match(platform, /const href = `\/courses\/\$\{encodeURIComponent\(String\(course\.id\)\)\}`/);
   assert.match(platform, /"\/exam-history"/);
   assert.match(platform, /supabase\.from\("profiles"\)/);
   assert.match(platform, /supabase\.from\("exam_attempts"\)/);
@@ -154,8 +154,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(studyCss, /curriculum-lesson:not\(\.current\) \.curriculum-resource\{display:none\}/);
   assert.match(studyCss, /scroll|overflow-y:auto/);
 
-  assert.match(lessonFilesRoute, /admin\.auth\.getUser\(token\)/);
-  assert.match(lessonFilesRoute, /profile\?\.role !== "admin"/);
+  assert.match(lessonFilesRoute, /ensureActiveAccount\(request\)/);
+  assert.match(lessonFilesRoute, /profile\.role !== "admin"/);
   assert.match(lessonFilesRoute, /createPdfUpload\(path\)/);
   assert.match(lessonFilesRoute, /verifyPdfObject\(path, size, MAX_PDF_SIZE\)/);
   assert.match(r2Server, /function signedR2Request/);

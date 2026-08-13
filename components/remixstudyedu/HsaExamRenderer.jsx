@@ -3,6 +3,9 @@ import { buildHsaQuestionGroups } from "../../lib/hsa-exam";
 import { GroupPassage, QuestionAnswer, RichQuestionContent, isAnswered } from "./MathExam.jsx";
 import "./hsa-exam.css";
 
+const EMPTY_LIST = [];
+const EMPTY_NAVIGATION_POLICY = {};
+
 function formatClock(totalSeconds) {
   const safe = Math.max(0, totalSeconds);
   return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
@@ -161,11 +164,11 @@ export default function HsaExamRenderer({
   headerExtras = null,
   previewMode = false,
   answerPreview = false,
-  reviewStatuses = [],
-  solutions = [],
-  navigationPolicy = {},
+  reviewStatuses = EMPTY_LIST,
+  solutions = EMPTY_LIST,
+  navigationPolicy = EMPTY_NAVIGATION_POLICY,
 }) {
-  const questions = partData?.questions ?? [];
+  const questions = partData?.questions ?? EMPTY_LIST;
   const groups = useMemo(() => buildHsaQuestionGroups(questions), [questions]);
   const initialAnswerSignature = JSON.stringify(initialState?.answers || {});
   const synchronizedAnswers = useMemo(() => JSON.parse(initialAnswerSignature), [initialAnswerSignature]);
@@ -181,6 +184,8 @@ export default function HsaExamRenderer({
   const [marked] = useState(initialState?.marked || []);
   const startingRemaining = Math.max(0, initialState?.remainingSeconds ?? (partData?.time ?? 60) * 60);
   const [remaining, setRemaining] = useState(startingRemaining);
+  const remainingRef = useRef(remaining);
+  useEffect(() => { remainingRef.current = remaining; }, [remaining]);
   const [showSubmit, setShowSubmit] = useState(() => !readOnly && startingRemaining === 0 ? "timeout" : null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -275,8 +280,9 @@ export default function HsaExamRenderer({
   }, [groups, questions]);
 
   useEffect(() => {
-    onProgressRef.current?.({ partId: part?.id, answers, marked, visited, currentIndex, remainingSeconds: remaining, elapsedSeconds: Math.max(0, (partData?.time ?? 60) * 60 - remaining) });
-  }, [answers, currentIndex, marked, part?.id, partData?.time, remaining, visited]);
+    const remainingSeconds = remainingRef.current;
+    onProgressRef.current?.({ partId: part?.id, answers, marked, visited, currentIndex, remainingSeconds, elapsedSeconds: Math.max(0, (partData?.time ?? 60) * 60 - remainingSeconds) });
+  }, [answers, currentIndex, marked, part?.id, partData?.time, visited]);
 
   const submitPart = async () => {
     if (submitting || !canPreviewSubmit) return;

@@ -308,8 +308,9 @@ export function convertAnswersForRenderer(questions: SourceQuestion[], answers: 
 }
 
 export function convertAnswersForApi(questions: SourceQuestion[], answers: SourceAnswers) {
+  const questionsById = new Map(questions.map(question => [question.id, question]));
   return Object.fromEntries(Object.entries(answers).map(([questionId, value]) => {
-    const question = questions.find((item) => item.id === questionId);
+    const question = questionsById.get(questionId);
     return [questionId, question ? toSourceValue(question, value) : value];
   }));
 }

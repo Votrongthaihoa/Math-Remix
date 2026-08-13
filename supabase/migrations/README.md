@@ -48,6 +48,7 @@ migration của môi trường đó.
 041_private_admin_helper.sql
 042_active_account_policy_reconciliation.sql
 043_empty_legacy_head_bootstrap.sql
+044_exam_catalog_rls_enablement.sql
 ```
 
 ## Lưu ý về tiền tố `007`
@@ -218,3 +219,10 @@ the exact ten-table legacy fingerprint and verifies that `auth.users` plus all
 legacy tables still contain zero rows. It embeds the final bootstrap schema,
 then verifies all 36 HEAD relations, both private helpers, removal of
 `public.is_admin()`, and exactly nine active-account policies before commit.
+
+Migration `044_exam_catalog_rls_enablement.sql` is a forward-only repair that
+enables RLS on `exam_rooms`, `exams`, and `exam_room_enrollments`. Migration
+043 and `supabase/schema.sql` remain historical bootstrap inputs and must not
+be replayed on an existing project. Verify `pg_class.relrowsecurity` for all
+three tables before and after applying 044; production application requires a
+separate approved migration gate.

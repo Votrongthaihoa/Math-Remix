@@ -802,13 +802,18 @@ function RoomFormPage({ room, navigate, onSaved }: { room?: Room; navigate: (pat
     if (!supabase) return;
     if (!form.title.trim()) { setError("Hãy đặt tên cho phòng thi."); return; }
     setSaving(true); setError("");
-    const payload = { ...form, title: form.title.trim(), description: form.description.trim(), exam_type: form.exam_type.trim().toUpperCase() || DEFAULT_EXAM_ROOM_TYPE };
-    const result = room
-      ? await supabase.from("exam_rooms").update(payload).eq("id", room.id).select("id").single()
-      : await supabase.from("exam_rooms").insert({ ...payload, sort_order: 0 }).select("id").single();
-    setSaving(false);
-    if (result.error || !result.data?.id && !room) { setError(result.error?.message ?? "Không thể lưu phòng thi."); return; }
-    await onSaved(result.data?.id ?? room?.id);
+    try {
+      const payload = { ...form, title: form.title.trim(), description: form.description.trim(), exam_type: form.exam_type.trim().toUpperCase() || DEFAULT_EXAM_ROOM_TYPE };
+      const result = room
+        ? await supabase.from("exam_rooms").update(payload).eq("id", room.id).select("id").single()
+        : await supabase.from("exam_rooms").insert({ ...payload, sort_order: 0 }).select("id").single();
+      if (result.error || !result.data?.id && !room) { setError(result.error?.message ?? "Không thể lưu phòng thi."); return; }
+      await onSaved(result.data?.id ?? room?.id);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Không thể lưu phòng thi.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return <div className={`workspace-page room-form-page exam-theme-${normalizeExamType(form.exam_type).toLowerCase()}`} data-exam-type={normalizeExamType(form.exam_type).toLowerCase()}>
@@ -2484,30 +2489,35 @@ function QuestionEditorPage({ exam, room, section, question, answerKey, data, na
     if (!finalParsed.prompt && !finalParsed.options.length && !/\\cham\b|_{3,}/.test(finalParsed.body)) { setError("Môi trường ex cần có nội dung câu hỏi trước khi lưu."); return; }
     if (finalParsed.options.length && finalParsed.options.length < 2) { setError("Câu trắc nghiệm cần ít nhất hai phương án trong mã LaTeX."); return; }
     setSaving(true); setError("");
-    const answer = answerOverride.trim() ? answerForType(finalParsed.questionType, answerOverride) : finalParsed.correctAnswer;
-    const options = finalParsed.options.map((option, index) => ({ value: option.value || String.fromCharCode(65 + index), label: option.label }));
-    const payload = { prompt: finalParsed.prompt || "Câu hỏi từ môi trường ex", question_type: finalParsed.questionType, options, passage: passage.trim() || null, media_url: mediaUrl.trim() || null, instruction: instruction.trim() || null, points: Number(points) || 0, latex_source: finalSource, solution_source: effectiveSolution };
-    let questionId = question?.id ?? "";
-    let failure: { message: string } | null = null;
-    if (question) {
-      const result = await supabase.from("exam_questions").update(payload).eq("id", question.id);
-      failure = result.error;
-      if (!failure) failure = (await supabase.from("exam_question_keys").upsert({ question_id: question.id, correct_answer: answer, explanation: effectiveSolution }, { onConflict: "question_id" })).error;
-    } else {
-      const result = await supabase.from("exam_questions").insert({ ...payload, section_id: section.id, sort_order: data.questions.filter(item => item.section_id === section.id).length }).select("id").single();
-      questionId = result.data?.id ?? "";
-      failure = result.error;
-      if (!failure && questionId) {
-        const keyResult = await supabase.from("exam_question_keys").insert({ question_id: questionId, correct_answer: answer, explanation: effectiveSolution });
-        failure = keyResult.error;
-        if (failure) await supabase.from("exam_questions").delete().eq("id", questionId);
+    try {
+      const answer = answerOverride.trim() ? answerForType(finalParsed.questionType, answerOverride) : finalParsed.correctAnswer;
+      const options = finalParsed.options.map((option, index) => ({ value: option.value || String.fromCharCode(65 + index), label: option.label }));
+      const payload = { prompt: finalParsed.prompt || "Câu hỏi từ môi trường ex", question_type: finalParsed.questionType, options, passage: passage.trim() || null, media_url: mediaUrl.trim() || null, instruction: instruction.trim() || null, points: Number(points) || 0, latex_source: finalSource, solution_source: effectiveSolution };
+      let questionId = question?.id ?? "";
+      let failure: { message: string } | null = null;
+      if (question) {
+        const result = await supabase.from("exam_questions").update(payload).eq("id", question.id);
+        failure = result.error;
+        if (!failure) failure = (await supabase.from("exam_question_keys").upsert({ question_id: question.id, correct_answer: answer, explanation: effectiveSolution }, { onConflict: "question_id" })).error;
+      } else {
+        const result = await supabase.from("exam_questions").insert({ ...payload, section_id: section.id, sort_order: data.questions.filter(item => item.section_id === section.id).length }).select("id").single();
+        questionId = result.data?.id ?? "";
+        failure = result.error;
+        if (!failure && questionId) {
+          const keyResult = await supabase.from("exam_question_keys").insert({ question_id: questionId, correct_answer: answer, explanation: effectiveSolution });
+          failure = keyResult.error;
+          if (failure) await supabase.from("exam_questions").delete().eq("id", questionId);
+        }
       }
+      if (failure || !questionId) { setError(explainExamSchemaError(failure, "Không thể lưu câu hỏi. Hãy kiểm tra migration 011_exam_editor_schema_compat.sql.")); return; }
+      setSavedAt(new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date()));
+      signalExamPreviewRefresh(exam.id);
+      await onSaved(questionId);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Không thể lưu câu hỏi.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    if (failure || !questionId) { setError(explainExamSchemaError(failure, "Không thể lưu câu hỏi. Hãy kiểm tra migration 011_exam_editor_schema_compat.sql.")); return; }
-    setSavedAt(new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date()));
-    signalExamPreviewRefresh(exam.id);
-    await onSaved(questionId);
   }
 
   function openPreviewTab() {

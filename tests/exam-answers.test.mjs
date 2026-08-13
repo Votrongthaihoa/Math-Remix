@@ -1,7 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { answersMatch, buildAnswerKeySnapshot, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, scoreExamQuestionsWithOverrides, scoreExamQuestionsWithOverridesForContext } from "../lib/exam-answers.ts";
+import { answersMatch, buildAnswerKeySnapshot, isExamAnswerComplete, normalizeAnswerMap, readAnswerKeySnapshot, scoreExamQuestions, scoreExamQuestionsForContext, scoreExamQuestionsWithOverrides, scoreExamQuestionsWithOverridesForContext } from "../lib/exam-answers.ts";
+
+test("uses one answer-completeness contract for structured source questions", () => {
+  assert.equal(isExamAnswerComplete({ question_type: "text" }, " 42 "), true);
+  assert.equal(isExamAnswerComplete({ question_type: "text" }, " "), false);
+  assert.equal(isExamAnswerComplete({ question_type: "true_false", options: [1, 2, 3, 4] }, ["true", "false", "true", "false"]), true);
+  assert.equal(isExamAnswerComplete({ question_type: "true_false", options: [1, 2, 3, 4] }, ["true", "false"]), false);
+  assert.equal(isExamAnswerComplete({ question_type: "ordering", options: [1, 2, 3] }, ["2", "1", "3"]), true);
+  assert.equal(isExamAnswerComplete({ question_type: "inline", prompt: "A ___ B ____" }, ["x", "y"]), true);
+  assert.equal(isExamAnswerComplete({ question_type: "inline", prompt: "A ___ B ____" }, ["x", ""]), false);
+  assert.equal(isExamAnswerComplete({ question_type: "single", _loading: true }, "A"), false);
+});
 import { THPTQG_SUBJECT_TEMPLATES } from "../lib/exam-config.ts";
 import { positionalOptionParts } from "../lib/exam-option-display.ts";
 

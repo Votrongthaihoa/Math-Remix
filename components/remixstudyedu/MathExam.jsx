@@ -1056,6 +1056,10 @@ export default function MathExam({ onSubmit, onProgress, onQuestionRequest, part
   const [visited, setVisited] = useState(initialState?.visited || []);
   const [remaining, setRemaining] = useState(initialState?.remainingSeconds ?? partData.time * 60);
   const [questionSeconds, setQuestionSeconds] = useState(initialState?.questionSeconds || 0);
+  const remainingRef = useRef(remaining);
+  const questionSecondsRef = useRef(questionSeconds);
+  useEffect(() => { remainingRef.current = remaining; }, [remaining]);
+  useEffect(() => { questionSecondsRef.current = questionSeconds; }, [questionSeconds]);
   const [showSubmit, setShowSubmit] = useState(initialSubmit ? "manual" : null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -1198,8 +1202,9 @@ export default function MathExam({ onSubmit, onProgress, onQuestionRequest, part
     }
   }, [remaining]);
   useEffect(() => {
-    onProgress?.({ partId: part?.id, answers, marked, visited, currentIndex, remainingSeconds: remaining, elapsedSeconds: partData.time * 60 - remaining });
-  }, [answers, marked, visited, currentIndex, remaining, onProgress, part?.id, partData.time]);
+    const remainingSeconds = remainingRef.current;
+    onProgress?.({ partId: part?.id, answers, marked, visited, currentIndex, remainingSeconds, elapsedSeconds: partData.time * 60 - remainingSeconds, questionSeconds: questionSecondsRef.current });
+  }, [answers, marked, visited, currentIndex, onProgress, part?.id, partData.time]);
 
   const openMobileMenu = () => {
     menuReturnFocusRef.current = document.activeElement;

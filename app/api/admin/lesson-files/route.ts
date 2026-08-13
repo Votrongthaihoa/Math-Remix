@@ -1,7 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import { createPdfUpload, deleteR2Object, r2Key, verifyPdfObject } from "../../../../lib/r2-server";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
-import { hashedRequestIp, resolveAuthUser } from "../../../../lib/security-server";
+import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 
 const LEGACY_BUCKET = "lesson-files";
@@ -10,19 +9,10 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const noStore = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
 async function getAdmin(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return { error: Response.json({ error: "Chưa cấu hình khóa quản trị." }, { status: 503, headers: noStore }) };
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim()
-    || request.headers.get("x-supabase-access-token")?.trim()
-    || "";
-  if (!token) return { error: Response.json({ error: "Chưa đăng nhập." }, { status: 401, headers: noStore }) };
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const directUser = await admin.auth.getUser(token).then(result => result.data.user).catch(() => null);
-  const user = directUser ?? await resolveAuthUser(token, admin);
-  if (!user) return { error: Response.json({ error: "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.", code: "AUTH_SESSION_INVALID" }, { status: 401, headers: noStore }) };
-  const { data: profile } = await admin.from("profiles").select("role,status").eq("id", user.id).single();
-  if (profile?.role !== "admin" || profile.status !== "active") return { error: Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore }) };
+  const security = await ensureActiveAccount(request);
+  if (!security.ok) return { error: security.response };
+  const { user, profile, admin } = security;
+  if (profile.role !== "admin") return { error: Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore }) };
   return { admin, user };
 }
 

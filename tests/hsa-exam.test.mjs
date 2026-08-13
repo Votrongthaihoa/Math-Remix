@@ -126,7 +126,8 @@ test("does not retrigger HSA progress solely because a callback reference change
   const renderer = readFileSync(new URL("../components/remixstudyedu/HsaExamRenderer.jsx", import.meta.url), "utf8");
 
   assert.match(renderer, /const onProgressRef = useRef\(onProgress\);[\s\S]*?onProgressRef\.current = onProgress;/);
-  assert.match(renderer, /onProgressRef\.current\?\.\(\{ partId:[\s\S]*?\}\);[\s\S]*?\}, \[answers, currentIndex, marked, part\?\.id, partData\?\.time, remaining, visited\]\);/);
+  assert.match(renderer, /onProgressRef\.current\?\.\(\{ partId:[\s\S]*?remainingSeconds[\s\S]*?\}\);[\s\S]*?\}, \[answers, currentIndex, marked, part\?\.id, partData\?\.time, visited\]\);/);
+  assert.doesNotMatch(renderer, /\[answers, currentIndex, marked, part\?\.id, partData\?\.time, remaining, visited\]/);
   assert.doesNotMatch(renderer, /\[answers, currentIndex, marked, onProgress,/);
 });
 

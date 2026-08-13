@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Computer, FilePenLine, List, Maximize2, Menu
 import { isGuestExamImage, RichQuestionContent as BaseRichQuestionContent } from "../remixstudyedu/MathExam";
 import { formatLatexAnswerForDisplay, latexPartInstruction, normalizeLatexContent, resolveBaidocQuestionRange, type LatexPartNumber } from "../../lib/exam-latex";
 import { positionalOptionParts } from "../../lib/exam-option-display";
+import { isExamAnswerComplete } from "../../lib/exam-answers";
 import "./thptqg.css";
 
 type RichQuestionContentProps = {
@@ -153,17 +154,6 @@ const QUESTION_FONT_SIZE = 16;
 const MIN_ZOOM_PERCENT = 100;
 const MAX_ZOOM_PERCENT = 160;
 const ZOOM_STEP_PERCENT = 10;
-
-function answerComplete(question: Question, value: AnswerValue | undefined) {
-  if (question._loading) return false;
-  if (question.question_type === "text") return typeof value === "string" && value.trim().length > 0;
-  if (question.question_type === "inline") {
-    const values = Array.isArray(value) ? value : [];
-    return values.length >= Math.max(1, (question.prompt.match(/_{3,}/g) ?? []).length) && values.every(item => item.trim());
-  }
-  if (question.question_type === "true_false") return Array.isArray(value) && value.length >= question.options.length && value.every(Boolean);
-  return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.trim().length > 0;
-}
 
 const SHORT_ANSWER_LENGTH = 4;
 
@@ -377,6 +367,10 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
   const [marked, setMarked] = useState<Set<string>>(new Set(initialMarked));
   const [secondsLeft, setSecondsLeft] = useState(Math.max(0, initialRemainingSeconds));
   const [questionSeconds, setQuestionSeconds] = useState(0);
+  const secondsLeftRef = useRef(secondsLeft);
+  const questionSecondsRef = useRef(questionSeconds);
+  useEffect(() => { secondsLeftRef.current = secondsLeft; }, [secondsLeft]);
+  useEffect(() => { questionSecondsRef.current = questionSeconds; }, [questionSeconds]);
   const [view, setView] = useState<"single" | "list">("single");
   const [zoomPercent, setZoomPercent] = useState(MIN_ZOOM_PERCENT);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -399,8 +393,8 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
   useEffect(() => { progressRef.current = onProgress; }, [onProgress]);
   useEffect(() => {
     if (preview || resultReview) return;
-    progressRef.current?.({ answers, marked: [...marked], currentIndex: current, remainingSeconds: secondsLeft, questionSeconds });
-  }, [answers, marked, current, preview, questionSeconds, resultReview, secondsLeft]);
+    progressRef.current?.({ answers, marked: [...marked], currentIndex: current, remainingSeconds: secondsLeftRef.current, questionSeconds: questionSecondsRef.current });
+  }, [answers, marked, current, preview, resultReview]);
   useEffect(() => {
     if (preview || resultReview) return undefined;
     if (deadlineAtRef.current === null) {
@@ -448,7 +442,7 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
     return () => window.clearInterval(timer);
   }, [preview, resultReview]);
 
-  const answered = useMemo(() => questions.filter(question => answerComplete(question, answers[question.id])).length, [answers, questions]);
+  const answered = useMemo(() => questions.filter(question => isExamAnswerComplete(question, answers[question.id])).length, [answers, questions]);
   const displayMeta = useMemo(() => questionDisplayMeta(questions, resetQuestionIndex), [questions, resetQuestionIndex]);
   const passageGroups = useMemo(() => buildPassageGroups(questions, displayMeta), [displayMeta, questions]);
   const currentQuestion = questions[current];
@@ -463,7 +457,7 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
     if (index < 0 || index >= questions.length || index === current) return false;
     if (index < current && !allowBacktrack) return false;
     if (index > current && !allowSkip && index !== current + 1) return false;
-    if (index > current && navigationPolicy.requireAnswerBeforeNext && !answerComplete(currentQuestion, answers[currentQuestion?.id])) return false;
+    if (index > current && navigationPolicy.requireAnswerBeforeNext && !isExamAnswerComplete(currentQuestion, answers[currentQuestion?.id])) return false;
     return true;
   }, [allowBacktrack, allowSkip, answers, current, currentQuestion, navigationPolicy.requireAnswerBeforeNext, questions.length]);
   useEffect(() => {
@@ -659,7 +653,7 @@ export default function ThptqgExamRenderer({ examTitle, subjectTitle, candidateN
       <div ref={questionStripRef} className="thptqg-question-strip" style={{ "--question-count": questions.length } as React.CSSProperties} aria-label="Điều hướng câu hỏi">
         <div className="thptqg-question-strip-buttons">
           {questions.map((question, index) => {
-            const isAnswered = answerComplete(question, answers[question.id]);
+            const isAnswered = isExamAnswerComplete(question, answers[question.id]);
             const isBookmarked = marked.has(question.id);
             const number = displayMeta[index]?.number ?? index + 1;
             return <button

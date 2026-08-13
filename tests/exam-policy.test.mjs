@@ -153,7 +153,8 @@ test("answer key snapshot migration is forward-only and server-side", async () =
   assert.match(migration, /add column if not exists answer_key_snapshot jsonb/i);
   assert.match(migration, /jsonb_typeof\(answer_key_snapshot\) = 'object'/i);
   assert.match(contentServer, /answer_key_snapshot/);
-  assert.match(resultRoute, /delete repairedAttempt\.answer_key_snapshot/);
+  assert.match(resultRoute, /delete projectedAttempt\.answer_key_snapshot/);
+  assert.doesNotMatch(resultRoute, /from\("exam_attempts"\)\.update\(/);
 });
 
 test("attempt Data API grants do not expose protected payloads", async () => {

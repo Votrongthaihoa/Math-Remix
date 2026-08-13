@@ -10,6 +10,34 @@ export function hasAnswerValue<T>(value: T): value is Exclude<T, null | undefine
   return value !== undefined && value !== null && String(value).trim().length > 0;
 }
 
+export type AnswerCompletenessQuestion = {
+  question_type: string;
+  prompt?: string | null;
+  options?: readonly unknown[] | null;
+  _loading?: boolean;
+};
+
+/**
+ * Shared answer-completeness contract for the source question model used by
+ * the exam API and the authenticated/guest renderers. This does not score an
+ * answer; it only decides whether navigation may treat it as fully answered.
+ */
+export function isExamAnswerComplete(question: AnswerCompletenessQuestion, value: unknown) {
+  if (question._loading) return false;
+  if (!Array.isArray(value)) return hasAnswerValue(value);
+  if (!value.length || value.some(item => !hasAnswerValue(item))) return false;
+
+  const optionCount = question.options?.length ?? 0;
+  if (question.question_type === "true_false" || question.question_type === "ordering") {
+    return optionCount > 0 && value.length >= optionCount;
+  }
+  if (question.question_type === "inline" || question.question_type === "drag_drop") {
+    const blankCount = Math.max(1, (question.prompt?.match(/_{3,}/g) ?? []).length);
+    return value.length >= blankCount;
+  }
+  return true;
+}
+
 function normalizeMathAnswer(value: string) {
   // LaTeX commonly protects a decimal comma as `0{,}36`, while students
   // naturally type `0,36` into the answer box. Treat both spellings equally.

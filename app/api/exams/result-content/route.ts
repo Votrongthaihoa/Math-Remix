@@ -206,17 +206,14 @@ export async function POST(request: Request) {
         : "",
     };
   }) : [];
-  const repairedAttempt = {
+  const projectedAttempt = {
     ...context.attempt,
     answers: submittedAnswers,
     correct_answers: visibility.scoreVisible ? correctAnswers : null,
     total_questions: questions.length,
     score: visibility.scoreVisible ? score : null,
   };
-  delete repairedAttempt.answer_key_snapshot;
-  if (context.attempt.correct_answers !== correctAnswers || context.attempt.total_questions !== questions.length || Number(context.attempt.score) !== score) {
-    await admin.from("exam_attempts").update({ correct_answers: correctAnswers, total_questions: questions.length, score }).eq("id", context.attempt.id);
-  }
+  delete projectedAttempt.answer_key_snapshot;
 
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
   const binding: ExamEnvelopeBinding = {
@@ -234,7 +231,7 @@ export async function POST(request: Request) {
       exam: context.exam,
       sections: selectedSections,
       questions: visibility.answersVisible ? projectResultQuestions(questions) : [],
-      attempt: repairedAttempt,
+      attempt: projectedAttempt,
       keys: resultKeys,
       resultVisibility: visibility,
     }, body.clientPublicKey, binding);

@@ -200,6 +200,18 @@ test("production legacy bootstrap dry-run always rolls back", async () => {
   assert.ok(dryRun.includes(migration.replace(/commit;\s*$/i, "rollback;").trim()));
 });
 
+test("exam catalog RLS repair is forward-only and verifies its final state", async () => {
+  const sql = await source("supabase/migrations/044_exam_catalog_rls_enablement.sql");
+  assert.match(sql, /^begin;/i);
+  for (const table of ["exam_rooms", "exams", "exam_room_enrollments"]) {
+    assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
+  }
+  assert.match(sql, /not c\.relrowsecurity/i);
+  assert.match(sql, /044 failed to enable RLS/i);
+  assert.match(sql, /commit;\s*$/i);
+  assert.doesNotMatch(sql, /\b(drop|truncate|delete|update|insert)\b/i);
+});
+
 test("deploy readiness command locks production and runs every release gate", async () => {
   const [script, pkg] = await Promise.all([
     source("scripts/deploy-readiness-check.mjs"),
@@ -254,6 +266,17 @@ test("learning guard tracks devices and heartbeats without email verification", 
   assert.match(sessionApi, /apply_account_violation/);
   assert.match(platform, /<AccountSecurityGuard activityType=/);
   assert.match(exam, /<AccountSecurityGuard activityType=/);
+});
+
+test("privileged admin routes enforce active account status and admin role", async () => {
+  const [usersRoute, lessonFilesRoute] = await Promise.all([
+    source("app/api/admin/users/route.ts"),
+    source("app/api/admin/lesson-files/route.ts"),
+  ]);
+  assert.match(usersRoute, /ensureActiveAccount/);
+  assert.match(lessonFilesRoute, /ensureActiveAccount/);
+  assert.match(usersRoute, /profile\.role !== "admin"/);
+  assert.match(lessonFilesRoute, /profile\.role !== "admin"/);
 });
 
 test("admin security actions are audited", async () => {
