@@ -31,6 +31,7 @@ const auditRoutes = requestedRoutes.size ? safeRoutes.filter(([name]) => request
 const startPath = process.env.SMOKE_START_PATH ?? "/admin";
 const stressEnabled = process.env.SMOKE_STRESS === "1";
 const extendedInteractions = process.env.SMOKE_EXTENDED_INTERACTIONS !== "0";
+const resourceModalEnabled = process.env.SMOKE_RESOURCE_MODAL === "1";
 
 await mkdir("artifacts/product-shell-ui-audit", { recursive: true });
 const browser = await chromium.launch({ headless: true });
@@ -291,6 +292,43 @@ async function inspectDashboardDotAlignment() {
   report.push({ name: "student-dashboard-dot-alignment", path: "/dashboard", width: 1440, ...state });
 }
 
+async function inspectCourseResourceModal() {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/admin/content`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(1_200);
+    await page.getByRole("button", { name: /Quản lý/ }).first().click();
+    await page.getByRole("button", { name: /Thêm nội dung/ }).first().click();
+    await page.locator(".resource-source-modal").waitFor({ state: "visible" });
+
+    const sourceOptions = page.locator('input[name="resourceSource"]');
+    const optionCount = await sourceOptions.count();
+    await sourceOptions.nth(2).check();
+    const uploadVisible = await page.getByText("File PDF (tối đa 50 MB)", { exact: true }).isVisible();
+    await sourceOptions.nth(1).check();
+    const linkVisible = await page.getByText("Link PDF", { exact: true }).last().isVisible();
+    await sourceOptions.nth(0).check();
+    const youtubeVisible = await page.getByText("Link YouTube", { exact: true }).isVisible();
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const modal = document.querySelector(".resource-source-modal");
+      const rect = modal?.getBoundingClientRect();
+      const controls = [...(modal?.querySelectorAll("button, input") ?? [])];
+      return {
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+        modalInsideViewport: Boolean(rect && rect.left >= -1 && rect.right <= innerWidth + 1),
+        unnamedControls: controls.filter(control => !control.textContent?.trim() && !control.getAttribute("aria-label") && !control.getAttribute("name") && !control.closest("label")).length,
+      };
+    });
+    const result = { name: "admin-course-resource-modal", path: "/admin/content", width, optionCount, uploadVisible, linkVisible, youtubeVisible, ...state };
+    report.push(result);
+    await page.screenshot({ path: `artifacts/product-shell-ui-audit/admin-course-resource-modal-${width}.png`, fullPage: true });
+    if (optionCount !== 3 || !uploadVisible || !linkVisible || !youtubeVisible || result.horizontalOverflow || !result.modalInsideViewport || result.unnamedControls) {
+      throw new Error(`Course resource modal failed at ${width}px: ${JSON.stringify(result)}`);
+    }
+  }
+}
+
 async function inspectExamHistoryDialog() {
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
@@ -379,6 +417,7 @@ if (authenticated) {
       }
     }
   }
+  if (resourceModalEnabled && mockRole === "admin") await inspectCourseResourceModal();
 }
 
 console.log(JSON.stringify({ baseUrl, mockAuth, mockRole, authenticated, report }, null, 2));

@@ -907,16 +907,22 @@ function CourseDetail({ course, showDrafts, onBack, onLesson }: { course: Course
     let cancelled = false;
     async function loadCourseContent() {
       setLoadingContent(true); setContentError("");
-      const { data: chapterRows, error: chapterError } = await supabase!.from("chapters").select("id,course_id,title,sort_order").eq("course_id", course!.id).order("sort_order");
-      const chapterIds = (chapterRows ?? []).map(chapter => chapter.id);
-      const lessonQuery = supabase!.from("lessons").select("id,chapter_id,title,description,published,sort_order").in("chapter_id", chapterIds);
-      const lessonResult = chapterIds.length ? await (showDrafts ? lessonQuery.order("sort_order") : lessonQuery.eq("published", true).order("sort_order")) : { data: [], error: null };
-      if (cancelled) return;
-      const error = chapterError ?? lessonResult.error;
-      if (error) setContentError(error.message);
-      setChapters((chapterRows ?? []) as ChapterData[]);
-      setCourseLessons((lessonResult.data ?? []) as LessonData[]);
-      setLoadingContent(false);
+      try {
+        const { data: chapterRows, error: chapterError } = await supabase!.from("chapters").select("id,course_id,title,sort_order").eq("course_id", course!.id).order("sort_order");
+        if (cancelled) return;
+        const chapterIds = (chapterRows ?? []).map(chapter => chapter.id);
+        const lessonQuery = supabase!.from("lessons").select("id,chapter_id,title,description,published,sort_order").in("chapter_id", chapterIds);
+        const lessonResult = chapterIds.length ? await (showDrafts ? lessonQuery.order("sort_order") : lessonQuery.eq("published", true).order("sort_order")) : { data: [], error: null };
+        if (cancelled) return;
+        const error = chapterError ?? lessonResult.error;
+        if (error) setContentError(error.message);
+        setChapters((chapterRows ?? []) as ChapterData[]);
+        setCourseLessons((lessonResult.data ?? []) as LessonData[]);
+      } catch (value) {
+        if (!cancelled) setContentError(value instanceof Error ? value.message : "Không thể tải nội dung khóa học. Hãy thử lại.");
+      } finally {
+        if (!cancelled) setLoadingContent(false);
+      }
     }
     void loadCourseContent();
     return () => { cancelled = true; };
@@ -950,26 +956,34 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
     let cancelled = false;
     async function loadLesson() {
       setLessonLoading(true); setLessonError("");
-      const accessToken = await activeSessionToken().catch(() => null);
-      if (!accessToken) { setLessonError("Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại."); setLessonLoading(false); return; }
-      const [lessonResult, resourceResult] = await Promise.all([
-        supabase!.from("lessons").select("id,chapter_id,title,description,published,sort_order,chapters(course_id,title,sort_order,courses(title))").eq("id", lessonId).single(),
-        authenticatedFetch(`/api/lesson-resources?lessonId=${encodeURIComponent(lessonId)}`, { cache: "no-store" }),
-      ]);
-      if (cancelled) return;
-      const resourcePayload = await resourceResult.json() as { resources?: SecureLessonResource[]; curriculum?: LessonCurriculumSection[]; error?: string };
-      const errorMessage = lessonResult.error?.message || (!resourceResult.ok ? resourcePayload.error || "Không thể tải nội dung bài học." : "");
-      if (errorMessage) { setLessonError(errorMessage); setLessonLoading(false); return; }
-      const raw = lessonResult.data as LessonWithChapterRow;
-      const chapter = Array.isArray(raw.chapters) ? raw.chapters[0] : raw.chapters;
-      const relatedCourse = Array.isArray(chapter?.courses) ? chapter.courses[0] : chapter?.courses;
-      setLesson({ id: raw.id, chapter_id: raw.chapter_id, title: raw.title, description: raw.description ?? "", published: raw.published, sort_order: raw.sort_order, course_id: chapter?.course_id ?? "", course_title: relatedCourse?.title ?? "", chapter_title: chapter?.title ?? "", chapter_sort_order: chapter?.sort_order ?? 0 });
-      const nextResources = resourcePayload.resources ?? [];
-      setResources(nextResources);
-      setCurriculum(resourcePayload.curriculum ?? []);
-      const requestedResource = new URLSearchParams(window.location.search).get("resource") ?? "";
-      setSelectedResourceId(nextResources.some(resource => resource.id === requestedResource) ? requestedResource : nextResources[0]?.id ?? "");
-      setLessonLoading(false);
+      setLesson(null); setResources([]); setCurriculum([]); setSelectedResourceId("");
+      try {
+        const accessToken = await activeSessionToken().catch(() => null);
+        if (cancelled) return;
+        if (!accessToken) { setLessonError("Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại."); return; }
+        const [lessonResult, resourceResult] = await Promise.all([
+          supabase!.from("lessons").select("id,chapter_id,title,description,published,sort_order,chapters(course_id,title,sort_order,courses(title))").eq("id", lessonId).single(),
+          authenticatedFetch(`/api/lesson-resources?lessonId=${encodeURIComponent(lessonId)}`, { cache: "no-store" }),
+        ]);
+        if (cancelled) return;
+        const resourcePayload = await resourceResult.json().catch(() => null) as { resources?: SecureLessonResource[]; curriculum?: LessonCurriculumSection[]; error?: string } | null;
+        if (cancelled) return;
+        const errorMessage = lessonResult.error?.message || (!resourceResult.ok ? resourcePayload?.error || "Không thể tải nội dung bài học." : !resourcePayload ? "Nội dung bài học không hợp lệ." : "");
+        if (errorMessage) { setLessonError(errorMessage); return; }
+        const raw = lessonResult.data as LessonWithChapterRow;
+        const chapter = Array.isArray(raw.chapters) ? raw.chapters[0] : raw.chapters;
+        const relatedCourse = Array.isArray(chapter?.courses) ? chapter.courses[0] : chapter?.courses;
+        setLesson({ id: raw.id, chapter_id: raw.chapter_id, title: raw.title, description: raw.description ?? "", published: raw.published, sort_order: raw.sort_order, course_id: chapter?.course_id ?? "", course_title: relatedCourse?.title ?? "", chapter_title: chapter?.title ?? "", chapter_sort_order: chapter?.sort_order ?? 0 });
+        const nextResources = resourcePayload?.resources ?? [];
+        setResources(nextResources);
+        setCurriculum(resourcePayload?.curriculum ?? []);
+        const requestedResource = new URLSearchParams(window.location.search).get("resource") ?? "";
+        setSelectedResourceId(nextResources.some(resource => resource.id === requestedResource) ? requestedResource : nextResources[0]?.id ?? "");
+      } catch (value) {
+        if (!cancelled) setLessonError(value instanceof Error ? value.message : "Không thể tải nội dung bài học. Hãy thử lại.");
+      } finally {
+        if (!cancelled) setLessonLoading(false);
+      }
     }
     void loadLesson();
     return () => { cancelled = true; };
@@ -1695,39 +1709,56 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     setBuilderModal(null); setNewLessonTitle(""); setNewLessonDescription(""); setNewLessonPublished(false); await loadBuilderData(); await onChanged();
   }
 
+  function selectResourceType(nextType: ResourceData["resource_type"]) {
+    setNewResourceType(nextType);
+    setNewResourceUrl("");
+    setNewResourceFile(null);
+    if (nextType === "youtube") setNewResourceAllowDownload(false);
+  }
+
   async function createResource(event: React.FormEvent) {
     event.preventDefault(); if (!supabase || !targetLessonId) return;
     const name = newResourceTitle.trim(); let url = newResourceUrl.trim(); let uploadedPath = ""; if (!name) return;
-    if (newResourceType === "storage_pdf") {
-      if (!newResourceFile) { setBuilderError("Hãy chọn file PDF để tải lên."); return; }
-      if (newResourceFile.size > 50 * 1024 * 1024) { setBuilderError("File PDF không được vượt quá 50 MB."); return; }
-      setSavingBuilder(true); setBuilderError("");
-      const requestHeaders = { "content-type": "application/json" };
-      const prepareResponse = await authenticatedFetch("/api/admin/lesson-files", { method: "POST", headers: requestHeaders, body: JSON.stringify({ action: "prepare", courseId: course.id, lessonId: targetLessonId, filename: newResourceFile.name, mimeType: newResourceFile.type, size: newResourceFile.size }) });
-      const prepared = await prepareResponse.json() as { uploadUrl?: string; path?: string; error?: string };
-      if (!prepareResponse.ok || !prepared.uploadUrl || !prepared.path) { setSavingBuilder(false); setBuilderError(prepared.error || "Không thể chuẩn bị upload PDF lên R2."); return; }
-      uploadedPath = prepared.path;
-      const directUpload = await fetch(prepared.uploadUrl, { method: "PUT", headers: { "content-type": "application/pdf" }, body: newResourceFile });
-      if (!directUpload.ok) { setSavingBuilder(false); setBuilderError(`R2 từ chối upload PDF (${directUpload.status}). Hãy kiểm tra CORS và API token.`); return; }
-      const confirmResponse = await authenticatedFetch("/api/admin/lesson-files", { method: "POST", headers: requestHeaders, body: JSON.stringify({ action: "confirm", courseId: course.id, lessonId: targetLessonId, path: prepared.path, size: newResourceFile.size }) });
-      const confirmed = await confirmResponse.json() as { reference?: string; error?: string };
-      if (!confirmResponse.ok || !confirmed.reference) { await deleteStoredLessonFile("", prepared.path); setSavingBuilder(false); setBuilderError(confirmed.error || "Không thể xác nhận PDF trên R2."); return; }
-      url = confirmed.reference;
+    setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
+    try {
+      if (newResourceType === "storage_pdf") {
+        if (!newResourceFile) throw new Error("Hãy chọn file PDF để tải lên.");
+        if (newResourceFile.size > 50 * 1024 * 1024) throw new Error("File PDF không được vượt quá 50 MB.");
+        const requestHeaders = { "content-type": "application/json" };
+        const prepareResponse = await authenticatedFetch("/api/admin/lesson-files", { method: "POST", headers: requestHeaders, body: JSON.stringify({ action: "prepare", courseId: course.id, lessonId: targetLessonId, filename: newResourceFile.name, mimeType: "application/pdf", size: newResourceFile.size }) });
+        const prepared = await prepareResponse.json().catch(() => null) as { uploadUrl?: string; path?: string; error?: string } | null;
+        if (!prepareResponse.ok || !prepared?.uploadUrl || !prepared.path) throw new Error(prepared?.error || "Không thể chuẩn bị tải PDF lên R2.");
+        uploadedPath = prepared.path;
+        let directUpload: Response;
+        try {
+          directUpload = await fetch(prepared.uploadUrl, { method: "PUT", headers: { "Content-Type": "application/pdf" }, body: newResourceFile });
+        } catch {
+          throw new Error("Trình duyệt không kết nối được kho PDF. Hãy tải lại trang và thử lại.");
+        }
+        if (!directUpload.ok) throw new Error(`Kho PDF từ chối file (${directUpload.status}). Hãy thử tải lại.`);
+        const confirmResponse = await authenticatedFetch("/api/admin/lesson-files", { method: "POST", headers: requestHeaders, body: JSON.stringify({ action: "confirm", courseId: course.id, lessonId: targetLessonId, path: prepared.path, size: newResourceFile.size }) });
+        const confirmed = await confirmResponse.json().catch(() => null) as { reference?: string; error?: string } | null;
+        if (!confirmResponse.ok || !confirmed?.reference) throw new Error(confirmed?.error || "Không thể xác nhận PDF trên R2.");
+        url = confirmed.reference;
+      }
+      if (!url) throw new Error(newResourceType === "youtube" ? "Hãy nhập link YouTube." : "Hãy nhập link PDF.");
+      const order = resources.filter(resource=>resource.lesson_id===targetLessonId).length;
+      const { error } = await supabase.from("lesson_resources").insert({ lesson_id: targetLessonId, title: name, resource_type: newResourceType, resource_url: url, allow_download: newResourceType === "youtube" ? false : newResourceAllowDownload, sort_order: order });
+      if (error) throw error;
+      setBuilderModal(null); setNewResourceTitle(""); setNewResourceUrl(""); setNewResourceFile(null); setNewResourceType("youtube"); setNewResourceAllowDownload(false); setBuilderNotice(newResourceType === "storage_pdf" ? "Đã tải PDF lên khóa học." : "Đã thêm nội dung vào bài học."); await loadBuilderData();
+    } catch (value) {
+      if (uploadedPath) await deleteStoredLessonFile(url, uploadedPath).catch(() => undefined);
+      setBuilderError(value instanceof Error ? value.message : "Không thể thêm nội dung. Hãy thử lại.");
+    } finally {
+      setSavingBuilder(false);
     }
-    if (!url) { setBuilderError("Hãy nhập URL nội dung."); return; }
-    const order = resources.filter(resource=>resource.lesson_id===targetLessonId).length;
-    setSavingBuilder(true);
-    const { error } = await supabase.from("lesson_resources").insert({ lesson_id: targetLessonId, title: name, resource_type: newResourceType, resource_url: url, allow_download: newResourceType === "youtube" ? false : newResourceAllowDownload, sort_order: order });
-    setSavingBuilder(false); if (error) {
-      if (uploadedPath) await deleteStoredLessonFile(url, uploadedPath);
-      setBuilderError(error.message); return;
-    }
-    setBuilderModal(null); setNewResourceTitle(""); setNewResourceUrl(""); setNewResourceFile(null); setNewResourceType("youtube"); setNewResourceAllowDownload(false); await loadBuilderData();
   }
 
   async function deleteStoredLessonFile(reference: string, path = "") {
     if (!supabase || !reference && !path) return;
-    await authenticatedFetch("/api/admin/lesson-files", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ reference, path }) });
+    const response = await authenticatedFetch("/api/admin/lesson-files", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ reference, path }) });
+    const payload = await response.json().catch(() => null) as { error?: string } | null;
+    if (!response.ok) throw new Error(payload?.error || "Không thể xóa file khỏi kho PDF.");
   }
 
   function openRenameModal(table: "chapters" | "lessons", id: string, currentTitle: string) {
@@ -1749,15 +1780,23 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   async function removeRecord(table: "chapters" | "lessons" | "lesson_resources", id: string, label: string) {
     if (!supabase || !window.confirm(`Xóa ${label}?`)) return;
     const storedResource = table === "lesson_resources" ? resources.find(resource=>resource.id===id && resource.resource_type==="storage_pdf") : undefined;
+    setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
     const { error } = await supabase.from(table).delete().eq("id", id);
-    if (error) { setBuilderError(error.message); return; }
-    if (storedResource) {
-      if (storedResource.resource_url.startsWith("r2://")) await deleteStoredLessonFile(storedResource.resource_url);
-      else {
-        const marker = "/lesson-files/";
-        const markerIndex = storedResource.resource_url.indexOf(marker);
-        if (markerIndex >= 0) await deleteStoredLessonFile("", decodeURIComponent(storedResource.resource_url.slice(markerIndex + marker.length)));
+    if (error) { setSavingBuilder(false); setBuilderError(error.message); return; }
+    try {
+      if (storedResource) {
+        if (storedResource.resource_url.startsWith("r2://")) await deleteStoredLessonFile(storedResource.resource_url);
+        else {
+          const marker = "/lesson-files/";
+          const markerIndex = storedResource.resource_url.indexOf(marker);
+          if (markerIndex >= 0) await deleteStoredLessonFile("", decodeURIComponent(storedResource.resource_url.slice(markerIndex + marker.length)));
+        }
       }
+      setBuilderNotice(storedResource ? "Đã xóa tài liệu và file PDF khỏi kho." : "Đã xóa nội dung.");
+    } catch (value) {
+      setBuilderError(value instanceof Error ? `${value.message} Bản ghi nội dung đã được xóa; file cần được dọn lại.` : "Đã xóa nội dung nhưng chưa thể dọn file PDF.");
+    } finally {
+      setSavingBuilder(false);
     }
     await loadBuilderData(); await onChanged();
   }
@@ -1775,7 +1814,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   return <section className="admin-course-builder">
     <button className="back-btn" onClick={onBack}><ArrowLeft/> Danh sách khóa học</button>
     <div className="builder-header"><div><span className="eyebrow">TRÌNH SOẠN NỘI DUNG</span><h2>{course.title}</h2><p>Khóa học → Phần → Bài → Bài giảng / tài liệu</p></div><div className="builder-actions"><button className="outline-btn danger" onClick={deleteCourse}><Trash2/> Xóa khóa</button><button className="primary-btn small" onClick={saveCourse} disabled={savingBuilder}><Save/> {savingBuilder?"Đang lưu…":"Lưu khóa học"}</button></div></div>
-    {builderError&&<p className="form-error">{builderError}</p>}{builderNotice&&<p className="form-success">{builderNotice}</p>}
+    {builderError&&<p className="form-error" role="alert">{builderError}</p>}{builderNotice&&<p className="form-success" role="status">{builderNotice}</p>}
     <div className="builder-layout">
       <div className="section-card builder-settings"><h3>Thông tin khóa học</h3><label>Tên khóa học<input value={title} onChange={event=>setTitle(event.target.value)}/></label><label>Mô tả<textarea rows={5} value={description} onChange={event=>setDescription(event.target.value)}/></label><label>Ảnh bìa (URL)<input type="url" value={coverUrl} onChange={event=>setCoverUrl(event.target.value)}/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(coverColor)} onChange={event=>setCoverColor(event.target.value)}/><input value={coverColor} onChange={event=>setCoverColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={published} onChange={event=>setPublished(event.target.checked)}/><span>Đã xuất bản</span></label></div>
       <div className="section-card builder-tree">
@@ -1793,7 +1832,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     </div>
     {builderModal==="chapter"&&<div className="modal-shade"><form className="modal" onSubmit={createChapter}><div className="section-head"><h2>Thêm phần</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">Số thứ tự “Phần {chapters.length+1}” được thêm tự động.</p><label>Tên phần<input value={newChapterTitle} onChange={event=>setNewChapterTitle(event.target.value)} placeholder="Ví dụ: Hàm số" required/></label><button className="primary-btn" disabled={savingBuilder}>Tạo phần</button></form></div>}
     {builderModal==="lesson"&&<div className="modal-shade"><form className="modal" onSubmit={createLesson}><div className="section-head"><h2>Thêm bài</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">Bài được đặt đúng cấp bên trong phần đang chọn; số thứ tự được thêm tự động.</p><label>Tên bài<input value={newLessonTitle} onChange={event=>setNewLessonTitle(event.target.value)} placeholder="Ví dụ: Mệnh đề và tập hợp" required/></label><label>Mô tả<textarea rows={4} value={newLessonDescription} onChange={event=>setNewLessonDescription(event.target.value)}/></label><label className="checkbox-row"><input type="checkbox" checked={newLessonPublished} onChange={event=>setNewLessonPublished(event.target.checked)}/><span>Xuất bản ngay</span></label><button className="primary-btn" disabled={savingBuilder}>Tạo bài</button></form></div>}
-    {builderModal==="resource"&&<div className="modal-shade"><form className="modal" onSubmit={createResource}><div className="section-head"><h2>Thêm nội dung bài</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">PDF được tải trực tiếp vào Cloudflare R2 private bằng quyền ngắn hạn; học viên không nhận URL công khai.</p><label>Tên nội dung<input value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label><label>Loại<select value={newResourceType} onChange={event=>{const nextType=event.target.value as ResourceData["resource_type"];setNewResourceType(nextType);setNewResourceUrl("");setNewResourceFile(null);if(nextType==="youtube")setNewResourceAllowDownload(false)}}><option value="youtube">Video YouTube</option><option value="external_pdf">PDF / Google Drive</option><option value="storage_pdf">PDF Cloudflare R2</option></select></label>{newResourceType==="storage_pdf"?<label>File PDF (tối đa 50 MB)<input type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label>URL<input type="url" value={newResourceUrl} onChange={event=>setNewResourceUrl(event.target.value)} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType!=="youtube"&&<label className="checkbox-row"><input type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang tải lên…":"Thêm nội dung"}</button></form></div>}
+    {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2>Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">Chọn đúng nguồn nội dung. PDF tải lên được giữ riêng tư; học viên không nhận link R2.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label>Tên nội dung<input value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label>File PDF (tối đa 50 MB)<input type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label>{newResourceType==="youtube"?'Link YouTube':'Link PDF'}<input type="url" value={newResourceUrl} onChange={event=>setNewResourceUrl(event.target.value)} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType!=="youtube"&&<label className="checkbox-row"><input type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button className="primary-btn" disabled={savingBuilder}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":"Thêm nội dung")}</button></form></div>}
     {renameTarget&&<div className="modal-shade"><form className="modal" onSubmit={saveRename}><div className="section-head"><h2>Đổi tên {renameTarget.table==="chapters"?"phần":"bài"}</h2><button type="button" className="icon-btn" onClick={()=>{setRenameTarget(null);setRenameTitle("")}}><X/></button></div><p className="info-note">Không cần nhập “{renameTarget.table==="chapters"?"Phần":"Bài"}” và số thứ tự; hệ thống sẽ hiển thị tự động.</p><label>Tên mới<input value={renameTitle} onChange={event=>setRenameTitle(event.target.value)} required autoFocus/></label><button className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang lưu…":"Lưu tên mới"}</button></form></div>}
   </section>;
 }

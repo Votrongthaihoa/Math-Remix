@@ -53,6 +53,8 @@ test("product-shell smoke can focus on requested routes without unrelated intera
 
   assert.match(smoke, /SMOKE_EXTENDED_INTERACTIONS/);
   assert.match(smoke, /if \(extendedInteractions\) \{/);
+  assert.match(smoke, /SMOKE_RESOURCE_MODAL/);
+  assert.match(smoke, /inspectCourseResourceModal/);
 });
 
 test("courses use native links and curriculum list semantics", async () => {
@@ -66,6 +68,26 @@ test("courses use native links and curriculum list semantics", async () => {
   assert.match(platform, /<ul className="course-part-lessons">/);
   assert.match(platform, /<li key=\{lesson\.id\}><button/);
   assert.match(studyCss, /\.course-part-lessons>li>button/);
+});
+
+test("course content loaders always settle and ignore superseded routes", async () => {
+  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+
+  assert.match(platform, /async function loadCourseContent\(\)[\s\S]*?try \{[\s\S]*?finally \{\s*if \(!cancelled\) setLoadingContent\(false\);/);
+  assert.match(platform, /async function loadLesson\(\)[\s\S]*?resourceResult\.json\(\)\.catch\(\(\) => null\)[\s\S]*?finally \{\s*if \(!cancelled\) setLessonLoading\(false\);/);
+  assert.match(platform, /setLesson\(null\); setResources\(\[\]\); setCurriculum\(\[\]\); setSelectedResourceId\(""\);/);
+  assert.match(platform, /const accessToken = await activeSessionToken\(\)\.catch\(\(\) => null\);\s*if \(cancelled\) return;/);
+});
+
+test("secure lesson viewer cancels stale requests and owns temporary downloads", async () => {
+  const player = await readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8");
+
+  assert.match(player, /const pendingDownloadUrlsRef = useRef\(new Map<string, number>\(\)\)/);
+  assert.match(player, /for \(const \[url, timer\] of pendingDownloadUrlsRef\.current\)[\s\S]*?window\.clearTimeout\(timer\);[\s\S]*?URL\.revokeObjectURL\(url\);/);
+  assert.match(player, /const \{ data: userData \} = await supabase\.auth\.getUser\(accessToken\);\s*if \(cancelled\) return;\s*setWatermarkEmail/);
+  assert.ok((player.match(/const controller = new AbortController\(\);/g) ?? []).length >= 3);
+  assert.ok((player.match(/signal: controller\.signal/g) ?? []).length >= 3);
+  assert.ok((player.match(/controller\.abort\(\)/g) ?? []).length >= 3);
 });
 
 test("history empty states announce filter results", async () => {

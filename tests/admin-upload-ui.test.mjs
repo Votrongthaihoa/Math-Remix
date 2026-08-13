@@ -38,3 +38,25 @@ test("lesson PDF upload validates course ownership and binds confirmation path",
   assert.match(route, /path\.startsWith\(`\$\{courseId\}\/\$\{lessonId\}\//);
   assert.match(route, /consumeRequestBudget/);
 });
+
+test("course builder separates content sources and reports R2 cleanup failures", async () => {
+  const [platform, cors] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../cloudflare/r2-private-lessons-cors.json", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /name="resourceSource"/);
+  assert.match(platform, /\['youtube','YouTube','Dán link video YouTube'\]/);
+  assert.match(platform, /\['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'\]/);
+  assert.match(platform, /\['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính'\]/);
+  assert.match(platform, /headers: \{ "Content-Type": "application\/pdf" \}/);
+  assert.match(platform, /if \(!response\.ok\) throw new Error\(payload\?\.error \|\| "Không thể xóa file khỏi kho PDF\."\)/);
+  assert.match(platform, /Đã xóa tài liệu và file PDF khỏi kho\./);
+
+  const config = JSON.parse(cors);
+  const rule = config.rules[0];
+  assert.deepEqual(rule.allowed.methods, ["PUT", "HEAD"]);
+  assert.deepEqual(rule.allowed.headers, ["Content-Type"]);
+  assert.ok(rule.allowed.origins.includes("https://www.mathremix.pro.vn"));
+  assert.ok(rule.allowed.origins.includes("https://mathremix.pro.vn"));
+});

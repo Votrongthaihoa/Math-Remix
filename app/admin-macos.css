@@ -454,6 +454,67 @@
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
 }
 
+.ui-shell.admin-app.product-shell .resource-source-options {
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options legend {
+  margin-bottom: 8px;
+  color: var(--admin-body);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options > label {
+  min-width: 0;
+  min-height: 58px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options > label.selected {
+  border-color: rgba(0, 122, 255, 0.48);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options b,
+.ui-shell.admin-app.product-shell .resource-source-options small {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options small {
+  color: var(--admin-subtle);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
 /* Students, courses, assignments and content builder */
 .ui-shell.admin-app.product-shell .student-manager,
 .ui-shell.admin-app.product-shell .assignment-page .section-card,
