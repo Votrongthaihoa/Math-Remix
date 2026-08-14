@@ -47,7 +47,7 @@ test("course builder separates content sources and reports R2 cleanup failures",
 
   assert.match(platform, /name="resourceSource"/);
   assert.match(platform, /\['youtube','YouTube','Dán link video YouTube'\]/);
-  assert.match(platform, /\['onedrive_video','OneDrive \/ SharePoint','Dán link chia sẻ video Microsoft'\]/);
+  assert.match(platform, /\['onedrive_video','OneDrive công khai','Dán link “Anyone with the link”'\]/);
   assert.match(platform, /\['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'\]/);
   assert.match(platform, /\['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính'\]/);
   assert.match(platform, /headers: \{ "Content-Type": "application\/pdf" \}/);
@@ -71,10 +71,11 @@ test("OneDrive lesson video creation stays behind the active admin server bounda
   assert.match(route, /ensureActiveAccount/);
   assert.match(route, /profile\.role !== "admin"/);
   assert.match(route, /consumeRequestBudget/);
-  assert.match(route, /inspectMicrosoftShareVideo/);
+  assert.match(route, /inspectPublicMicrosoftVideo/);
   assert.match(route, /resource_type: "onedrive_video"/);
   assert.doesNotMatch(platform, /NEXT_PUBLIC_MICROSOFT|MICROSOFT_CLIENT_SECRET/);
-  assert.match(player, /forceRefresh/);
+  assert.doesNotMatch(route, /MICROSOFT_TENANT_ID|MICROSOFT_CLIENT_ID|MICROSOFT_CLIENT_SECRET|authorization: `Bearer/);
   assert.match(player, /<video/);
+  assert.match(player, /<iframe/);
   assert.match(player, /playbackRate/);
 });

@@ -22,7 +22,7 @@ type ResolvedContent = {
   protectedContent?: "pdf";
   playbackUrl?: string;
   mimeType?: string;
-  resolvedAt?: string;
+  playbackMode?: "native" | "embed";
 };
 
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
@@ -33,9 +33,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [pdfError, setPdfError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [videoRefreshCount, setVideoRefreshCount] = useState(0);
-  const [videoRefreshing, setVideoRefreshing] = useState(false);
-  const [videoRetryUsed, setVideoRetryUsed] = useState(false);
   const [videoPlaybackError, setVideoPlaybackError] = useState("");
   const [playbackRate, setPlaybackRate] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -64,7 +61,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         const response = await authenticatedFetch("/api/video-token", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ videoToken: resource.videoToken, forceRefresh: videoRefreshCount > 0 }),
+          body: JSON.stringify({ videoToken: resource.videoToken }),
           signal: controller.signal,
         });
         const payload = await response.json() as ResolvedContent & { error?: string };
@@ -75,24 +72,20 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       } catch (value) {
         if (!cancelled && (!(value instanceof Error) || value.name !== "AbortError")) setError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.");
       } finally {
-        if (!cancelled) { setLoading(false); setVideoRefreshing(false); }
+        if (!cancelled) setLoading(false);
       }
     }
     void resolveToken();
     return () => { cancelled = true; controller.abort(); };
-  }, [resource.id, resource.videoToken, resource.title, videoRefreshCount]);
+  }, [resource.id, resource.videoToken, resource.title]);
 
-  function refreshMicrosoftVideo(automatic = false) {
-    if (videoRefreshing || automatic && videoRetryUsed) return;
-    if (automatic) setVideoRetryUsed(true);
+  function retryMicrosoftVideo() {
     setVideoPlaybackError("");
-    setVideoRefreshing(true);
-    setVideoRefreshCount(value => value + 1);
+    videoRef.current?.load();
   }
 
   function handleMicrosoftVideoError() {
-    if (!videoRetryUsed) refreshMicrosoftVideo(true);
-    else setVideoPlaybackError("Nguồn phát Microsoft đã hết hạn hoặc tạm thời không khả dụng. Hãy tải lại nguồn phát.");
+    setVideoPlaybackError("Không thể phát video. Hãy kiểm tra file vẫn được chia sẻ bằng ‘Anyone with the link’. ");
   }
 
   function changePlaybackRate(value: string) {
@@ -208,10 +201,25 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "onedrive_video") {
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát video Microsoft.</div>;
+    if (content.playbackMode === "embed") {
+      return <div className="lesson-microsoft-video">
+        <iframe
+          className="lesson-frame lesson-video"
+          src={content.playbackUrl}
+          title={content.title}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          referrerPolicy="no-referrer"
+        />
+        <div className="lesson-video-status" role="status">
+          <span>Video được mở bằng trình phát công khai của Microsoft.</span>
+        </div>
+      </div>;
+    }
     return <div className="lesson-microsoft-video">
       <video
         ref={videoRef}
-        key={`${resource.id}:${content.resolvedAt ?? videoRefreshCount}`}
+        key={resource.id}
         className="lesson-video lesson-native-video"
         controls
         playsInline
@@ -224,13 +232,13 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         Trình duyệt của bạn không hỗ trợ phát video HTML5.
       </video>
       <div className="lesson-video-status" role="status">
-        <span>{videoPlaybackError || "Video được truyền trực tiếp từ Microsoft."}</span>
+        <span>{videoPlaybackError || "Video được truyền trực tiếp từ liên kết OneDrive công khai."}</span>
         <label>Tốc độ
           <select value={playbackRate} onChange={event => changePlaybackRate(event.target.value)} aria-label="Tốc độ phát video">
             {[0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}
           </select>
         </label>
-        <button type="button" onClick={() => refreshMicrosoftVideo()} disabled={videoRefreshing}>{videoRefreshing ? "Đang làm mới…" : "Tải lại nguồn phát"}</button>
+        <button type="button" onClick={retryMicrosoftVideo}>Thử phát lại</button>
       </div>
     </div>;
   }

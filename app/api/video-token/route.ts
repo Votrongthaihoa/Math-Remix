@@ -3,7 +3,7 @@ import { verifyContentToken } from "../../../lib/content-token";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
 import { guardResourceAccess } from "../../../lib/resource-access-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
-import { MicrosoftGraphVideoError, resolveMicrosoftVideoPlayback } from "../../../lib/microsoft-graph-video";
+import { MicrosoftPublicVideoError, resolvePublicMicrosoftPlayback } from "../../../lib/microsoft-public-video";
 
 function youtubeSource(url: string) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
   const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!accessToken) return Response.json({ error: "Chưa đăng nhập." }, { status: 401 });
-  const parsedBody = await readJsonBody<{ videoToken?: string; forceRefresh?: boolean }>(request);
+  const parsedBody = await readJsonBody<{ videoToken?: string }>(request);
   if (!parsedBody.ok) return Response.json(jsonBodyError(parsedBody.error), { status: parsedBody.error === "payload_too_large" ? 413 : 400 });
   const body = parsedBody.body;
   if (!body.videoToken) return Response.json({ error: "Thiếu token nội dung." }, { status: 400 });
@@ -45,11 +45,11 @@ export async function POST(request: Request) {
     responseBody = { type: resource.resource_type, title: resource.title, youtubeId: source.id, start: source.start };
   } else if (resource.resource_type === "onedrive_video") {
     try {
-      const playback = await resolveMicrosoftVideoPlayback({ shareUrl: resource.resource_url, driveId: resource.provider_drive_id, itemId: resource.provider_item_id, forceRefresh: body.forceRefresh === true });
-      responseBody = { type: resource.resource_type, title: resource.title, playbackUrl: playback.playbackUrl, mimeType: playback.mimeType, resolvedAt: playback.resolvedAt };
+      const playback = resolvePublicMicrosoftPlayback(resource.resource_url);
+      responseBody = { type: resource.resource_type, title: resource.title, playbackUrl: playback.url, playbackMode: playback.mode };
     } catch (error) {
-      if (error instanceof MicrosoftGraphVideoError) return Response.json({ error: error.message, code: error.code }, { status: error.status, headers: { "cache-control": "private, no-store, max-age=0" } });
-      return Response.json({ error: "Không thể lấy nguồn phát video Microsoft." }, { status: 502, headers: { "cache-control": "private, no-store, max-age=0" } });
+      if (error instanceof MicrosoftPublicVideoError) return Response.json({ error: error.message, code: error.code }, { status: error.status, headers: { "cache-control": "private, no-store, max-age=0" } });
+      return Response.json({ error: "Không thể mở liên kết video Microsoft." }, { status: 502, headers: { "cache-control": "private, no-store, max-age=0" } });
     }
   } else {
     responseBody = { type: resource.resource_type, title: resource.title, protectedContent: "pdf" };

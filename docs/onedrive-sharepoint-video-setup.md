@@ -1,46 +1,29 @@
-# OneDrive / SharePoint lesson videos
+# OneDrive public lesson videos
 
-The course builder supports Microsoft-hosted video resources through the official Microsoft Graph API. Admins paste one stable sharing URL; the database stores that URL plus the stable drive/item identifiers. Learner playback URLs are resolved on demand and are never persisted.
+The course builder accepts a public OneDrive or SharePoint video link. No Microsoft Entra application, Graph permission, client secret, or administrator consent is required.
 
-## Supported in this release
+## Prepare a video link
 
-- SharePoint Online video sharing links.
-- OneDrive for Business links hosted on `*.sharepoint.com`.
-- Microsoft `1drv.ms` short links when Microsoft Graph can resolve them in the configured tenant.
-- OneDrive Personal links are detected but rejected with an actionable message. Personal files require delegated user authorization and secure refresh-token storage; application-only credentials are not silently substituted.
+1. Upload the video to OneDrive or SharePoint.
+2. Open **Share** and choose **Anyone with the link** with view-only access.
+3. Copy the sharing link and paste it into the course builder.
+4. Keep the file shared for as long as learners need to watch it.
 
-## Microsoft Entra configuration
+The builder anonymously probes the link before saving it. Links that redirect to sign-in, point to a non-video file, or leave Microsoft's supported hosts are rejected.
 
-Create a server-side Microsoft Entra application and configure these deployment secrets:
+OneDrive's generated **Embed** URL is also accepted. Microsoft notes that anyone visiting a page with an embedded file can view it without signing in.
 
-```text
-MICROSOFT_TENANT_ID=
-MICROSOFT_CLIENT_ID=
-MICROSOFT_CLIENT_SECRET=
-```
+## Security boundary
 
-Never prefix these variables with `NEXT_PUBLIC_`.
+The normal Math Remix account, active-account, publication, enrollment, and content-token checks still run before the learner receives the playback URL. However, this is a public OneDrive link, not DRM: anyone who obtains that Microsoft URL can access the file outside Math Remix. Use private R2 resources or a future delegated Microsoft integration for content that must never be publicly reachable.
 
-The Graph sharing-link endpoint currently documents `Files.ReadWrite.All` as the least privileged application permission for `GET /shares/{encodedSharingUrl}/driveItem`. Grant only the documented permission needed for this flow and complete admin consent in the intended tenant. The normal drive-item content lookup needs file read permission. Re-check Microsoft Graph permissions before production rollout because the sharing endpoint's least-privileged scope can change.
-
-## Data and playback flow
-
-1. The admin route validates the host and resolves `driveId`, `itemId`, MIME type, filename, size, and video metadata.
-2. `lesson_resources` stores the original stable sharing URL, stable identifiers, and non-secret metadata.
-3. The existing content token, active-account, publication, and enrollment checks run before playback resolution.
-4. Microsoft Graph returns `@microsoft.graph.downloadUrl`, a short-lived preauthenticated URL.
-5. The browser's HTML5 player requests that URL directly from Microsoft/CDN and supports byte ranges for seeking.
-6. The player resolves a fresh URL once automatically after a media error and also exposes a manual retry.
-
-The application does not proxy video bytes, store Graph access tokens, or store temporary CDN URLs. Resolver results are cached briefly in process memory and concurrent requests for the same item are deduplicated.
+The application stores only a stable Microsoft public playback URL. It does not store Microsoft passwords, OAuth tokens, temporary CDN URLs, or Entra credentials.
 
 ## Database rollout
 
-Apply `supabase/migrations/20260814003030_onedrive_lesson_video_resources.sql` only after reviewing it and verifying the live project through a project-scoped Supabase connection. The migration is forward-only and does not rewrite existing resources or policies.
+Apply `supabase/migrations/20260814003030_onedrive_lesson_video_resources.sql` only after reviewing it and verifying the live project through a project-scoped Supabase connection. The migration is forward-only and only expands the allowed `lesson_resources.resource_type` values plus its column comment.
 
 ## Official references
 
-- [Access shared items](https://learn.microsoft.com/en-us/graph/api/shares-get?view=graph-rest-1.0)
-- [Download driveItem content](https://learn.microsoft.com/en-us/graph/api/driveitem-get-content?view=graph-rest-1.0)
-- [Preview a driveItem](https://learn.microsoft.com/en-us/graph/api/driveitem-preview?view=graph-rest-1.0)
-- [OAuth 2.0 client credentials flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client-creds-grant-flow)
+- [Embed files directly into a website or blog](https://support.microsoft.com/en-us/office/embed-files-directly-into-your-website-or-blog-ed07dd52-8bdb-431d-96a5-cbe8a80b7418)
+- [Share OneDrive files and folders](https://support.microsoft.com/en-us/office/share-onedrive-files-and-folders-9fcc2f80-3af2-4ffd-8c4d-1b7f23a2b8c3)
