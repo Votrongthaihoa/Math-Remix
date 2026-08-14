@@ -1,6 +1,6 @@
 import { parseMicrosoftShareUrl, type MicrosoftShareProvider } from "./microsoft-share-url.ts";
 
-export type MicrosoftPublicPlaybackMode = "native" | "embed";
+export type MicrosoftPublicPlaybackMode = "native" | "embed" | "external";
 
 export type MicrosoftPublicVideoMetadata = {
   provider: MicrosoftShareProvider;
@@ -22,6 +22,8 @@ type PlaybackCandidate = {
 };
 
 const MAX_REDIRECTS = 6;
+const MAX_GUEST_COOKIES = 12;
+const MAX_COOKIE_HEADER_LENGTH = 4096;
 const VIDEO_EXTENSION = /\.(?:mp4|m4v|mov|webm|ogv|avi|wmv|mkv)(?:$|[?#])/i;
 const MICROSOFT_PUBLIC_HOSTS = [
   "1drv.ms",
@@ -62,6 +64,9 @@ function playbackCandidate(value: string): PlaybackCandidate {
   }
 
   const url = new URL(parsed.url);
+  if (parsed.provider === "sharepoint" || parsed.provider === "onedrive_business") {
+    return { url: parsed.url, mode: "external" };
+  }
   if (url.hostname.toLowerCase() === "onedrive.live.com") {
     if (/^\/embed\/?$/i.test(url.pathname)) return { url: url.toString(), mode: "embed" };
     if (!/^\/download\/?$/i.test(url.pathname)) {
@@ -80,6 +85,68 @@ function playbackCandidate(value: string): PlaybackCandidate {
   return { url: url.toString(), mode: "native" };
 }
 
+function setCookieValues(headers: Headers) {
+  const extended = headers as Headers & { getSetCookie?: () => string[] };
+  if (typeof extended.getSetCookie === "function") return extended.getSetCookie();
+  const combined = headers.get("set-cookie");
+  return combined ? combined.split(/,(?=[^;,]+=)/) : [];
+}
+
+function updateGuestCookieJar(jar: Map<string, string>, headers: Headers) {
+  for (const setCookie of setCookieValues(headers)) {
+    const pair = setCookie.split(";", 1)[0] ?? "";
+    const separator = pair.indexOf("=");
+    if (separator <= 0) continue;
+    const name = pair.slice(0, separator).trim();
+    const value = pair.slice(separator + 1).trim();
+    if (!/^[!#$%&'*+.^_`|~0-9a-z-]+$/i.test(name) || /[\u0000-\u001f\u007f;]/.test(value)) continue;
+    if (!value) jar.delete(name);
+    else if (jar.has(name) || jar.size < MAX_GUEST_COOKIES) jar.set(name, value);
+  }
+}
+
+function guestCookieHeader(jar: Map<string, string>) {
+  const value = [...jar].map(([name, cookie]) => `${name}=${cookie}`).join("; ");
+  return value.length <= MAX_COOKIE_HEADER_LENGTH ? value : "";
+}
+
+async function inspectSharePointGuestViewer(url: string, fetcher: typeof fetch) {
+  const start = new URL(url);
+  const originHost = start.hostname.toLowerCase();
+  const jar = new Map<string, string>();
+  let current = start;
+
+  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    if (current.protocol !== "https:") return false;
+    const host = current.hostname.toLowerCase();
+    if (MICROSOFT_SIGN_IN_HOSTS.some(signInHost => host === signInHost || host.endsWith(`.${signInHost}`))) return false;
+    if (!supportedRedirectHost(host)) return false;
+    const cookie = host === originHost ? guestCookieHeader(jar) : "";
+    const response = await fetcher(current, {
+      method: "GET",
+      redirect: "manual",
+      headers: { accept: "text/html", ...(cookie ? { cookie } : {}) },
+      cache: "no-store",
+    });
+    if (host === originHost) updateGuestCookieJar(jar, response.headers);
+    const location = response.headers.get("location");
+    if (response.status >= 300 && response.status < 400 && location) {
+      cancelBody(response);
+      current = new URL(location, current);
+      continue;
+    }
+    const contentType = (response.headers.get("content-type") ?? "").toLowerCase();
+    const isPublicViewer = response.ok
+      && host === originHost
+      && contentType.includes("text/html")
+      && /\/_layouts\/15\/(?:stream|embed)\.aspx$/i.test(current.pathname)
+      && jar.has("FedAuth");
+    cancelBody(response);
+    return isPublicViewer;
+  }
+  return false;
+}
+
 function cancelBody(response: Response) {
   void response.body?.cancel().catch(() => undefined);
 }
@@ -87,6 +154,13 @@ function cancelBody(response: Response) {
 async function requestFollowingMicrosoftRedirects(url: string, fetcher: typeof fetch) {
   let current = new URL(url);
   for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    if (current.protocol !== "https:") {
+      throw new MicrosoftPublicVideoError(
+        "Liên kết Microsoft chuyển hướng qua kết nối không an toàn.",
+        422,
+        "MICROSOFT_PUBLIC_REDIRECT_REJECTED",
+      );
+    }
     if (MICROSOFT_SIGN_IN_HOSTS.some(host => current.hostname.toLowerCase() === host || current.hostname.toLowerCase().endsWith(`.${host}`))) {
       throw new MicrosoftPublicVideoError(
         "Video chưa được chia sẻ công khai. Trong OneDrive, hãy chọn ‘Anyone with the link’ rồi dán lại liên kết.",
@@ -151,6 +225,7 @@ function publicContentLooksPlayable(response: Response, mode: MicrosoftPublicPla
   if (!response.ok && response.status !== 206) return false;
   const contentType = (response.headers.get("content-type") ?? "").toLowerCase();
   if (mode === "embed") return contentType.includes("text/html");
+  if (mode === "external") return false;
   if (contentType.startsWith("video/")) return true;
   return contentType.includes("application/octet-stream") && VIDEO_EXTENSION.test(filename);
 }
@@ -170,6 +245,28 @@ export async function inspectPublicMicrosoftVideo(value: string, fetcher: typeof
   }
 
   let candidate = playbackCandidate(parsed.url);
+  if (candidate.mode === "external") {
+    if (!await inspectSharePointGuestViewer(parsed.url, fetcher)) {
+      throw new MicrosoftPublicVideoError(
+        "Microsoft vẫn yêu cầu đăng nhập để mở link này. Hãy kiểm tra lại quyền chia sẻ của file.",
+        422,
+        "MICROSOFT_PUBLIC_LINK_REQUIRED",
+      );
+    }
+    return {
+      provider: parsed.provider,
+      providerLabel: providerLabel(parsed.provider),
+      shareUrl: parsed.url,
+      playbackUrl: parsed.url,
+      playbackMode: "external",
+      name: "Video SharePoint",
+      mimeType: "text/html",
+      size: null,
+      durationMs: null,
+      width: null,
+      height: null,
+    };
+  }
   let probe = await requestFollowingMicrosoftRedirects(candidate.url, fetcher);
   let filename = filenameFromHeaders(probe.response, probe.finalUrl);
 

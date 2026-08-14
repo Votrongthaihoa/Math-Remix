@@ -9,9 +9,11 @@ The course builder accepts a public OneDrive or SharePoint video link. No Micros
 3. Copy the sharing link and paste it into the course builder.
 4. Keep the file shared for as long as learners need to watch it.
 
-The builder anonymously probes the link before saving it. Links that redirect to sign-in, point to a non-video file, or leave Microsoft's supported hosts are rejected.
+The builder anonymously probes the link before saving it. SharePoint public viewers establish a short-lived guest cookie while redirecting to `stream.aspx`; the probe keeps that cookie only for the original SharePoint hostname and never persists it. Links that redirect to sign-in, point to a non-video file, or leave Microsoft's supported hosts are rejected.
 
 OneDrive's generated **Embed** URL is also accepted. Microsoft notes that anyone visiting a page with an embedded file can view it without signing in.
+
+SharePoint can publish a view-only video while explicitly disabling downloads and cross-site framing. Those resources are accepted, but the lesson opens Microsoft's public player in a new tab instead of pretending the file can be played directly in Math Remix. Direct OneDrive video responses still use the native in-lesson player.
 
 ## Security boundary
 

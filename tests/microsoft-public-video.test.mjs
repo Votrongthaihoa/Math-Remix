@@ -26,8 +26,8 @@ test("builds stable public playback URLs without Graph credentials", () => {
   assert.equal(personal.url, "https://onedrive.live.com/download?resid=ABC123%21104&authkey=%21public");
 
   const business = resolvePublicMicrosoftPlayback(businessUrl);
-  assert.equal(business.mode, "native");
-  assert.equal(new URL(business.url).searchParams.get("download"), "1");
+  assert.equal(business.mode, "external");
+  assert.equal(new URL(business.url).searchParams.get("download"), null);
 
   const embed = resolvePublicMicrosoftPlayback("https://onedrive.live.com/embed?resid=ABC123%21104&authkey=%21public");
   assert.equal(embed.mode, "embed");
@@ -81,6 +81,29 @@ test("resolves a public 1drv.ms link to a stable personal download URL", async (
   assert.equal(requests.some(url => url.includes("/download?resid=")), true);
 });
 
+test("accepts a public SharePoint viewer by preserving its guest cookie", async () => {
+  const requests = [];
+  const streamUrl = "https://contoso-my.sharepoint.com/personal/teacher_contoso_com/_layouts/15/stream.aspx?id=video";
+  const fetcher = async (url, init = {}) => {
+    const value = String(url);
+    requests.push({ value, cookie: init.headers?.cookie ?? "" });
+    if (!value.includes("/_layouts/15/stream.aspx")) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: streamUrl, "set-cookie": "FedAuth=public-guest-session; Path=/; HttpOnly; Secure" },
+      });
+    }
+    assert.equal(init.headers.cookie, "FedAuth=public-guest-session");
+    return new Response("public viewer", { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+  };
+
+  const metadata = await inspectPublicMicrosoftVideo(businessUrl, fetcher);
+  assert.equal(metadata.playbackMode, "external");
+  assert.equal(metadata.playbackUrl, parseMicrosoftShareUrl(businessUrl).url);
+  assert.equal(metadata.provider, "onedrive_business");
+  assert.equal(requests.length, 2);
+});
+
 test("rejects links that still require a Microsoft sign-in", async () => {
   const fetcher = async () => new Response("sign in", { status: 200, headers: { "content-type": "text/html" } });
   await assert.rejects(
@@ -98,6 +121,42 @@ test("reports a private link clearly when Microsoft redirects to sign-in", async
     inspectPublicMicrosoftVideo(businessUrl, fetcher),
     error => error instanceof MicrosoftPublicVideoError && error.code === "MICROSOFT_PUBLIC_LINK_REQUIRED",
   );
+});
+
+test("never forwards SharePoint guest cookies to another host", async () => {
+  const fetcher = async (url, init = {}) => {
+    if (String(url).includes("contoso-my.sharepoint.com")) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: "https://login.microsoftonline.com/common/oauth2/authorize", "set-cookie": "FedAuth=must-not-leak; Path=/" },
+      });
+    }
+    assert.equal(init.headers?.cookie, undefined);
+    return new Response("sign in", { status: 200, headers: { "content-type": "text/html" } });
+  };
+  await assert.rejects(
+    inspectPublicMicrosoftVideo(businessUrl, fetcher),
+    error => error instanceof MicrosoftPublicVideoError && error.code === "MICROSOFT_PUBLIC_LINK_REQUIRED",
+  );
+});
+
+test("rejects an HTTPS downgrade before forwarding a SharePoint guest cookie", async () => {
+  let requests = 0;
+  const fetcher = async () => {
+    requests += 1;
+    return new Response(null, {
+      status: 302,
+      headers: {
+        location: "http://contoso-my.sharepoint.com/personal/teacher/_layouts/15/stream.aspx",
+        "set-cookie": "FedAuth=must-not-leak; Path=/",
+      },
+    });
+  };
+  await assert.rejects(
+    inspectPublicMicrosoftVideo(businessUrl, fetcher),
+    error => error instanceof MicrosoftPublicVideoError && error.code === "MICROSOFT_PUBLIC_LINK_REQUIRED",
+  );
+  assert.equal(requests, 1);
 });
 
 test("rejects non-video public downloads", async () => {

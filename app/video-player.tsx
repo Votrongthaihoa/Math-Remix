@@ -22,7 +22,7 @@ type ResolvedContent = {
   protectedContent?: "pdf";
   playbackUrl?: string;
   mimeType?: string;
-  playbackMode?: "native" | "embed";
+  playbackMode?: "native" | "embed" | "external";
 };
 
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
@@ -201,6 +201,12 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "onedrive_video") {
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát video Microsoft.</div>;
+    if (content.playbackMode === "external") {
+      return <div className="secure-viewer-state">
+        <p>SharePoint cho phép xem công khai nhưng không cho nhúng video trên website khác.</p>
+        <a className="primary-btn" href={content.playbackUrl} target="_blank" rel="noopener noreferrer">Mở video trên Microsoft</a>
+      </div>;
+    }
     if (content.playbackMode === "embed") {
       return <div className="lesson-microsoft-video">
         <iframe

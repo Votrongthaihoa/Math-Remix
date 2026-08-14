@@ -77,5 +77,6 @@ test("OneDrive lesson video creation stays behind the active admin server bounda
   assert.doesNotMatch(route, /MICROSOFT_TENANT_ID|MICROSOFT_CLIENT_ID|MICROSOFT_CLIENT_SECRET|authorization: `Bearer/);
   assert.match(player, /<video/);
   assert.match(player, /<iframe/);
+  assert.match(player, /Mở video trên Microsoft/);
   assert.match(player, /playbackRate/);
 });
