@@ -142,7 +142,7 @@ test("guest exam image access is rate-limited after attempt authorization", asyn
   assert.match(imageRoute, /status: 429/);
   const authorizationCall = imageRoute.indexOf("const admin = await guestImageAccess");
   const rateLimitCall = imageRoute.indexOf("const budget = await consumeRequestBudget");
-  const r2Call = imageRoute.indexOf("streamR2Object(examImageKey");
+  const r2Call = imageRoute.indexOf("loadR2Object(examImageKey");
   assert.ok(authorizationCall >= 0 && authorizationCall < rateLimitCall);
   assert.ok(rateLimitCall < r2Call);
 });
@@ -152,7 +152,7 @@ test("admin image preview skips only the student visibility waterfall", async ()
   const authentication = imageRoute.indexOf("const authentication = await requireActiveExamUser");
   const adminFastPath = imageRoute.indexOf('authentication.user.role !== "admin"');
   const studentAccess = imageRoute.indexOf("loadExamSectionAccess", adminFastPath);
-  const r2Call = imageRoute.indexOf("streamR2Object(examImageKey");
+  const r2Call = imageRoute.indexOf("loadR2Object(examImageKey");
   assert.ok(authentication >= 0 && authentication < adminFastPath);
   assert.ok(adminFastPath < studentAccess && studentAccess < r2Call);
 });

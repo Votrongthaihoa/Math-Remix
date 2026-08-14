@@ -1,4 +1,4 @@
-import { streamR2Object } from "../../../../../../lib/r2-server";
+import { loadR2Object } from "../../../../../../lib/r2-server";
 import {
   EXAM_IMAGE_MAX_STORED_BYTES,
   examImageAssetHeaders,
@@ -86,14 +86,14 @@ async function handleImage(request: Request, context: ImageRouteContext) {
   if (!budget.ready && !budget.allowed) return new Response(JSON.stringify({ error: "Dịch vụ bảo vệ kíp thi chưa sẵn sàng." }), { status: 503, headers: rateLimitHeaders });
   if (!budget.allowed) return new Response(JSON.stringify({ error: "Quá nhiều yêu cầu ảnh. Hãy thử lại sau." }), { status: 429, headers: rateLimitHeaders });
   try {
-    const image = await streamR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);
-    return new Response(image.body, {
+    const image = await loadR2Object(examImageKey(sectionId, assetName), EXAM_IMAGE_MAX_STORED_BYTES);
+    return new Response(image.bytes as unknown as BodyInit, {
       status: 200,
       headers: {
         ...guestImageAssetHeaders,
         "content-type": imageResponseContentType(image.contentType, assetName),
         "content-disposition": "inline",
-        "content-length": String(image.contentLength),
+        "content-length": String(image.bytes.byteLength),
       },
     });
   } catch {

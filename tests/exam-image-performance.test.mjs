@@ -4,7 +4,7 @@ import test from "node:test";
 
 const source = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("private exam images stream from R2 and use a short browser-private cache", async () => {
+test("private exam images use a short browser-private cache and preload after authorization", async () => {
   const [imageServer, r2Server, studentRoute, guestRoute, renderer, examRoom, imageClient] = await Promise.all([
     source("lib/exam-images-server.ts"),
     source("lib/r2-server.ts"),
@@ -18,17 +18,14 @@ test("private exam images stream from R2 and use a short browser-private cache",
   assert.match(imageServer, /export const examImageHeaders = \{[\s\S]*"cache-control": "private, no-store, max-age=0"/);
   assert.match(imageServer, /export const examImageAssetHeaders = \{[\s\S]*"cache-control": "private, max-age=300, stale-while-revalidate=60"/);
   assert.match(imageServer, /vary: "authorization, x-supabase-access-token, cookie, origin"/);
-  assert.match(r2Server, /export async function streamR2Object/);
-  assert.match(r2Server, /body: response\.body/);
-  assert.match(studentRoute, /streamR2Object\(examImageKey/);
-  assert.match(studentRoute, /new Response\(image\.body/);
+  assert.match(r2Server, /export async function loadR2Object/);
+  assert.match(studentRoute, /loadR2Object\(examImageKey/);
+  assert.match(studentRoute, /new Response\(image\.bytes/);
   assert.match(studentRoute, /EXAM_IMAGE_SECTION_PATTERN\.test\(sectionId\)/);
   assert.match(studentRoute, /authentication\.user\.role !== "admin"[\s\S]*loadExamSectionAccess/);
-  assert.match(guestRoute, /streamR2Object\(examImageKey/);
-  assert.match(guestRoute, /new Response\(image\.body/);
+  assert.match(guestRoute, /loadR2Object\(examImageKey/);
+  assert.match(guestRoute, /new Response\(image\.bytes/);
   assert.match(guestRoute, /Promise\.all\(\[/);
-  assert.doesNotMatch(studentRoute, /image\.bytes/);
-  assert.doesNotMatch(guestRoute, /image\.bytes/);
   assert.match(renderer, /cache: "default"/);
   assert.doesNotMatch(renderer, /headers: \{ accept: "image\/\*" \},\s*cache: "no-store"/);
   assert.match(renderer, /loadAuthenticatedExamImage\(url\)/);
