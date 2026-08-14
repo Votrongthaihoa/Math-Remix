@@ -27,6 +27,7 @@ const emails = [
 ];
 const userIds = [];
 const attemptIds = [];
+const authoringSectionIds = [];
 
 function isDenied(error) {
   return Boolean(
@@ -120,6 +121,34 @@ async function main() {
   const studentB = await signIn(emails[1]);
   const adminClient = await signIn(emails[2]);
 
+  const adminSection = await adminClient.from("exam_sections").insert({
+    exam_id: examResult.data.id,
+    title: "RLS staging admin section",
+    duration_minutes: 1,
+    sort_order: 2_000_000_000,
+  }).select("id").single();
+  assert.equal(adminSection.error, null, adminSection.error?.message ?? "admin browser cannot create exam section");
+  assert.ok(adminSection.data?.id, "admin section insert did not return an id");
+  authoringSectionIds.push(adminSection.data.id);
+
+  const adminQuestion = await adminClient.from("exam_questions").insert({
+    section_id: adminSection.data.id,
+    prompt: "RLS staging admin question",
+    question_type: "single",
+    options: [{ value: "A", label: "A" }],
+    points: 1,
+    sort_order: 0,
+  }).select("id").single();
+  assert.equal(adminQuestion.error, null, adminQuestion.error?.message ?? "admin browser cannot create exam question");
+  assert.ok(adminQuestion.data?.id, "admin question insert did not return an id");
+
+  const adminKey = await adminClient.from("exam_question_keys").insert({
+    question_id: adminQuestion.data.id,
+    correct_answer: "A",
+    explanation: "RLS staging answer key",
+  });
+  assert.equal(adminKey.error, null, adminKey.error?.message ?? "admin browser cannot create exam answer key");
+
   const ownA = await studentA.from("exam_attempts")
     .select("id,student_id,title,score,correct_answers,total_questions,submitted_at,status")
     .eq("id", attemptAId)
@@ -208,10 +237,19 @@ async function main() {
     accountStatusRpcDenied: errorCode(accountStatusRpc.error),
     answerKeyDataExposed: false,
     rawAuthoringDataExposed: false,
+    adminAuthoringWrite: true,
     adminProjectionRows: adminAttempts.data?.length ?? 0,
     adminAuditDirectDenied: errorCode(adminAuditDirect.error),
   }));
   } finally {
+  const authoringCleanup = authoringSectionIds.length
+    ? await admin.from("exam_sections").delete().in("id", authoringSectionIds)
+    : { error: null };
+  if (authoringCleanup.error) {
+    console.error(`authoring cleanup failed: ${authoringCleanup.error.message}`);
+    process.exitCode = 1;
+  }
+
   const attemptCleanup = attemptIds.length
     ? await admin.from("exam_attempts").delete().in("id", attemptIds)
     : { error: null };

@@ -212,6 +212,37 @@ test("exam catalog RLS repair is forward-only and verifies its final state", asy
   assert.doesNotMatch(sql, /\b(drop|truncate|delete|update|insert)\b/i);
 });
 
+test("exam authoring admin policies are restored without exposing raw content to learners", async () => {
+  const [migration, matrix] = await Promise.all([
+    source("supabase/migrations/20260814114450_restore_exam_content_admin_policies.sql"),
+    source("scripts/staging-rls-matrix.mjs"),
+  ]);
+  const policyTargets = [
+    ["exam_rooms", "admin exam rooms"],
+    ["exams", "admin exams"],
+    ["exam_room_enrollments", "admin exam room enrollments"],
+    ["exam_sections", "admin exam sections"],
+    ["exam_questions", "admin exam questions"],
+    ["exam_question_keys", "admin exam question keys"],
+  ];
+  assert.match(migration, /^--[\s\S]*?begin;/i);
+  assert.match(migration, /to_regprocedure\('private\.is_admin\(\)'\)/i);
+  for (const [table, policy] of policyTargets) {
+    assert.match(migration, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
+    assert.match(migration, new RegExp(`create policy "${policy}" on public\\.${table}[\\s\\S]*?for all to authenticated[\\s\\S]*?private\\.is_admin`, "i"));
+  }
+  assert.match(migration, /pg_catalog\.pg_policies/i);
+  assert.match(migration, /exam admin policy repair left RLS disabled/i);
+  assert.match(migration, /notify pgrst, 'reload schema'/i);
+  assert.match(migration, /commit;\s*$/i);
+  assert.doesNotMatch(migration, /\b(?:drop table|truncate|delete\s+from|insert\s+into|update\s+public\.)\b/i);
+  assert.match(matrix, /admin browser cannot create exam section/i);
+  assert.match(matrix, /admin browser cannot create exam question/i);
+  assert.match(matrix, /admin browser cannot create exam answer key/i);
+  assert.match(matrix, /adminAuthoringWrite: true/i);
+  assert.match(matrix, /authoring cleanup failed/i);
+});
+
 test("deploy readiness command locks production and runs every release gate", async () => {
   const [script, pkg] = await Promise.all([
     source("scripts/deploy-readiness-check.mjs"),
