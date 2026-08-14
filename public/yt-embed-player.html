@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
   <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
   <style>
-    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020617;color:#fff;font-family:Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body,#player{display:block;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}#player{position:relative}.error{padding:24px;text-align:center;color:#fecaca}media-player{position:relative;display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;overflow:hidden;aspect-ratio:auto;background:#020617;contain:layout paint}media-provider{display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;overflow:hidden}media-video-layout{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}.video-watermark{position:absolute;z-index:30;left:8%;top:12%;max-width:72%;padding:5px 9px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:rgba(15,23,42,.24);color:rgba(255,255,255,.62);font-size:clamp(8px,1.35vw,13px);font-weight:700;line-height:1.35;letter-spacing:.25px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:left 1.4s ease-in-out,top 1.4s ease-in-out,opacity .3s;will-change:left,top}.video-watermark small{display:block;margin-top:1px;color:inherit;font-size:.78em;font-weight:500;letter-spacing:.4px}@media(max-width:520px){.video-watermark{max-width:78%;padding:4px 7px;border-radius:5px}}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020617;color:#fff;font-family:Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body,#player{display:block;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}#player{position:relative}.player-state{position:absolute;inset:0;display:grid;place-items:center;padding:24px;color:#cbd5e1;text-align:center}.player-state.error{color:#fecaca}.player-state span{display:inline-flex;align-items:center;gap:10px}.player-state.loading span:before{content:"";width:20px;height:20px;border:2px solid rgba(255,255,255,.22);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}media-player{position:relative;display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;overflow:hidden;aspect-ratio:auto;background:#020617;contain:layout paint}media-provider{display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;overflow:hidden}media-video-layout{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}.video-watermark{position:absolute;z-index:30;left:8%;top:12%;max-width:72%;padding:5px 9px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:rgba(15,23,42,.24);color:rgba(255,255,255,.62);font-size:clamp(8px,1.35vw,13px);font-weight:700;line-height:1.35;letter-spacing:.25px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:left 1.4s ease-in-out,top 1.4s ease-in-out,opacity .3s;will-change:left,top}.video-watermark small{display:block;margin-top:1px;color:inherit;font-size:.78em;font-weight:500;letter-spacing:.4px}@media(max-width:520px){.video-watermark{max-width:78%;padding:4px 7px;border-radius:5px}}@media(prefers-reduced-motion:reduce){.player-state.loading span:before{animation-duration:1.8s}.video-watermark{transition:opacity .3s}}
   </style>
 </head>
 <body>
@@ -16,24 +16,52 @@
     import "https://cdn.vidstack.io/player";
 
     const query = new URLSearchParams(location.search);
+    const mode = query.get("mode") === "native" ? "native" : "youtube";
     const videoId = (query.get("v") || "").trim();
     const start = Math.max(0, Number(query.get("start") || 0) || 0);
     const watermarkOwner = (query.get("wm") || "Học viên REMIX").trim().slice(0, 120);
     const target = document.querySelector("#player");
+    const allowedMicrosoftHostSuffixes = ["files.1drv.com", "1drv.com", "sharepoint.com", "sharepointonline.com"];
 
-    if (!/^[a-zA-Z0-9_-]{6,20}$/.test(videoId)) {
-      target.innerHTML = '<div class="error">Không tìm thấy mã video hợp lệ.</div>';
-    } else {
+    function showState(message, state = "error") {
+      const status = document.createElement("div");
+      status.className = `player-state ${state}`;
+      const text = document.createElement("span");
+      text.textContent = message;
+      status.append(text);
+      target.replaceChildren(status);
+    }
+
+    function allowedMicrosoftSource(value) {
+      try {
+        const parsed = new URL(value);
+        if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.port) return false;
+        const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
+        return allowedMicrosoftHostSuffixes.some(suffix => host === suffix || host.endsWith(`.${suffix}`));
+      } catch { return false; }
+    }
+
+    function mountPlayer(source, title, options = {}) {
       const player = document.createElement("media-player");
-      player.setAttribute("title", "Video bài giảng");
-      player.setAttribute("src", `youtube/${videoId}`);
+      player.setAttribute("title", title || "Video bài giảng");
       player.setAttribute("load", "eager");
       player.setAttribute("playsinline", "");
-      player.setAttribute("crossorigin", "");
+      if (options.youtube) {
+        player.setAttribute("src", source);
+        player.setAttribute("crossorigin", "");
+      } else {
+        player.setAttribute("view-type", "video");
+        player.setAttribute("stream-type", "on-demand");
+        player.src = { src: source, type: options.mimeType || "video/mp4" };
+      }
       const provider = document.createElement("media-provider");
       const layout = document.createElement("media-video-layout");
       player.append(provider, layout);
-      if (start > 0) player.addEventListener("can-play", () => { player.currentTime = start; }, { once: true });
+      if (options.start > 0) player.addEventListener("can-play", () => { player.currentTime = options.start; }, { once: true });
+      player.addEventListener("error", () => {
+        const message = "Không thể phát nguồn video này. Hãy lấy nguồn phát mới.";
+        window.parent.postMessage({ type: "remix:video-player-error", message }, location.origin);
+      });
 
       const watermark = document.createElement("div");
       watermark.className = "video-watermark";
@@ -42,7 +70,7 @@
       owner.textContent = watermarkOwner;
       watermark.append(owner, clock);
       player.append(watermark);
-      target.append(player);
+      target.replaceChildren(player);
 
       const updateClock = () => {
         clock.textContent = new Intl.DateTimeFormat("vi-VN", {
@@ -66,6 +94,27 @@
       setInterval(updateClock, 1000);
       setInterval(moveWatermark, 6500);
       window.addEventListener("resize", moveWatermark);
+    }
+
+    if (mode === "youtube") {
+      if (!/^[a-zA-Z0-9_-]{6,20}$/.test(videoId)) showState("Không tìm thấy mã video hợp lệ.");
+      else mountPlayer(`youtube/${videoId}`, "Video bài giảng", { youtube: true, start });
+    } else {
+      showState("Đang chuẩn bị video…", "loading");
+      window.addEventListener("message", event => {
+        if (event.origin !== location.origin || event.source !== window.parent || event.data?.type !== "remix:set-video-source") return;
+        const source = typeof event.data.src === "string" ? event.data.src : "";
+        if (!allowedMicrosoftSource(source)) {
+          const message = "Nguồn video Microsoft không hợp lệ.";
+          showState(message);
+          window.parent.postMessage({ type: "remix:video-player-error", message }, location.origin);
+          return;
+        }
+        const title = typeof event.data.title === "string" ? event.data.title.slice(0, 240) : "Video bài giảng";
+        const mimeType = typeof event.data.mimeType === "string" && /^video\/[a-z0-9.+-]+$/i.test(event.data.mimeType) ? event.data.mimeType : "video/mp4";
+        mountPlayer(source, title, { mimeType });
+      });
+      window.parent.postMessage({ type: "remix:video-player-ready" }, location.origin);
     }
   </script>
 </body>

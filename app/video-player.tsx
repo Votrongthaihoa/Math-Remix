@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import LoadingIndicator from "./loading-indicator";
@@ -34,9 +34,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [videoPlaybackError, setVideoPlaybackError] = useState("");
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [resolutionNonce, setResolutionNonce] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoFrameRef = useRef<HTMLIFrameElement>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
 
@@ -85,16 +84,27 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     setResolutionNonce(value => value + 1);
   }
 
-  function handleMicrosoftVideoError() {
-    setVideoPlaybackError("URL phát video Microsoft đã hết hạn hoặc không còn truy cập được. Hãy thử lấy URL mới.");
-  }
+  const sendMicrosoftVideoSource = useCallback((resolved: ResolvedContent | null) => {
+    if (resolved?.type !== "onedrive_video" || !resolved.playbackUrl) return;
+    videoFrameRef.current?.contentWindow?.postMessage({
+      type: "remix:set-video-source",
+      src: resolved.playbackUrl,
+      mimeType: resolved.mimeType || "video/mp4",
+      title: resolved.title,
+    }, window.location.origin);
+  }, []);
 
-  function changePlaybackRate(value: string) {
-    const nextRate = Number(value);
-    if (!Number.isFinite(nextRate)) return;
-    setPlaybackRate(nextRate);
-    if (videoRef.current) videoRef.current.playbackRate = nextRate;
-  }
+  useEffect(() => {
+    if (content?.type !== "onedrive_video" || !content.playbackUrl) return;
+    const frameWindow = videoFrameRef.current?.contentWindow;
+    function handleVideoPlayerMessage(event: MessageEvent) {
+      if (event.origin !== window.location.origin || event.source !== frameWindow) return;
+      if (event.data?.type === "remix:video-player-ready") sendMicrosoftVideoSource(content);
+      if (event.data?.type === "remix:video-player-error") setVideoPlaybackError(typeof event.data.message === "string" ? event.data.message : "Không thể phát video Microsoft.");
+    }
+    window.addEventListener("message", handleVideoPlayerMessage);
+    return () => window.removeEventListener("message", handleVideoPlayerMessage);
+  }, [content, sendMicrosoftVideoSource]);
 
   useEffect(() => {
     if (!content || content.type === "youtube") return;
@@ -202,31 +212,17 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "onedrive_video") {
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát video Microsoft.</div>;
-    return <div className="lesson-microsoft-video">
-      <video
-        ref={videoRef}
-        key={resource.id}
-        className="lesson-video lesson-native-video"
-        controls
-        playsInline
-        preload="metadata"
-        title={content.title}
-        onLoadedMetadata={event => { event.currentTarget.playbackRate = playbackRate; }}
-        onError={handleMicrosoftVideoError}
-      >
-        <source src={content.playbackUrl} type={content.mimeType || "video/mp4"}/>
-        Trình duyệt của bạn không hỗ trợ phát video HTML5.
-      </video>
-      <div className="lesson-video-status" role="status">
-        <span>{videoPlaybackError || "Video được phát trực tiếp từ Microsoft bằng URL tạm thời, không qua proxy Vercel."}</span>
-        <label>Tốc độ
-          <select value={playbackRate} onChange={event => changePlaybackRate(event.target.value)} aria-label="Tốc độ phát video">
-            {[0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}
-          </select>
-        </label>
-        <button type="button" onClick={retryMicrosoftVideo}>{videoPlaybackError ? "Lấy URL mới" : "Thử phát lại"}</button>
-      </div>
-    </div>;
+    if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
+    return <iframe
+      ref={videoFrameRef}
+      key={`${resource.id}:${resolutionNonce}`}
+      className="lesson-frame lesson-video"
+      src={`/yt-embed-player.html?mode=native&wm=${encodeURIComponent(watermarkEmail)}`}
+      title={content.title}
+      allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+      allowFullScreen
+      onLoad={() => sendMicrosoftVideoSource(content)}
+    />;
   }
 
   if (content.protectedContent !== "pdf") return <div className="secure-viewer-state error">Không thể mở tài liệu PDF.</div>;

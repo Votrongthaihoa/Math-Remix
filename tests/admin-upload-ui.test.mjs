@@ -63,11 +63,12 @@ test("course builder separates content sources and reports R2 cleanup failures",
 });
 
 test("Microsoft Graph lesson video creation stays behind the active admin server boundary", async () => {
-  const [route, connectRoute, player, platform] = await Promise.all([
+  const [route, connectRoute, player, platform, sharedVideoPlayer] = await Promise.all([
     readFile(new URL("../app/api/admin/lesson-videos/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/microsoft/connect/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../public/yt-embed-player.html", import.meta.url), "utf8"),
   ]);
   assert.match(route, /ensureActiveAccount/);
   assert.match(route, /profile\.role !== "admin"/);
@@ -79,9 +80,15 @@ test("Microsoft Graph lesson video creation stays behind the active admin server
   assert.match(connectRoute, /createMicrosoftAuthorizationUrl/);
   assert.doesNotMatch(platform, /NEXT_PUBLIC_MICROSOFT|MICROSOFT_CLIENT_SECRET/);
   assert.doesNotMatch(route, /MICROSOFT_TENANT_ID|MICROSOFT_CLIENT_ID|MICROSOFT_CLIENT_SECRET|authorization: `Bearer/);
-  assert.match(player, /<video/);
   assert.match(player, /<iframe/);
   assert.doesNotMatch(player, /Mở video trên Microsoft|playbackMode === "external"/);
   assert.match(player, /setResolutionNonce\(value => value \+ 1\)/);
-  assert.match(player, /playbackRate/);
+  assert.match(player, /yt-embed-player\.html\?mode=native/);
+  assert.match(player, /remix:set-video-source/);
+  assert.match(player, /event\.origin !== window\.location\.origin/);
+  assert.match(sharedVideoPlayer, /query\.get\("mode"\) === "native"/);
+  assert.match(sharedVideoPlayer, /remix:video-player-ready/);
+  assert.match(sharedVideoPlayer, /allowedMicrosoftHostSuffixes/);
+  assert.match(sharedVideoPlayer, /player\.src = \{ src: source, type:/);
+  assert.doesNotMatch(player, /playbackUrl\}\&|playbackUrl\}\?/);
 });

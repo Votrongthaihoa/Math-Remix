@@ -197,6 +197,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(videoTokenRoute, guardCall("view"));
   assert.match(videoPlayer, /authenticatedFetch\("\/api\/video-token"/);
   assert.match(videoPlayer, /\/yt-embed-player\.html\?v=/);
+  assert.match(videoPlayer, /\/yt-embed-player\.html\?mode=native/);
+  assert.match(videoPlayer, /remix:set-video-source/);
   assert.match(videoPlayer, /\/pdf-viewer\.html\?file=/);
   assert.match(videoPlayer, /protectedContent/);
   assert.match(videoPlayer, /authenticatedFetch\("\/api\/resource-content"/);
@@ -209,6 +211,9 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.doesNotMatch(videoPlayer, /Mở tài liệu gốc/);
   assert.match(vidstackHtml, /import "https:\/\/cdn\.vidstack\.io\/player"/);
   assert.match(vidstackHtml, /media-video-layout/);
+  assert.match(vidstackHtml, /remix:video-player-ready/);
+  assert.match(vidstackHtml, /event\.origin !== location\.origin/);
+  assert.match(vidstackHtml, /allowedMicrosoftHostSuffixes/);
   assert.match(vidstackHtml, /html,body\{[^}]*overflow:hidden/);
   assert.match(vidstackHtml, /media-player\{[^}]*max-width:100%/);
   assert.match(vidstackHtml, /media-video-layout\{position:absolute;inset:0/);
