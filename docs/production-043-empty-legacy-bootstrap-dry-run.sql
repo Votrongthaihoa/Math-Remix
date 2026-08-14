@@ -250,8 +250,10 @@ create table if not exists public.lessons (
 );
 create table if not exists public.lesson_resources (
   id uuid primary key default gen_random_uuid(), lesson_id uuid not null references public.lessons on delete cascade,
-  title text not null, resource_type text not null check (resource_type in ('youtube','external_pdf','storage_pdf')),
-  resource_url text not null, allow_download boolean not null default false, sort_order int not null default 0
+  title text not null, resource_type text not null check (resource_type in ('youtube','onedrive_video','external_pdf','storage_pdf')),
+  resource_url text not null, allow_download boolean not null default false, sort_order int not null default 0,
+  provider text check (provider is null or provider in ('sharepoint','onedrive_business','onedrive_personal')),
+  provider_drive_id text, provider_item_id text, provider_metadata jsonb not null default '{}'::jsonb
 );
 create table if not exists public.course_enrollments (
   student_id uuid not null references public.profiles on delete cascade,

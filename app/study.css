@@ -86,6 +86,7 @@
 .lesson-resource-list .resource-row:before{display:none}
 .resource-kind{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#fff0f1;color:#cd1627}
 .resource-kind.storage_pdf,.resource-kind.external_pdf{background:#fff5e7;color:#b45309}
+.resource-kind.onedrive_video{background:#eef6ff;color:#2563eb}
 .resource-kind svg{width:15px;height:15px}
 .resource-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
 .resource-copy b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#344054;font-size:12px}
@@ -115,6 +116,20 @@
 .real-lesson-page .lesson-layout{display:flex;align-items:flex-start;gap:32px;padding-top:8px}
 .real-lesson-page .viewer-card{flex:1 1 0;min-width:0}
 .real-lesson-page .lesson-video{display:block;height:auto;aspect-ratio:16/9;overflow:hidden;background:#111827}
+.lesson-microsoft-video{width:100%;min-width:0;background:#111827}
+.lesson-native-video{width:100%;max-width:100%;object-fit:contain}
+.lesson-video-status{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#111827;color:#cbd5e1;font-size:12px;line-height:18px}
+.lesson-video-status span{min-width:0;overflow-wrap:anywhere}
+.lesson-video-status label{display:flex;align-items:center;gap:7px;margin-left:auto;white-space:nowrap}
+.lesson-video-status select{border:1px solid #475569;border-radius:7px;background:#1e293b;color:#f8fafc;padding:6px 24px 6px 8px;font:inherit}
+.lesson-video-status button{flex:0 0 auto;border:1px solid #475569;border-radius:8px;background:#1e293b;color:#f8fafc;padding:7px 10px;font:inherit;font-weight:600;white-space:nowrap}
+.lesson-video-status button:disabled{cursor:wait;opacity:.65}
+.microsoft-video-check{display:flex;flex-direction:column;gap:4px;margin-top:2px;padding:11px 12px;border:1px solid #d8dee8;border-radius:10px;background:#f8fafc;color:#475569;font-size:12px;line-height:18px;overflow-wrap:anywhere}
+.microsoft-video-check p,.microsoft-video-check small{margin:0}
+.microsoft-video-check.ready{border-color:#a7e0bd;background:#f1fbf5;color:#166534}
+.microsoft-video-check.error{border-color:#fecaca;background:#fff7f7;color:#b42318}
+.microsoft-video-check strong{font-size:12px}
+.microsoft-video-check small{color:inherit;opacity:.8}
 .real-lesson-page .lesson-document .lesson-frame{height:clamp(520px,70vh,780px)}
 .real-lesson-page .curriculum-panel{width:400px;flex:0 0 400px;display:flex;flex-direction:column;position:sticky;top:96px;max-height:85vh;border:1px solid #f3f4f6;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .lesson-nav>.curriculum-panel-head{padding:20px;border-bottom:1px solid #f3f4f6}
@@ -164,6 +179,9 @@
 }
 
 @media(max-width:575px){
+  .lesson-video-status{align-items:flex-start;flex-direction:column}
+  .lesson-video-status label{width:100%;margin-left:0;justify-content:space-between}
+  .lesson-video-status button{width:100%;white-space:normal}
   .real-lesson-page .lesson-document .lesson-frame{height:60vh;min-height:420px}
   .real-lesson-page .viewer-title{padding:18px}
   .real-lesson-page .viewer-title h2{font-size:20px}

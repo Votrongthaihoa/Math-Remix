@@ -303,12 +303,14 @@ async function inspectCourseResourceModal() {
 
     const sourceOptions = page.locator('input[name="resourceSource"]');
     const optionCount = await sourceOptions.count();
-    await sourceOptions.nth(2).check();
+    await sourceOptions.nth(3).check();
     const uploadVisible = await page.getByText("File PDF (tối đa 50 MB)", { exact: true }).isVisible();
-    await sourceOptions.nth(1).check();
+    await sourceOptions.nth(2).check();
     const linkVisible = await page.getByText("Link PDF", { exact: true }).last().isVisible();
     await sourceOptions.nth(0).check();
     const youtubeVisible = await page.getByText("Link YouTube", { exact: true }).isVisible();
+    await sourceOptions.nth(1).check();
+    const microsoftVisible = await page.getByText("Video URL", { exact: true }).isVisible();
     const state = await page.evaluate(() => {
       const root = document.documentElement;
       const modal = document.querySelector(".resource-source-modal");
@@ -320,10 +322,10 @@ async function inspectCourseResourceModal() {
         unnamedControls: controls.filter(control => !control.textContent?.trim() && !control.getAttribute("aria-label") && !control.getAttribute("name") && !control.closest("label")).length,
       };
     });
-    const result = { name: "admin-course-resource-modal", path: "/admin/content", width, optionCount, uploadVisible, linkVisible, youtubeVisible, ...state };
+    const result = { name: "admin-course-resource-modal", path: "/admin/content", width, optionCount, uploadVisible, linkVisible, youtubeVisible, microsoftVisible, ...state };
     report.push(result);
     await page.screenshot({ path: `artifacts/product-shell-ui-audit/admin-course-resource-modal-${width}.png`, fullPage: true });
-    if (optionCount !== 3 || !uploadVisible || !linkVisible || !youtubeVisible || result.horizontalOverflow || !result.modalInsideViewport || result.unnamedControls) {
+    if (optionCount !== 4 || !uploadVisible || !linkVisible || !youtubeVisible || !microsoftVisible || result.horizontalOverflow || !result.modalInsideViewport || result.unnamedControls) {
       throw new Error(`Course resource modal failed at ${width}px: ${JSON.stringify(result)}`);
     }
   }

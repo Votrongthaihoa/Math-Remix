@@ -8,9 +8,11 @@ import { activeAccount, type SecurityProfile } from "./security-server";
 export type LessonResource = {
   id: string;
   title: string;
-  resource_type: "youtube" | "external_pdf" | "storage_pdf";
+  resource_type: "youtube" | "onedrive_video" | "external_pdf" | "storage_pdf";
   resource_url: string;
   allow_download: boolean;
+  provider_drive_id: string | null;
+  provider_item_id: string | null;
 };
 
 type Relation<T> = T | T[] | null;
@@ -39,7 +41,7 @@ export async function guardResourceAccess(
 ): Promise<{ ok: true; resource: LessonResource } | { ok: false; response: Response }> {
   const { data } = await admin
     .from("lesson_resources")
-    .select("id,title,resource_type,resource_url,allow_download,lesson_id,lessons(published,chapters(course_id))")
+    .select("id,title,resource_type,resource_url,allow_download,provider_drive_id,provider_item_id,lesson_id,lessons(published,chapters(course_id))")
     .eq("id", resourceId)
     .single();
   const row = data as ResourceRow | null;
@@ -79,6 +81,8 @@ export async function guardResourceAccess(
       resource_type: row.resource_type,
       resource_url: row.resource_url,
       allow_download: row.allow_download,
+      provider_drive_id: row.provider_drive_id,
+      provider_item_id: row.provider_item_id,
     },
   };
 }

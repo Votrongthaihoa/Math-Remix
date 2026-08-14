@@ -8,7 +8,7 @@ import LoadingIndicator from "./loading-indicator";
 export type SecureLessonResource = {
   id: string;
   title: string;
-  resource_type: "youtube" | "external_pdf" | "storage_pdf";
+  resource_type: "youtube" | "onedrive_video" | "external_pdf" | "storage_pdf";
   allow_download: boolean;
   sort_order: number;
   videoToken: string;
@@ -20,6 +20,9 @@ type ResolvedContent = {
   youtubeId?: string;
   start?: number;
   protectedContent?: "pdf";
+  playbackUrl?: string;
+  mimeType?: string;
+  resolvedAt?: string;
 };
 
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
@@ -30,6 +33,12 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [pdfError, setPdfError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [videoRefreshCount, setVideoRefreshCount] = useState(0);
+  const [videoRefreshing, setVideoRefreshing] = useState(false);
+  const [videoRetryUsed, setVideoRetryUsed] = useState(false);
+  const [videoPlaybackError, setVideoPlaybackError] = useState("");
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
 
@@ -55,23 +64,43 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         const response = await authenticatedFetch("/api/video-token", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ videoToken: resource.videoToken }),
+          body: JSON.stringify({ videoToken: resource.videoToken, forceRefresh: videoRefreshCount > 0 }),
           signal: controller.signal,
         });
         const payload = await response.json() as ResolvedContent & { error?: string };
         if (cancelled) return;
-        const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : payload.protectedContent === "pdf";
+        const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : payload.type === "onedrive_video" ? Boolean(payload.playbackUrl) : payload.protectedContent === "pdf";
         if (!response.ok || !hasPlayableSource) setError(payload.error || "Không thể mở nội dung.");
         else setContent({ ...payload, title: payload.title || resource.title });
       } catch (value) {
         if (!cancelled && (!(value instanceof Error) || value.name !== "AbortError")) setError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại.");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) { setLoading(false); setVideoRefreshing(false); }
       }
     }
     void resolveToken();
     return () => { cancelled = true; controller.abort(); };
-  }, [resource.id, resource.videoToken, resource.title]);
+  }, [resource.id, resource.videoToken, resource.title, videoRefreshCount]);
+
+  function refreshMicrosoftVideo(automatic = false) {
+    if (videoRefreshing || automatic && videoRetryUsed) return;
+    if (automatic) setVideoRetryUsed(true);
+    setVideoPlaybackError("");
+    setVideoRefreshing(true);
+    setVideoRefreshCount(value => value + 1);
+  }
+
+  function handleMicrosoftVideoError() {
+    if (!videoRetryUsed) refreshMicrosoftVideo(true);
+    else setVideoPlaybackError("Nguồn phát Microsoft đã hết hạn hoặc tạm thời không khả dụng. Hãy tải lại nguồn phát.");
+  }
+
+  function changePlaybackRate(value: string) {
+    const nextRate = Number(value);
+    if (!Number.isFinite(nextRate)) return;
+    setPlaybackRate(nextRate);
+    if (videoRef.current) videoRef.current.playbackRate = nextRate;
+  }
 
   useEffect(() => {
     if (!content || content.type === "youtube") return;
@@ -175,6 +204,35 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   if (content.type === "youtube") {
     if (!content.youtubeId) return <div className="secure-viewer-state error">Liên kết YouTube không hợp lệ.</div>;
     return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen/>;
+  }
+
+  if (content.type === "onedrive_video") {
+    if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát video Microsoft.</div>;
+    return <div className="lesson-microsoft-video">
+      <video
+        ref={videoRef}
+        key={`${resource.id}:${content.resolvedAt ?? videoRefreshCount}`}
+        className="lesson-video lesson-native-video"
+        controls
+        playsInline
+        preload="metadata"
+        title={content.title}
+        onLoadedMetadata={event => { event.currentTarget.playbackRate = playbackRate; }}
+        onError={handleMicrosoftVideoError}
+      >
+        <source src={content.playbackUrl} type={content.mimeType || "video/mp4"}/>
+        Trình duyệt của bạn không hỗ trợ phát video HTML5.
+      </video>
+      <div className="lesson-video-status" role="status">
+        <span>{videoPlaybackError || "Video được truyền trực tiếp từ Microsoft."}</span>
+        <label>Tốc độ
+          <select value={playbackRate} onChange={event => changePlaybackRate(event.target.value)} aria-label="Tốc độ phát video">
+            {[0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}
+          </select>
+        </label>
+        <button type="button" onClick={() => refreshMicrosoftVideo()} disabled={videoRefreshing}>{videoRefreshing ? "Đang làm mới…" : "Tải lại nguồn phát"}</button>
+      </div>
+    </div>;
   }
 
   if (content.protectedContent !== "pdf") return <div className="secure-viewer-state error">Không thể mở tài liệu PDF.</div>;

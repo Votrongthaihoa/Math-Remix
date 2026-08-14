@@ -47,6 +47,7 @@ test("course builder separates content sources and reports R2 cleanup failures",
 
   assert.match(platform, /name="resourceSource"/);
   assert.match(platform, /\['youtube','YouTube','Dán link video YouTube'\]/);
+  assert.match(platform, /\['onedrive_video','OneDrive \/ SharePoint','Dán link chia sẻ video Microsoft'\]/);
   assert.match(platform, /\['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'\]/);
   assert.match(platform, /\['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính'\]/);
   assert.match(platform, /headers: \{ "Content-Type": "application\/pdf" \}/);
@@ -59,4 +60,21 @@ test("course builder separates content sources and reports R2 cleanup failures",
   assert.deepEqual(rule.allowed.headers, ["Content-Type"]);
   assert.ok(rule.allowed.origins.includes("https://www.mathremix.pro.vn"));
   assert.ok(rule.allowed.origins.includes("https://mathremix.pro.vn"));
+});
+
+test("OneDrive lesson video creation stays behind the active admin server boundary", async () => {
+  const [route, player, platform] = await Promise.all([
+    readFile(new URL("../app/api/admin/lesson-videos/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(route, /ensureActiveAccount/);
+  assert.match(route, /profile\.role !== "admin"/);
+  assert.match(route, /consumeRequestBudget/);
+  assert.match(route, /inspectMicrosoftShareVideo/);
+  assert.match(route, /resource_type: "onedrive_video"/);
+  assert.doesNotMatch(platform, /NEXT_PUBLIC_MICROSOFT|MICROSOFT_CLIENT_SECRET/);
+  assert.match(player, /forceRefresh/);
+  assert.match(player, /<video/);
+  assert.match(player, /playbackRate/);
 });

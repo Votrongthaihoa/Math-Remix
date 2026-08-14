@@ -45,7 +45,8 @@ type PracticeRoomData = { id: string; title: string; description?: string | null
 type ExamRoomsPayload = { rooms?: Array<{ id: string; title: string; description?: string | null; exam_type?: string | null }>; exams?: Array<{ id: string; room_id: string; published?: boolean; exam_type?: string | null }> };
 type ChapterData = { id: string; course_id: string; title: string; sort_order: number };
 type LessonData = { id: string; chapter_id: string; title: string; description: string; published: boolean; sort_order: number };
-type ResourceData = { id: string; lesson_id: string; title: string; resource_type: "youtube" | "external_pdf" | "storage_pdf"; resource_url: string; allow_download: boolean; sort_order: number };
+type ResourceData = { id: string; lesson_id: string; title: string; resource_type: "youtube" | "onedrive_video" | "external_pdf" | "storage_pdf"; resource_url: string; allow_download: boolean; sort_order: number };
+type MicrosoftVideoInspection = { providerLabel: string; name: string; mimeType: string; size: number | null; durationMs: number | null };
 type LessonCurriculumSection = { id: string; title: string; sort_order: number; lessons: Array<LessonData & { resources: Array<SecureLessonResource & { lesson_id: string }> }> };
 type AuthPageProps = {
   email: string;
@@ -107,7 +108,7 @@ function formatLessonTitle(title: string, index: number) {
 }
 
 function resourceTypeLabel(type: ResourceData["resource_type"]) {
-  return type === "youtube" ? "Video bài giảng" : type === "storage_pdf" ? "PDF trên R2 private" : "PDF / Google Drive";
+  return type === "youtube" ? "Video YouTube" : type === "onedrive_video" ? "Video OneDrive / SharePoint" : type === "storage_pdf" ? "PDF trên R2 private" : "PDF / Google Drive";
 }
 
 const pathsByView: Record<View, string> = {
@@ -1000,7 +1001,7 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
   if (lessonLoading) return <div className="lesson-page"><LoadingIndicator label="Đang tải bài giảng…" /></div>;
   if (!lesson) return <div className="lesson-page"><button className="back-btn" onClick={()=>onBack("")}><ArrowLeft/> Quay lại khóa học</button><EmptyState icon={BookOpen} title="Không tìm thấy bài học" text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."}/></div>;
   return <div className="lesson-page real-lesson-page">
-    <AccountSecurityGuard activityType={selectedResource?.resource_type === "youtube" ? "video" : selectedResource ? "pdf" : "lesson"} resourceId={selectedResource?.id ?? lessonId} />
+    <AccountSecurityGuard activityType={selectedResource && ["youtube", "onedrive_video"].includes(selectedResource.resource_type) ? "video" : selectedResource ? "pdf" : "lesson"} resourceId={selectedResource?.id ?? lessonId} />
     <nav className="lesson-breadcrumb" aria-label="Điều hướng bài học">
       <button className="lesson-breadcrumb-back" onClick={()=>onBack(lesson.course_id)}><ArrowLeft/><span>Quay lại khóa học</span></button>
       <span className="breadcrumb-separator" aria-hidden="true">/</span>
@@ -1010,7 +1011,7 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
     </nav>
     <div className="lesson-layout">
       <section className="viewer-card">
-        {!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer resource={selectedResource}/>} 
+        {!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer key={selectedResource.id} resource={selectedResource}/>}
       </section>
       <aside className="lesson-nav curriculum-panel">
         <div className="curriculum-panel-head"><h2>Nội dung giáo trình</h2><p>{curriculum.length} phần • {lessonCount} bài học</p></div>
@@ -1020,7 +1021,7 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
             <summary><ChevronRight/><strong>{formatPartTitle(section.title, section.sort_order)}</strong></summary>
             <div className="lesson-curriculum-lessons">{section.lessons.map(item => <div className={`curriculum-lesson ${item.id === lessonId ? "current" : ""}`} key={item.id}>
               <button className="curriculum-lesson-title" onClick={() => item.id !== lessonId && onLesson(item.id)}><b>{formatLessonTitle(item.title, item.sort_order)}</b></button>
-              {item.resources.map(resource => <button key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => item.id === lessonId ? selectResource(resource.id) : onLesson(item.id, resource.id)}><span>{resource.resource_type === "youtube" ? <CirclePlay/> : <BookOpen/>}</span><span><b>{resource.title}</b></span></button>)}
+              {item.resources.map(resource => <button key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => item.id === lessonId ? selectResource(resource.id) : onLesson(item.id, resource.id)}><span>{["youtube", "onedrive_video"].includes(resource.resource_type) ? <CirclePlay/> : <BookOpen/>}</span><span><b>{resource.title}</b></span></button>)}
             </div>)}</div>
           </details>;
         })}</div> : <MiniEmpty text="Chưa có nội dung giáo trình."/>}
@@ -1639,6 +1640,9 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   const [newResourceUrl, setNewResourceUrl] = useState("");
   const [newResourceFile, setNewResourceFile] = useState<File | null>(null);
   const [newResourceAllowDownload, setNewResourceAllowDownload] = useState(false);
+  const [videoInspection, setVideoInspection] = useState<MicrosoftVideoInspection | null>(null);
+  const [videoInspectionState, setVideoInspectionState] = useState<"idle" | "checking" | "ready" | "error">("idle");
+  const [videoInspectionError, setVideoInspectionError] = useState("");
   const [renameTarget, setRenameTarget] = useState<{ table: "chapters" | "lessons"; id: string; title: string } | null>(null);
   const [renameTitle, setRenameTitle] = useState("");
   const [savingBuilder, setSavingBuilder] = useState(false);
@@ -1672,6 +1676,31 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   // Load the selected course hierarchy after the builder mounts.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void loadBuilderData(); }, [loadBuilderData]);
+
+  useEffect(() => {
+    if (newResourceType !== "onedrive_video" || !newResourceUrl.trim()) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setVideoInspectionState("checking");
+      setVideoInspectionError("");
+      try {
+        const response = await authenticatedFetch("/api/admin/lesson-videos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "inspect", shareUrl: newResourceUrl.trim() }), signal: controller.signal });
+        const payload = await response.json().catch(() => null) as { metadata?: MicrosoftVideoInspection; error?: string } | null;
+        if (cancelled) return;
+        if (!response.ok || !payload?.metadata) throw new Error(payload?.error || "Không thể kiểm tra video Microsoft.");
+        setVideoInspection(payload.metadata);
+        setVideoInspectionState("ready");
+        setNewResourceTitle(current => current.trim() ? current : payload.metadata?.name ?? "");
+      } catch (value) {
+        if (cancelled || value instanceof Error && value.name === "AbortError") return;
+        setVideoInspection(null);
+        setVideoInspectionState("error");
+        setVideoInspectionError(value instanceof Error ? value.message : "Không thể kiểm tra video Microsoft.");
+      }
+    }, 650);
+    return () => { cancelled = true; window.clearTimeout(timer); controller.abort(); };
+  }, [newResourceType, newResourceUrl]);
 
   async function saveCourse() {
     if (!supabase) return;
@@ -1713,7 +1742,10 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     setNewResourceType(nextType);
     setNewResourceUrl("");
     setNewResourceFile(null);
-    if (nextType === "youtube") setNewResourceAllowDownload(false);
+    setVideoInspection(null);
+    setVideoInspectionState("idle");
+    setVideoInspectionError("");
+    if (nextType === "youtube" || nextType === "onedrive_video") setNewResourceAllowDownload(false);
   }
 
   async function createResource(event: React.FormEvent) {
@@ -1741,10 +1773,17 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
         if (!confirmResponse.ok || !confirmed?.reference) throw new Error(confirmed?.error || "Không thể xác nhận PDF trên R2.");
         url = confirmed.reference;
       }
-      if (!url) throw new Error(newResourceType === "youtube" ? "Hãy nhập link YouTube." : "Hãy nhập link PDF.");
-      const order = resources.filter(resource=>resource.lesson_id===targetLessonId).length;
-      const { error } = await supabase.from("lesson_resources").insert({ lesson_id: targetLessonId, title: name, resource_type: newResourceType, resource_url: url, allow_download: newResourceType === "youtube" ? false : newResourceAllowDownload, sort_order: order });
-      if (error) throw error;
+      if (!url) throw new Error(newResourceType === "youtube" ? "Hãy nhập link YouTube." : newResourceType === "onedrive_video" ? "Hãy nhập link OneDrive hoặc SharePoint." : "Hãy nhập link PDF.");
+      if (newResourceType === "onedrive_video") {
+        if (videoInspectionState !== "ready") throw new Error(videoInspectionError || "Hãy đợi hệ thống kiểm tra video Microsoft.");
+        const response = await authenticatedFetch("/api/admin/lesson-videos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "create", shareUrl: url, lessonId: targetLessonId, title: name }) });
+        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        if (!response.ok) throw new Error(payload?.error || "Không thể thêm video Microsoft vào bài học.");
+      } else {
+        const order = resources.filter(resource=>resource.lesson_id===targetLessonId).length;
+        const { error } = await supabase.from("lesson_resources").insert({ lesson_id: targetLessonId, title: name, resource_type: newResourceType, resource_url: url, allow_download: newResourceType === "youtube" ? false : newResourceAllowDownload, sort_order: order });
+        if (error) throw error;
+      }
       setBuilderModal(null); setNewResourceTitle(""); setNewResourceUrl(""); setNewResourceFile(null); setNewResourceType("youtube"); setNewResourceAllowDownload(false); setBuilderNotice(newResourceType === "storage_pdf" ? "Đã tải PDF lên khóa học." : "Đã thêm nội dung vào bài học."); await loadBuilderData();
     } catch (value) {
       if (uploadedPath) await deleteStoredLessonFile(url, uploadedPath).catch(() => undefined);
@@ -1806,7 +1845,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }
 
   async function toggleResourceDownload(resource: ResourceData) {
-    if (!supabase || resource.resource_type === "youtube") return;
+    if (!supabase || resource.resource_type === "youtube" || resource.resource_type === "onedrive_video") return;
     const { error } = await supabase.from("lesson_resources").update({ allow_download: !resource.allow_download }).eq("id", resource.id);
     if (error) setBuilderError(error.message); else await loadBuilderData();
   }
@@ -1825,14 +1864,14 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
           <div className="admin-lesson-list"><button className="add-child" onClick={()=>{setTargetChapterId(chapter.id);setBuilderModal("lesson")}}><FilePlus/> Thêm bài vào phần này</button>{chapterLessons.map((lesson,lessonIndex)=>{const lessonResources=resources.filter(resource=>resource.lesson_id===lesson.id);return <article className="admin-lesson-card" key={lesson.id}>
             <div className="lesson-card-head"><span className="hierarchy-index lesson-index">Bài {lessonIndex+1}</span><div className="lesson-card-copy"><b>{cleanLessonTitle(lesson.title)}</b><small><i className={lesson.published?"published":"draft"}/>{lesson.published?"Đã xuất bản":"Bản nháp"} · {lessonResources.length} nội dung</small></div>
             <div className="tree-actions lesson-actions"><button onClick={()=>toggleLesson(lesson)}>{lesson.published?"Ẩn bài":"Xuất bản"}</button><button onClick={()=>openRenameModal("lessons",lesson.id,lesson.title)}>Đổi tên</button><button className="add-resource-action" onClick={()=>{setTargetLessonId(lesson.id);setBuilderModal("resource")}}><Plus/> Thêm nội dung</button><button className="danger-text" onClick={()=>removeRecord("lessons",lesson.id,`bài “${cleanLessonTitle(lesson.title)}”`)}>Xóa</button></div></div>
-            {lessonResources.length?<div className="lesson-resource-list">{lessonResources.map(resource=><div className="resource-row" key={resource.id}><span className={`resource-kind ${resource.resource_type}`}><Link2/></span><span className="resource-copy"><b>{resource.title}</b><small>{resourceTypeLabel(resource.resource_type)}{resource.resource_type!=="youtube"?` · ${resource.allow_download?"Được phép tải":"Không được tải"}`:""}</small></span><span className="resource-actions">{resource.resource_type!=="youtube"&&<button onClick={()=>toggleResourceDownload(resource)}>{resource.allow_download?"Chặn tải":"Cho tải"}</button>}<button className="danger-text" onClick={()=>removeRecord("lesson_resources",resource.id,`nội dung “${resource.title}”`)}>Xóa</button></span></div>)}</div>:<div className="lesson-resource-empty">Chưa có bài giảng hoặc tài liệu.</div>}
+            {lessonResources.length?<div className="lesson-resource-list">{lessonResources.map(resource=><div className="resource-row" key={resource.id}><span className={`resource-kind ${resource.resource_type}`}>{["youtube","onedrive_video"].includes(resource.resource_type)?<CirclePlay/>:<Link2/>}</span><span className="resource-copy"><b>{resource.title}</b><small>{resourceTypeLabel(resource.resource_type)}{!["youtube","onedrive_video"].includes(resource.resource_type)?` · ${resource.allow_download?"Được phép tải":"Không được tải"}`:""}</small></span><span className="resource-actions">{!["youtube","onedrive_video"].includes(resource.resource_type)&&<button onClick={()=>toggleResourceDownload(resource)}>{resource.allow_download?"Chặn tải":"Cho tải"}</button>}<button className="danger-text" onClick={()=>removeRecord("lesson_resources",resource.id,`nội dung “${resource.title}”`)}>Xóa</button></span></div>)}</div>:<div className="lesson-resource-empty">Chưa có bài giảng hoặc tài liệu.</div>}
           </article>})}</div>
         </details>})}</div>:<MiniEmpty text="Chưa có phần nào. Hãy tạo phần đầu tiên, sau đó thêm bài và nội dung bài."/>}
       </div>
     </div>
     {builderModal==="chapter"&&<div className="modal-shade"><form className="modal" onSubmit={createChapter}><div className="section-head"><h2>Thêm phần</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">Số thứ tự “Phần {chapters.length+1}” được thêm tự động.</p><label>Tên phần<input value={newChapterTitle} onChange={event=>setNewChapterTitle(event.target.value)} placeholder="Ví dụ: Hàm số" required/></label><button className="primary-btn" disabled={savingBuilder}>Tạo phần</button></form></div>}
     {builderModal==="lesson"&&<div className="modal-shade"><form className="modal" onSubmit={createLesson}><div className="section-head"><h2>Thêm bài</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">Bài được đặt đúng cấp bên trong phần đang chọn; số thứ tự được thêm tự động.</p><label>Tên bài<input value={newLessonTitle} onChange={event=>setNewLessonTitle(event.target.value)} placeholder="Ví dụ: Mệnh đề và tập hợp" required/></label><label>Mô tả<textarea rows={4} value={newLessonDescription} onChange={event=>setNewLessonDescription(event.target.value)}/></label><label className="checkbox-row"><input type="checkbox" checked={newLessonPublished} onChange={event=>setNewLessonPublished(event.target.checked)}/><span>Xuất bản ngay</span></label><button className="primary-btn" disabled={savingBuilder}>Tạo bài</button></form></div>}
-    {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2>Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">Chọn đúng nguồn nội dung. PDF tải lên được giữ riêng tư; học viên không nhận link R2.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label>Tên nội dung<input value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label>File PDF (tối đa 50 MB)<input type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label>{newResourceType==="youtube"?'Link YouTube':'Link PDF'}<input type="url" value={newResourceUrl} onChange={event=>setNewResourceUrl(event.target.value)} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType!=="youtube"&&<label className="checkbox-row"><input type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button className="primary-btn" disabled={savingBuilder}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":"Thêm nội dung")}</button></form></div>}
+    {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2>Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">Chọn đúng nguồn nội dung. PDF tải lên được giữ riêng tư; video Microsoft được phát trực tiếp từ CDN của Microsoft.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['onedrive_video','OneDrive / SharePoint','Dán link chia sẻ video Microsoft'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label>Tên nội dung<input value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label>File PDF (tối đa 50 MB)<input type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label>{newResourceType==="youtube"?'Link YouTube':newResourceType==="onedrive_video"?'Video URL':'Link PDF'}<input type="url" value={newResourceUrl} onChange={event=>{setNewResourceUrl(event.target.value);if(newResourceType==="onedrive_video"){setVideoInspection(null);setVideoInspectionState(event.target.value.trim()?"checking":"idle");setVideoInspectionError("")}}} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":newResourceType==="onedrive_video"?"https://...sharepoint.com/:v:/...":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType==="onedrive_video"&&<div className={`microsoft-video-check ${videoInspectionState}`} aria-live="polite">{videoInspectionState==="idle"&&<p>Dán link để hệ thống nhận diện và kiểm tra video.</p>}{videoInspectionState==="checking"&&<p>Đang kiểm tra liên kết Microsoft…</p>}{videoInspectionState==="error"&&<p>{videoInspectionError}</p>}{videoInspectionState==="ready"&&videoInspection&&<><strong>✓ {videoInspection.providerLabel} detected</strong><span>✓ Video found</span><span>✓ Ready</span><small>{videoInspection.name}{videoInspection.durationMs?` · ${Math.ceil(videoInspection.durationMs/60000)} phút`:""}</small></>}</div>}{!["youtube","onedrive_video"].includes(newResourceType)&&<label className="checkbox-row"><input type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button className="primary-btn" disabled={savingBuilder||newResourceType==="onedrive_video"&&videoInspectionState!=="ready"}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":newResourceType==="onedrive_video"?"Thêm video":"Thêm nội dung")}</button></form></div>}
     {renameTarget&&<div className="modal-shade"><form className="modal" onSubmit={saveRename}><div className="section-head"><h2>Đổi tên {renameTarget.table==="chapters"?"phần":"bài"}</h2><button type="button" className="icon-btn" onClick={()=>{setRenameTarget(null);setRenameTitle("")}}><X/></button></div><p className="info-note">Không cần nhập “{renameTarget.table==="chapters"?"Phần":"Bài"}” và số thứ tự; hệ thống sẽ hiển thị tự động.</p><label>Tên mới<input value={renameTitle} onChange={event=>setRenameTitle(event.target.value)} required autoFocus/></label><button className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang lưu…":"Lưu tên mới"}</button></form></div>}
   </section>;
 }
