@@ -1,31 +1,47 @@
-# OneDrive public lesson videos
+# OneDrive and SharePoint lesson videos
 
-The course builder accepts a public OneDrive or SharePoint video link. No Microsoft Entra application, Graph permission, client secret, or administrator consent is required.
+Math Remix plays Microsoft-hosted lesson videos in its native `<video>` player. The application does not proxy video bytes through Vercel.
 
-## Prepare a video link
+## Runtime flow
 
-1. Upload the video to OneDrive or SharePoint.
-2. Open **Share** and choose **Anyone with the link** with view-only access.
-3. Copy the sharing link and paste it into the course builder.
-4. Keep the file shared for as long as learners need to watch it.
+1. An administrator connects the Microsoft work account once through delegated OAuth.
+2. The course builder sends a pasted sharing link to the authenticated admin API.
+3. Microsoft Graph resolves the link with `/shares/{encodedUrl}/driveItem`.
+4. Math Remix stores the stable sharing URL plus `driveId` and `itemId`.
+5. When an authorized learner opens the lesson, the server checks the active account, published lesson, enrollment, and signed content token.
+6. The server requests `/drives/{driveId}/items/{itemId}/content` and receives a 302 preauthenticated Microsoft CDN URL.
+7. Only that short-lived HTTPS URL is returned to the native player. It is never persisted in Postgres.
 
-The builder anonymously probes the link before saving it. SharePoint public viewers establish a short-lived guest cookie while redirecting to `stream.aspx`; the probe keeps that cookie only for the original SharePoint hostname and never persists it. Links that redirect to sign-in, point to a non-video file, or leave Microsoft's supported hosts are rejected.
+## Entra application
 
-OneDrive's generated **Embed** URL is also accepted. Microsoft notes that anyone visiting a page with an embedded file can view it without signing in.
+- Tenant ID: configure `MICROSOFT_TENANT_ID` on the server.
+- Client ID: configure `MICROSOFT_CLIENT_ID` on the server.
+- Client secret: configure `MICROSOFT_CLIENT_SECRET` on the server.
+- Delegated Graph permissions: `User.Read` and `Files.ReadWrite`.
+- Redirect URI (Web): `https://www.mathremix.pro.vn/api/admin/microsoft/callback`.
+- Runtime scopes also request `openid`, `profile`, and `offline_access`.
 
-SharePoint can publish a view-only video while explicitly disabling downloads and cross-site framing. Those resources are accepted, but the lesson opens Microsoft's public player in a new tab instead of pretending the file can be played directly in Math Remix. Direct OneDrive video responses still use the native in-lesson player.
+Do not enable implicit grant. Do not expose Microsoft credentials through `NEXT_PUBLIC_*` variables.
+
+## Token storage
+
+Apply `supabase/migrations/20260814021906_microsoft_graph_delegated_connection.sql` only after explicit production approval. The table has RLS forced, no policies for browser roles, and all privileges revoked from `public`, `anon`, and `authenticated`.
+
+Access and refresh tokens are encrypted with AES-256-GCM before database storage. Configure a random 32-byte base64url key as `MICROSOFT_TOKEN_ENCRYPTION_KEY`. Rotating this key invalidates the stored connection and requires the administrator to connect Microsoft again.
+
+The earlier `20260814003030_onedrive_lesson_video_resources.sql` migration remains part of history because it introduced the `onedrive_video` resource type. Do not replay or rewrite an applied migration.
 
 ## Security boundary
 
-The normal Math Remix account, active-account, publication, enrollment, and content-token checks still run before the learner receives the playback URL. However, this is a public OneDrive link, not DRM: anyone who obtains that Microsoft URL can access the file outside Math Remix. Use private R2 resources or a future delegated Microsoft integration for content that must never be publicly reachable.
-
-The application stores only a stable Microsoft public playback URL. It does not store Microsoft passwords, OAuth tokens, temporary CDN URLs, or Entra credentials.
-
-## Database rollout
-
-Apply `supabase/migrations/20260814003030_onedrive_lesson_video_resources.sql` only after reviewing it and verifying the live project through a project-scoped Supabase connection. The migration is forward-only and only expands the allowed `lesson_resources.resource_type` values plus its column comment.
+- Refresh/access tokens never reach browser code.
+- Temporary CDN URLs are returned only after the normal Math Remix authorization checks.
+- Redirects are accepted only over HTTPS and only for supported Microsoft host suffixes.
+- Video bytes go directly from Microsoft to the learner's browser.
+- A temporary media URL can still be seen in browser developer tools; this is access control, not DRM.
+- If the delegated account loses access or the refresh token is revoked, the administrator must reconnect Microsoft.
 
 ## Official references
 
-- [Embed files directly into a website or blog](https://support.microsoft.com/en-us/office/embed-files-directly-into-your-website-or-blog-ed07dd52-8bdb-431d-96a5-cbe8a80b7418)
-- [Share OneDrive files and folders](https://support.microsoft.com/en-us/office/share-onedrive-files-and-folders-9fcc2f80-3af2-4ffd-8c4d-1b7f23a2b8c3)
+- [Access shared DriveItems](https://learn.microsoft.com/en-us/graph/api/shares-get?view=graph-rest-1.0)
+- [Download DriveItem content](https://learn.microsoft.com/en-us/graph/api/driveitem-get-content?view=graph-rest-1.0)
+- [Microsoft identity platform authorization code flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)

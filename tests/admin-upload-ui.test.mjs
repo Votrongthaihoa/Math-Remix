@@ -47,7 +47,7 @@ test("course builder separates content sources and reports R2 cleanup failures",
 
   assert.match(platform, /name="resourceSource"/);
   assert.match(platform, /\['youtube','YouTube','Dán link video YouTube'\]/);
-  assert.match(platform, /\['onedrive_video','OneDrive công khai','Dán link “Anyone with the link”'\]/);
+  assert.match(platform, /\['onedrive_video','Video Microsoft','Dán link OneDrive hoặc SharePoint'\]/);
   assert.match(platform, /\['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'\]/);
   assert.match(platform, /\['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính'\]/);
   assert.match(platform, /headers: \{ "Content-Type": "application\/pdf" \}/);
@@ -62,21 +62,26 @@ test("course builder separates content sources and reports R2 cleanup failures",
   assert.ok(rule.allowed.origins.includes("https://mathremix.pro.vn"));
 });
 
-test("OneDrive lesson video creation stays behind the active admin server boundary", async () => {
-  const [route, player, platform] = await Promise.all([
+test("Microsoft Graph lesson video creation stays behind the active admin server boundary", async () => {
+  const [route, connectRoute, player, platform] = await Promise.all([
     readFile(new URL("../app/api/admin/lesson-videos/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/microsoft/connect/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(route, /ensureActiveAccount/);
   assert.match(route, /profile\.role !== "admin"/);
   assert.match(route, /consumeRequestBudget/);
-  assert.match(route, /inspectPublicMicrosoftVideo/);
+  assert.match(route, /inspectMicrosoftGraphVideo/);
   assert.match(route, /resource_type: "onedrive_video"/);
+  assert.match(route, /provider_drive_id: metadata\.driveId/);
+  assert.match(connectRoute, /ensureActiveAccount/);
+  assert.match(connectRoute, /createMicrosoftAuthorizationUrl/);
   assert.doesNotMatch(platform, /NEXT_PUBLIC_MICROSOFT|MICROSOFT_CLIENT_SECRET/);
   assert.doesNotMatch(route, /MICROSOFT_TENANT_ID|MICROSOFT_CLIENT_ID|MICROSOFT_CLIENT_SECRET|authorization: `Bearer/);
   assert.match(player, /<video/);
   assert.match(player, /<iframe/);
-  assert.match(player, /Mở video trên Microsoft/);
+  assert.doesNotMatch(player, /Mở video trên Microsoft|playbackMode === "external"/);
+  assert.match(player, /setResolutionNonce\(value => value \+ 1\)/);
   assert.match(player, /playbackRate/);
 });

@@ -3,7 +3,7 @@ import { verifyContentToken } from "../../../lib/content-token";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
 import { guardResourceAccess } from "../../../lib/resource-access-server";
 import { ensureActiveAccount } from "../../../lib/security-server";
-import { MicrosoftPublicVideoError, resolvePublicMicrosoftPlayback } from "../../../lib/microsoft-public-video";
+import { inspectMicrosoftGraphVideo, MicrosoftGraphError, resolveMicrosoftGraphPlayback } from "../../../lib/microsoft-graph-server";
 
 function youtubeSource(url: string) {
   try {
@@ -45,10 +45,26 @@ export async function POST(request: Request) {
     responseBody = { type: resource.resource_type, title: resource.title, youtubeId: source.id, start: source.start };
   } else if (resource.resource_type === "onedrive_video") {
     try {
-      const playback = resolvePublicMicrosoftPlayback(resource.resource_url);
-      responseBody = { type: resource.resource_type, title: resource.title, playbackUrl: playback.url, playbackMode: playback.mode };
+      let driveId = resource.provider_drive_id ?? "";
+      let itemId = resource.provider_item_id ?? "";
+      let mimeType = typeof resource.provider_metadata?.mimeType === "string" ? resource.provider_metadata.mimeType : "video/mp4";
+      if (!driveId || !itemId) {
+        const metadata = await inspectMicrosoftGraphVideo(resource.resource_url, admin);
+        driveId = metadata.driveId;
+        itemId = metadata.itemId;
+        mimeType = metadata.mimeType;
+        const { error } = await admin.from("lesson_resources").update({
+          provider: metadata.provider,
+          provider_drive_id: metadata.driveId,
+          provider_item_id: metadata.itemId,
+          provider_metadata: metadata.providerMetadata,
+        }).eq("id", resource.id);
+        if (error) console.warn("[video-token] could not persist resolved Microsoft item", { code: error.code, message: error.message });
+      }
+      const playbackUrl = await resolveMicrosoftGraphPlayback(driveId, itemId, admin);
+      responseBody = { type: resource.resource_type, title: resource.title, playbackUrl, playbackMode: "native", mimeType };
     } catch (error) {
-      if (error instanceof MicrosoftPublicVideoError) return Response.json({ error: error.message, code: error.code }, { status: error.status, headers: { "cache-control": "private, no-store, max-age=0" } });
+      if (error instanceof MicrosoftGraphError) return Response.json({ error: error.message, code: error.code }, { status: error.status, headers: { "cache-control": "private, no-store, max-age=0" } });
       return Response.json({ error: "Không thể mở liên kết video Microsoft." }, { status: 502, headers: { "cache-control": "private, no-store, max-age=0" } });
     }
   } else {

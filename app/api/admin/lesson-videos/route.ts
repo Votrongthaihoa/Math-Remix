@@ -1,5 +1,5 @@
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
-import { inspectPublicMicrosoftVideo, MicrosoftPublicVideoError } from "../../../../lib/microsoft-public-video";
+import { inspectMicrosoftGraphVideo, MicrosoftGraphError } from "../../../../lib/microsoft-graph-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
 
@@ -13,10 +13,10 @@ async function getAdmin(request: Request) {
   return { admin: security.admin, user: security.user };
 }
 
-function publicVideoError(error: unknown) {
-  if (error instanceof MicrosoftPublicVideoError) return Response.json({ error: error.message, code: error.code }, { status: error.status, headers: noStore });
-  console.error("[lesson-videos] unexpected public Microsoft video error", error);
-  return Response.json({ error: "Không thể kiểm tra liên kết video công khai lúc này." }, { status: 502, headers: noStore });
+function graphVideoError(error: unknown) {
+  if (error instanceof MicrosoftGraphError) return Response.json({ error: error.message, code: error.code }, { status: error.status, headers: noStore });
+  console.error("[lesson-videos] unexpected Microsoft Graph video error", error);
+  return Response.json({ error: "Không thể kiểm tra liên kết video Microsoft lúc này." }, { status: 502, headers: noStore });
 }
 
 export async function POST(request: Request) {
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
   if (action !== "inspect" && action !== "create") return Response.json({ error: "Yêu cầu video không hợp lệ." }, { status: 400, headers: noStore });
 
   let metadata;
-  try { metadata = await inspectPublicMicrosoftVideo(shareUrl); }
-  catch (error) { return publicVideoError(error); }
+  try { metadata = await inspectMicrosoftGraphVideo(shareUrl, authorization.admin); }
+  catch (error) { return graphVideoError(error); }
   if (action === "inspect") return Response.json({ metadata }, { headers: noStore });
   if (!uuid.test(lessonId)) return Response.json({ error: "Bài học không hợp lệ." }, { status: 400, headers: noStore });
 
@@ -48,10 +48,14 @@ export async function POST(request: Request) {
     lesson_id: lessonId,
     title: title.trim().slice(0, 240) || metadata.name.slice(0, 240),
     resource_type: "onedrive_video",
-    resource_url: metadata.playbackUrl,
+    resource_url: metadata.shareUrl,
     allow_download: false,
     sort_order: sortOrder,
-  }).select("id,lesson_id,title,resource_type,resource_url,allow_download,sort_order").single();
+    provider: metadata.provider,
+    provider_drive_id: metadata.driveId,
+    provider_item_id: metadata.itemId,
+    provider_metadata: metadata.providerMetadata,
+  }).select("id,lesson_id,title,resource_type,resource_url,allow_download,sort_order,provider,provider_drive_id,provider_item_id,provider_metadata").single();
   if (error || !resource) return Response.json({ error: error?.message || "Không thể lưu video vào bài học." }, { status: 400, headers: noStore });
   return Response.json({ resource, metadata }, { status: 201, headers: noStore });
 }

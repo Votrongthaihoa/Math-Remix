@@ -53,6 +53,7 @@ const requiredTables = [
   "guest_exam_attempts",
   "lesson_resources",
   "lessons",
+  "microsoft_graph_connections",
   "profiles",
   "question_bank_item_versions",
   "question_bank_items",

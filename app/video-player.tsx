@@ -35,6 +35,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [error, setError] = useState("");
   const [videoPlaybackError, setVideoPlaybackError] = useState("");
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [resolutionNonce, setResolutionNonce] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
@@ -77,15 +78,15 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     }
     void resolveToken();
     return () => { cancelled = true; controller.abort(); };
-  }, [resource.id, resource.videoToken, resource.title]);
+  }, [resource.id, resource.videoToken, resource.title, resolutionNonce]);
 
   function retryMicrosoftVideo() {
     setVideoPlaybackError("");
-    videoRef.current?.load();
+    setResolutionNonce(value => value + 1);
   }
 
   function handleMicrosoftVideoError() {
-    setVideoPlaybackError("Không thể phát video. Hãy kiểm tra file vẫn được chia sẻ bằng ‘Anyone with the link’. ");
+    setVideoPlaybackError("URL phát video Microsoft đã hết hạn hoặc không còn truy cập được. Hãy thử lấy URL mới.");
   }
 
   function changePlaybackRate(value: string) {
@@ -201,27 +202,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "onedrive_video") {
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát video Microsoft.</div>;
-    if (content.playbackMode === "external") {
-      return <div className="secure-viewer-state">
-        <p>SharePoint cho phép xem công khai nhưng không cho nhúng video trên website khác.</p>
-        <a className="primary-btn" href={content.playbackUrl} target="_blank" rel="noopener noreferrer">Mở video trên Microsoft</a>
-      </div>;
-    }
-    if (content.playbackMode === "embed") {
-      return <div className="lesson-microsoft-video">
-        <iframe
-          className="lesson-frame lesson-video"
-          src={content.playbackUrl}
-          title={content.title}
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-          referrerPolicy="no-referrer"
-        />
-        <div className="lesson-video-status" role="status">
-          <span>Video được mở bằng trình phát công khai của Microsoft.</span>
-        </div>
-      </div>;
-    }
     return <div className="lesson-microsoft-video">
       <video
         ref={videoRef}
@@ -238,13 +218,13 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         Trình duyệt của bạn không hỗ trợ phát video HTML5.
       </video>
       <div className="lesson-video-status" role="status">
-        <span>{videoPlaybackError || "Video được truyền trực tiếp từ liên kết OneDrive công khai."}</span>
+        <span>{videoPlaybackError || "Video được phát trực tiếp từ Microsoft bằng URL tạm thời, không qua proxy Vercel."}</span>
         <label>Tốc độ
           <select value={playbackRate} onChange={event => changePlaybackRate(event.target.value)} aria-label="Tốc độ phát video">
             {[0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}
           </select>
         </label>
-        <button type="button" onClick={retryMicrosoftVideo}>Thử phát lại</button>
+        <button type="button" onClick={retryMicrosoftVideo}>{videoPlaybackError ? "Lấy URL mới" : "Thử phát lại"}</button>
       </div>
     </div>;
   }
