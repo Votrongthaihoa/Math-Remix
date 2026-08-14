@@ -92,6 +92,18 @@ async function assertHeadSchema(admin) {
     failures.push(`${table}: ${result.error.code}`);
   }
   assert.deepEqual(failures, [], `REMOTE_SCHEMA_NOT_HEAD: ${failures.join(", ")}`);
+
+  const graphResourceColumns = await admin
+    .from("lesson_resources")
+    .select("provider,provider_drive_id,provider_item_id,provider_metadata", { head: true })
+    .limit(1);
+  if (graphResourceColumns.error) {
+    const status = graphResourceColumns.status ?? 0;
+    if (status === 0 || status >= 500 || /abort|fetch|network|timeout/i.test(graphResourceColumns.error.message ?? "")) {
+      throw new Error(`REMOTE_REQUEST_FAILED lesson_resources Graph columns: ${graphResourceColumns.error.message ?? "network error"}`);
+    }
+    throw new Error(`REMOTE_SCHEMA_NOT_HEAD: lesson_resources Graph columns (HTTP ${status})`);
+  }
 }
 
 async function assertSmokeFixture(admin) {

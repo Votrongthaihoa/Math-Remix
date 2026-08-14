@@ -4,6 +4,7 @@ import test from "node:test";
 
 const migrationUrl = new URL("../supabase/migrations/20260814003030_onedrive_lesson_video_resources.sql", import.meta.url);
 const graphMigrationUrl = new URL("../supabase/migrations/20260814021906_microsoft_graph_delegated_connection.sql", import.meta.url);
+const graphResourceMigrationUrl = new URL("../supabase/migrations/20260814031917_microsoft_graph_lesson_resource_columns.sql", import.meta.url);
 
 test("OneDrive public-link migration is forward-only and does not add credential storage", async () => {
   const migration = await readFile(migrationUrl, "utf8");
@@ -31,4 +32,21 @@ test("Microsoft Graph connection migration stores ciphertext behind a server-onl
   assert.doesNotMatch(migration, /\baccess_token\s+text|\brefresh_token\s+text|client_secret/i);
   assert.doesNotMatch(migration, /drop table|truncate|delete\s+from/i);
   assert.match(deployCheck, /"microsoft_graph_connections"/);
+});
+
+test("Microsoft Graph lesson resource reconciliation is forward-only and deploy-gated", async () => {
+  const [migration, deployCheck] = await Promise.all([
+    readFile(graphResourceMigrationUrl, "utf8"),
+    readFile(new URL("../scripts/deploy-readiness-check.mjs", import.meta.url), "utf8"),
+  ]);
+  assert.match(migration, /add column if not exists provider text/);
+  assert.match(migration, /add column if not exists provider_drive_id text/);
+  assert.match(migration, /add column if not exists provider_item_id text/);
+  assert.match(migration, /add column if not exists provider_metadata jsonb not null default '\{\}'::jsonb/);
+  assert.match(migration, /lesson_resources_provider_check/);
+  assert.match(migration, /validate constraint lesson_resources_provider_check/);
+  assert.match(migration, /notify pgrst, 'reload schema'/);
+  assert.doesNotMatch(migration, /drop table|truncate|delete\s+from|insert\s+into/i);
+  assert.match(deployCheck, /provider,provider_drive_id,provider_item_id,provider_metadata/);
+  assert.match(deployCheck, /REMOTE_SCHEMA_NOT_HEAD: lesson_resources Graph columns/);
 });
