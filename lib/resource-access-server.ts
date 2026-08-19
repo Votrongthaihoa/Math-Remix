@@ -8,7 +8,7 @@ import { activeAccount, type SecurityProfile } from "./security-server";
 export type LessonResource = {
   id: string;
   title: string;
-  resource_type: "youtube" | "onedrive_video" | "external_pdf" | "storage_pdf";
+  resource_type: "youtube" | "onedrive_video" | "hls_vault" | "external_pdf" | "storage_pdf";
   resource_url: string;
   allow_download: boolean;
   provider: "sharepoint" | "onedrive_business" | "onedrive_personal" | null;

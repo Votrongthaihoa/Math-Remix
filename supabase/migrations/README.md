@@ -49,6 +49,7 @@ migration của môi trường đó.
 042_active_account_policy_reconciliation.sql
 043_empty_legacy_head_bootstrap.sql
 044_exam_catalog_rls_enablement.sql
+045_hls_vault_resources.sql
 ```
 
 ## Lưu ý về tiền tố `007`

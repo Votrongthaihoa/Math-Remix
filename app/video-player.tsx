@@ -8,10 +8,11 @@ import LoadingIndicator from "./loading-indicator";
 export type SecureLessonResource = {
   id: string;
   title: string;
-  resource_type: "youtube" | "onedrive_video" | "external_pdf" | "storage_pdf";
+  resource_type: "youtube" | "onedrive_video" | "hls_vault" | "external_pdf" | "storage_pdf";
   allow_download: boolean;
   sort_order: number;
   videoToken: string;
+  provider_metadata?: Record<string, unknown>;
 };
 
 type ResolvedContent = {
@@ -22,7 +23,7 @@ type ResolvedContent = {
   protectedContent?: "pdf";
   playbackUrl?: string;
   mimeType?: string;
-  playbackMode?: "native" | "embed" | "external";
+  playbackMode?: "native" | "embed" | "external" | "hls-vault";
 };
 
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
@@ -36,6 +37,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [videoPlaybackError, setVideoPlaybackError] = useState("");
   const [resolutionNonce, setResolutionNonce] = useState(0);
   const videoFrameRef = useRef<HTMLIFrameElement>(null);
+  const hlsVideoRef = useRef<HTMLVideoElement>(null);
+  const hlsInstanceRef = useRef<{ destroy: () => void } | null>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
 
@@ -45,6 +48,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       URL.revokeObjectURL(url);
     }
     pendingDownloadUrlsRef.current.clear();
+    hlsInstanceRef.current?.destroy();
+    hlsInstanceRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -66,7 +71,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         });
         const payload = await response.json() as ResolvedContent & { error?: string };
         if (cancelled) return;
-        const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : payload.type === "onedrive_video" ? Boolean(payload.playbackUrl) : payload.protectedContent === "pdf";
+        const hasPlayableSource = payload.type === "youtube" ? Boolean(payload.youtubeId) : ["onedrive_video", "hls_vault"].includes(payload.type) ? Boolean(payload.playbackUrl) : payload.protectedContent === "pdf";
         if (!response.ok || !hasPlayableSource) setError(payload.error || "Không thể mở nội dung.");
         else setContent({ ...payload, title: payload.title || resource.title });
       } catch (value) {
@@ -159,6 +164,46 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   }, [content, resource.videoToken]);
 
   useEffect(() => {
+    if (content?.type !== "hls_vault" || content.playbackMode !== "hls-vault" || !content.playbackUrl || !hlsVideoRef.current) return;
+    const video = hlsVideoRef.current;
+    let cancelled = false;
+    hlsInstanceRef.current?.destroy();
+    hlsInstanceRef.current = null;
+    video.removeAttribute("src");
+    video.load();
+
+    async function mountHls() {
+      try {
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = content!.playbackUrl!;
+          return;
+        }
+        const hlsModule = await import("hls.js");
+        if (cancelled) return;
+        const Hls = hlsModule.default;
+        if (!Hls.isSupported()) throw new Error("Trình duyệt này không hỗ trợ HLS/MSE.");
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+        hlsInstanceRef.current = hls;
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal) setVideoPlaybackError("Không thể phát HLS. Hãy thử lấy nguồn phát mới.");
+        });
+        hls.loadSource(content!.playbackUrl!);
+        hls.attachMedia(video);
+      } catch (value) {
+        if (!cancelled) setVideoPlaybackError(value instanceof Error ? value.message : "Không thể khởi tạo trình phát HLS.");
+      }
+    }
+    void mountHls();
+    return () => {
+      cancelled = true;
+      hlsInstanceRef.current?.destroy();
+      hlsInstanceRef.current = null;
+      video.removeAttribute("src");
+      video.load();
+    };
+  }, [content]);
+
+  useEffect(() => {
     if (content?.protectedContent !== "pdf" || content.type === "youtube") return;
     let cancelled = false;
     let objectUrl = "";
@@ -210,8 +255,16 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen/>;
   }
 
+  if (content.type === "hls_vault") {
+    if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát HLS.</div>;
+    if (content.playbackMode === "hls-vault") {
+      if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
+      return <div className="lesson-microsoft-video"><video ref={hlsVideoRef} className="lesson-video lesson-native-video" controls playsInline preload="metadata" title={content.title}>Trình duyệt của bạn không hỗ trợ phát HLS.</video><div className="lesson-video-status" role="status"><span>Video HLS được phát qua gateway có kiểm soát quyền truy cập.</span></div></div>;
+    }
+
+  }
+
   if (content.type === "onedrive_video") {
-    if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát video Microsoft.</div>;
     if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
     return <iframe
       ref={videoFrameRef}

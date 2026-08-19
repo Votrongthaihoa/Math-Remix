@@ -41,7 +41,7 @@ export async function GET(request: Request) {
   if (lessonsError) return Response.json({ error: lessonsError.message }, { status: 400 });
   const lessonIds = (lessons ?? []).map(item => item.id);
   const { data: resources, error } = lessonIds.length
-    ? await admin.from("lesson_resources").select("id,lesson_id,title,resource_type,allow_download,sort_order").in("lesson_id", lessonIds).order("sort_order")
+    ? await admin.from("lesson_resources").select("id,lesson_id,title,resource_type,allow_download,sort_order,provider_metadata").in("lesson_id", lessonIds).order("sort_order")
     : { data: [], error: null };
   if (error) return Response.json({ error: error.message }, { status: 400 });
   const securedResources = await Promise.all((resources ?? []).map(async resource => ({
@@ -51,6 +51,7 @@ export async function GET(request: Request) {
     resource_type: resource.resource_type,
     allow_download: resource.allow_download,
     sort_order: resource.sort_order,
+    provider_metadata: resource.provider_metadata ?? {},
     videoToken: await signContentToken(resource.id, auth.user.id, tokenSecret, 3600),
   })));
   const items = securedResources.filter(resource => resource.lesson_id === lessonId);

@@ -48,6 +48,7 @@ test("course builder separates content sources and reports R2 cleanup failures",
   assert.match(platform, /name="resourceSource"/);
   assert.match(platform, /\['youtube','YouTube','Dán link video YouTube'\]/);
   assert.match(platform, /\['onedrive_video','Video Microsoft','Dán link OneDrive hoặc SharePoint'\]/);
+  assert.match(platform, /\['hls_vault','OneDrive HLS Vault','Nhập mã video đã encode'\]/);
   assert.match(platform, /\['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'\]/);
   assert.match(platform, /\['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính'\]/);
   assert.match(platform, /headers: \{ "Content-Type": "application\/pdf" \}/);

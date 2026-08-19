@@ -5,6 +5,7 @@ import test from "node:test";
 const migrationUrl = new URL("../supabase/migrations/20260814003030_onedrive_lesson_video_resources.sql", import.meta.url);
 const graphMigrationUrl = new URL("../supabase/migrations/20260814021906_microsoft_graph_delegated_connection.sql", import.meta.url);
 const graphResourceMigrationUrl = new URL("../supabase/migrations/20260814031917_microsoft_graph_lesson_resource_columns.sql", import.meta.url);
+const hlsMigrationUrl = new URL("../supabase/migrations/045_hls_vault_resources.sql", import.meta.url);
 
 test("OneDrive public-link migration is forward-only and does not add credential storage", async () => {
   const migration = await readFile(migrationUrl, "utf8");
@@ -49,4 +50,11 @@ test("Microsoft Graph lesson resource reconciliation is forward-only and deploy-
   assert.doesNotMatch(migration, /drop table|truncate|delete\s+from|insert\s+into/i);
   assert.match(deployCheck, /provider,provider_drive_id,provider_item_id,provider_metadata/);
   assert.match(deployCheck, /REMOTE_SCHEMA_NOT_HEAD: lesson_resources Graph columns/);
+});
+
+test("HLS Vault resource migration adds only the new resource type", async () => {
+  const migration = await readFile(hlsMigrationUrl, "utf8");
+  assert.match(migration, /resource_type in \('youtube', 'onedrive_video', 'hls_vault'/);
+  assert.match(migration, /playbackMode=hls-vault/);
+  assert.doesNotMatch(migration, /drop table|truncate|delete\s+from|insert\s+into/i);
 });

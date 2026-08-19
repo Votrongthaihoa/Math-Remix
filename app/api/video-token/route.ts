@@ -43,6 +43,16 @@ export async function POST(request: Request) {
     const source = youtubeSource(resource.resource_url);
     if (!source) return Response.json({ error: "Liên kết YouTube không hợp lệ." }, { status: 422 });
     responseBody = { type: resource.resource_type, title: resource.title, youtubeId: source.id, start: source.start };
+  } else if (resource.resource_type === "hls_vault") {
+    const hlsVideoId = typeof resource.provider_metadata?.hlsVideoId === "string" ? resource.provider_metadata.hlsVideoId : "";
+    if (resource.provider_metadata?.playbackMode !== "hls-vault" || !/^[A-Za-z0-9_-]{1,80}$/.test(hlsVideoId)) return Response.json({ error: "Video HLS chưa được cấu hình." }, { status: 422 });
+    responseBody = {
+      type: resource.resource_type,
+      title: resource.title,
+      playbackUrl: `/api/hls/${encodeURIComponent(resource.id)}/master.m3u8?t=${encodeURIComponent(body.videoToken)}`,
+      playbackMode: "hls-vault",
+      mimeType: "application/vnd.apple.mpegurl",
+    };
   } else if (resource.resource_type === "onedrive_video") {
     try {
       let driveId = resource.provider_drive_id ?? "";

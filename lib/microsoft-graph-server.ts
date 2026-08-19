@@ -396,6 +396,20 @@ export async function resolveMicrosoftGraphPlayback(driveId: string, itemId: str
   return location;
 }
 
+export async function resolveMicrosoftGraphPathPlayback(path: string, admin: SupabaseClient, fetcher: typeof fetch = fetch) {
+  const normalized = path.replace(/^\/+|\/+$/g, "");
+  if (!normalized || normalized.length > 1000 || normalized.split("/").some(part => !part || part === "." || part === ".." || /[\\\0\u0000-\u001f\u007f]/.test(part))) {
+    throw new MicrosoftGraphError("Đường dẫn OneDrive không hợp lệ.", 400, "MICROSOFT_PATH_INVALID");
+  }
+  const encodedPath = normalized.split("/").map(encodeURIComponent).join("/");
+  const response = await graphFetch(admin, `${GRAPH_ROOT}/me/drive/root:/${encodedPath}:/content`, { redirect: "manual", headers: { accept: "*/*" }, cache: "no-store" }, fetcher);
+  const location = response.headers.get("location") ?? "";
+  const redirected = response.status >= 300 && response.status < 400 && location;
+  void response.body?.cancel().catch(() => undefined);
+  if (!redirected || !isAllowedMicrosoftDownloadUrl(location)) throw new MicrosoftGraphError("Microsoft không trả về URL phát hợp lệ.", 502, "MICROSOFT_PLAYBACK_URL_REJECTED");
+  return location;
+}
+
 export async function microsoftConnectionStatus(admin: SupabaseClient) {
   try {
     const row = await loadConnection(admin);

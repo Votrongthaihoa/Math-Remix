@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   const access = await guardResourceAccess(admin, security.user.id, security.profile, payload.rid, "view");
   if (!access.ok) return access.response;
   const resource = access.resource;
-  if (resource.resource_type === "youtube" || resource.resource_type === "onedrive_video") return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
+  if (["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type)) return Response.json({ error: "Không tìm thấy tài liệu PDF." }, { status: 404 });
 
   let pdfBytes: Uint8Array;
   try { pdfBytes = await loadPdfBytes(resource.resource_url, MAX_PDF_BYTES); }
