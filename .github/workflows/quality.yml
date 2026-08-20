@@ -31,6 +31,9 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test and build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
         run: npm test
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=high
