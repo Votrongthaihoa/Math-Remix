@@ -1810,8 +1810,12 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
         if (!confirmResponse.ok || !confirmed?.reference) throw new Error(confirmed?.error || "Không thể xác nhận PDF trên R2.");
         url = confirmed.reference;
       }
-      if (!url) throw new Error(newResourceType === "youtube" ? "Hãy nhập link YouTube." : newResourceType === "onedrive_video" ? "Hãy nhập link OneDrive hoặc SharePoint." : "Hãy nhập link PDF.");
-      if (newResourceType === "onedrive_video") {
+      if (!url) throw new Error(newResourceType === "youtube" ? "Hãy nhập link YouTube." : newResourceType === "onedrive_video" ? "Hãy nhập link OneDrive hoặc SharePoint." : newResourceType === "hls_vault" ? "Hãy nhập mã video HLS Vault." : "Hãy nhập link PDF.");
+      if (newResourceType === "hls_vault") {
+        const response = await authenticatedFetch("/api/admin/lesson-hls", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ lessonId: targetLessonId, title: name, videoId: url }) });
+        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        if (!response.ok) throw new Error(payload?.error || "Không thể thêm video HLS Vault vào bài học.");
+      } else if (newResourceType === "onedrive_video") {
         if (videoInspectionState !== "ready") throw new Error(videoInspectionError || "Hãy đợi hệ thống kiểm tra video Microsoft.");
         const response = await authenticatedFetch("/api/admin/lesson-videos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "create", shareUrl: url, lessonId: targetLessonId, title: name }) });
         const payload = await response.json().catch(() => null) as { error?: string } | null;
@@ -1882,7 +1886,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }
 
   async function toggleResourceDownload(resource: ResourceData) {
-    if (!supabase || resource.resource_type === "youtube" || resource.resource_type === "onedrive_video") return;
+    if (!supabase || ["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type)) return;
     const { error } = await supabase.from("lesson_resources").update({ allow_download: !resource.allow_download }).eq("id", resource.id);
     if (error) setBuilderError(error.message); else await loadBuilderData();
   }

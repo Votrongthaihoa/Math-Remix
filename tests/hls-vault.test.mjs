@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { hlsOriginPath, hlsVideoId } from "../lib/hls-vault.ts";
+import { hlsOriginPath, hlsVideoId, rewriteHlsManifest } from "../lib/hls-vault.ts";
 
 test("HLS Vault accepts bounded video ids and keeps origin paths inside the vault", () => {
   assert.equal(hlsVideoId("lesson01"), "lesson01");
@@ -9,6 +9,21 @@ test("HLS Vault accepts bounded video ids and keeps origin paths inside the vaul
   assert.equal(hlsOriginPath("lesson01", "1080p/index.m3u8"), "VideoVault/lesson01/1080p/index.m3u8");
   assert.throws(() => hlsOriginPath("lesson01", "../private.m3u8"));
   assert.throws(() => hlsOriginPath("lesson01", "key:bad"));
+});
+
+test("HLS Vault rewrites local playlists and the derived AES key back through the gateway", () => {
+  const manifest = [
+    "#EXTM3U",
+    '#EXT-X-KEY:METHOD=AES-128,URI="https://hls-key.invalid/key/lesson01"',
+    "#EXTINF:6,",
+    "seg_00000.ts",
+  ].join("\n");
+
+  const rewritten = rewriteHlsManifest(manifest, "resource-1", "1080p/index.m3u8", "content-token");
+
+  assert.match(rewritten, /URI="\/api\/hls\/resource-1\/key\?t=content-token"/);
+  assert.match(rewritten, /\/api\/hls\/resource-1\/1080p\/seg_00000\.ts\?t=content-token/);
+  assert.throws(() => rewriteHlsManifest("https://example.com/segment.ts", "resource-1", "index.m3u8", "content-token"));
 });
 
 test("HLS Vault routes use the existing content-token and resource-access boundary", async () => {

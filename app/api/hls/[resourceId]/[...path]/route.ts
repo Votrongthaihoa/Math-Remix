@@ -1,5 +1,6 @@
 import { contentServer } from "../../../../../lib/content-server";
 import { verifyContentToken } from "../../../../../lib/content-token";
+import { rewriteHlsManifest } from "../../../../../lib/hls-vault";
 import { getHlsOriginRedirect, hlsVideoId } from "../../../../../lib/microsoft-graph-hls";
 import { guardResourceAccess } from "../../../../../lib/resource-access-server";
 import { activeAccount, type SecurityProfile } from "../../../../../lib/security-server";
@@ -23,43 +24,6 @@ function safeRelativePath(value: string) {
   if (!value || value.length > 800 || value.includes("\\") || value.includes("\0")) return false;
   const parts = value.split("/");
   return !parts.some(part => !part || part === "." || part === ".." || /[\u0000-\u001f\u007f:]/.test(part));
-}
-
-function normalizePath(value: string) {
-  const output: string[] = [];
-  for (const part of value.split("/")) {
-    if (!part || part === ".") continue;
-    if (part === "..") {
-      if (!output.length) throw new Error("HLS path escapes video root");
-      output.pop();
-    } else output.push(part);
-  }
-  return output.join("/");
-}
-
-function encodedPath(value: string) {
-  return value.split("/").map(encodeURIComponent).join("/");
-}
-
-function rewriteManifest(text: string, resourceId: string, currentRelative: string, token: string) {
-  const currentParts = currentRelative.split("/");
-  currentParts.pop();
-  const currentDir = currentParts.join("/");
-  const tokenQuery = `t=${encodeURIComponent(token)}`;
-  const mapUri = (value: string) => {
-    const uri = value.trim();
-    if (/^https:\/\/hls-key\.invalid\/key\//i.test(uri)) return `/api/hls/${encodeURIComponent(resourceId)}/key?${tokenQuery}`;
-    if (/^[a-z][a-z0-9+.-]*:/i.test(uri) || uri.startsWith("//")) throw new Error("External HLS URI is not allowed");
-    const clean = uri.split("#", 1)[0].split("?", 1)[0];
-    const resolved = normalizePath(`${currentDir}/${clean}`);
-    if (!safeRelativePath(resolved)) throw new Error("Unsafe HLS URI");
-    return `/api/hls/${encodeURIComponent(resourceId)}/${encodedPath(resolved)}?${tokenQuery}`;
-  };
-  return text.split(/\r?\n/).map(line => {
-    if (!line) return line;
-    if (line.startsWith("#")) return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => `URI="${mapUri(uri)}"`);
-    return mapUri(line);
-  }).join("\n");
 }
 
 async function readLimited(response: Response) {
@@ -128,7 +92,7 @@ export async function GET(request: Request, context: RouteContext) {
     if (!relative.toLowerCase().endsWith(".m3u8")) return Response.redirect(origin, 302);
     const source = await fetch(origin, { headers: { accept: "application/vnd.apple.mpegurl,text/plain,*/*" }, cache: "no-store" });
     if (!source.ok) return jsonError("hls_manifest_unavailable", 502);
-    const rewritten = rewriteManifest(await readLimited(source), params.resourceId, relative, token);
+    const rewritten = rewriteHlsManifest(await readLimited(source), params.resourceId, relative, token);
     return new Response(rewritten, { status: 200, headers: noStore({ "content-type": "application/vnd.apple.mpegurl; charset=utf-8" }) });
   } catch (error) {
     console.error("[hls] request failed", { resourceId: params.resourceId, relative, error: error instanceof Error ? error.message : "unknown_error" });
