@@ -207,7 +207,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
           if (cancelled) return;
           const Hls = hlsModule.default;
           if (!Hls.isSupported()) throw new Error("Trình duyệt này không hỗ trợ HLS/MSE.");
-          const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+          const hls = new Hls({ enableWorker: true, lowLatencyMode: false, xhrSetup: (xhr, url) => { xhr.withCredentials = true; } });
           localHls = hls;
           hlsInstanceRef.current = hls;
           hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -343,3 +343,4 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(pdfObjectUrl)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
   return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title}/></div>;
 }
+
