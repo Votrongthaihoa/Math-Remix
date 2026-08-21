@@ -16,12 +16,13 @@
     import "https://cdn.vidstack.io/player";
 
     const query = new URLSearchParams(location.search);
-    const mode = query.get("mode") === "native" ? "native" : "youtube";
+    const mode = ["native", "hls"].includes(query.get("mode")) ? query.get("mode") : "youtube";
     const videoId = (query.get("v") || "").trim();
     const start = Math.max(0, Number(query.get("start") || 0) || 0);
     const watermarkOwner = (query.get("wm") || "Học viên REMIX").trim().slice(0, 120);
     const target = document.querySelector("#player");
     const allowedMicrosoftHostSuffixes = ["files.1drv.com", "1drv.com", "sharepoint.com", "sharepointonline.com"];
+    const allowedHlsApiOrigin = "https://api.mathremix.pro.vn";
 
     function showState(message, state = "error") {
       const status = document.createElement("div");
@@ -41,6 +42,15 @@
       } catch { return false; }
     }
 
+    function allowedHlsSource(value) {
+      try {
+        const parsed = new URL(value, location.origin);
+        const sameOrigin = parsed.origin === location.origin;
+        const productionApi = parsed.origin === allowedHlsApiOrigin;
+        return parsed.protocol === location.protocol && (sameOrigin || productionApi) && parsed.pathname.startsWith("/api/hls/");
+      } catch { return false; }
+    }
+
     function mountPlayer(source, title, options = {}) {
       const player = document.createElement("media-player");
       player.setAttribute("title", title || "Video bài giảng");
@@ -52,11 +62,30 @@
       } else {
         player.setAttribute("view-type", "video");
         player.setAttribute("stream-type", "on-demand");
-        player.src = { src: source, type: options.mimeType || "video/mp4" };
+        if (options.hls) player.setAttribute("crossorigin", "use-credentials");
       }
       const provider = document.createElement("media-provider");
       const layout = document.createElement("media-video-layout");
       player.append(provider, layout);
+      player.addEventListener("provider-change", event => {
+        const activeProvider = event.detail;
+        if (activeProvider?.type !== "hls") return;
+        activeProvider.library = "https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js";
+        activeProvider.config = {
+          enableWorker: true,
+          lowLatencyMode: false,
+          xhrSetup(xhr) { xhr.withCredentials = true; },
+        };
+      });
+      player.addEventListener("provider-setup", event => {
+        const video = event.detail?.video;
+        if (!video) return;
+        video.setAttribute("controlsList", "nodownload noremoteplayback");
+        video.disablePictureInPicture = true;
+        if (options.hls) video.crossOrigin = "use-credentials";
+      });
+      if (options.youtube) player.src = source;
+      else player.src = { src: source, type: options.mimeType || "video/mp4" };
       if (options.start > 0) player.addEventListener("can-play", () => { player.currentTime = options.start; }, { once: true });
       player.addEventListener("error", () => {
         const message = "Không thể phát nguồn video này. Hãy lấy nguồn phát mới.";
@@ -104,15 +133,18 @@
       window.addEventListener("message", event => {
         if (event.origin !== location.origin || event.source !== window.parent || event.data?.type !== "remix:set-video-source") return;
         const source = typeof event.data.src === "string" ? event.data.src : "";
-        if (!allowedMicrosoftSource(source)) {
-          const message = "Nguồn video Microsoft không hợp lệ.";
+        const isHls = mode === "hls";
+        if (!(isHls ? allowedHlsSource(source) : allowedMicrosoftSource(source))) {
+          const message = isHls ? "Nguồn HLS không hợp lệ." : "Nguồn video Microsoft không hợp lệ.";
           showState(message);
           window.parent.postMessage({ type: "remix:video-player-error", message }, location.origin);
           return;
         }
         const title = typeof event.data.title === "string" ? event.data.title.slice(0, 240) : "Video bài giảng";
-        const mimeType = typeof event.data.mimeType === "string" && /^video\/[a-z0-9.+-]+$/i.test(event.data.mimeType) ? event.data.mimeType : "video/mp4";
-        mountPlayer(source, title, { mimeType });
+        const mimeType = isHls
+          ? "application/vnd.apple.mpegurl"
+          : typeof event.data.mimeType === "string" && /^video\/[a-z0-9.+-]+$/i.test(event.data.mimeType) ? event.data.mimeType : "video/mp4";
+        mountPlayer(source, title, { hls: isHls, mimeType });
       });
       window.parent.postMessage({ type: "remix:video-player-ready" }, location.origin);
     }

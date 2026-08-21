@@ -14,8 +14,13 @@ const PRODUCTION_WEB_ORIGINS = new Set([
   "https://www.mathremix.pro.vn",
 ]);
 
-function allowedWebOrigin(value: string) {
+function isProductionRequest() {
+  return process.env.NODE_ENV === "production";
+}
+
+function allowedWebOrigin(value: string, allowLocal = process.env.NODE_ENV !== "production") {
   if (PRODUCTION_WEB_ORIGINS.has(value)) return value;
+  if (!allowLocal) return "";
   try {
     const url = new URL(value);
     if ((url.protocol === "http:" || url.protocol === "https:")
@@ -26,8 +31,21 @@ function allowedWebOrigin(value: string) {
   return "";
 }
 
+function playbackWebOrigin(request: Request) {
+  const origin = request.headers.get("origin")?.trim() || "";
+  if (origin) return allowedWebOrigin(origin, !isProductionRequest());
+  const referer = request.headers.get("referer")?.trim() || "";
+  if (!referer) return "";
+  try { return allowedWebOrigin(new URL(referer).origin, !isProductionRequest()); }
+  catch { return ""; }
+}
+
+function playbackOriginAllowed(request: Request) {
+  return !isProductionRequest() || Boolean(playbackWebOrigin(request));
+}
+
 function corsHeaders(request: Request, extra: HeadersInit = {}) {
-  const origin = allowedWebOrigin(request.headers.get("origin") || "");
+  const origin = allowedWebOrigin(request.headers.get("origin") || "", !isProductionRequest());
   return {
     "cache-control": "private, no-store, max-age=0",
     "x-content-type-options": "nosniff",
@@ -40,6 +58,7 @@ function corsHeaders(request: Request, extra: HeadersInit = {}) {
 }
 
 export async function OPTIONS(request: Request) {
+  if (!playbackOriginAllowed(request)) return jsonError(request, "origin_not_allowed", 403);
   return new Response(null, { status: 204, headers: corsHeaders(request) });
 }
 
@@ -105,6 +124,7 @@ async function readLimited(response: Response) {
 
 export async function GET(request: Request, context: RouteContext) {
   if (request.method !== "GET") return jsonError(request, "method_not_allowed", 405);
+  if (!playbackOriginAllowed(request)) return jsonError(request, "origin_not_allowed", 403);
   const config = contentServer();
   if (!config.ok) return config.response;
   const { admin, tokenSecret } = config;

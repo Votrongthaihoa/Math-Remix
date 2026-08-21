@@ -46,12 +46,12 @@ test("HLS Vault routes use the existing content-token and resource-access bounda
   assert.doesNotMatch(route, /ensureActiveAccount\(/);
   assert.match(adminRoute, /profile\.role !== "admin"/);
   assert.match(adminRoute, /resource_type:\s*"hls_vault"/);
-  assert.match(player, /import\("hls\.js"\)/);
-  assert.match(player, /import\("plyr"\)/);
-  assert.match(player, /new Plyr\(/);
-  assert.match(player, /disableContextMenu:\s*true/);
+  assert.doesNotMatch(player, /import\("hls\.js"\)/);
+  assert.doesNotMatch(player, /plyr/i);
+  assert.match(player, /yt-embed-player\.html\?mode=hls/);
+  assert.match(player, /remix:set-video-source/);
   assert.match(player, /content\.type === "hls_vault"/);
-  assert.match(player, /controlsList="nodownload noremoteplayback"/);
+  assert.match(player, /application\/vnd\.apple\.mpegurl/);
 });
 
 test("HLS gateway proxies segments and throttles bulk downloader requests", async () => {
@@ -84,9 +84,32 @@ test("HLS gateway CORS credentials are restricted to approved web origins", asyn
   assert.doesNotMatch(route, /access-control-allow-origin": origin \|\| "\*"/);
 });
 
+test("HLS gateway rejects requests without an approved Math Remix web origin", async () => {
+  const route = await readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8");
+
+  assert.match(route, /request\.headers\.get\("origin"\)/);
+  assert.match(route, /request\.headers\.get\("referer"\)/);
+  assert.match(route, /origin_not_allowed/);
+  assert.match(route, /NODE_ENV/);
+  assert.doesNotMatch(route, /hostname !== "localhost"/);
+});
+
 test("HLS player routes the media source through the configured API origin", async () => {
   const player = await readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8");
 
   assert.match(player, /import \{ apiRequestUrl \} from "\.\.\/lib\/api-url";/);
-  assert.match(player, /apiRequestUrl\(content!?\.playbackUrl!\)/);
+  assert.match(player, /apiRequestUrl\(resolved\.playbackUrl\)/);
+});
+
+test("HLS uses the shared Vidstack player instead of Plyr", async () => {
+  const [player, sharedVideoPlayer] = await Promise.all([
+    readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../public/yt-embed-player.html", import.meta.url), "utf8"),
+  ]);
+
+  assert.doesNotMatch(player, /plyr/i);
+  assert.match(player, /yt-embed-player\.html\?mode=hls/);
+  assert.match(sharedVideoPlayer, /\["native", "hls"\]/);
+  assert.match(sharedVideoPlayer, /application\/vnd\.apple\.mpegurl/);
+  assert.match(sharedVideoPlayer, /xhr\.withCredentials\s*=\s*true/);
 });

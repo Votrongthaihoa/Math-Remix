@@ -5,8 +5,6 @@ import { supabase } from "../lib/supabase";
 import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import { apiRequestUrl } from "../lib/api-url";
 import LoadingIndicator from "./loading-indicator";
-import "plyr/dist/plyr.css";
-import "./hls-player.css";
 
 export type SecureLessonResource = {
   id: string;
@@ -40,9 +38,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [videoPlaybackError, setVideoPlaybackError] = useState("");
   const [resolutionNonce, setResolutionNonce] = useState(0);
   const videoFrameRef = useRef<HTMLIFrameElement>(null);
-  const hlsVideoRef = useRef<HTMLVideoElement>(null);
-  const hlsInstanceRef = useRef<{ destroy: () => void } | null>(null);
-  const plyrRef = useRef<Plyr | null>(null);
+  const hlsFrameRef = useRef<HTMLIFrameElement>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
 
@@ -52,10 +48,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       URL.revokeObjectURL(url);
     }
     pendingDownloadUrlsRef.current.clear();
-    hlsInstanceRef.current?.destroy();
-    hlsInstanceRef.current = null;
-    plyrRef.current?.destroy();
-    plyrRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -90,32 +82,40 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     return () => { cancelled = true; controller.abort(); };
   }, [resource.id, resource.videoToken, resource.title, resolutionNonce]);
 
-  function retryMicrosoftVideo() {
+  function retryVideoSource() {
     setVideoPlaybackError("");
     setResolutionNonce(value => value + 1);
   }
 
-  const sendMicrosoftVideoSource = useCallback((resolved: ResolvedContent | null) => {
-    if (resolved?.type !== "onedrive_video" || !resolved.playbackUrl) return;
-    videoFrameRef.current?.contentWindow?.postMessage({
+  const sendEmbeddedVideoSource = useCallback((resolved: ResolvedContent | null) => {
+    if (!resolved?.playbackUrl || !["onedrive_video", "hls_vault"].includes(resolved.type)) return;
+    const frameRef = resolved.type === "hls_vault" ? hlsFrameRef : videoFrameRef;
+    const configuredPlaybackUrl = resolved.type === "hls_vault" ? apiRequestUrl(resolved.playbackUrl) : resolved.playbackUrl;
+    const playbackUrl = typeof configuredPlaybackUrl === "string"
+      ? configuredPlaybackUrl
+      : configuredPlaybackUrl instanceof URL
+        ? configuredPlaybackUrl.toString()
+        : configuredPlaybackUrl.url;
+    frameRef.current?.contentWindow?.postMessage({
       type: "remix:set-video-source",
-      src: resolved.playbackUrl,
-      mimeType: resolved.mimeType || "video/mp4",
+      src: playbackUrl,
+      mimeType: resolved.mimeType || (resolved.type === "hls_vault" ? "application/vnd.apple.mpegurl" : "video/mp4"),
       title: resolved.title,
     }, window.location.origin);
   }, []);
 
   useEffect(() => {
-    if (content?.type !== "onedrive_video" || !content.playbackUrl) return;
-    const frameWindow = videoFrameRef.current?.contentWindow;
+    if (!content || !content.playbackUrl || !["onedrive_video", "hls_vault"].includes(content.type)) return;
+    const frameRef = content.type === "hls_vault" ? hlsFrameRef : videoFrameRef;
+    const frameWindow = frameRef.current?.contentWindow;
     function handleVideoPlayerMessage(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== frameWindow) return;
-      if (event.data?.type === "remix:video-player-ready") sendMicrosoftVideoSource(content);
-      if (event.data?.type === "remix:video-player-error") setVideoPlaybackError(typeof event.data.message === "string" ? event.data.message : "Không thể phát video Microsoft.");
+      if (event.data?.type === "remix:video-player-ready") sendEmbeddedVideoSource(content);
+      if (event.data?.type === "remix:video-player-error") setVideoPlaybackError(typeof event.data.message === "string" ? event.data.message : "Không thể phát video này.");
     }
     window.addEventListener("message", handleVideoPlayerMessage);
     return () => window.removeEventListener("message", handleVideoPlayerMessage);
-  }, [content, sendMicrosoftVideoSource]);
+  }, [content, sendEmbeddedVideoSource]);
 
   useEffect(() => {
     if (!content || content.type === "youtube") return;
@@ -168,108 +168,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       window.removeEventListener("message", downloadWatermarkedPdf);
     };
   }, [content, resource.videoToken]);
-
-  useEffect(() => {
-    if (content?.type !== "hls_vault" || content.playbackMode !== "hls-vault" || !content.playbackUrl || !hlsVideoRef.current) return;
-    const video = hlsVideoRef.current;
-    let cancelled = false;
-    let localPlyr: { destroy: () => void } | null = null;
-    let localHls: { destroy: () => void } | null = null;
-    const destroyPlyr = () => {
-      const instance = localPlyr;
-      localPlyr = null;
-      if (!instance) return;
-      instance.destroy();
-      if (plyrRef.current === instance) plyrRef.current = null;
-    };
-    const destroyHls = () => {
-      const instance = localHls;
-      localHls = null;
-      if (!instance) return;
-      instance.destroy();
-      if (hlsInstanceRef.current === instance) hlsInstanceRef.current = null;
-    };
-    hlsInstanceRef.current?.destroy();
-    hlsInstanceRef.current = null;
-    plyrRef.current?.destroy();
-    plyrRef.current = null;
-    video.removeAttribute("src");
-    video.load();
-
-    async function mountHls() {
-      try {
-        const supportsNativeHls = Boolean(video.canPlayType("application/vnd.apple.mpegurl"));
-        const plyrModulePromise = import("plyr");
-        const hlsModulePromise = supportsNativeHls ? null : import("hls.js");
-        const configuredPlaybackUrl = apiRequestUrl(content!.playbackUrl!);
-        const playbackUrl = typeof configuredPlaybackUrl === "string"
-          ? configuredPlaybackUrl
-          : configuredPlaybackUrl instanceof URL
-            ? configuredPlaybackUrl.toString()
-            : configuredPlaybackUrl.url;
-
-        if (supportsNativeHls) {
-          video.src = playbackUrl;
-        } else {
-          const hlsModule = await hlsModulePromise!;
-          if (cancelled) return;
-          const Hls = hlsModule.default;
-          if (!Hls.isSupported()) throw new Error("Trình duyệt này không hỗ trợ HLS/MSE.");
-          const hls = new Hls({ enableWorker: true, lowLatencyMode: false, xhrSetup: xhr => { xhr.withCredentials = true; } });
-          localHls = hls;
-          hlsInstanceRef.current = hls;
-          hls.on(Hls.Events.ERROR, (_event, data) => {
-            if (!cancelled && data.fatal) setVideoPlaybackError("Không thể phát HLS. Hãy thử lấy nguồn phát mới.");
-          });
-          hls.loadSource(playbackUrl);
-          hls.attachMedia(video);
-        }
-        if (cancelled) return;
-
-        const plyrModule = await plyrModulePromise;
-        if (cancelled) return;
-        const Plyr = plyrModule.default;
-        const plyr = new Plyr(video, {
-          controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "fullscreen"],
-          settings: ["speed"],
-          disableContextMenu: true,
-          fullscreen: { enabled: true, fallback: true, iosNative: false },
-          storage: { enabled: false },
-          i18n: {
-            restart: "Phát lại",
-            play: "Phát",
-            pause: "Tạm dừng",
-            seek: "Tua",
-            seekLabel: "Tiến tới {seektime} giây",
-            played: "Đã phát",
-            buffered: "Đã tải",
-            currentTime: "Thời gian hiện tại",
-            duration: "Thời lượng",
-            volume: "Âm lượng",
-            settings: "Cài đặt",
-            speed: "Tốc độ",
-            normal: "Bình thường",
-            enterFullscreen: "Mở toàn màn hình",
-            exitFullscreen: "Thoát toàn màn hình",
-          },
-        });
-        localPlyr = plyr;
-        plyrRef.current = plyr;
-      } catch (value) {
-        destroyHls();
-        destroyPlyr();
-        if (!cancelled) setVideoPlaybackError(value instanceof Error ? value.message : "Không thể khởi tạo trình phát HLS.");
-      }
-    }
-    void mountHls();
-    return () => {
-      cancelled = true;
-      destroyHls();
-      destroyPlyr();
-      video.removeAttribute("src");
-      video.load();
-    };
-  }, [content]);
 
   useEffect(() => {
     if (content?.protectedContent !== "pdf" || content.type === "youtube") return;
@@ -326,14 +224,23 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   if (content.type === "hls_vault") {
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát HLS.</div>;
     if (content.playbackMode === "hls-vault") {
-      if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
-      return <div className="lesson-microsoft-video"><video ref={hlsVideoRef} className="lesson-video lesson-native-video" controls controlsList="nodownload noremoteplayback" disablePictureInPicture crossOrigin="use-credentials" playsInline preload="metadata" title={content.title}>Trình duyệt của bạn không hỗ trợ phát HLS.</video></div>;
+      if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryVideoSource}>Lấy nguồn phát mới</button></div></div>;
+      return <iframe
+        ref={hlsFrameRef}
+        key={`${resource.id}:${resolutionNonce}`}
+        className="lesson-frame lesson-video"
+        src={`/yt-embed-player.html?mode=hls&wm=${encodeURIComponent(watermarkEmail)}`}
+        title={content.title}
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        allowFullScreen
+        onLoad={() => sendEmbeddedVideoSource(content)}
+      />;
     }
 
   }
 
   if (content.type === "onedrive_video") {
-    if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
+    if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryVideoSource}>Lấy nguồn phát mới</button></div></div>;
     return <iframe
       ref={videoFrameRef}
       key={`${resource.id}:${resolutionNonce}`}
@@ -342,7 +249,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       title={content.title}
       allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
       allowFullScreen
-      onLoad={() => sendMicrosoftVideoSource(content)}
+      onLoad={() => sendEmbeddedVideoSource(content)}
     />;
   }
 

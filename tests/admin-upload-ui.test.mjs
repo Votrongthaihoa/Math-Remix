@@ -87,7 +87,7 @@ test("Microsoft Graph lesson video creation stays behind the active admin server
   assert.match(player, /yt-embed-player\.html\?mode=native/);
   assert.match(player, /remix:set-video-source/);
   assert.match(player, /event\.origin !== window\.location\.origin/);
-  assert.match(sharedVideoPlayer, /query\.get\("mode"\) === "native"/);
+  assert.match(sharedVideoPlayer, /\["native", "hls"\]/);
   assert.match(sharedVideoPlayer, /remix:video-player-ready/);
   assert.match(sharedVideoPlayer, /allowedMicrosoftHostSuffixes/);
   assert.match(sharedVideoPlayer, /player\.src = \{ src: source, type:/);
