@@ -56,6 +56,7 @@ Optional:
   --ffmpeg <path>          Mặc định FFMPEG_PATH hoặc ${DEFAULT_FFMPEG_PATH}
   --threads <n>            Số luồng encode, mặc định số CPU - 1
   --keep-output            Giữ thư mục HLS tạm sau khi upload để kiểm tra
+  --check-ffmpeg           Chỉ kiểm tra FFmpeg local, không cần input/token/API
   --help                   Hiển thị hướng dẫn này
 `;
 }
@@ -81,6 +82,14 @@ function normalizeOrigin(value) {
   return origin.toString().replace(/\/$/, "");
 }
 
+function isFfmpegPath(value) {
+  return value.startsWith(".") || value.startsWith("/") || /^[A-Za-z]:[\\/]/.test(value) || /[\\/]/.test(value);
+}
+
+function resolveFfmpegCommand(value) {
+  return isFfmpegPath(value) ? resolve(value) : value;
+}
+
 function parseArguments(argv) {
   const options = {
     apiOrigin: normalizeOrigin(process.env.REMIX_API_ORIGIN || DEFAULT_API_ORIGIN),
@@ -91,6 +100,7 @@ function parseArguments(argv) {
     directToken: process.env.REMIX_ACCESS_TOKEN || "",
     threads: Math.max(1, cpus().length - 1),
     keepOutput: false,
+    checkFfmpeg: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -98,6 +108,10 @@ function parseArguments(argv) {
     if (argument === "--help" || argument === "-h") return { help: true };
     if (argument === "--keep-output") {
       options.keepOutput = true;
+      continue;
+    }
+    if (argument === "--check-ffmpeg") {
+      options.checkFfmpeg = true;
       continue;
     }
     if (argument === "--input") {
@@ -116,7 +130,7 @@ function parseArguments(argv) {
       continue;
     }
     if (argument === "--ffmpeg") {
-      options.ffmpegPath = resolve(requiredValue(argv, index, argument));
+      options.ffmpegPath = resolveFfmpegCommand(requiredValue(argv, index, argument));
       index += 1;
       continue;
     }
@@ -138,9 +152,11 @@ function parseArguments(argv) {
     throw new Error(`Tham số không được hỗ trợ: ${argument}`);
   }
 
-  if (!options.inputPath) throw new Error("Thiếu --input <file.mp4>.");
-  if (!options.videoId || !VIDEO_ID_PATTERN.test(options.videoId)) {
-    throw new Error("Thiếu hoặc sai --video-id. Chỉ dùng 1-80 ký tự A-Z, a-z, 0-9, _ và -.");
+  if (!options.checkFfmpeg) {
+    if (!options.inputPath) throw new Error("Thiếu --input <file.mp4>.");
+    if (!options.videoId || !VIDEO_ID_PATTERN.test(options.videoId)) {
+      throw new Error("Thiếu hoặc sai --video-id. Chỉ dùng 1-80 ký tự A-Z, a-z, 0-9, _ và -.");
+    }
   }
   return options;
 }
@@ -309,6 +325,14 @@ async function runFfmpeg(ffmpegPath, arguments_, label) {
   });
 }
 
+function ffmpegPreflightArguments() {
+  return [
+    "-hide_banner", "-nostdin", "-loglevel", "error",
+    "-f", "lavfi", "-i", "color=c=black:s=16x16:r=1",
+    "-frames:v", "1", "-f", "null", "-",
+  ];
+}
+
 function ffmpegArguments(inputPath, outputDir, keyInfoPath, rendition, threads) {
   const renditionDir = join(outputDir, rendition.name);
   return [
@@ -353,9 +377,15 @@ async function main() {
     return;
   }
 
+  const ffmpegPath = resolveFfmpegCommand(options.ffmpegPath);
+  if (isFfmpegPath(ffmpegPath)) await access(ffmpegPath);
+  if (options.checkFfmpeg) {
+    await runFfmpeg(ffmpegPath, ffmpegPreflightArguments(), "preflight");
+    console.log(`[check] FFmpeg hoạt động: ${ffmpegPath}`);
+    return;
+  }
+
   await verifyInput(options.inputPath);
-  const ffmpegPath = resolve(options.ffmpegPath);
-  await access(ffmpegPath);
   const token = await accessToken(options);
   const outputDir = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", `mathremix-hls-${options.videoId}-`));
   const keyPath = join(outputDir, "hls.key");

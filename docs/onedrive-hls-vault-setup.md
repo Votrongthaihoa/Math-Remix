@@ -22,12 +22,20 @@ Script cần một Supabase access token còn hạn của tài khoản admin. Đ
 $env:REMIX_API_ORIGIN="https://api.mathremix.pro.vn"
 $env:REMIX_ACCESS_TOKEN_FILE="D:\secrets\remix-access-token.txt"
 
-npm run encode:hls:native -- `
+npm.cmd run encode:hls:native -- `
   --input "D:\Videos\lesson01.mp4" `
   --video-id "lesson01"
 ```
 
 Có thể truyền trực tiếp token bằng `REMIX_ACCESS_TOKEN`, nhưng file token là lựa chọn an toàn hơn. Có thể giữ output HLS local để kiểm tra bằng `--keep-output`; mặc định thư mục tạm và khóa media local sẽ bị xóa sau khi chạy.
+
+Trước khi chạy encode thật, kiểm tra riêng FFmpeg bằng lệnh không cần MP4, access token hoặc API:
+
+```powershell
+npm.cmd run encode:hls:native -- --check-ffmpeg
+```
+
+Nếu FFmpeg đã được thêm vào `PATH`, có thể chỉ rõ bằng `--ffmpeg ffmpeg`; nếu cài ở thư mục khác, dùng đường dẫn đầy đủ với `--ffmpeg`. Trên một số Windows dev shell, `node`/`npm` có thể bị app execution alias rỗng trong `C:\Windows\System32` che khuất Node thật; `npm.cmd` sẽ gọi đúng Node cài tại `C:\Program Files\nodejs`.
 
 Các tùy chọn hữu ích:
 
