@@ -10,3 +10,22 @@ test("native HLS agent allows only approved web origins", async () => {
   assert.equal(isAllowedOrigin("https://evil.example"), false);
   assert.equal(isAllowedOrigin(""), false);
 });
+
+test("native HLS agent exposes live FFmpeg progress as the current stage", async () => {
+  const { addLog } = await import("../scripts/native-hls-agent.mjs");
+  const job = {
+    accessToken: "secret",
+    logs: [],
+    status: "preparing",
+    stage: "",
+    progress: 0,
+    uploadedFiles: 0,
+    totalFiles: 0,
+  };
+
+  addLog(job, "[progress] 1080p 00:31:20");
+
+  assert.equal(job.status, "encoding");
+  assert.equal(job.stage, "1080p 00:31:20");
+  assert.equal(job.progress, 15);
+});

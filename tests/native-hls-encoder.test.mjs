@@ -35,3 +35,17 @@ test("native HLS encoder accepts an FFmpeg executable from PATH", async () => {
 
   assert.equal(options.ffmpegPath, "ffmpeg");
 });
+
+test("native HLS encoder parses FFmpeg live progress timestamps", async () => {
+  const { parseFfmpegProgressLine } = await import("../scripts/encode-hls-native.mjs");
+
+  assert.deepEqual(parseFfmpegProgressLine("out_time=00:31:20.40"), { elapsedSeconds: 1880.4 });
+});
+
+test("native HLS encoder asks FFmpeg to stream progress", async () => {
+  const { RENDITIONS, ffmpegArguments } = await import("../scripts/encode-hls-native.mjs");
+  const arguments_ = ffmpegArguments("input.mp4", "output", "hls-key-info.txt", RENDITIONS[0], 4);
+  const progressIndex = arguments_.indexOf("-progress");
+
+  assert.deepEqual(arguments_.slice(progressIndex, progressIndex + 2), ["-progress", "pipe:1"]);
+});

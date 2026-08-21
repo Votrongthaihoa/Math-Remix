@@ -282,6 +282,28 @@ async function runConcurrent(items, limit, worker) {
   await Promise.all(workers);
 }
 
+function parseFfmpegProgressLine(line) {
+  const value = String(line).trim();
+  const clockMatch = value.match(/^out_time=(\d+):(\d{2}):(\d{2})(?:\.(\d+))?$/);
+  if (clockMatch) {
+    const fraction = clockMatch[4] ? Number(`0.${clockMatch[4]}`) : 0;
+    return {
+      elapsedSeconds: Number(clockMatch[1]) * 3600 + Number(clockMatch[2]) * 60 + Number(clockMatch[3]) + fraction,
+    };
+  }
+  const microsecondsMatch = value.match(/^out_time_(?:us|ms)=(-?\d+)$/);
+  if (microsecondsMatch) return { elapsedSeconds: Math.max(0, Number(microsecondsMatch[1]) / 1_000_000) };
+  return null;
+}
+
+function formatFfmpegProgressTime(seconds) {
+  const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+  return [hours, minutes, remainingSeconds].map(value => String(value).padStart(2, "0")).join(":");
+}
+
 function masterManifest() {
   return [
     "#EXTM3U",
@@ -295,14 +317,29 @@ function masterManifest() {
   ].join("\n");
 }
 
-async function runFfmpeg(ffmpegPath, arguments_, label) {
+async function runFfmpeg(ffmpegPath, arguments_, label, onProgress = () => undefined) {
   await new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(ffmpegPath, arguments_, {
-      stdio: ["ignore", "ignore", "pipe"],
+      stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
     });
     let stderr = "";
+    let stdoutBuffer = "";
+    let lastProgressSeconds = -1;
     let settled = false;
+    const processProgressLine = line => {
+      const progress = parseFfmpegProgressLine(line);
+      if (!progress || progress.elapsedSeconds <= lastProgressSeconds) return;
+      lastProgressSeconds = progress.elapsedSeconds;
+      onProgress(progress);
+    };
+    child.stdout?.setEncoding("utf8");
+    child.stdout?.on("data", chunk => {
+      stdoutBuffer += String(chunk);
+      const lines = stdoutBuffer.split(/\r?\n/);
+      stdoutBuffer = lines.pop() || "";
+      for (const line of lines) processProgressLine(line);
+    });
     child.stderr?.setEncoding("utf8");
     child.stderr?.on("data", chunk => {
       stderr = `${stderr}${chunk}`.slice(-4000);
@@ -315,6 +352,7 @@ async function runFfmpeg(ffmpegPath, arguments_, label) {
     child.once("close", code => {
       if (settled) return;
       settled = true;
+      if (stdoutBuffer) processProgressLine(stdoutBuffer);
       if (code === 0) {
         resolvePromise();
         return;
@@ -336,7 +374,7 @@ function ffmpegPreflightArguments() {
 function ffmpegArguments(inputPath, outputDir, keyInfoPath, rendition, threads) {
   const renditionDir = join(outputDir, rendition.name);
   return [
-    "-hide_banner", "-nostdin", "-loglevel", "warning", "-y",
+    "-hide_banner", "-nostdin", "-loglevel", "warning", "-progress", "pipe:1", "-stats_period", "1", "-y",
     "-i", inputPath,
     "-map", "0:v:0", "-map", "0:a:0?",
     "-vf", rendition.scale,
@@ -405,7 +443,12 @@ async function main() {
       const renditionDir = join(outputDir, rendition.name);
       await mkdir(renditionDir, { recursive: true });
       console.log(`[encode] ${rendition.name} (${options.threads} luồng)…`);
-      await runFfmpeg(ffmpegPath, ffmpegArguments(options.inputPath, outputDir, keyInfoPath, rendition, options.threads), rendition.name);
+      await runFfmpeg(
+        ffmpegPath,
+        ffmpegArguments(options.inputPath, outputDir, keyInfoPath, rendition, options.threads),
+        rendition.name,
+        progress => console.log(`[progress] ${rendition.name} ${formatFfmpegProgressTime(progress.elapsedSeconds)}`),
+      );
     }
 
     const files = [];
@@ -442,5 +485,6 @@ export {
   RENDITIONS,
   ffmpegArguments,
   masterManifest,
+  parseFfmpegProgressLine,
   parseArguments,
 };

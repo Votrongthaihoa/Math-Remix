@@ -175,7 +175,11 @@ function addLog(job, value) {
   if (!line) return;
   job.logs.push(line);
   if (job.logs.length > 40) job.logs.splice(0, job.logs.length - 40);
-  if (line.includes("[encode]")) {
+  if (line.includes("[progress]")) {
+    job.status = "encoding";
+    job.stage = line.replace(/^.*?\[progress\]\s*/, "");
+    job.progress = Math.max(job.progress, 15);
+  } else if (line.includes("[encode]")) {
     job.status = "encoding";
     job.stage = line.replace(/^.*?\[encode\]\s*/, "");
     job.progress = Math.max(job.progress, 15);
@@ -452,6 +456,7 @@ if (isMain) main().catch(error => { console.error(`[agent:error] ${error instanc
 export {
   AGENT_ORIGIN,
   DEFAULT_PORT,
+  addLog,
   isAllowedOrigin,
   normalizeOrigin,
   parseArguments,
