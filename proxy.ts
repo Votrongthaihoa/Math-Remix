@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const API_HOSTNAME = "api.mathremix.pro.vn";
+const HLS_ENCODER_PATH = "/admin/hls-vault";
+const HLS_ENCODER_HEADERS = {
+  "cross-origin-embedder-policy": "require-corp",
+  "cross-origin-opener-policy": "same-origin",
+};
 
 const PRODUCTION_WEB_ORIGINS = new Set([
   "https://mathremix.pro.vn",
@@ -48,6 +53,12 @@ function apiHostNotFound() {
   });
 }
 
+function isolatedHlsEncoderPage(request: NextRequest) {
+  return request.method === "GET"
+    && request.nextUrl.pathname === HLS_ENCODER_PATH
+    && request.nextUrl.searchParams.get("isolated") === "1";
+}
+
 export function proxy(request: NextRequest) {
   const apiPath = isApiPath(request.nextUrl.pathname);
 
@@ -55,6 +66,11 @@ export function proxy(request: NextRequest) {
   // recovery, static assets, or any other application page.
   if (request.nextUrl.hostname.toLowerCase() === API_HOSTNAME && !apiPath) {
     return apiHostNotFound();
+  }
+  if (isolatedHlsEncoderPage(request)) {
+    const response = NextResponse.next();
+    for (const [name, value] of Object.entries(HLS_ENCODER_HEADERS)) response.headers.set(name, value);
+    return response;
   }
   if (!apiPath) return NextResponse.next();
 

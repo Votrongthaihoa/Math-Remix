@@ -70,10 +70,17 @@ test("admin HLS tool bounds segment size and uploads files in small batches", as
 });
 
 test("HLS encoder route enables browser cross-origin isolation", async () => {
-  const worker = await readFile(new URL("../worker/index.ts", import.meta.url), "utf8");
+  const [worker, proxy] = await Promise.all([
+    readFile(new URL("../worker/index.ts", import.meta.url), "utf8"),
+    readFile(new URL("../proxy.ts", import.meta.url), "utf8"),
+  ]);
 
   assert.match(worker, /admin\/hls-vault/);
   assert.match(worker, /searchParams\.get\("isolated"\) === "1"/);
   assert.match(worker, /cross-origin-opener-policy/);
   assert.match(worker, /cross-origin-embedder-policy/);
+  assert.match(proxy, /admin\/hls-vault/);
+  assert.match(proxy, /searchParams\.get\("isolated"\) === "1"/);
+  assert.match(proxy, /cross-origin-opener-policy/);
+  assert.match(proxy, /cross-origin-embedder-policy/);
 });
