@@ -10,6 +10,10 @@ export const HLS_UPLOAD_RATE_LIMIT = { capacity: 1000, refillSeconds: 1 } as con
 // the browser encoder uses a short HLS duration so segments stay below this.
 export const MAX_HLS_UPLOAD_BYTES = 4 * 1024 * 1024;
 
+export function clearAttachedBytes(bytes: Uint8Array) {
+  if (bytes.byteLength > 0) bytes.fill(0);
+}
+
 export function hlsUploadPath(videoId: string, relativePath: string) {
   if (!hlsVideoId(videoId)) throw new Error("Mã video HLS không hợp lệ.");
   const normalized = relativePath.trim().replace(/^\/+/, "");

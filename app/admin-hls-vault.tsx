@@ -5,6 +5,7 @@ import { ArrowUpToLine, CheckCircle2, FileVideo, LoaderCircle, ShieldCheck, Uplo
 import Link from "next/link";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { authenticatedFetch } from "../lib/auth-client";
+import { clearAttachedBytes } from "../lib/hls-upload";
 import "./admin-hls-vault.css";
 
 type RunState = "idle" | "loading" | "encoding" | "uploading" | "done" | "error";
@@ -198,7 +199,7 @@ export default function AdminHlsVault() {
       try {
         await ffmpeg.writeFile("hls.key", ffmpegKey);
       } finally {
-        ffmpegKey.fill(0);
+        clearAttachedBytes(ffmpegKey);
       }
       await ffmpeg.writeFile("hls-key-info.txt", new TextEncoder().encode(`https://hls-key.invalid/key/${normalizedVideoId}\n/hls.key\n`));
       await ffmpeg.deleteDir("1080p").catch(() => undefined);
