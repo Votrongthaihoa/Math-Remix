@@ -6,6 +6,7 @@ import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import LoadingIndicator from "./loading-indicator";
 import "plyr/dist/plyr.css";
 import "./hls-player.css";
+import "plyr/dist/plyr.css";
 
 export type SecureLessonResource = {
   id: string;
@@ -41,6 +42,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const videoFrameRef = useRef<HTMLIFrameElement>(null);
   const hlsVideoRef = useRef<HTMLVideoElement>(null);
   const hlsInstanceRef = useRef<{ destroy: () => void } | null>(null);
+  const plyrRef = useRef<Plyr | null>(null);
   const plyrInstanceRef = useRef<{ destroy: () => void } | null>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
@@ -53,6 +55,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     pendingDownloadUrlsRef.current.clear();
     hlsInstanceRef.current?.destroy();
     hlsInstanceRef.current = null;
+    plyrRef.current?.destroy();
+    plyrRef.current = null;
     plyrInstanceRef.current?.destroy();
     plyrInstanceRef.current = null;
   }, []);
@@ -190,6 +194,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     };
     hlsInstanceRef.current?.destroy();
     hlsInstanceRef.current = null;
+    plyrRef.current?.destroy();
+    plyrRef.current = null;
     plyrInstanceRef.current?.destroy();
     plyrInstanceRef.current = null;
     video.removeAttribute("src");
@@ -215,7 +221,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
           });
           hls.loadSource(content!.playbackUrl!);
           hls.attachMedia(video);
-        }
+          }
+          if (!plyrRef.current) plyrRef.current = new Plyr(video, { controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "captions", "settings", "pip", "airplay", "fullscreen"] });
         if (cancelled) return;
         const plyrModule = await plyrModulePromise;
         if (cancelled) return;
@@ -318,7 +325,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát HLS.</div>;
     if (content.playbackMode === "hls-vault") {
       if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
-      return <div className="lesson-microsoft-video"><video ref={hlsVideoRef} className="lesson-video lesson-native-video" controls controlsList="nodownload noremoteplayback" disablePictureInPicture playsInline preload="metadata" title={content.title}>Trình duyệt của bạn không hỗ trợ phát HLS.</video><div className="lesson-video-status" role="status"><span>Video HLS được phát qua gateway có kiểm soát quyền truy cập.</span></div></div>;
+      return <div className="lesson-microsoft-video"><video ref={hlsVideoRef} className="lesson-video lesson-native-video" playsInline preload="metadata" title={content.title}>Trình duyệt của bạn không hỗ trợ phát HLS.</video></div>;
     }
 
   }
@@ -343,4 +350,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(pdfObjectUrl)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
   return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title}/></div>;
 }
+
+
+
 
