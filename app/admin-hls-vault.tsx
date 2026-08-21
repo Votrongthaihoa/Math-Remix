@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ArrowUpToLine, CheckCircle2, FileVideo, LoaderCircle, ShieldCheck, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
@@ -11,7 +11,7 @@ import "./admin-hls-vault.css";
 type RunState = "idle" | "loading" | "encoding" | "uploading" | "done" | "error";
 type FfmpegFile = { name: string; isDir: boolean };
 type FfmpegLike = {
-  load: (options: { coreURL: string; wasmURL: string }) => Promise<void>;
+  load: (options: { coreURL: string; wasmURL: string; workerURL?: string }) => Promise<void>;
   on: (event: "progress" | "log", callback: (payload: { progress?: number; message?: string }) => void) => void;
   writeFile: (path: string, data: Uint8Array) => Promise<void>;
   createDir: (path: string) => Promise<void>;
@@ -22,7 +22,8 @@ type FfmpegLike = {
   deleteDir: (path: string) => Promise<void>;
 };
 
-const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
+const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core-mt@0.12.10/dist/umd";
+const CORE_FALLBACK_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 const RENDITIONS = [
   {
     name: "1080p",
@@ -77,14 +78,19 @@ function errorMessage(payload: unknown, fallback: string) {
   return payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string" ? payload.error : fallback;
 }
 
-async function loadFfmpeg(instance: FfmpegLike) {
-  const [coreURL, wasmURL] = await Promise.all([
-    toBlobURL(`${CORE_BASE_URL}/ffmpeg-core.js`, "text/javascript"),
-    toBlobURL(`${CORE_BASE_URL}/ffmpeg-core.wasm`, "application/wasm"),
-  ]);
-  // @ffmpeg/core is the single-thread build; only the multi-thread core-mt
-  // package ships ffmpeg-core.worker.js.
-  await instance.load({ coreURL, wasmURL });
+function canUseMultithreadCore() {
+  return typeof window !== "undefined" && window.crossOriginIsolated && typeof SharedArrayBuffer !== "undefined";
+}
+
+async function loadFfmpeg(instance: FfmpegLike, multithread: boolean) {
+  const baseUrl = multithread ? CORE_BASE_URL : CORE_FALLBACK_BASE_URL;
+  const urls = [
+    toBlobURL(`${baseUrl}/ffmpeg-core.js`, "text/javascript"),
+    toBlobURL(`${baseUrl}/ffmpeg-core.wasm`, "application/wasm"),
+  ];
+  if (multithread) urls.push(toBlobURL(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript"));
+  const [coreURL, wasmURL, workerURL] = await Promise.all(urls);
+  await instance.load({ coreURL, wasmURL, ...(workerURL ? { workerURL } : {}) });
 }
 
 export default function AdminHlsVault() {
@@ -101,6 +107,14 @@ export default function AdminHlsVault() {
   const [duration, setDuration] = useState(0);
   const ffmpegRef = useRef<FfmpegLike | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.crossOriginIsolated || new URL(window.location.href).searchParams.get("isolated") === "1") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("isolated", "1");
+    window.location.replace(url.toString());
+  }, []);
 
   function selectFile(event: ChangeEvent<HTMLInputElement>) {
     const next = event.target.files?.[0] ?? null;
@@ -185,12 +199,13 @@ export default function AdminHlsVault() {
       mediaKey = await requestMediaKey();
       let ffmpeg = ffmpegRef.current;
       if (!ffmpeg) {
-        setStage("Đang tải bộ mã hóa FFmpeg WebAssembly lần đầu…");
+        const multithread = canUseMultithreadCore();
+        setStage(multithread ? "Đang tải bộ mã hóa FFmpeg WebAssembly đa luồng lần đầu…" : "Đang tải bộ mã hóa FFmpeg WebAssembly dự phòng…");
         const ffmpegModule = await import("@ffmpeg/ffmpeg");
         ffmpeg = new ffmpegModule.FFmpeg() as unknown as FfmpegLike;
         ffmpeg.on("progress", payload => setProgress(Math.min(100, Math.max(0, Math.round((payload.progress ?? 0) * 100)))));
         ffmpeg.on("log", payload => { if (payload.message) setFfmpegLog(payload.message.slice(-180)); });
-        await loadFfmpeg(ffmpeg);
+        await loadFfmpeg(ffmpeg, multithread);
         ffmpegRef.current = ffmpeg;
       }
       setStage("Đang nạp MP4 vào bộ nhớ trình duyệt…");

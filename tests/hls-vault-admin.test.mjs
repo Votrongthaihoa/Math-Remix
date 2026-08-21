@@ -39,6 +39,10 @@ test("admin HLS tool encodes locally and never embeds the master secret", async 
   const keyRoute = await readFile(new URL("../app/api/admin/hls-vault/key/route.ts", import.meta.url), "utf8");
 
   assert.match(component, /import\("@ffmpeg\/ffmpeg"\)/);
+  assert.match(component, /@ffmpeg\/core-mt@0\.12\.10/);
+  assert.match(component, /ffmpeg-core\.worker\.js/);
+  assert.match(component, /crossOriginIsolated/);
+  assert.match(component, /workerURL/);
   assert.match(component, /\/api\/admin\/hls-vault\/upload/);
   assert.match(component, /hls\.key/);
   assert.match(component, /clearAttachedBytes\(ffmpegKey\)/);
@@ -47,4 +51,13 @@ test("admin HLS tool encodes locally and never embeds the master secret", async 
   assert.match(keyRoute, /ensureActiveAccount/);
   assert.match(keyRoute, /hlsMediaKeyFromEnvironment/);
   assert.doesNotMatch(keyRoute, /console\.log\([^)]*key/i);
+});
+
+test("HLS encoder route enables browser cross-origin isolation", async () => {
+  const worker = await readFile(new URL("../worker/index.ts", import.meta.url), "utf8");
+
+  assert.match(worker, /admin\/hls-vault/);
+  assert.match(worker, /searchParams\.get\("isolated"\) === "1"/);
+  assert.match(worker, /cross-origin-opener-policy/);
+  assert.match(worker, /cross-origin-embedder-policy/);
 });

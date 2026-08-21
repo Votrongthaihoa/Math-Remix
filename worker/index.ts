@@ -22,6 +22,22 @@ interface ExecutionContext {
   passThroughOnException(): void;
 }
 
+const HLS_ENCODER_PATH = "/admin/hls-vault";
+const HLS_ENCODER_HEADERS = {
+  "cross-origin-embedder-policy": "require-corp",
+  "cross-origin-opener-policy": "same-origin",
+};
+
+function withHeaders(response: Response, extraHeaders: Record<string, string>) {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(extraHeaders)) headers.set(name, value);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 // Image security config. SVG sources with .svg extension auto-skip the
 // optimization endpoint on the client side (served directly, no proxy).
 // To route SVGs through the optimizer (with security headers), set
@@ -43,7 +59,9 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    if (request.method === "GET" && url.pathname === HLS_ENCODER_PATH && url.searchParams.get("isolated") === "1") return withHeaders(response, HLS_ENCODER_HEADERS);
+    return response;
   },
 };
 

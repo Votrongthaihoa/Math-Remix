@@ -79,6 +79,16 @@ try {
   const assetResponse = await fetch(new URL(assetPath, origin));
   assert.equal(assetResponse.status, 200, `Client asset ${assetPath} must be served`);
   assert.match(assetResponse.headers.get("content-type") ?? "", /(?:java|ecma)script/i);
+
+  const encoderResponse = await fetch(`${origin}/admin/hls-vault?isolated=1`, { headers: { accept: "text/html" } });
+  assert.equal(encoderResponse.status, 200, "HLS encoder route must render through the Worker");
+  assert.equal(encoderResponse.headers.get("cross-origin-opener-policy"), "same-origin");
+  assert.equal(encoderResponse.headers.get("cross-origin-embedder-policy"), "require-corp");
+
+  const loginResponse = await fetch(`${origin}/admin/hls-vault`, { headers: { accept: "text/html" } });
+  assert.equal(loginResponse.status, 200, "HLS login route must render through the Worker");
+  assert.equal(loginResponse.headers.get("cross-origin-opener-policy"), null);
+  assert.equal(loginResponse.headers.get("cross-origin-embedder-policy"), null);
   console.log(`Worker runtime smoke passed on port ${port}: ${assetPath}`);
 } finally {
   await stopProcess(child);
