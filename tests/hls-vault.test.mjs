@@ -59,9 +59,18 @@ test("HLS gateway proxies segments and throttles bulk downloader requests", asyn
 
   assert.match(route, /consumeRequestBudget/);
   assert.match(route, /security_events/);
-  assert.match(route, /range_not_supported/);
   assert.match(route, /new Response\(source\.body/);
   assert.doesNotMatch(route, /Response\.redirect\(origin, 302\)/);
+});
+
+test("HLS gateway forwards media ranges and preserves partial segment responses", async () => {
+  const route = await readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8");
+
+  assert.match(route, /const range.*request\.headers\.get\("range"\)/s);
+  assert.match(route, /upstreamHeaders\.set\("range", range\)/);
+  assert.match(route, /status: source\.status/);
+  assert.match(route, /content-range/);
+  assert.doesNotMatch(route, /range_not_supported/);
 });
 
 test("HLS gateway CORS credentials are restricted to approved web origins", async () => {
@@ -70,6 +79,7 @@ test("HLS gateway CORS credentials are restricted to approved web origins", asyn
   assert.match(route, /https:\/\/mathremix\.pro\.vn/);
   assert.match(route, /https:\/\/www\.mathremix\.pro\.vn/);
   assert.match(route, /localhost/);
+  assert.match(route, /access-control-allow-headers.*Range/);
   assert.match(route, /vary.*Origin|Origin.*vary/s);
   assert.doesNotMatch(route, /access-control-allow-origin": origin \|\| "\*"/);
 });

@@ -33,7 +33,7 @@ function corsHeaders(request: Request, extra: HeadersInit = {}) {
     "x-content-type-options": "nosniff",
     "access-control-allow-credentials": "true",
     "access-control-allow-methods": "GET, OPTIONS",
-    "access-control-allow-headers": "Content-Type, Authorization, X-Supabase-Access-Token, x-content-token",
+    "access-control-allow-headers": "Content-Type, Authorization, Range, X-Supabase-Access-Token, x-content-token",
     ...(origin ? { "access-control-allow-origin": origin, vary: "Origin" } : {}),
     ...extra,
   };
@@ -126,7 +126,7 @@ export async function GET(request: Request, context: RouteContext) {
   if (!safeRelativePath(relative)) return jsonError(request, "invalid_hls_path", 400);
   const isManifest = relative.toLowerCase().endsWith(".m3u8");
   const isSegment = relative.toLowerCase().endsWith(".ts");
-  if (isSegment && request.headers.has("range")) return jsonError(request, "range_not_supported", 416);
+  const range = !isManifest && relative !== "key" ? request.headers.get("range") : null;
   try {
     const budget = await consumeRequestBudget(admin, "hls-playback", await playbackSubjectHash(payload.sub, params.resourceId, request), HLS_PLAYBACK_RATE_LIMIT);
     if (!budget.allowed) {
@@ -138,13 +138,20 @@ export async function GET(request: Request, context: RouteContext) {
       return new Response(key, { status: 200, headers: corsHeaders(request, { "content-type": "application/octet-stream" }) });
     }
     const origin = await getHlsOriginRedirect(videoId, relative, admin);
-    const source = await fetch(origin, { headers: { accept: "application/vnd.apple.mpegurl,text/plain,*/*" }, cache: "no-store" });
+    const upstreamHeaders = new Headers({ accept: "application/vnd.apple.mpegurl,text/plain,*/*" });
+    if (range) upstreamHeaders.set("range", range);
+    const source = await fetch(origin, { headers: upstreamHeaders, cache: "no-store" });
     if (!source.ok) return jsonError(request, isManifest ? "hls_manifest_unavailable" : "hls_segment_unavailable", 502);
     if (!isManifest) {
-      return new Response(source.body, { status: 200, headers: corsHeaders(request, {
+      const headers = new Headers(corsHeaders(request, {
         "content-type": source.headers.get("content-type") || (isSegment ? "video/mp2t" : "application/octet-stream"),
         "content-disposition": "inline",
-      }) });
+      }));
+      for (const name of ["accept-ranges", "content-length", "content-range", "etag", "last-modified"]) {
+        const value = source.headers.get(name);
+        if (value) headers.set(name, value);
+      }
+      return new Response(source.body, { status: source.status, headers });
     }
     const rewritten = rewriteHlsManifest(await readLimited(source), params.resourceId, relative, token);
     return new Response(rewritten, { status: 200, headers: corsHeaders(request, { "content-type": "application/vnd.apple.mpegurl; charset=utf-8" }) });

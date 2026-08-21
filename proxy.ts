@@ -9,7 +9,7 @@ const PRODUCTION_WEB_ORIGINS = new Set([
 ]);
 
 const CORS_HEADERS = {
-  "access-control-allow-headers": "Authorization, Content-Type, X-Supabase-Access-Token",
+  "access-control-allow-headers": "Authorization, Content-Type, Range, X-Supabase-Access-Token",
   "access-control-allow-methods": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
   "access-control-allow-credentials": "true",
   "access-control-max-age": "86400",
