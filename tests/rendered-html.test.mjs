@@ -79,7 +79,9 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /const href = `\/courses\/\$\{encodeURIComponent\(String\(course\.id\)\)\}`/);
   assert.match(platform, /"\/exam-history"/);
   assert.match(platform, /supabase\.from\("profiles"\)/);
-  assert.match(platform, /supabase\.from\("exam_attempts"\)/);
+  assert.match(platform, /authenticatedFetch\("\/api\/exams\?scope=rooms"/);
+  assert.match(platform, /setAttempts\(examRoomsPayload\?\.attempts \?\? \[\]\)/);
+  assert.doesNotMatch(platform, /supabase\.from\("exam_attempts"\)/);
   assert.match(platform, /<Profile profile=\{activeProfile\} attempts=\{attempts\}/);
   assert.match(platform, /supabase\.from\("profiles"\)\.update\(\{ full_name: nextName/);
   assert.doesNotMatch(platform, /Minh Hoàng|minhhoang@example\.com/);

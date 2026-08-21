@@ -43,7 +43,11 @@ type CourseRow = { id: string; title: string; description: string | null; cover_
 type EnrollmentCourseRow = { courses: CourseRow | CourseRow[] | null };
 type AttemptData = { id: string; exam_id?: string; exam_type?: string | null; title: string; score: number; correct_answers: number; total_questions: number; submitted_at: string; status: string };
 type PracticeRoomData = { id: string; title: string; description?: string | null; exam_type?: string | null; examCount: number };
-type ExamRoomsPayload = { rooms?: Array<{ id: string; title: string; description?: string | null; exam_type?: string | null }>; exams?: Array<{ id: string; room_id: string; published?: boolean; exam_type?: string | null }> };
+type ExamRoomsPayload = {
+  rooms?: Array<{ id: string; title: string; description?: string | null; exam_type?: string | null }>;
+  exams?: Array<{ id: string; room_id: string; published?: boolean; exam_type?: string | null }>;
+  attempts?: AttemptData[];
+};
 type ChapterData = { id: string; course_id: string; title: string; sort_order: number };
 type LessonData = { id: string; chapter_id: string; title: string; description: string; published: boolean; sort_order: number };
 type ResourceData = { id: string; lesson_id: string; title: string; resource_type: "youtube" | "onedrive_video" | "hls_vault" | "external_pdf" | "storage_pdf"; resource_url: string; allow_download: boolean; sort_order: number; provider_metadata?: Record<string, unknown> };
@@ -198,6 +202,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
   const [standaloneAdminPreview, setStandaloneAdminPreview] = useState(initialStandaloneAdminPreview);
   const [loginContext, setLoginContext] = useState<"student" | "admin">(initialAdminRoute ? "admin" : "student");
   const authOperationRef = useRef(0);
+  const overviewBootstrapRef = useRef(false);
   const accountTriggerRef = useRef<HTMLButtonElement | null>(null);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
@@ -341,6 +346,12 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
 
   useEffect(() => {
     if (!signedIn || view !== "overview") return;
+    // loadUserData already receives the rooms payload during session bootstrap.
+    // Avoid fetching the same rooms/history data again in the same render cycle.
+    if (overviewBootstrapRef.current) {
+      overviewBootstrapRef.current = false;
+      return;
+    }
     let active = true;
     const refreshOverviewData = async () => {
       const [historyResponse, roomsResponse] = await Promise.all([
@@ -371,9 +382,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
 
   async function loadUserData(user: { id: string; email?: string | null }) {
     if (!supabase) return null;
-    const [profileResult, attemptResult, examRoomsResponse] = await Promise.all([
+    const [profileResult, examRoomsResponse] = await Promise.all([
       supabase.from("profiles").select("full_name,student_code,role,status").eq("id", user.id).single(),
-      supabase.from("exam_attempts").select("id,exam_id,title,score,correct_answers,total_questions,submitted_at,status").eq("student_id", user.id).order("submitted_at", { ascending: false }),
       authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store" }).catch(() => null),
     ]);
     const profile = profileResult.data as Omit<ProfileData, "email"> | null;
@@ -391,7 +401,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       ? await examRoomsResponse.json().catch(() => null) as ExamRoomsPayload | null
       : null;
     const examRows = examRoomsPayload?.exams ?? [];
-    const examTypeById = new Map(examRows.map(exam => [exam.id, exam.exam_type ?? null]));
     const accessibleRooms = (examRoomsPayload?.rooms ?? []).map(room => ({
       id: room.id,
       title: room.title,
@@ -399,6 +408,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       exam_type: room.exam_type ?? null,
       examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
     }));
+    setPracticeRooms(accessibleRooms);
+    setAttempts(examRoomsPayload?.attempts ?? []);
+    overviewBootstrapRef.current = Boolean(examRoomsPayload);
 
     const courseResult = administrator
       ? await supabase.from("courses").select("id,title,description,cover_url,cover_color,published").order("sort_order").order("created_at")
@@ -425,8 +437,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       coursesWithCounts = accessibleCourses.map(course => ({ ...course, lessons: lessonCounts[String(course.id)] ?? 0 }));
     }
     setAssignedCourses(coursesWithCounts);
-    setPracticeRooms(accessibleRooms);
-    setAttempts((attemptResult.data ?? []).map(attempt => ({ ...attempt, exam_type: examTypeById.get(attempt.exam_id) ?? null })) as AttemptData[]);
     return profile;
   }
 
@@ -1845,6 +1855,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     if (!response.ok) throw new Error(payload?.error || "Không thể xóa file khỏi kho PDF.");
   }
 
+
   function openRenameModal(table: "chapters" | "lessons", id: string, currentTitle: string) {
     setRenameTarget({ table, id, title: currentTitle });
     setRenameTitle(table === "chapters" ? cleanPartTitle(currentTitle) : cleanLessonTitle(currentTitle));
@@ -1899,7 +1910,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     <button className="back-btn" onClick={onBack}><ArrowLeft/> Danh sách khóa học</button>
     <div className="builder-header"><div><span className="eyebrow">TRÌNH SOẠN NỘI DUNG</span><h2>{course.title}</h2><p>Khóa học → Phần → Bài → Bài giảng / tài liệu</p></div><div className="builder-actions"><button className="outline-btn danger" onClick={deleteCourse}><Trash2/> Xóa khóa</button><button className="primary-btn small" onClick={saveCourse} disabled={savingBuilder}><Save/> {savingBuilder?"Đang lưu…":"Lưu khóa học"}</button></div></div>
     {builderError&&<p className="form-error" role="alert">{builderError}</p>}{builderNotice&&<p className="form-success" role="status">{builderNotice}</p>}
-    <div className="builder-layout">
+     <div className="builder-layout">
       <div className="section-card builder-settings"><h3>Thông tin khóa học</h3><label>Tên khóa học<input value={title} onChange={event=>setTitle(event.target.value)}/></label><label>Mô tả<textarea rows={5} value={description} onChange={event=>setDescription(event.target.value)}/></label><label>Ảnh bìa (URL)<input type="url" value={coverUrl} onChange={event=>setCoverUrl(event.target.value)}/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(coverColor)} onChange={event=>setCoverColor(event.target.value)}/><input value={coverColor} onChange={event=>setCoverColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={published} onChange={event=>setPublished(event.target.checked)}/><span>Đã xuất bản</span></label></div>
       <div className="section-card builder-tree">
         <div className="section-head builder-tree-head"><div><span className="eyebrow">NỘI DUNG KHÓA HỌC</span><h3>Cấu trúc giáo trình</h3><p>{chapters.length} phần · {lessons.length} bài học · {resources.length} nội dung</p></div><button className="primary-btn small" onClick={()=>{setNewChapterTitle("");setBuilderModal("chapter")}}><FolderPlus/> Thêm phần</button></div>

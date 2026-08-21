@@ -53,6 +53,22 @@ test("admin HLS tool encodes locally and never embeds the master secret", async 
   assert.doesNotMatch(keyRoute, /console\.log\([^)]*key/i);
 });
 
+test("admin HLS tool splits CPU threads across parallel renditions", async () => {
+  const component = await readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /navigator\.hardwareConcurrency/);
+  assert.match(component, /-threads/);
+  assert.match(component, /Promise\.all\(RENDITIONS\.map/);
+});
+
+test("admin HLS tool bounds segment size and uploads files in small batches", async () => {
+  const component = await readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /HLS_SEGMENT_SECONDS = 6/);
+  assert.match(component, /HLS_UPLOAD_CONCURRENCY = 3/);
+  assert.match(component, /Promise\.allSettled\(entries\.slice/);
+});
+
 test("HLS encoder route enables browser cross-origin isolation", async () => {
   const worker = await readFile(new URL("../worker/index.ts", import.meta.url), "utf8");
 

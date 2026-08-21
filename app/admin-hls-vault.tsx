@@ -10,9 +10,11 @@ import "./admin-hls-vault.css";
 
 type RunState = "idle" | "loading" | "encoding" | "uploading" | "done" | "error";
 type FfmpegFile = { name: string; isDir: boolean };
+type FfmpegEventPayload = { progress?: number; message?: string };
+type FfmpegLoadOptions = { coreURL: string; wasmURL: string; workerURL?: string };
 type FfmpegLike = {
-  load: (options: { coreURL: string; wasmURL: string; workerURL?: string }) => Promise<void>;
-  on: (event: "progress" | "log", callback: (payload: { progress?: number; message?: string }) => void) => void;
+  load: (options: FfmpegLoadOptions) => Promise<void>;
+  on: (event: "progress" | "log", callback: (payload: FfmpegEventPayload) => void) => void;
   writeFile: (path: string, data: Uint8Array) => Promise<void>;
   createDir: (path: string) => Promise<void>;
   exec: (arguments_: string[]) => Promise<number>;
@@ -20,10 +22,13 @@ type FfmpegLike = {
   readFile: (path: string) => Promise<Uint8Array | string>;
   deleteFile: (path: string) => Promise<void>;
   deleteDir: (path: string) => Promise<void>;
+  terminate?: () => void;
 };
 
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core-mt@0.12.10/dist/umd";
 const CORE_FALLBACK_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
+const HLS_SEGMENT_SECONDS = 6;
+const HLS_UPLOAD_CONCURRENCY = 3;
 const RENDITIONS = [
   {
     name: "1080p",
@@ -78,19 +83,70 @@ function errorMessage(payload: unknown, fallback: string) {
   return payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string" ? payload.error : fallback;
 }
 
+function createConcurrencyLimiter(limit: number) {
+  let active = 0;
+  const waiters: Array<() => void> = [];
+  return async function run<T>(task: () => Promise<T>) {
+    if (active >= limit) await new Promise<void>(resolve => waiters.push(resolve));
+    active += 1;
+    try {
+      return await task();
+    } finally {
+      active -= 1;
+      waiters.shift()?.();
+    }
+  };
+}
+
 function canUseMultithreadCore() {
   return typeof window !== "undefined" && window.crossOriginIsolated && typeof SharedArrayBuffer !== "undefined";
 }
 
-async function loadFfmpeg(instance: FfmpegLike, multithread: boolean) {
+function hardwareConcurrency() {
+  if (typeof navigator === "undefined" || !Number.isFinite(navigator.hardwareConcurrency)) return 2;
+  return Math.max(1, Math.floor(navigator.hardwareConcurrency));
+}
+
+function encoderThreadCount(multithread: boolean, encoderCount: number) {
+  if (!multithread) return 1;
+  return Math.max(1, Math.floor(Math.max(1, hardwareConcurrency() - 1) / Math.max(1, encoderCount)));
+}
+
+function canRunParallelRenditions(multithread: boolean) {
+  return multithread && hardwareConcurrency() >= RENDITIONS.length * 2;
+}
+
+async function ffmpegLoadOptions(multithread: boolean): Promise<FfmpegLoadOptions> {
   const baseUrl = multithread ? CORE_BASE_URL : CORE_FALLBACK_BASE_URL;
-  const urls = [
+  const [coreURL, wasmURL, workerURL] = await Promise.all([
     toBlobURL(`${baseUrl}/ffmpeg-core.js`, "text/javascript"),
     toBlobURL(`${baseUrl}/ffmpeg-core.wasm`, "application/wasm"),
-  ];
-  if (multithread) urls.push(toBlobURL(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript"));
-  const [coreURL, wasmURL, workerURL] = await Promise.all(urls);
-  await instance.load({ coreURL, wasmURL, ...(workerURL ? { workerURL } : {}) });
+    multithread ? toBlobURL(`${baseUrl}/ffmpeg-core.worker.js`, "text/javascript") : Promise.resolve(undefined),
+  ]);
+  return { coreURL, wasmURL, ...(workerURL ? { workerURL } : {}) };
+}
+
+async function loadFfmpeg(instance: FfmpegLike, multithread: boolean, options?: FfmpegLoadOptions) {
+  await instance.load(options ?? await ffmpegLoadOptions(multithread));
+}
+
+async function createFfmpeg(
+  multithread: boolean,
+  onProgress: (payload: FfmpegEventPayload) => void,
+  onLog: (payload: FfmpegEventPayload) => void,
+  loadOptions?: FfmpegLoadOptions,
+) {
+  const ffmpegModule = await import("@ffmpeg/ffmpeg");
+  const instance = new ffmpegModule.FFmpeg() as unknown as FfmpegLike;
+  instance.on("progress", onProgress);
+  instance.on("log", onLog);
+  try {
+    await loadFfmpeg(instance, multithread, loadOptions);
+  } catch (error) {
+    instance.terminate?.();
+    throw error;
+  }
+  return instance;
 }
 
 export default function AdminHlsVault() {
@@ -105,7 +161,8 @@ export default function AdminHlsVault() {
   const [error, setError] = useState("");
   const [ffmpegLog, setFfmpegLog] = useState("");
   const [duration, setDuration] = useState(0);
-  const ffmpegRef = useRef<FfmpegLike | null>(null);
+  const ffmpegRefs = useRef<FfmpegLike[]>([]);
+  const progressValuesRef = useRef<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -139,6 +196,78 @@ export default function AdminHlsVault() {
     setFfmpegLog("");
     setDuration(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function getFfmpeg(index: number, multithread: boolean, loadOptions: FfmpegLoadOptions) {
+    const existing = ffmpegRefs.current[index];
+    if (existing) return existing;
+    const instance = await createFfmpeg(
+      multithread,
+      payload => {
+        const values = progressValuesRef.current;
+        if (!values.length) return;
+        values[index] = Math.min(100, Math.max(0, Math.round((payload.progress ?? 0) * 100)));
+        setProgress(Math.round(values.reduce((sum, value) => sum + value, 0) / values.length));
+      },
+      payload => {
+        if (payload.message) setFfmpegLog(payload.message.slice(-180));
+      },
+      loadOptions,
+    );
+    ffmpegRefs.current[index] = instance;
+    return instance;
+  }
+
+  async function prepareEncoder(ffmpeg: FfmpegLike, renditions: readonly typeof RENDITIONS[number][], inputBytes: Uint8Array, mediaKey: Uint8Array, videoId: string) {
+    await ffmpeg.writeFile("input.mp4", inputBytes.slice());
+    const ffmpegKey = new Uint8Array(mediaKey);
+    try {
+      await ffmpeg.writeFile("hls.key", ffmpegKey);
+    } finally {
+      clearAttachedBytes(ffmpegKey);
+    }
+    await ffmpeg.writeFile("hls-key-info.txt", new TextEncoder().encode(`https://hls-key.invalid/key/${videoId}\n/hls.key\n`));
+    await Promise.all(renditions.map(async rendition => {
+      await ffmpeg.deleteDir(rendition.name).catch(() => undefined);
+      await ffmpeg.createDir(rendition.name);
+    }));
+  }
+
+  async function encodeRendition(ffmpeg: FfmpegLike, rendition: typeof RENDITIONS[number], threads: number) {
+    const exitCode = await ffmpeg.exec([
+      "-hide_banner", "-y", "-i", "input.mp4",
+      "-map", "0:v:0", "-map", "0:a:0?", "-vf", rendition.scale,
+      "-c:v", "libx264", "-threads", String(threads), "-preset", "veryfast", "-profile:v", "high", "-pix_fmt", "yuv420p",
+      "-b:v", rendition.videoBitrate, "-maxrate", rendition.maxRate, "-bufsize", rendition.bufferSize,
+      "-c:a", "aac", "-b:a", rendition.audioBitrate, "-ar", "48000", "-ac", "2",
+      "-force_key_frames", `expr:gte(t,n_forced*${HLS_SEGMENT_SECONDS})`, "-sc_threshold", "0", "-hls_time", String(HLS_SEGMENT_SECONDS),
+      "-hls_playlist_type", "vod", "-hls_flags", "independent_segments", "-hls_segment_filename",
+      `${rendition.name}/seg_%05d.ts`, "-hls_key_info_file", "hls-key-info.txt", `${rendition.name}/index.m3u8`,
+    ]);
+    if (exitCode !== 0) throw new Error(`FFmpeg encode ${rendition.name} thất bại (mã ${exitCode}).`);
+  }
+
+  async function cleanupFfmpegFiles() {
+    await Promise.all(ffmpegRefs.current.flatMap(ffmpeg => [
+      ffmpeg.deleteFile("input.mp4").catch(() => undefined),
+      ffmpeg.deleteFile("hls.key").catch(() => undefined),
+      ffmpeg.deleteFile("hls-key-info.txt").catch(() => undefined),
+      ffmpeg.deleteDir("1080p").catch(() => undefined),
+      ffmpeg.deleteDir("720p").catch(() => undefined),
+    ]));
+  }
+
+  function disposeFfmpeg() {
+    for (const ffmpeg of ffmpegRefs.current) ffmpeg.terminate?.();
+    ffmpegRefs.current = [];
+    progressValuesRef.current = [];
+  }
+
+  function revokeFfmpegLoadOptions(options: FfmpegLoadOptions | null) {
+    if (!options || typeof URL === "undefined") return;
+    for (const url of [options.coreURL, options.wasmURL, options.workerURL]) {
+      if (url) URL.revokeObjectURL(url);
+    }
   }
 
   async function requestMediaKey() {
@@ -175,15 +304,21 @@ export default function AdminHlsVault() {
     setUploadedFiles(value => value + 1);
   }
 
-  async function readAndUploadRendition(ffmpeg: FfmpegLike, rendition: typeof RENDITIONS[number]) {
+  async function readAndUploadRendition(ffmpeg: FfmpegLike, rendition: typeof RENDITIONS[number], runUpload: ReturnType<typeof createConcurrencyLimiter>) {
     const entries = (await ffmpeg.listDir(rendition.name)).filter(entry => !entry.isDir && (entry.name === "index.m3u8" || /^seg_[0-9]{1,10}\.ts$/.test(entry.name)));
     if (!entries.some(entry => entry.name === "index.m3u8") || !entries.some(entry => /^seg_[0-9]{1,10}\.ts$/.test(entry.name))) throw new Error(`FFmpeg không tạo đủ file cho ${rendition.name}.`);
-    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name, undefined, { numeric: true }))) {
-      const path = `${rendition.name}/${entry.name}`;
-      setStage(`Đang upload ${path} lên OneDrive…`);
-      const bytes = asBytes(await ffmpeg.readFile(path));
-      await uploadFile(path, bytes);
-      await ffmpeg.deleteFile(path).catch(() => undefined);
+    setTotalFiles(value => value + entries.length);
+    entries.sort((left, right) => left.name.localeCompare(right.name, undefined, { numeric: true }));
+    for (let offset = 0; offset < entries.length; offset += HLS_UPLOAD_CONCURRENCY) {
+      const results = await Promise.allSettled(entries.slice(offset, offset + HLS_UPLOAD_CONCURRENCY).map(entry => runUpload(async () => {
+        const path = `${rendition.name}/${entry.name}`;
+        setStage(`Đang upload ${path} lên OneDrive…`);
+        const bytes = asBytes(await ffmpeg.readFile(path));
+        await uploadFile(path, bytes);
+        await ffmpeg.deleteFile(path).catch(() => undefined);
+      })));
+      const failed = results.find(result => result.status === "rejected");
+      if (failed?.status === "rejected") throw failed.reason;
     }
   }
 
@@ -193,75 +328,79 @@ export default function AdminHlsVault() {
     if (!/^[A-Za-z0-9_-]{1,80}$/.test(normalizedVideoId)) { setError("Mã video chỉ được dùng chữ, số, gạch ngang và gạch dưới."); return; }
     setState("loading"); setProgress(0); setUploadedFiles(0); setTotalFiles(0); setError(""); setNotice(""); setFfmpegLog("");
     let mediaKey: Uint8Array | null = null;
+    let loadOptions: FfmpegLoadOptions | null = null;
     try {
       setStage("Đang chuẩn bị thư mục VideoVault…");
       await prepareVault();
       mediaKey = await requestMediaKey();
-      let ffmpeg = ffmpegRef.current;
-      if (!ffmpeg) {
-        const multithread = canUseMultithreadCore();
-        setStage(multithread ? "Đang tải bộ mã hóa FFmpeg WebAssembly đa luồng lần đầu…" : "Đang tải bộ mã hóa FFmpeg WebAssembly dự phòng…");
-        const ffmpegModule = await import("@ffmpeg/ffmpeg");
-        ffmpeg = new ffmpegModule.FFmpeg() as unknown as FfmpegLike;
-        ffmpeg.on("progress", payload => setProgress(Math.min(100, Math.max(0, Math.round((payload.progress ?? 0) * 100)))));
-        ffmpeg.on("log", payload => { if (payload.message) setFfmpegLog(payload.message.slice(-180)); });
-        await loadFfmpeg(ffmpeg, multithread);
-        ffmpegRef.current = ffmpeg;
-      }
+      const multithread = canUseMultithreadCore();
+      const parallel = canRunParallelRenditions(multithread);
+      const encoderCount = parallel ? RENDITIONS.length : 1;
+      const threads = encoderThreadCount(multithread, encoderCount);
+      loadOptions = await ffmpegLoadOptions(multithread);
       setStage("Đang nạp MP4 vào bộ nhớ trình duyệt…");
-      await ffmpeg.writeFile("input.mp4", await fetchFile(file));
-      const ffmpegKey = new Uint8Array(mediaKey);
-      try {
-        await ffmpeg.writeFile("hls.key", ffmpegKey);
-      } finally {
-        clearAttachedBytes(ffmpegKey);
-      }
-      await ffmpeg.writeFile("hls-key-info.txt", new TextEncoder().encode(`https://hls-key.invalid/key/${normalizedVideoId}\n/hls.key\n`));
-      await ffmpeg.deleteDir("1080p").catch(() => undefined);
-      await ffmpeg.deleteDir("720p").catch(() => undefined);
-      await ffmpeg.createDir("1080p");
-      await ffmpeg.createDir("720p");
-      setState("encoding");
-      for (const rendition of RENDITIONS) {
-        setState("encoding");
-        setProgress(0);
-        setStage(`Đang encode ${rendition.name} trên máy này…`);
-        const exitCode = await ffmpeg.exec([
-          "-hide_banner", "-y", "-i", "input.mp4",
-          "-map", "0:v:0", "-map", "0:a:0?", "-vf", rendition.scale,
-          "-c:v", "libx264", "-preset", "veryfast", "-profile:v", "high", "-pix_fmt", "yuv420p",
-          "-b:v", rendition.videoBitrate, "-maxrate", rendition.maxRate, "-bufsize", rendition.bufferSize,
-          "-c:a", "aac", "-b:a", rendition.audioBitrate, "-ar", "48000", "-ac", "2",
-          "-force_key_frames", "expr:gte(t,n_forced*4)", "-sc_threshold", "0", "-hls_time", "4",
-          "-hls_playlist_type", "vod", "-hls_flags", "independent_segments", "-hls_segment_filename",
-          `${rendition.name}/seg_%05d.ts`, "-hls_key_info_file", "hls-key-info.txt", `${rendition.name}/index.m3u8`,
-        ]);
-        if (exitCode !== 0) throw new Error(`FFmpeg encode ${rendition.name} thất bại (mã ${exitCode}).`);
-        const entries = (await ffmpeg.listDir(rendition.name)).filter(entry => !entry.isDir && (entry.name === "index.m3u8" || /^seg_[0-9]{1,10}\.ts$/.test(entry.name)));
-        setTotalFiles(value => value + entries.length);
+      const inputBytes = await fetchFile(file);
+      const runUpload = createConcurrencyLimiter(HLS_UPLOAD_CONCURRENCY);
+      progressValuesRef.current = new Array(parallel ? RENDITIONS.length : 1).fill(0);
+      setStage(multithread
+        ? parallel
+          ? `Đang khởi tạo ${RENDITIONS.length} encoder song song (${threads} luồng/encoder, ${hardwareConcurrency()} luồng CPU)…`
+          : `Đang tải bộ mã hóa FFmpeg WebAssembly đa luồng (${threads} luồng)…`
+        : "Đang tải bộ mã hóa FFmpeg WebAssembly dự phòng…");
+
+      if (parallel) {
+        const encodeResults = await Promise.all(RENDITIONS.map(async (rendition, index) => {
+          try {
+            const ffmpeg = await getFfmpeg(index, multithread, loadOptions!);
+            setStage(`Đang nạp MP4 cho encoder ${rendition.name}…`);
+            await prepareEncoder(ffmpeg, [rendition], inputBytes, mediaKey!, normalizedVideoId);
+            setState("encoding");
+            await encodeRendition(ffmpeg, rendition, threads);
+            return null;
+          } catch (error) {
+            return error;
+          }
+        }));
+        const encodeError = encodeResults.find(value => value !== null);
+        if (encodeError) throw encodeError;
         setState("uploading");
-        await readAndUploadRendition(ffmpeg, rendition);
+        const uploadResults = await Promise.all(RENDITIONS.map(async (rendition, index) => {
+          try {
+            setStage("Đang upload các rendition lên OneDrive…");
+            await readAndUploadRendition(ffmpegRefs.current[index], rendition, runUpload);
+            return { error: null };
+          } catch (error) {
+            return { error };
+          }
+        }));
+        const uploadError = uploadResults.find(value => value.error !== null)?.error;
+        if (uploadError) throw uploadError;
+      } else {
+        const ffmpeg = await getFfmpeg(0, multithread, loadOptions!);
+        await prepareEncoder(ffmpeg, RENDITIONS, inputBytes, mediaKey, normalizedVideoId);
+        for (const rendition of RENDITIONS) {
+          setState("encoding");
+          setProgress(0);
+          setStage(`Đang encode ${rendition.name} trên máy này (${threads} luồng)…`);
+          await encodeRendition(ffmpeg, rendition, threads);
+          setState("uploading");
+          await readAndUploadRendition(ffmpeg, rendition, runUpload);
+        }
       }
       setTotalFiles(value => value + 1);
       setStage("Đang upload master.m3u8…");
       await uploadFile("master.m3u8", new TextEncoder().encode(masterManifest()));
-      await ffmpeg.deleteFile("input.mp4").catch(() => undefined);
-      await ffmpeg.deleteFile("hls.key").catch(() => undefined);
-      await ffmpeg.deleteFile("hls-key-info.txt").catch(() => undefined);
+      await cleanupFfmpegFiles();
+      disposeFfmpeg();
       setProgress(100); setState("done"); setStage("Đã encode và upload xong HLS Vault."); setNotice("OneDrive đã có VideoVault/" + normalizedVideoId + "/. Bước tiếp theo: tạo resource trong trình soạn khóa học.");
     } catch (value) {
-      const ffmpeg = ffmpegRef.current;
-      await Promise.all([
-        ffmpeg?.deleteFile("input.mp4").catch(() => undefined),
-        ffmpeg?.deleteFile("hls.key").catch(() => undefined),
-        ffmpeg?.deleteFile("hls-key-info.txt").catch(() => undefined),
-        ffmpeg?.deleteDir("1080p").catch(() => undefined),
-        ffmpeg?.deleteDir("720p").catch(() => undefined),
-      ]);
+      await cleanupFfmpegFiles();
+      disposeFfmpeg();
       mediaKey?.fill(0);
       setState("error"); setError(value instanceof Error ? value.message : "Encode hoặc upload HLS thất bại."); setStage("Quy trình đã dừng. Kiểm tra lỗi rồi thử lại.");
     } finally {
       mediaKey?.fill(0);
+      revokeFfmpegLoadOptions(loadOptions);
     }
   }
 
