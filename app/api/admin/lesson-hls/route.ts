@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     allow_download: false,
     sort_order: sortOrder,
     provider: "onedrive_personal",
-    provider_metadata: { playbackMode: "hls-vault", hlsVideoId: videoId },
+    provider_metadata: { playbackMode: "hls-vault", hlsVideoId: videoId, playlistPath: "index.m3u8" },
   }).select("id,lesson_id,title,resource_type,resource_url,allow_download,sort_order,provider,provider_metadata").single();
   if (error || !resource) return Response.json({ error: error?.message || "Không thể lưu video HLS." }, { status: 400, headers: noStore });
   return Response.json({ resource }, { status: 201, headers: noStore });

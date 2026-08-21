@@ -138,9 +138,10 @@ test("delegated OAuth resolves a SharePoint item and returns only an allowed tem
     const folders = await ensureMicrosoftGraphHlsFolders("lesson01", admin, hlsFetcher);
     assert.equal(folders.folderPath, "VideoVault/lesson01");
     assert.equal(folders.ready, true);
-    const uploaded = await uploadMicrosoftGraphHlsFile("lesson01", "master.m3u8", new Uint8Array([1, 2, 3]).buffer, admin, hlsFetcher);
-    assert.deepEqual(uploaded, { path: "master.m3u8", size: 3, uploaded: true });
-    assert.equal(hlsRequests.some(request => request.value.includes("VideoVault/lesson01/master.m3u8")), true);
+    assert.equal(hlsRequests.some(request => /\/1080p|\/720p/.test(request.value)), false);
+    const uploaded = await uploadMicrosoftGraphHlsFile("lesson01", "index.m3u8", new Uint8Array([1, 2, 3]).buffer, admin, hlsFetcher);
+    assert.deepEqual(uploaded, { path: "index.m3u8", size: 3, uploaded: true });
+    assert.equal(hlsRequests.some(request => request.value.includes("VideoVault/lesson01/index.m3u8")), true);
   } finally {
     for (const name of envNames) {
       if (previous[name] === undefined) delete process.env[name];

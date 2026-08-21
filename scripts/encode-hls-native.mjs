@@ -1,10 +1,10 @@
 import { cpus } from "node:os";
+import { createHash } from "node:crypto";
 import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   access,
   mkdtemp,
-  mkdir,
   readFile,
   readdir,
   rm,
@@ -13,31 +13,32 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import { createReadStream } from "node:fs";
 
 const DEFAULT_FFMPEG_PATH = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 const DEFAULT_API_ORIGIN = "https://api.mathremix.pro.vn";
-const HLS_SEGMENT_SECONDS = 6;
 const HLS_UPLOAD_CONCURRENCY = 6;
 const MAX_HLS_UPLOAD_BYTES = 4 * 1024 * 1024;
 const VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{1,80}$/;
-const RENDITIONS = [
-  {
-    name: "1080p",
-    scale: "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2",
-    videoBitrate: "4500k",
-    maxRate: "5000k",
-    bufferSize: "9000k",
-    audioBitrate: "160k",
-  },
-  {
-    name: "720p",
-    scale: "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2",
-    videoBitrate: "2500k",
-    maxRate: "2800k",
-    bufferSize: "5000k",
-    audioBitrate: "128k",
-  },
-];
+const HLS_MANIFEST_NAME = "index.m3u8";
+const DEFAULT_FFPROBE_PATH = "C:\\ffmpeg\\bin\\ffprobe.exe";
+const DEFAULT_COPY_MAX_VIDEO_BITRATE = 8_000_000;
+const DEFAULT_VIDEO_SETTINGS = {
+  hwAccel: "auto",
+  maxWidth: 1920,
+  maxHeight: 1080,
+  encoder: "h264_nvenc",
+  cpuFallback: "libx264",
+  nvencPreset: "p5",
+  nvencTune: "hq",
+  videoBitrate: "5000k",
+  videoMaxrate: "5500k",
+  videoBufsize: "10000k",
+  audioBitrate: "128k",
+  segmentSeconds: 6,
+  allowUpscale: false,
+  copyMaxVideoBitrate: DEFAULT_COPY_MAX_VIDEO_BITRATE,
+};
 
 function usage() {
   return `
@@ -54,6 +55,7 @@ Authentication:
 Optional:
   --api-origin <origin>    Mặc định REMIX_API_ORIGIN hoặc ${DEFAULT_API_ORIGIN}
   --ffmpeg <path>          Mặc định FFMPEG_PATH hoặc ${DEFAULT_FFMPEG_PATH}
+  --ffprobe <path>         Mặc định FFPROBE_PATH hoặc ${DEFAULT_FFPROBE_PATH}
   --threads <n>            Số luồng encode, mặc định số CPU - 1
   --keep-output            Giữ thư mục HLS tạm sau khi upload để kiểm tra
   --check-ffmpeg           Chỉ kiểm tra FFmpeg local, không cần input/token/API
@@ -90,10 +92,91 @@ function resolveFfmpegCommand(value) {
   return isFfmpegPath(value) ? resolve(value) : value;
 }
 
+function sha256Hex(bytes) {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function bitrateToBits(value, fallback) {
+  const match = String(value || "").trim().match(/^(\d+(?:\.\d+)?)([kKmMgG]?)$/);
+  if (!match) return fallback;
+  const multiplier = match[2].toLowerCase() === "g" ? 1_000_000_000 : match[2].toLowerCase() === "m" ? 1_000_000 : match[2].toLowerCase() === "k" ? 1_000 : 1;
+  return Math.max(1, Math.round(Number(match[1]) * multiplier));
+}
+
+function parseVideoSettings(env = process.env) {
+  const hwAccel = ["auto", "cuda", "none"].includes(env.VIDEO_HW_ACCEL) ? env.VIDEO_HW_ACCEL : DEFAULT_VIDEO_SETTINGS.hwAccel;
+  const encoder = ["auto", "h264_nvenc", "libx264"].includes(env.VIDEO_ENCODER) ? env.VIDEO_ENCODER : DEFAULT_VIDEO_SETTINGS.encoder;
+  const cpuFallback = env.VIDEO_CPU_FALLBACK === "libx264" ? "libx264" : DEFAULT_VIDEO_SETTINGS.cpuFallback;
+  const nvencPreset = /^p[1-7]$/.test(env.NVENC_PRESET || "") ? env.NVENC_PRESET : DEFAULT_VIDEO_SETTINGS.nvencPreset;
+  const nvencTune = /^[a-z0-9_-]{1,20}$/.test(env.NVENC_TUNE || "") ? env.NVENC_TUNE : DEFAULT_VIDEO_SETTINGS.nvencTune;
+  const maxHeight = Number.isInteger(Number(env.VIDEO_MAX_HEIGHT)) && Number(env.VIDEO_MAX_HEIGHT) > 0 ? Number(env.VIDEO_MAX_HEIGHT) : DEFAULT_VIDEO_SETTINGS.maxHeight;
+  const segmentSeconds = Number.isInteger(Number(env.HLS_SEGMENT_TIME)) && Number(env.HLS_SEGMENT_TIME) > 0 ? Number(env.HLS_SEGMENT_TIME) : DEFAULT_VIDEO_SETTINGS.segmentSeconds;
+  const videoBitrate = /^\d+(?:\.\d+)?[kKmMgG]?$/.test(env.VIDEO_BITRATE || "") ? env.VIDEO_BITRATE : DEFAULT_VIDEO_SETTINGS.videoBitrate;
+  const videoMaxrate = /^\d+(?:\.\d+)?[kKmMgG]?$/.test(env.VIDEO_MAXRATE || "") ? env.VIDEO_MAXRATE : DEFAULT_VIDEO_SETTINGS.videoMaxrate;
+  const videoBufsize = /^\d+(?:\.\d+)?[kKmMgG]?$/.test(env.VIDEO_BUFSIZE || "") ? env.VIDEO_BUFSIZE : DEFAULT_VIDEO_SETTINGS.videoBufsize;
+  const audioBitrate = /^\d+(?:\.\d+)?[kKmMgG]?$/.test(env.AUDIO_BITRATE || "") ? env.AUDIO_BITRATE : DEFAULT_VIDEO_SETTINGS.audioBitrate;
+  return {
+    ...DEFAULT_VIDEO_SETTINGS,
+    hwAccel,
+    maxHeight,
+    encoder,
+    cpuFallback,
+    nvencPreset,
+    nvencTune,
+    videoBitrate,
+    videoMaxrate,
+    videoBufsize,
+    audioBitrate,
+    segmentSeconds,
+    allowUpscale: /^(1|true|yes)$/i.test(env.VIDEO_ALLOW_UPSCALE || ""),
+    copyMaxVideoBitrate: bitrateToBits(env.VIDEO_COPY_MAX_BITRATE, DEFAULT_COPY_MAX_VIDEO_BITRATE),
+  };
+}
+
+function numericProbeValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function parseProbePayload(payload) {
+  const streams = Array.isArray(payload?.streams) ? payload.streams : [];
+  const video = streams.find(stream => stream?.codec_type === "video") || {};
+  const audio = streams.find(stream => stream?.codec_type === "audio") || null;
+  return {
+    videoCodec: typeof video.codec_name === "string" ? video.codec_name.toLowerCase() : "",
+    width: numericProbeValue(video.width),
+    height: numericProbeValue(video.height),
+    videoBitrate: numericProbeValue(video.bit_rate),
+    audioCodec: audio && typeof audio.codec_name === "string" ? audio.codec_name.toLowerCase() : "",
+    audioSampleRate: audio ? numericProbeValue(audio.sample_rate) : null,
+    audioChannels: audio ? numericProbeValue(audio.channels) : null,
+    audioBitrate: audio ? numericProbeValue(audio.bit_rate) : null,
+    durationSeconds: numericProbeValue(payload?.format?.duration),
+  };
+}
+
+function isCopyCompatible(probe, settings) {
+  const maxWidth = settings.maxWidth || 1920;
+  const maxHeight = settings.maxHeight || 1080;
+  const maxVideoBitrate = settings.copyMaxVideoBitrate || settings.maxVideoBitrate || DEFAULT_COPY_MAX_VIDEO_BITRATE;
+  return probe.videoCodec === "h264"
+    && Number.isFinite(probe.width) && probe.width <= maxWidth
+    && Number.isFinite(probe.height) && probe.height <= maxHeight
+    && (!probe.videoBitrate || probe.videoBitrate <= maxVideoBitrate)
+    && (!probe.audioCodec || probe.audioCodec === "aac");
+}
+
+function chooseVideoMode(probe, settings, capabilities) {
+  if (probe && isCopyCompatible(probe, settings)) return "copy";
+  if (settings.encoder !== "libx264" && capabilities.nvenc) return "nvenc";
+  return "libx264";
+}
+
 function parseArguments(argv) {
   const options = {
     apiOrigin: normalizeOrigin(process.env.REMIX_API_ORIGIN || DEFAULT_API_ORIGIN),
     ffmpegPath: process.env.FFMPEG_PATH || DEFAULT_FFMPEG_PATH,
+    ffprobePath: process.env.FFPROBE_PATH || DEFAULT_FFPROBE_PATH,
     inputPath: "",
     videoId: "",
     tokenFile: process.env.REMIX_ACCESS_TOKEN_FILE || "",
@@ -131,6 +214,11 @@ function parseArguments(argv) {
     }
     if (argument === "--ffmpeg") {
       options.ffmpegPath = resolveFfmpegCommand(requiredValue(argv, index, argument));
+      index += 1;
+      continue;
+    }
+    if (argument === "--ffprobe") {
+      options.ffprobePath = resolveFfmpegCommand(requiredValue(argv, index, argument));
       index += 1;
       continue;
     }
@@ -304,19 +392,6 @@ function formatFfmpegProgressTime(seconds) {
   return [hours, minutes, remainingSeconds].map(value => String(value).padStart(2, "0")).join(":");
 }
 
-function masterManifest() {
-  return [
-    "#EXTM3U",
-    "#EXT-X-VERSION:3",
-    "#EXT-X-INDEPENDENT-SEGMENTS",
-    "#EXT-X-STREAM-INF:BANDWIDTH=5200000,AVERAGE-BANDWIDTH=4660000,RESOLUTION=1920x1080",
-    "1080p/index.m3u8",
-    "#EXT-X-STREAM-INF:BANDWIDTH=3100000,AVERAGE-BANDWIDTH=2628000,RESOLUTION=1280x720",
-    "720p/index.m3u8",
-    "",
-  ].join("\n");
-}
-
 async function runFfmpeg(ffmpegPath, arguments_, label, onProgress = () => undefined) {
   await new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(ffmpegPath, arguments_, {
@@ -363,6 +438,72 @@ async function runFfmpeg(ffmpegPath, arguments_, label, onProgress = () => undef
   });
 }
 
+function parseFfmpegCapabilities(output) {
+  const encoders = String(output?.encoders || "");
+  const hwaccels = String(output?.hwaccels || "");
+  const filters = String(output?.filters || "");
+  return {
+    nvenc: /(?:^|\s)h264_nvenc(?:\s|$)/m.test(encoders),
+    cuda: /(?:^|\s)cuda(?:\s|$)/m.test(hwaccels),
+    scaleCuda: /(?:^|\s)scale_cuda(?:\s|$)/m.test(filters),
+  };
+}
+
+async function runCommandOutput(command, arguments_, label) {
+  return await new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn(command, arguments_, {
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    child.stdout?.setEncoding("utf8");
+    child.stderr?.setEncoding("utf8");
+    child.stdout?.on("data", chunk => { stdout = `${stdout}${chunk}`.slice(-2_000_000); });
+    child.stderr?.on("data", chunk => { stderr = `${stderr}${chunk}`.slice(-8_000); });
+    child.once("error", error => {
+      if (settled) return;
+      settled = true;
+      rejectPromise(new Error(`KhÃ´ng cháº¡y Ä‘Æ°á»£c ${label} (${command}): ${error.message}`));
+    });
+    child.once("close", code => {
+      if (settled) return;
+      settled = true;
+      if (code === 0) {
+        resolvePromise({ stdout, stderr });
+        return;
+      }
+      const detail = stderr.trim().split(/\r?\n/).slice(-3).join(" ");
+      rejectPromise(new Error(`${label} tháº¥t báº¡i (mÃ£ ${code ?? "unknown"})${detail ? `: ${detail}` : "."}`));
+    });
+  });
+}
+
+async function probeInput(ffprobePath, inputPath) {
+  const result = await runCommandOutput(ffprobePath, [
+    "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height,bit_rate,sample_rate,channels:format=duration", "-of", "json", inputPath,
+  ], "FFprobe");
+  try {
+    return parseProbePayload(JSON.parse(result.stdout));
+  } catch {
+    throw new Error("FFprobe tráº£ vá» dá»¯ liá»‡u khÃ´ng há»£p lá»‡.");
+  }
+}
+
+async function detectFfmpegCapabilities(ffmpegPath) {
+  const [encoders, hwaccels, filters] = await Promise.all([
+    runCommandOutput(ffmpegPath, ["-hide_banner", "-encoders"], "FFmpeg encoders").catch(() => ({ stdout: "", stderr: "" })),
+    runCommandOutput(ffmpegPath, ["-hide_banner", "-hwaccels"], "FFmpeg hwaccels").catch(() => ({ stdout: "", stderr: "" })),
+    runCommandOutput(ffmpegPath, ["-hide_banner", "-filters"], "FFmpeg filters").catch(() => ({ stdout: "", stderr: "" })),
+  ]);
+  return parseFfmpegCapabilities({
+    encoders: `${encoders.stdout}\n${encoders.stderr}`,
+    hwaccels: `${hwaccels.stdout}\n${hwaccels.stderr}`,
+    filters: `${filters.stdout}\n${filters.stderr}`,
+  });
+}
+
 function ffmpegPreflightArguments() {
   return [
     "-hide_banner", "-nostdin", "-loglevel", "error",
@@ -371,41 +512,148 @@ function ffmpegPreflightArguments() {
   ];
 }
 
-function ffmpegArguments(inputPath, outputDir, keyInfoPath, rendition, threads) {
-  const renditionDir = join(outputDir, rendition.name);
-  return [
-    "-hide_banner", "-nostdin", "-loglevel", "warning", "-progress", "pipe:1", "-stats_period", "1", "-y",
-    "-i", inputPath,
-    "-map", "0:v:0", "-map", "0:a:0?",
-    "-vf", rendition.scale,
-    "-c:v", "libx264", "-threads", String(threads), "-preset", "veryfast", "-profile:v", "high", "-pix_fmt", "yuv420p",
-    "-b:v", rendition.videoBitrate, "-maxrate", rendition.maxRate, "-bufsize", rendition.bufferSize,
-    "-c:a", "aac", "-b:a", rendition.audioBitrate, "-ar", "48000", "-ac", "2",
-    "-force_key_frames", `expr:gte(t,n_forced*${HLS_SEGMENT_SECONDS})`, "-sc_threshold", "0",
-    "-hls_time", String(HLS_SEGMENT_SECONDS), "-hls_playlist_type", "vod", "-hls_flags", "independent_segments",
-    "-hls_segment_filename", join(renditionDir, "seg_%05d.ts"),
-    "-hls_key_info_file", keyInfoPath,
-    join(renditionDir, "index.m3u8"),
-  ];
+function outputDimensions(probe, settings) {
+  const inputWidth = Math.max(2, Math.round(Number(probe?.width) || settings.maxWidth));
+  const inputHeight = Math.max(2, Math.round(Number(probe?.height) || settings.maxHeight));
+  const scale = settings.allowUpscale
+    ? Math.min(settings.maxWidth / inputWidth, settings.maxHeight / inputHeight)
+    : Math.min(1, settings.maxWidth / inputWidth, settings.maxHeight / inputHeight);
+  return {
+    width: Math.max(2, Math.floor((inputWidth * scale) / 2) * 2),
+    height: Math.max(2, Math.floor((inputHeight * scale) / 2) * 2),
+  };
 }
 
-async function renditionFiles(outputDir, rendition) {
-  const renditionDir = join(outputDir, rendition.name);
-  const entries = await readdir(renditionDir, { withFileTypes: true });
+function scaleFilter(probe, settings, useCuda) {
+  if (!probe) return `${useCuda ? "scale_cuda" : "scale"}=w='min(${settings.maxWidth},iw)':h='min(${settings.maxHeight},ih)':force_original_aspect_ratio=decrease`;
+  const dimensions = outputDimensions(probe, settings);
+  return `${useCuda ? "scale_cuda" : "scale"}=${dimensions.width}:${dimensions.height}`;
+}
+
+function ffmpegArguments(inputPath, outputDir, keyInfoPath, mode, settings, threads, capabilities = {}, probe = null) {
+  const useCuda = mode === "nvenc" && capabilities.cuda && capabilities.scaleCuda;
+  const arguments_ = [
+    "-hide_banner", "-nostdin", "-loglevel", "warning", "-progress", "pipe:1", "-stats_period", "1", "-y",
+  ];
+  if (useCuda) arguments_.push("-hwaccel", "cuda", "-hwaccel_output_format", "cuda");
+  arguments_.push("-i", inputPath, "-map", "0:v:0", "-map", "0:a:0?");
+  if (mode === "copy") {
+    arguments_.push("-c", "copy");
+  } else {
+    arguments_.push("-vf", scaleFilter(probe, settings, useCuda));
+    if (mode === "nvenc") {
+      arguments_.push(
+        "-c:v", "h264_nvenc", "-preset", settings.nvencPreset, "-tune", settings.nvencTune,
+        "-rc", "vbr", "-b:v", settings.videoBitrate, "-maxrate", settings.videoMaxrate, "-bufsize", settings.videoBufsize,
+        ...(useCuda ? [] : ["-pix_fmt", "yuv420p"]), "-g", "60",
+      );
+    } else {
+      arguments_.push("-c:v", "libx264", "-threads", String(threads), "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p");
+    }
+    arguments_.push(
+      "-c:a", "aac", "-b:a", settings.audioBitrate, "-ar", "48000", "-ac", "2",
+      "-force_key_frames", `expr:gte(t,n_forced*${settings.segmentSeconds})`, "-sc_threshold", "0",
+    );
+  }
+  arguments_.push(
+    "-hls_time", String(settings.segmentSeconds), "-hls_playlist_type", "vod", "-hls_flags", "independent_segments",
+    "-hls_segment_filename", join(outputDir, "seg_%05d.ts"),
+    "-hls_key_info_file", keyInfoPath,
+    join(outputDir, HLS_MANIFEST_NAME),
+  );
+  return arguments_;
+}
+
+async function outputFiles(outputDir) {
+  const entries = await readdir(outputDir, { withFileTypes: true });
   const files = entries
-    .filter(entry => entry.isFile() && (entry.name === "index.m3u8" || /^seg_[0-9]{1,10}\.ts$/.test(entry.name)))
-    .map(entry => `${rendition.name}/${entry.name}`)
+    .filter(entry => entry.isFile() && (entry.name === HLS_MANIFEST_NAME || /^seg_[0-9]{1,10}\.ts$/.test(entry.name)))
+    .map(entry => entry.name)
     .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
-  if (!files.includes(`${rendition.name}/index.m3u8`) || !files.some(file => file.endsWith(".ts"))) {
-    throw new Error(`FFmpeg không tạo đủ file cho ${rendition.name}.`);
+  if (!files.includes(HLS_MANIFEST_NAME) || !files.some(file => file.endsWith(".ts"))) {
+    throw new Error("FFmpeg không tạo đủ index.m3u8 và segment HLS.");
   }
   return files;
+}
+
+async function clearHlsOutput(outputDir) {
+  const entries = await readdir(outputDir, { withFileTypes: true }).catch(() => []);
+  await Promise.all(entries
+    .filter(entry => entry.isFile() && (entry.name === HLS_MANIFEST_NAME || /^seg_[0-9]{1,10}\.ts$/.test(entry.name)))
+    .map(entry => unlink(join(outputDir, entry.name)).catch(() => undefined)));
+}
+
+function progressLine(label, progress, durationSeconds) {
+  const elapsed = formatFfmpegProgressTime(progress.elapsedSeconds);
+  const percentage = durationSeconds && durationSeconds > 0
+    ? ` (${Math.min(100, Math.max(0, Math.round((progress.elapsedSeconds / durationSeconds) * 100)))}%)`
+    : "";
+  return `[progress] ${label} ${elapsed}${percentage}`;
+}
+
+async function runVideoPipeline({ ffmpegPath, inputPath, outputDir, keyInfoPath, settings, probe, capabilities, threads }) {
+  const durationSeconds = probe?.durationSeconds || 0;
+  const run = async (mode, useGpu = false) => {
+    const label = mode === "copy" ? "stream-copy" : useGpu ? "NVENC CUDA" : mode === "nvenc" ? "NVENC CPU decode" : "libx264 CPU";
+    const args = ffmpegArguments(
+      inputPath,
+      outputDir,
+      keyInfoPath,
+      mode,
+      settings,
+      threads,
+      useGpu ? capabilities : { cuda: false, scaleCuda: false },
+      probe,
+    );
+    await runFfmpeg(ffmpegPath, args, label, progress => console.log(progressLine(label, progress, durationSeconds)));
+    return label;
+  };
+
+  let mode = chooseVideoMode(probe, settings, capabilities);
+  if (mode === "copy") {
+    try {
+      console.log("[mode] stream-copy");
+      return await run("copy");
+    } catch (error) {
+      console.log(`[fallback] stream-copy failed: ${error instanceof Error ? error.message : String(error)}`);
+      await clearHlsOutput(outputDir);
+      mode = capabilities.nvenc ? "nvenc" : settings.cpuFallback;
+    }
+  }
+
+  if (mode === "nvenc" && capabilities.nvenc) {
+    if (settings.hwAccel !== "none" && capabilities.cuda && capabilities.scaleCuda) {
+      try {
+        console.log("[mode] NVIDIA NVENC + CUDA");
+        return await run("nvenc", true);
+      } catch (error) {
+        console.log(`[fallback] NVDEC/CUDA failed: ${error instanceof Error ? error.message : String(error)}`);
+        await clearHlsOutput(outputDir);
+      }
+    }
+    try {
+      console.log("[mode] NVIDIA NVENC");
+      return await run("nvenc");
+    } catch (error) {
+      console.log(`[fallback] NVENC failed: ${error instanceof Error ? error.message : String(error)}`);
+      await clearHlsOutput(outputDir);
+    }
+  }
+
+  console.log("[mode] libx264 CPU fallback");
+  return await run("libx264");
 }
 
 async function verifyInput(inputPath) {
   await access(inputPath);
   const inputStats = await stat(inputPath);
   if (!inputStats.isFile()) throw new Error(`Input không phải file: ${inputPath}`);
+}
+
+async function hashInput(inputPath) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(inputPath)) hash.update(chunk);
+  return hash.digest("hex");
 }
 
 async function main() {
@@ -420,10 +668,24 @@ async function main() {
   if (options.checkFfmpeg) {
     await runFfmpeg(ffmpegPath, ffmpegPreflightArguments(), "preflight");
     console.log(`[check] FFmpeg hoạt động: ${ffmpegPath}`);
+    const capabilities = await detectFfmpegCapabilities(ffmpegPath);
+    console.log(`[check] NVENC=${capabilities.nvenc ? "yes" : "no"} CUDA=${capabilities.cuda ? "yes" : "no"} scale_cuda=${capabilities.scaleCuda ? "yes" : "no"}`);
     return;
   }
 
   await verifyInput(options.inputPath);
+  const inputHash = await hashInput(options.inputPath);
+  console.log(`[hash] SHA-256 ${inputHash}`);
+  const settings = parseVideoSettings(process.env);
+  let probe = null;
+  try {
+    probe = await probeInput(resolveFfmpegCommand(options.ffprobePath), options.inputPath);
+    console.log(`[probe] ${probe.videoCodec || "unknown"} ${probe.width || "?"}x${probe.height || "?"}${probe.audioCodec ? ` + ${probe.audioCodec}` : ""}`);
+  } catch (error) {
+    console.log(`[probe] FFprobe unavailable: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const capabilities = await detectFfmpegCapabilities(ffmpegPath);
+  console.log(`[capability] NVENC=${capabilities.nvenc ? "yes" : "no"} CUDA=${capabilities.cuda ? "yes" : "no"} scale_cuda=${capabilities.scaleCuda ? "yes" : "no"}`);
   const token = await accessToken(options);
   const outputDir = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", `mathremix-hls-${options.videoId}-`));
   const keyPath = join(outputDir, "hls.key");
@@ -439,27 +701,14 @@ async function main() {
     await writeFile(keyPath, mediaKey, { mode: 0o600 });
     await writeFile(keyInfoPath, `https://hls-key.invalid/key/${options.videoId}\n${keyPath.replaceAll("\\", "/")}\n`, "utf8");
 
-    for (const rendition of RENDITIONS) {
-      const renditionDir = join(outputDir, rendition.name);
-      await mkdir(renditionDir, { recursive: true });
-      console.log(`[encode] ${rendition.name} (${options.threads} luồng)…`);
-      await runFfmpeg(
-        ffmpegPath,
-        ffmpegArguments(options.inputPath, outputDir, keyInfoPath, rendition, options.threads),
-        rendition.name,
-        progress => console.log(`[progress] ${rendition.name} ${formatFfmpegProgressTime(progress.elapsedSeconds)}`),
-      );
-    }
+    await runVideoPipeline({ ffmpegPath, inputPath: options.inputPath, outputDir, keyInfoPath, settings, probe, capabilities, threads: options.threads });
 
-    const files = [];
-    for (const rendition of RENDITIONS) files.push(...await renditionFiles(outputDir, rendition));
-    const total = files.length + 1;
+    const files = await outputFiles(outputDir);
+    const total = files.length;
     const completed = { value: 0 };
     console.log(`[upload] ${files.length} manifest/segment, ${HLS_UPLOAD_CONCURRENCY} luồng…`);
     await runConcurrent(files, HLS_UPLOAD_CONCURRENCY, relativePath => uploadFile(options, token, outputDir, relativePath, completed, total));
 
-    await writeFile(join(outputDir, "master.m3u8"), masterManifest(), "utf8");
-    await uploadFile(options, token, outputDir, "master.m3u8", completed, total);
     console.log(`[done] VideoVault/${options.videoId}/ đã sẵn sàng. Tạo resource hls_vault với videoId này trong lesson.`);
     if (options.keepOutput) console.log(`[done] Giữ output local tại: ${outputDir}`);
   } finally {
@@ -479,12 +728,16 @@ if (isMain) {
 }
 
 export {
+  DEFAULT_FFPROBE_PATH,
   DEFAULT_FFMPEG_PATH,
   DEFAULT_API_ORIGIN,
   HLS_UPLOAD_CONCURRENCY,
-  RENDITIONS,
+  chooseVideoMode,
   ffmpegArguments,
-  masterManifest,
+  parseFfmpegCapabilities,
+  parseProbePayload,
   parseFfmpegProgressLine,
+  parseVideoSettings,
+  sha256Hex,
   parseArguments,
 };

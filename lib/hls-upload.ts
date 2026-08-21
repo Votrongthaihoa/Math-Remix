@@ -1,7 +1,7 @@
 import { hlsVideoId } from "./hls-vault.ts";
 
-const playlistPath = /^(?:master|(?:1080p|720p)\/index)\.m3u8$/;
-const segmentPath = /^(?:1080p|720p)\/seg_[0-9]{1,10}\.ts$/;
+const playlistPath = /^(?:index|master|(?:1080p|720p)\/index)\.m3u8$/;
+const segmentPath = /^(?:seg|(?:1080p|720p)\/seg)_[0-9]{1,10}\.ts$/;
 // Keep this within the validation contract of consume_request_budget. A
 // segment upload consumes one token, and the one-second refill lets a long
 // but legitimate encode continue as Graph uploads complete.

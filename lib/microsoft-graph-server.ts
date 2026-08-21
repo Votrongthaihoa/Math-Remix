@@ -327,14 +327,14 @@ async function createGraphFolder(parentId: string, name: string, admin: Supabase
   return payload.id;
 }
 
-/** Ensure the stable VideoVault/<videoId>/rendition folders exist. */
+/** Ensure the stable VideoVault/<videoId>/single-rendition folder exists. */
 export async function ensureMicrosoftGraphHlsFolders(videoId: string, admin: SupabaseClient, fetcher: typeof fetch = fetch) {
   if (!hlsVideoId(videoId)) throw new MicrosoftGraphError("Mã video HLS không hợp lệ.", 400, "INVALID_HLS_VIDEO_ID");
   const folderPath = hlsVaultFolderPath(videoId);
   const rootId = await graphRootId(admin, fetcher);
   let parentId = rootId;
   let currentPath = "";
-  for (const part of [...folderPath.split("/"), "1080p", "720p"]) {
+  for (const part of folderPath.split("/")) {
     currentPath = currentPath ? `${currentPath}/${part}` : part;
     const existing = await graphItemAtPath(currentPath, admin, fetcher);
     if (existing?.id) {

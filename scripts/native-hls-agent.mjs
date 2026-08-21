@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { DEFAULT_FFMPEG_PATH, DEFAULT_API_ORIGIN } from "./encode-hls-native.mjs";
+import { DEFAULT_FFPROBE_PATH, DEFAULT_FFMPEG_PATH, DEFAULT_API_ORIGIN } from "./encode-hls-native.mjs";
 
 const DEFAULT_PORT = 49321;
 const MAX_JSON_BYTES = 64 * 1024;
@@ -56,6 +56,7 @@ function parseArguments(argv) {
   const options = {
     port: Number(process.env.NATIVE_HLS_AGENT_PORT || DEFAULT_PORT),
     ffmpeg: process.env.FFMPEG_PATH || DEFAULT_FFMPEG_PATH,
+    ffprobe: process.env.FFPROBE_PATH || DEFAULT_FFPROBE_PATH,
     apiOrigin: normalizeOrigin(process.env.REMIX_API_ORIGIN || DEFAULT_API_ORIGIN, "REMIX_API_ORIGIN"),
     webOrigins: (process.env.NATIVE_HLS_AGENT_ALLOWED_ORIGINS || "")
       .split(",")
@@ -76,6 +77,12 @@ function parseArguments(argv) {
       const value = argv[++index];
       if (!value || value.startsWith("--")) throw new Error("--ffmpeg needs a value.");
       options.ffmpeg = value;
+      continue;
+    }
+    if (argument === "--ffprobe") {
+      const value = argv[++index];
+      if (!value || value.startsWith("--")) throw new Error("--ffprobe needs a value.");
+      options.ffprobe = value;
       continue;
     }
     if (argument === "--api-origin") {
@@ -162,6 +169,7 @@ function publicJob(job) {
     error: job.error || "",
     uploadedFiles: job.uploadedFiles,
     totalFiles: job.totalFiles,
+    mode: job.mode || "",
     logs: job.logs.slice(-8),
   };
 }
@@ -175,10 +183,16 @@ function addLog(job, value) {
   if (!line) return;
   job.logs.push(line);
   if (job.logs.length > 40) job.logs.splice(0, job.logs.length - 40);
-  if (line.includes("[progress]")) {
+  if (line.includes("[mode]")) {
+    job.status = "encoding";
+    job.mode = line.replace(/^.*?\[mode\]\s*/, "");
+    job.stage = job.mode;
+    job.progress = Math.max(job.progress, 15);
+  } else if (line.includes("[progress]")) {
     job.status = "encoding";
     job.stage = line.replace(/^.*?\[progress\]\s*/, "");
-    job.progress = Math.max(job.progress, 15);
+    const match = job.stage.match(/\((\d{1,3})%\)/);
+    job.progress = Math.max(job.progress, match ? Math.min(54, Number(match[1])) : 15);
   } else if (line.includes("[encode]")) {
     job.status = "encoding";
     job.stage = line.replace(/^.*?\[encode\]\s*/, "");
@@ -240,6 +254,7 @@ function startJob(job, options) {
     "--video-id", job.videoId,
     "--api-origin", job.apiOrigin,
     "--ffmpeg", options.ffmpeg,
+    "--ffprobe", options.ffprobe,
   ], {
     cwd: fileURLToPath(new URL("../", import.meta.url)),
     env: {
@@ -347,6 +362,7 @@ async function handleRequest(request, response, options) {
         uploadedFiles: 0,
         totalFiles: 0,
         logs: [],
+        mode: "",
         error: "",
         child: null,
       };
@@ -426,6 +442,7 @@ Native FFmpeg agent for the Math Remix HLS web tool.
 
   npm.cmd run ffmpeg:agent
   npm.cmd run ffmpeg:agent -- --web-origin https://mathremix.pro.vn
+  npm.cmd run ffmpeg:agent -- --ffmpeg C:\\ffmpeg\\bin\\ffmpeg.exe --ffprobe C:\\ffmpeg\\bin\\ffprobe.exe
 `;
 }
 

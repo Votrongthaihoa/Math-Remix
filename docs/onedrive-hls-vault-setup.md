@@ -2,7 +2,7 @@
 
 ## Encode và upload bằng FFmpeg native local
 
-Để encode nhanh hơn, chạy `scripts/encode-hls-native.mjs` trên máy có FFmpeg native. Máy local sẽ encode hai rendition `1080p` và `720p`, sau đó upload từng manifest/segment qua API admin vào `VideoVault/<videoId>/`. MP4 gốc không được upload lên website. Sau khi upload xong, web tự đọc OneDrive, rewrite HLS và phát video qua gateway có kiểm tra quyền.
+Để encode nhanh hơn, chạy `scripts/encode-hls-native.mjs` trên máy có FFmpeg native. Pipeline chỉ tạo một HLS rendition tại `VideoVault/<videoId>/index.m3u8` và `seg_*.ts`; MP4 gốc không được upload lên website. Pipeline ưu tiên stream-copy cho H.264 đã tương thích, sau đó thử NVIDIA NVENC và cuối cùng fallback về `libx264`. Sau khi upload xong, web tự đọc OneDrive, rewrite HLS và phát video qua gateway có kiểm tra quyền.
 
 Trang `Quản trị → Encode HLS` (`/admin/hls-vault`) có thể điều khiển FFmpeg native local qua một agent trên `127.0.0.1`; nếu agent chưa chạy, trang vẫn có tùy chọn FFmpeg WebAssembly dự phòng trong trình duyệt.
 
@@ -14,7 +14,7 @@ refresh token vào `lesson_resources`.
 
 ## Chuẩn bị máy encode local
 
-FFmpeg native mặc định được tìm tại `C:\ffmpeg\bin\ffmpeg.exe`. Có thể cài ở vị trí khác và truyền `--ffmpeg` hoặc đặt `FFMPEG_PATH`.
+FFmpeg native mặc định được tìm tại `C:\ffmpeg\bin\ffmpeg.exe`, còn FFprobe tại `C:\ffmpeg\bin\ffprobe.exe`. Có thể cài ở vị trí khác và truyền `--ffmpeg`/`--ffprobe` hoặc đặt `FFMPEG_PATH`/`FFPROBE_PATH`.
 
 Script cần một Supabase access token còn hạn của tài khoản admin. Đặt token trong file local, không commit file này và không dán token vào log:
 
@@ -26,6 +26,16 @@ npm.cmd run encode:hls:native -- `
   --input "D:\Videos\lesson01.mp4" `
   --video-id "lesson01"
 ```
+
+Với RTX 3050, kiểm tra NVENC/CUDA trước:
+
+```powershell
+ffmpeg -hide_banner -encoders | findstr nvenc
+ffmpeg -hide_banner -hwaccels
+ffmpeg -hide_banner -filters | findstr scale_cuda
+```
+
+Pipeline hash SHA-256 rồi probe input. H.264, độ cao không quá 1080, audio AAC và bitrate video không quá 8 Mbps sẽ đi theo `-c copy`. Các input khác sẽ thử `h264_nvenc` với preset `p5`, VBR 5 Mbps; nếu NVENC lỗi thì dùng `libx264`.
 
 Có thể truyền trực tiếp token bằng `REMIX_ACCESS_TOKEN`, nhưng file token là lựa chọn an toàn hơn. Có thể giữ output HLS local để kiểm tra bằng `--keep-output`; mặc định thư mục tạm và khóa media local sẽ bị xóa sau khi chạy.
 
@@ -58,6 +68,7 @@ Các tùy chọn hữu ích:
 ```text
 --api-origin <origin>   API Math Remix, mặc định https://api.mathremix.pro.vn
 --ffmpeg <path>         Đường dẫn ffmpeg.exe
+--ffprobe <path>        Đường dẫn ffprobe.exe
 --threads <n>           Số luồng encode, mặc định số CPU - 1
 --keep-output           Giữ thư mục HLS tạm sau khi upload
 ```
@@ -75,7 +86,24 @@ MEDIA_MASTER_KEY_HEX=<cùng giá trị dùng khi encode>
 
 Website dùng kết nối Microsoft Graph delegated hiện có để đọc folder HLS. Kết
 nối Microsoft trước trong trang quản trị nếu chưa có connection hoạt động. API
-upload sẽ tự tạo `VideoVault/<videoId>/1080p` và `720p` trước khi nhận file.
+upload sẽ tự tạo `VideoVault/<videoId>` trước khi nhận `index.m3u8` và các segment root. Các path `master.m3u8`, `1080p/*`, `720p/*` cũ vẫn được gateway cho phép để phát video legacy.
+
+Các biến cấu hình encoder native:
+
+```text
+VIDEO_HW_ACCEL=auto
+VIDEO_MAX_HEIGHT=1080
+VIDEO_ENCODER=h264_nvenc
+VIDEO_CPU_FALLBACK=libx264
+NVENC_PRESET=p5
+NVENC_TUNE=hq
+VIDEO_BITRATE=5000k
+VIDEO_MAXRATE=5500k
+VIDEO_BUFSIZE=10000k
+AUDIO_BITRATE=128k
+HLS_SEGMENT_TIME=6
+VIDEO_ALLOW_UPSCALE=false
+```
 
 ## Migration
 

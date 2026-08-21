@@ -24,6 +24,11 @@ test("HLS upload paths accept only the vault manifests and segments", () => {
   assert.throws(() => hlsUploadPath("lesson01", "master.m3u8?token=secret"));
 });
 
+test("HLS upload paths accept the single-rendition root playlist", () => {
+  assert.equal(hlsUploadPath("lesson01", "index.m3u8"), "index.m3u8");
+  assert.equal(hlsUploadPath("lesson01", "seg_00001.ts"), "seg_00001.ts");
+});
+
 test("clearing an FFmpeg key is safe after its buffer is transferred", () => {
   const detached = new Uint8Array([1, 2, 3]);
   structuredClone(detached.buffer, { transfer: [detached.buffer] });
@@ -56,12 +61,13 @@ test("admin HLS tool encodes locally and never embeds the master secret", async 
   assert.doesNotMatch(keyRoute, /console\.log\([^)]*key/i);
 });
 
-test("admin HLS tool splits CPU threads across parallel renditions", async () => {
+test("admin HLS tool reserves CPU threads for one browser rendition", async () => {
   const component = await readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8");
 
   assert.match(component, /navigator\.hardwareConcurrency/);
   assert.match(component, /-threads/);
-  assert.match(component, /Promise\.all\(RENDITIONS\.map/);
+  assert.match(component, /SINGLE_RENDITION/);
+  assert.doesNotMatch(component, /Promise\.all\(RENDITIONS\.map/);
 });
 
 test("admin HLS tool bounds segment size and uploads files in small batches", async () => {
@@ -70,6 +76,15 @@ test("admin HLS tool bounds segment size and uploads files in small batches", as
   assert.match(component, /HLS_SEGMENT_SECONDS = 6/);
   assert.match(component, /HLS_UPLOAD_CONCURRENCY = 6/);
   assert.match(component, /Promise\.allSettled\(entries\.slice/);
+});
+
+test("admin HLS tool keeps one root playlist and never creates a 720p rendition", async () => {
+  const component = await readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /seg_%05d\.ts/);
+  assert.match(component, /index\.m3u8/);
+  assert.doesNotMatch(component, /master\.m3u8/);
+  assert.doesNotMatch(component, /720p/);
 });
 
 test("HLS encoder route enables browser cross-origin isolation", async () => {

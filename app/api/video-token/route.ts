@@ -46,10 +46,12 @@ export async function POST(request: Request) {
   } else if (resource.resource_type === "hls_vault") {
     const hlsVideoId = typeof resource.provider_metadata?.hlsVideoId === "string" ? resource.provider_metadata.hlsVideoId : "";
     if (resource.provider_metadata?.playbackMode !== "hls-vault" || !/^[A-Za-z0-9_-]{1,80}$/.test(hlsVideoId)) return Response.json({ error: "Video HLS chưa được cấu hình." }, { status: 422 });
+    const configuredManifest = typeof resource.provider_metadata?.playlistPath === "string" ? resource.provider_metadata.playlistPath : "";
+    const manifestPath = configuredManifest === "index.m3u8" || configuredManifest === "master.m3u8" ? configuredManifest : "master.m3u8";
     responseBody = {
       type: resource.resource_type,
       title: resource.title,
-      playbackUrl: `/api/hls/${encodeURIComponent(resource.id)}/master.m3u8?t=${encodeURIComponent(body.videoToken)}`,
+      playbackUrl: `/api/hls/${encodeURIComponent(resource.id)}/${manifestPath}?t=${encodeURIComponent(body.videoToken)}`,
       playbackMode: "hls-vault",
       mimeType: "application/vnd.apple.mpegurl",
     };

@@ -8,6 +8,7 @@ test("HLS Vault accepts bounded video ids and keeps origin paths inside the vaul
   assert.equal(hlsVideoId("lesson01"), "lesson01");
   assert.equal(hlsVideoId("../private"), null);
   assert.equal(hlsOriginPath("lesson01", "1080p/index.m3u8"), "VideoVault/lesson01/1080p/index.m3u8");
+  assert.equal(hlsOriginPath("lesson01", "index.m3u8"), "VideoVault/lesson01/index.m3u8");
   assert.throws(() => hlsOriginPath("lesson01", "../private.m3u8"));
   assert.throws(() => hlsOriginPath("lesson01", "key:bad"));
 });
@@ -27,15 +28,22 @@ test("HLS Vault rewrites local playlists and the derived AES key back through th
   assert.throws(() => rewriteHlsManifest("https://example.com/segment.ts", "resource-1", "index.m3u8", "content-token"));
 });
 
+test("HLS Vault rewrites a root single-rendition playlist", () => {
+  const rewritten = rewriteHlsManifest("#EXTM3U\n#EXTINF:6,\nseg_00000.ts", "resource-1", "index.m3u8", "content-token");
+
+  assert.match(rewritten, /\/api\/hls\/resource-1\/seg_00000\.ts\?t=content-token/);
+});
+
 test("HLS upload rate limit stays within the database RPC contract", () => {
   assert.equal(HLS_UPLOAD_RATE_LIMIT.capacity, 1000);
   assert.equal(HLS_UPLOAD_RATE_LIMIT.refillSeconds, 1);
 });
 
 test("HLS Vault routes use the existing content-token and resource-access boundary", async () => {
-  const [route, adminRoute, player, keyHelper] = await Promise.all([
+  const [route, adminRoute, tokenRoute, player, keyHelper] = await Promise.all([
     readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/lesson-hls/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/video-token/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/hls-key.ts", import.meta.url), "utf8"),
   ]);
@@ -46,6 +54,8 @@ test("HLS Vault routes use the existing content-token and resource-access bounda
   assert.doesNotMatch(route, /ensureActiveAccount\(/);
   assert.match(adminRoute, /profile\.role !== "admin"/);
   assert.match(adminRoute, /resource_type:\s*"hls_vault"/);
+  assert.match(adminRoute, /playlistPath:\s*"index\.m3u8"/);
+  assert.match(tokenRoute, /index\.m3u8/);
   assert.doesNotMatch(player, /import\("hls\.js"\)/);
   assert.doesNotMatch(player, /plyr/i);
   assert.match(player, /yt-embed-player\.html\?mode=hls/);
