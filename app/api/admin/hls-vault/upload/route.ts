@@ -1,6 +1,6 @@
 import { jsonBodyError, readJsonBody } from "../../../../../lib/http-server";
 import { ensureMicrosoftGraphHlsFolders, MicrosoftGraphError, uploadMicrosoftGraphHlsFile } from "../../../../../lib/microsoft-graph-server";
-import { hlsUploadPath, MAX_HLS_UPLOAD_BYTES } from "../../../../../lib/hls-upload";
+import { hlsUploadPath, HLS_UPLOAD_RATE_LIMIT, MAX_HLS_UPLOAD_BYTES } from "../../../../../lib/hls-upload";
 import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
 import { ensureActiveAccount, hashedRequestIp } from "../../../../../lib/security-server";
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const authorization = await getAdmin(request);
   if ("error" in authorization) return authorization.error;
   try {
-    const budget = await consumeRequestBudget(authorization.admin, "admin-hls-vault-upload", `${authorization.user.id}:${await hashedRequestIp(request)}`, { capacity: 2000, refillSeconds: 30 });
+    const budget = await consumeRequestBudget(authorization.admin, "admin-hls-vault-upload", `${authorization.user.id}:${await hashedRequestIp(request)}`, HLS_UPLOAD_RATE_LIMIT);
     if (!budget.allowed) return Response.json({ error: "Bạn upload quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...noStore, "retry-after": String(budget.retryAfterSeconds) } });
   } catch {
     return Response.json({ error: "Máy chủ bảo mật chưa được cấu hình đầy đủ.", code: "SECURITY_CONFIGURATION_REQUIRED" }, { status: 503, headers: noStore });
