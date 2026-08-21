@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
+import { apiRequestUrl } from "../lib/api-url";
 import LoadingIndicator from "./loading-indicator";
 import "plyr/dist/plyr.css";
 import "./hls-player.css";
-import "plyr/dist/plyr.css";
 
 export type SecureLessonResource = {
   id: string;
@@ -43,7 +43,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const hlsVideoRef = useRef<HTMLVideoElement>(null);
   const hlsInstanceRef = useRef<{ destroy: () => void } | null>(null);
   const plyrRef = useRef<Plyr | null>(null);
-  const plyrInstanceRef = useRef<{ destroy: () => void } | null>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
 
@@ -57,8 +56,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     hlsInstanceRef.current = null;
     plyrRef.current?.destroy();
     plyrRef.current = null;
-    plyrInstanceRef.current?.destroy();
-    plyrInstanceRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -183,7 +180,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       localPlyr = null;
       if (!instance) return;
       instance.destroy();
-      if (plyrInstanceRef.current === instance) plyrInstanceRef.current = null;
+      if (plyrRef.current === instance) plyrRef.current = null;
     };
     const destroyHls = () => {
       const instance = localHls;
@@ -196,51 +193,74 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     hlsInstanceRef.current = null;
     plyrRef.current?.destroy();
     plyrRef.current = null;
-    plyrInstanceRef.current?.destroy();
-    plyrInstanceRef.current = null;
     video.removeAttribute("src");
     video.load();
 
-          async function mountHls() {
-        try {
-          const supportsNativeHls = Boolean(video.canPlayType("application/vnd.apple.mpegurl"));
-          const plyrModulePromise = import("plyr");
-          const hlsModulePromise = supportsNativeHls ? null : import("hls.js");
+    async function mountHls() {
+      try {
+        const supportsNativeHls = Boolean(video.canPlayType("application/vnd.apple.mpegurl"));
+        const plyrModulePromise = import("plyr");
+        const hlsModulePromise = supportsNativeHls ? null : import("hls.js");
+        const configuredPlaybackUrl = apiRequestUrl(content!.playbackUrl!);
+        const playbackUrl = typeof configuredPlaybackUrl === "string"
+          ? configuredPlaybackUrl
+          : configuredPlaybackUrl instanceof URL
+            ? configuredPlaybackUrl.toString()
+            : configuredPlaybackUrl.url;
 
-          if (supportsNativeHls) {
-            video.src = content!.playbackUrl!;
-          } else {
-            const hlsModule = await hlsModulePromise!;
-            if (cancelled) return;
-            const Hls = hlsModule.default;
-            if (!Hls.isSupported()) throw new Error("Tr�nh duy?t n�y kh�ng h? tr? HLS/MSE.");
-            const hls = new Hls({ enableWorker: true, lowLatencyMode: false, xhrSetup: (xhr, url) => { xhr.withCredentials = true; } });
-            localHls = hls;
-            hlsInstanceRef.current = hls;
-            hls.on(Hls.Events.ERROR, (_event, data) => {
-              if (data.fatal) setVideoPlaybackError("Kh�ng th? ph�t HLS. H�y th? l?y ngu?n ph�t m?i.");
-            });
-            hls.loadSource(content!.playbackUrl!);
-            hls.attachMedia(video);
-          }
+        if (supportsNativeHls) {
+          video.src = playbackUrl;
+        } else {
+          const hlsModule = await hlsModulePromise!;
           if (cancelled) return;
-
-          const plyrModule = await plyrModulePromise;
-          if (cancelled) return;
-          const Plyr = plyrModule.default;
-          const plyr = new Plyr(video, {
-            controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "fullscreen"],
-            settings: ["speed"],
-            disableContextMenu: true,
+          const Hls = hlsModule.default;
+          if (!Hls.isSupported()) throw new Error("Trình duyệt này không hỗ trợ HLS/MSE.");
+          const hls = new Hls({ enableWorker: true, lowLatencyMode: false, xhrSetup: xhr => { xhr.withCredentials = true; } });
+          localHls = hls;
+          hlsInstanceRef.current = hls;
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (!cancelled && data.fatal) setVideoPlaybackError("Không thể phát HLS. Hãy thử lấy nguồn phát mới.");
           });
-          localPlyr = plyr;
-          plyrRef.current = plyr;
-        } catch (value) {
-          destroyHls();
-          destroyPlyr();
-          if (!cancelled) setVideoPlaybackError(value instanceof Error ? value.message : "Kh�ng th? kh?i t?o tr�nh ph�t HLS.");
+          hls.loadSource(playbackUrl);
+          hls.attachMedia(video);
         }
+        if (cancelled) return;
+
+        const plyrModule = await plyrModulePromise;
+        if (cancelled) return;
+        const Plyr = plyrModule.default;
+        const plyr = new Plyr(video, {
+          controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "settings", "fullscreen"],
+          settings: ["speed"],
+          disableContextMenu: true,
+          fullscreen: { enabled: true, fallback: true, iosNative: false },
+          storage: { enabled: false },
+          i18n: {
+            restart: "Phát lại",
+            play: "Phát",
+            pause: "Tạm dừng",
+            seek: "Tua",
+            seekLabel: "Tiến tới {seektime} giây",
+            played: "Đã phát",
+            buffered: "Đã tải",
+            currentTime: "Thời gian hiện tại",
+            duration: "Thời lượng",
+            volume: "Âm lượng",
+            settings: "Cài đặt",
+            speed: "Tốc độ",
+            normal: "Bình thường",
+            enterFullscreen: "Mở toàn màn hình",
+            exitFullscreen: "Thoát toàn màn hình",
+          },
+        });
+        localPlyr = plyr;
+        plyrRef.current = plyr;
+      } catch (value) {
+        destroyHls();
+        destroyPlyr();
+        if (!cancelled) setVideoPlaybackError(value instanceof Error ? value.message : "Không thể khởi tạo trình phát HLS.");
       }
+    }
     void mountHls();
     return () => {
       cancelled = true;
@@ -307,7 +327,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát HLS.</div>;
     if (content.playbackMode === "hls-vault") {
       if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryMicrosoftVideo}>Lấy nguồn phát mới</button></div></div>;
-      return <div className="lesson-microsoft-video"><video ref={hlsVideoRef} className="lesson-video lesson-native-video" playsInline preload="metadata" title={content.title}>Trình duyệt của bạn không hỗ trợ phát HLS.</video></div>;
+      return <div className="lesson-microsoft-video"><video ref={hlsVideoRef} className="lesson-video lesson-native-video" controls controlsList="nodownload noremoteplayback" disablePictureInPicture crossOrigin="use-credentials" playsInline preload="metadata" title={content.title}>Trình duyệt của bạn không hỗ trợ phát HLS.</video></div>;
     }
 
   }

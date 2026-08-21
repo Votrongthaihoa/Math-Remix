@@ -63,3 +63,20 @@ test("HLS gateway proxies segments and throttles bulk downloader requests", asyn
   assert.match(route, /new Response\(source\.body/);
   assert.doesNotMatch(route, /Response\.redirect\(origin, 302\)/);
 });
+
+test("HLS gateway CORS credentials are restricted to approved web origins", async () => {
+  const route = await readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8");
+
+  assert.match(route, /https:\/\/mathremix\.pro\.vn/);
+  assert.match(route, /https:\/\/www\.mathremix\.pro\.vn/);
+  assert.match(route, /localhost/);
+  assert.match(route, /vary.*Origin|Origin.*vary/s);
+  assert.doesNotMatch(route, /access-control-allow-origin": origin \|\| "\*"/);
+});
+
+test("HLS player routes the media source through the configured API origin", async () => {
+  const player = await readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8");
+
+  assert.match(player, /import \{ apiRequestUrl \} from "\.\.\/lib\/api-url";/);
+  assert.match(player, /apiRequestUrl\(content!?\.playbackUrl!\)/);
+});

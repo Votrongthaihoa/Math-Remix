@@ -9,16 +9,32 @@ import { activeAccount, hashedRequestIp, type SecurityProfile } from "../../../.
 
 type RouteContext = { params: Promise<{ resourceId: string; path: string[] }> };
 const MAX_MANIFEST_BYTES = 4 * 1024 * 1024;
+const PRODUCTION_WEB_ORIGINS = new Set([
+  "https://mathremix.pro.vn",
+  "https://www.mathremix.pro.vn",
+]);
+
+function allowedWebOrigin(value: string) {
+  if (PRODUCTION_WEB_ORIGINS.has(value)) return value;
+  try {
+    const url = new URL(value);
+    if ((url.protocol === "http:" || url.protocol === "https:")
+      && (url.hostname === "localhost" || url.hostname === "127.0.0.1")) return value;
+  } catch {
+    // Ignore malformed or untrusted origins.
+  }
+  return "";
+}
 
 function corsHeaders(request: Request, extra: HeadersInit = {}) {
-  const origin = request.headers.get("origin") || "";
+  const origin = allowedWebOrigin(request.headers.get("origin") || "");
   return {
     "cache-control": "private, no-store, max-age=0",
     "x-content-type-options": "nosniff",
-    "access-control-allow-origin": origin || "*",
     "access-control-allow-credentials": "true",
     "access-control-allow-methods": "GET, OPTIONS",
-    "access-control-allow-headers": "Content-Type, Authorization, x-content-token",
+    "access-control-allow-headers": "Content-Type, Authorization, X-Supabase-Access-Token, x-content-token",
+    ...(origin ? { "access-control-allow-origin": origin, vary: "Origin" } : {}),
     ...extra,
   };
 }
