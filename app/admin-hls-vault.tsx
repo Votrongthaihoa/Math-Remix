@@ -28,7 +28,7 @@ type FfmpegLike = {
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core-mt@0.12.10/dist/umd";
 const CORE_FALLBACK_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 const HLS_SEGMENT_SECONDS = 6;
-const HLS_UPLOAD_CONCURRENCY = 3;
+const HLS_UPLOAD_CONCURRENCY = 6;
 const RENDITIONS = [
   {
     name: "1080p",

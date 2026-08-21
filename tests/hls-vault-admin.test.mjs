@@ -65,7 +65,7 @@ test("admin HLS tool bounds segment size and uploads files in small batches", as
   const component = await readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8");
 
   assert.match(component, /HLS_SEGMENT_SECONDS = 6/);
-  assert.match(component, /HLS_UPLOAD_CONCURRENCY = 3/);
+  assert.match(component, /HLS_UPLOAD_CONCURRENCY = 6/);
   assert.match(component, /Promise\.allSettled\(entries\.slice/);
 });
 
