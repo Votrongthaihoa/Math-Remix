@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { hlsOriginPath, hlsVaultFolderPath, hlsVideoId } from "./hls-vault.ts";
+import { hlsUploadContentType, hlsUploadPath, MAX_HLS_UPLOAD_BYTES } from "./hls-upload.ts";
 import { encodeMicrosoftSharingUrl, parseMicrosoftShareUrl, type MicrosoftShareProvider } from "./microsoft-share-url.ts";
 
 const GRAPH_ROOT = "https://graph.microsoft.com/v1.0";
@@ -59,6 +61,7 @@ type GraphDriveItem = {
   size?: number;
   webUrl?: string;
   file?: { mimeType?: string };
+  folder?: { childCount?: number };
   video?: { duration?: number; width?: number; height?: number };
   parentReference?: { driveId?: string };
   error?: { code?: string; message?: string };
@@ -272,6 +275,99 @@ async function graphFetch(admin: SupabaseClient, url: string, init: RequestInit,
   void response.body?.cancel().catch(() => undefined);
   response = await fetcher(url, { ...init, headers: { ...init.headers, authorization: `Bearer ${await accessToken(admin, true, fetcher)}` } });
   return response;
+}
+
+function encodedGraphPath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+function graphFailure(response: Response, fallback: string, payload: GraphDriveItem = {}) {
+  const status = response.status >= 400 && response.status < 500 ? response.status : 502;
+  return new MicrosoftGraphError(fallback, status, payload.error?.code || "MICROSOFT_HLS_UPLOAD_FAILED");
+}
+
+async function graphItemAtPath(path: string, admin: SupabaseClient, fetcher: typeof fetch) {
+  const response = await graphFetch(admin, `${GRAPH_ROOT}/me/drive/root:/${encodedGraphPath(path)}:`, {
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  }, fetcher);
+  const payload = await response.json().catch(() => ({})) as GraphDriveItem;
+  if (response.status === 404) return null;
+  if (!response.ok) throw graphFailure(response, "Microsoft không thể đọc thư mục HLS.", payload);
+  return payload;
+}
+
+async function graphRootId(admin: SupabaseClient, fetcher: typeof fetch) {
+  const response = await graphFetch(admin, `${GRAPH_ROOT}/me/drive/root?$select=id`, {
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  }, fetcher);
+  const payload = await response.json().catch(() => ({})) as GraphDriveItem;
+  if (!response.ok || !payload.id) throw graphFailure(response, "Microsoft không thể mở OneDrive.", payload);
+  return payload.id;
+}
+
+async function createGraphFolder(parentId: string, name: string, admin: SupabaseClient, fetcher: typeof fetch) {
+  const url = parentId === "root"
+    ? `${GRAPH_ROOT}/me/drive/root/children`
+    : `${GRAPH_ROOT}/me/drive/items/${encodeURIComponent(parentId)}/children`;
+  const response = await graphFetch(admin, url, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json" },
+    body: JSON.stringify({
+      name,
+      folder: {},
+      "@microsoft.graph.conflictBehavior": "fail",
+    }),
+    cache: "no-store",
+  }, fetcher);
+  const payload = await response.json().catch(() => ({})) as GraphDriveItem;
+  if (response.status === 409) return null;
+  if (!response.ok || !payload.id) throw graphFailure(response, "Microsoft không thể tạo thư mục HLS.", payload);
+  return payload.id;
+}
+
+/** Ensure the stable VideoVault/<videoId>/rendition folders exist. */
+export async function ensureMicrosoftGraphHlsFolders(videoId: string, admin: SupabaseClient, fetcher: typeof fetch = fetch) {
+  if (!hlsVideoId(videoId)) throw new MicrosoftGraphError("Mã video HLS không hợp lệ.", 400, "INVALID_HLS_VIDEO_ID");
+  const folderPath = hlsVaultFolderPath(videoId);
+  const rootId = await graphRootId(admin, fetcher);
+  let parentId = rootId;
+  let currentPath = "";
+  for (const part of [...folderPath.split("/"), "1080p", "720p"]) {
+    currentPath = currentPath ? `${currentPath}/${part}` : part;
+    const existing = await graphItemAtPath(currentPath, admin, fetcher);
+    if (existing?.id) {
+      if (!existing.folder) throw new MicrosoftGraphError("Một đường dẫn HLS trên OneDrive không phải thư mục.", 409, "MICROSOFT_HLS_PATH_CONFLICT");
+      parentId = existing.id;
+      continue;
+    }
+    const createdId = await createGraphFolder(parentId, part, admin, fetcher);
+    if (createdId) {
+      parentId = createdId;
+      continue;
+    }
+    const conflicted = await graphItemAtPath(currentPath, admin, fetcher);
+    if (!conflicted?.id || !conflicted.folder) throw new MicrosoftGraphError("Microsoft không thể xác nhận thư mục HLS.", 409, "MICROSOFT_HLS_PATH_CONFLICT");
+    parentId = conflicted.id;
+  }
+  return { folderPath, ready: true as const };
+}
+
+/** Upload one already-encoded HLS file without persisting a Graph URL or token. */
+export async function uploadMicrosoftGraphHlsFile(videoId: string, relativePath: string, bytes: ArrayBuffer, admin: SupabaseClient, fetcher: typeof fetch = fetch) {
+  const path = hlsUploadPath(videoId, relativePath);
+  if (!bytes.byteLength || bytes.byteLength > MAX_HLS_UPLOAD_BYTES) throw new MicrosoftGraphError("File HLS vượt quá giới hạn cho phép.", 413, "HLS_FILE_TOO_LARGE");
+  const originPath = hlsOriginPath(videoId, path);
+  const response = await graphFetch(admin, `${GRAPH_ROOT}/me/drive/root:/${encodedGraphPath(originPath)}:/content`, {
+    method: "PUT",
+    headers: { accept: "application/json", "content-type": hlsUploadContentType(path) },
+    body: bytes as unknown as BodyInit,
+    cache: "no-store",
+  }, fetcher);
+  const payload = await response.json().catch(() => ({})) as GraphDriveItem;
+  if (!response.ok) throw graphFailure(response, "Microsoft từ chối file HLS.", payload);
+  return { path, size: bytes.byteLength, uploaded: true as const };
 }
 
 export async function completeMicrosoftAuthorization(admin: SupabaseClient, code: string, stateValue: string, fetcher: typeof fetch = fetch) {

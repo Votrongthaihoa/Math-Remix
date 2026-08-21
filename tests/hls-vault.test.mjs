@@ -27,15 +27,16 @@ test("HLS Vault rewrites local playlists and the derived AES key back through th
 });
 
 test("HLS Vault routes use the existing content-token and resource-access boundary", async () => {
-  const [route, adminRoute, player] = await Promise.all([
+  const [route, adminRoute, player, keyHelper] = await Promise.all([
     readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/lesson-hls/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/hls-key.ts", import.meta.url), "utf8"),
   ]);
   assert.match(route, /verifyContentToken/);
   assert.match(route, /guardResourceAccess/);
   assert.match(route, /activeAccount/);
-  assert.match(route, /MEDIA_MASTER_KEY_HEX/);
+  assert.match(keyHelper, /process\.env\.MEDIA_MASTER_KEY_HEX/);
   assert.doesNotMatch(route, /ensureActiveAccount\(/);
   assert.match(adminRoute, /profile\.role !== "admin"/);
   assert.match(adminRoute, /resource_type:\s*"hls_vault"/);

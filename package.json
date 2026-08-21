@@ -23,6 +23,8 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@supabase/supabase-js": "^2.110.8",
     "drizzle-orm": "0.45.2",
     "hls.js": "1.6.13",

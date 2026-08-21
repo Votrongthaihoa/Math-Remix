@@ -53,3 +53,10 @@ export function hlsOriginPath(videoId: string, relativePath: string) {
   const root = (process.env.ONEDRIVE_HLS_ROOT || "VideoVault").trim().replace(/^\/+|\/+$/g, "") || "VideoVault";
   return `${root}/${videoId}/${parts.join("/")}`;
 }
+
+export function hlsVaultFolderPath(videoId: string) {
+  if (!hlsVideoId(videoId)) throw new Error("Invalid HLS video id");
+  const root = (process.env.ONEDRIVE_HLS_ROOT || "VideoVault").trim().replace(/^\/+|\/+$/g, "") || "VideoVault";
+  if (!safeRelativePath(root)) throw new Error("Invalid HLS root");
+  return `${root}/${videoId}`;
+}

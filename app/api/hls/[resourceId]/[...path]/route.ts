@@ -1,5 +1,6 @@
 import { contentServer } from "../../../../../lib/content-server";
 import { verifyContentToken } from "../../../../../lib/content-token";
+import { hlsMediaKeyFromEnvironment } from "../../../../../lib/hls-key";
 import { rewriteHlsManifest } from "../../../../../lib/hls-vault";
 import { getHlsOriginRedirect, hlsVideoId } from "../../../../../lib/microsoft-graph-hls";
 import { guardResourceAccess } from "../../../../../lib/resource-access-server";
@@ -53,15 +54,6 @@ async function readLimited(response: Response) {
   return new TextDecoder().decode(bytes);
 }
 
-function mediaKey(masterHex: string, videoId: string) {
-  if (!/^[0-9a-fA-F]+$/.test(masterHex) || masterHex.length % 2 || masterHex.length < 64) throw new Error("HLS key secret is not configured");
-  const master = new Uint8Array(masterHex.length / 2);
-  for (let i = 0; i < master.length; i += 1) master[i] = Number.parseInt(masterHex.slice(i * 2, i * 2 + 2), 16);
-  return crypto.subtle.importKey("raw", master, { name: "HMAC", hash: "SHA-256" }, false, ["sign"])
-    .then(key => crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`hls-key:v1:${videoId}`)))
-    .then(value => new Uint8Array(value).slice(0, 16));
-}
-
 export async function GET(request: Request, context: RouteContext) {
   if (request.method !== "GET") return jsonError("method_not_allowed", 405);
   const config = contentServer();
@@ -82,10 +74,10 @@ export async function GET(request: Request, context: RouteContext) {
   let relative: string;
   try { relative = params.path.map(value => decodeURIComponent(value)).join("/"); }
   catch { return jsonError("invalid_hls_path", 400); }
-  if (!safeRelativePath(relative)) return jsonError("invalid_hls_path", 400);
+    if (!safeRelativePath(relative)) return jsonError("invalid_hls_path", 400);
   try {
     if (relative === "key") {
-      const key = await mediaKey(process.env.MEDIA_MASTER_KEY_HEX || "", videoId);
+      const key = await hlsMediaKeyFromEnvironment(videoId);
       return new Response(key, { status: 200, headers: noStore({ "content-type": "application/octet-stream" }) });
     }
     const origin = await getHlsOriginRedirect(videoId, relative, admin);

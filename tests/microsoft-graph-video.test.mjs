@@ -3,9 +3,11 @@ import test from "node:test";
 import {
   completeMicrosoftAuthorization,
   createMicrosoftAuthorizationUrl,
+  ensureMicrosoftGraphHlsFolders,
   inspectMicrosoftGraphVideo,
   isAllowedMicrosoftDownloadUrl,
   resolveMicrosoftGraphPlayback,
+  uploadMicrosoftGraphHlsFile,
 } from "../lib/microsoft-graph-server.ts";
 
 const envNames = [
@@ -119,6 +121,26 @@ test("delegated OAuth resolves a SharePoint item and returns only an allowed tem
     const playbackUrl = await resolveMicrosoftGraphPlayback(metadata.driveId, metadata.itemId, admin, fetcher);
     assert.equal(playbackUrl, temporaryUrl);
     assert.equal(requests.some(request => request.value === temporaryUrl), false);
+
+    const hlsRequests = [];
+    const hlsFetcher = async (url, init = {}) => {
+      const value = String(url);
+      hlsRequests.push({ value, init });
+      if (value.endsWith("/me/drive/root?$select=id")) return Response.json({ id: "root-id" });
+      if (value.endsWith(":/content")) return Response.json({ id: "master-id", size: 3 }, { status: 201 });
+      if (value.includes("/me/drive/root:/")) return new Response(null, { status: 404 });
+      if (value.endsWith("/children") && init.method === "POST") {
+        const body = JSON.parse(String(init.body));
+        return Response.json({ id: `${body.name}-id`, name: body.name, folder: {} }, { status: 201 });
+      }
+      throw new Error(`Unexpected HLS request ${value}`);
+    };
+    const folders = await ensureMicrosoftGraphHlsFolders("lesson01", admin, hlsFetcher);
+    assert.equal(folders.folderPath, "VideoVault/lesson01");
+    assert.equal(folders.ready, true);
+    const uploaded = await uploadMicrosoftGraphHlsFile("lesson01", "master.m3u8", new Uint8Array([1, 2, 3]).buffer, admin, hlsFetcher);
+    assert.deepEqual(uploaded, { path: "master.m3u8", size: 3, uploaded: true });
+    assert.equal(hlsRequests.some(request => request.value.includes("VideoVault/lesson01/master.m3u8")), true);
   } finally {
     for (const name of envNames) {
       if (previous[name] === undefined) delete process.env[name];

@@ -16,7 +16,7 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
     || slug.length >= 4 && slug[0] === "exam" && Boolean(slug[1]) && slug[2] === "section" && Boolean(slug[3]) && (slug.length === 4 || slug.length === 5 && slug[4] === "confirm");
   const validLegacyGuestExamRoute = slug.length === 3 && slug[0] === "guest" && slug[1] === "exam" && guestTokenSegment.test(slug[2]);
   const validGuestExamRoute = validDirectGuestExamRoute || validLegacyGuestExamRoute;
-  const adminTabs = new Set(["students", "content", "exams", "question-bank", "sessions", "upload", "enrollments", "security"]);
+  const adminTabs = new Set(["students", "content", "hls-vault", "exams", "question-bank", "sessions", "upload", "enrollments", "security"]);
   const validAdminRoute = slug[0] === "admin" && (
     slug.length === 1
     || slug.length === 2 && adminTabs.has(slug[1])

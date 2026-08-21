@@ -1,5 +1,11 @@
 # OneDrive HLS Vault trong Math Remix
 
+## Encode và upload từ trang quản trị
+
+Quản trị viên có thể dùng `Quản trị → Encode HLS` (`/admin/hls-vault`) để chọn MP4 local. Trình duyệt sẽ tải FFmpeg WebAssembly, encode hai rendition `1080p` và `720p` ngay trên máy, sau đó gửi từng manifest/segment đã mã hóa qua server Graph proxy vào `VideoVault/<videoId>/`. MP4 gốc không được gửi lên website và master key không được gửi xuống client.
+
+Sau khi tool báo hoàn tất, vào trình soạn khóa học, chọn `OneDrive HLS Vault`, nhập cùng `videoId` và tạo resource cho lesson. Tool không tự tạo database resource để tách riêng bước upload file và bước gắn video vào lesson.
+
 Math Remix hỗ trợ resource `hls_vault` trong lesson. Người quản trị chỉ lưu mã
 video ổn định, ví dụ `lesson01`; không lưu URL CDN tạm thời, access token hay
 refresh token vào `lesson_resources`.

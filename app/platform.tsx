@@ -23,7 +23,7 @@ import AdminSessionList from "./admin-sessions";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
-  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown
+  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, FileVideo
 } from "lucide-react";
 
 const ExamRoomModule = lazy(() => import("./exam-room"));
@@ -32,6 +32,7 @@ const AdminSessionWizard = lazy(() => import("./admin-session-wizard"));
 const AdminSessionResults = lazy(() => import("./admin-session-results"));
 const AdminQuestionBank = lazy(() => import("./admin-question-bank"));
 const AdminUploadManager = lazy(() => import("./admin-upload"));
+const AdminHlsVault = lazy(() => import("./admin-hls-vault"));
 const GuestExamModule = lazy(() => import("./guest-exam"));
 
 type View = "overview" | "exams" | "courses" | "history" | "profile" | "admin" | "course" | "lesson";
@@ -154,6 +155,7 @@ const nav = [
 const adminNav = [
   { id: "dashboard" as const, section: "Tổng quan", label: "Tổng quan", path: "/admin", icon: LayoutDashboard },
   { id: "content" as const, section: "Nội dung", label: "Tài nguyên", path: "/admin/content", icon: Library },
+  { id: "hls-vault" as const, section: "Nội dung", label: "Encode HLS", path: "/admin/hls-vault", icon: FileVideo },
   { id: "question-bank" as const, section: "Nội dung", label: "Ngân hàng câu hỏi", path: "/admin/question-bank", icon: ListChecks },
   { id: "exams" as const, section: "Kỳ thi", label: "Đề thi", path: "/admin/exams", icon: ClipboardCheck },
   { id: "sessions" as const, section: "Kỳ thi", label: "Kíp thi", path: "/admin/sessions", icon: CalendarClock },
@@ -1206,6 +1208,7 @@ function adminTabFromPath(pathname: string): AdminTab {
   if (pathname.startsWith("/admin/sessions")) return "sessions";
   if (pathname.startsWith("/admin/students")) return "students";
   if (pathname.startsWith("/admin/content")) return "content";
+  if (pathname.startsWith("/admin/hls-vault")) return "hls-vault";
   if (pathname.startsWith("/admin/question-bank")) return "question-bank";
   if (pathname.startsWith("/admin/exams")) return "exams";
   if (pathname.startsWith("/admin/upload")) return "upload";
@@ -1595,6 +1598,7 @@ function RealAdminDashboard() {
     </div>}
     {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div><label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button className="student-password-btn" onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
     {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>{setManagedCourseId("");window.history.pushState({},"","/admin/content");}} onChanged={loadAdminData} onDeleted={async()=>{setManagedCourseId("");window.history.pushState({},"","/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt=""/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button className="outline-btn" onClick={()=>{setManagedCourseId(course.id);window.history.pushState({},"",`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
+    {tab === "hls-vault" && <Suspense fallback={<LoadingIndicator label="Đang mở công cụ HLS…" />}><AdminHlsVault /></Suspense>}
     {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị đề thi…" />}><AdminExamManager /></Suspense>}
     {tab === "question-bank" && <Suspense fallback={<LoadingIndicator label="Đang mở ngân hàng câu hỏi…" />}><AdminQuestionBank navigate={navigateAdmin} /></Suspense>}
     {tab === "sessions" && (typeof window !== "undefined" && window.location.pathname === "/admin/sessions/new"
