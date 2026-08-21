@@ -10,16 +10,26 @@ import { activeAccount, hashedRequestIp, type SecurityProfile } from "../../../.
 type RouteContext = { params: Promise<{ resourceId: string; path: string[] }> };
 const MAX_MANIFEST_BYTES = 4 * 1024 * 1024;
 
-function noStore(extra: HeadersInit = {}) {
+function corsHeaders(request: Request, extra: HeadersInit = {}) {
+  const origin = request.headers.get("origin") || "";
   return {
     "cache-control": "private, no-store, max-age=0",
     "x-content-type-options": "nosniff",
+    "access-control-allow-origin": origin || "*",
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-headers": "Content-Type, Authorization, x-content-token",
     ...extra,
   };
 }
 
-function jsonError(error: string, status: number) {
-  return Response.json({ error }, { status, headers: noStore() });
+export async function OPTIONS(request: Request) {
+  return new Response(null, { status: 204, headers: corsHeaders(request) });
+}
+
+
+function jsonError(request: Request, error: string, status: number) {
+  return Response.json({ error }, { status, headers: corsHeaders(request) });
 }
 
 async function playbackSubjectHash(userId: string, resourceId: string, request: Request) {
@@ -78,52 +88,56 @@ async function readLimited(response: Response) {
 }
 
 export async function GET(request: Request, context: RouteContext) {
-  if (request.method !== "GET") return jsonError("method_not_allowed", 405);
+  if (request.method !== "GET") return jsonError(request, "method_not_allowed", 405);
   const config = contentServer();
   if (!config.ok) return config.response;
   const { admin, tokenSecret } = config;
   const params = await context.params;
   const token = new URL(request.url).searchParams.get("t") || "";
   const payload = await verifyContentToken(token, tokenSecret);
-  if (!payload || payload.rid !== params.resourceId) return jsonError("invalid_content_token", 401);
+  if (!payload || payload.rid !== params.resourceId) return jsonError(request, "invalid_content_token", 401);
   const { data: profile } = await admin.from("profiles").select("id,role,status,account_status,violation_count,banned_at,banned_until,ban_reason,ban_event_id").eq("id", payload.sub).maybeSingle();
-  if (!profile || !activeAccount(profile as SecurityProfile)) return jsonError("account_inactive", 423);
+  if (!profile || !activeAccount(profile as SecurityProfile)) return jsonError(request, "account_inactive", 423);
   const access = await guardResourceAccess(admin, payload.sub, profile as SecurityProfile, params.resourceId, "view");
   if (!access.ok) return access.response;
   const resource = access.resource;
   const metadata = resource.provider_metadata ?? {};
   const videoId = hlsVideoId(metadata.hlsVideoId);
-  if (resource.resource_type !== "hls_vault" || metadata.playbackMode !== "hls-vault" || !videoId) return jsonError("hls_resource_not_found", 404);
+  if (resource.resource_type !== "hls_vault" || metadata.playbackMode !== "hls-vault" || !videoId) return jsonError(request, "hls_resource_not_found", 404);
   let relative: string;
   try { relative = params.path.map(value => decodeURIComponent(value)).join("/"); }
-  catch { return jsonError("invalid_hls_path", 400); }
-  if (!safeRelativePath(relative)) return jsonError("invalid_hls_path", 400);
+  catch { return jsonError(request, "invalid_hls_path", 400); }
+  if (!safeRelativePath(relative)) return jsonError(request, "invalid_hls_path", 400);
   const isManifest = relative.toLowerCase().endsWith(".m3u8");
   const isSegment = relative.toLowerCase().endsWith(".ts");
-  if (isSegment && request.headers.has("range")) return jsonError("range_not_supported", 416);
+  if (isSegment && request.headers.has("range")) return jsonError(request, "range_not_supported", 416);
   try {
     const budget = await consumeRequestBudget(admin, "hls-playback", await playbackSubjectHash(payload.sub, params.resourceId, request), HLS_PLAYBACK_RATE_LIMIT);
     if (!budget.allowed) {
       if (budget.denialsLastMinute <= 1) await recordPlaybackThrottle(admin, payload.sub, params.resourceId, relative, request, budget.denialsLastMinute);
-      return Response.json({ error: "HLS playback rate limited", code: "HLS_PLAYBACK_RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...noStore(), "retry-after": String(budget.retryAfterSeconds) } });
+      return Response.json({ error: "HLS playback rate limited", code: "HLS_PLAYBACK_RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...corsHeaders(request), "retry-after": String(budget.retryAfterSeconds) } });
     }
     if (relative === "key") {
       const key = await hlsMediaKeyFromEnvironment(videoId);
-      return new Response(key, { status: 200, headers: noStore({ "content-type": "application/octet-stream" }) });
+      return new Response(key, { status: 200, headers: corsHeaders(request, { "content-type": "application/octet-stream" }) });
     }
     const origin = await getHlsOriginRedirect(videoId, relative, admin);
     const source = await fetch(origin, { headers: { accept: "application/vnd.apple.mpegurl,text/plain,*/*" }, cache: "no-store" });
-    if (!source.ok) return jsonError(isManifest ? "hls_manifest_unavailable" : "hls_segment_unavailable", 502);
+    if (!source.ok) return jsonError(request, isManifest ? "hls_manifest_unavailable" : "hls_segment_unavailable", 502);
     if (!isManifest) {
-      return new Response(source.body, { status: 200, headers: noStore({
+      return new Response(source.body, { status: 200, headers: corsHeaders(request, {
         "content-type": source.headers.get("content-type") || (isSegment ? "video/mp2t" : "application/octet-stream"),
         "content-disposition": "inline",
       }) });
     }
     const rewritten = rewriteHlsManifest(await readLimited(source), params.resourceId, relative, token);
-    return new Response(rewritten, { status: 200, headers: noStore({ "content-type": "application/vnd.apple.mpegurl; charset=utf-8" }) });
+    return new Response(rewritten, { status: 200, headers: corsHeaders(request, { "content-type": "application/vnd.apple.mpegurl; charset=utf-8" }) });
   } catch (error) {
     console.error("[hls] request failed", { resourceId: params.resourceId, relative, error: error instanceof Error ? error.message : "unknown_error" });
-    return jsonError("hls_playback_unavailable", 502);
+    return jsonError(request, "hls_playback_unavailable", 502);
   }
 }
+
+
+
+
