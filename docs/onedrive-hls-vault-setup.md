@@ -1,8 +1,10 @@
 # OneDrive HLS Vault trong Math Remix
 
-## Encode và upload từ trang quản trị
+## Encode và upload bằng FFmpeg native local
 
-Quản trị viên có thể dùng `Quản trị → Encode HLS` (`/admin/hls-vault`) để chọn MP4 local. Trình duyệt sẽ tải FFmpeg WebAssembly, encode hai rendition `1080p` và `720p` ngay trên máy, sau đó gửi từng manifest/segment đã mã hóa qua server Graph proxy vào `VideoVault/<videoId>/`. MP4 gốc không được gửi lên website và master key không được gửi xuống client.
+Để encode nhanh hơn, chạy `scripts/encode-hls-native.mjs` trên máy có FFmpeg native. Máy local sẽ encode hai rendition `1080p` và `720p`, sau đó upload từng manifest/segment qua API admin vào `VideoVault/<videoId>/`. MP4 gốc không được upload lên website. Sau khi upload xong, web tự đọc OneDrive, rewrite HLS và phát video qua gateway có kiểm tra quyền.
+
+Trang `Quản trị → Encode HLS` (`/admin/hls-vault`) vẫn có thể dùng khi không muốn cài FFmpeg local; trang này dùng FFmpeg WebAssembly trong trình duyệt.
 
 Sau khi tool báo hoàn tất, vào trình soạn khóa học, chọn `OneDrive HLS Vault`, nhập cùng `videoId` và tạo resource cho lesson. Tool không tự tạo database resource để tách riêng bước upload file và bước gắn video vào lesson.
 
@@ -10,28 +12,33 @@ Math Remix hỗ trợ resource `hls_vault` trong lesson. Người quản trị c
 video ổn định, ví dụ `lesson01`; không lưu URL CDN tạm thời, access token hay
 refresh token vào `lesson_resources`.
 
-## Chuẩn bị video
+## Chuẩn bị máy encode local
 
-Giữ nguyên cùng một `MEDIA_MASTER_KEY_HEX` khi encode và khi chạy website:
+FFmpeg native mặc định được tìm tại `C:\ffmpeg\bin\ffmpeg.exe`. Có thể cài ở vị trí khác và truyền `--ffmpeg` hoặc đặt `FFMPEG_PATH`.
+
+Script cần một Supabase access token còn hạn của tài khoản admin. Đặt token trong file local, không commit file này và không dán token vào log:
 
 ```powershell
-$env:MEDIA_MASTER_KEY_HEX="64-hex-characters-or-more"
-& D:\onedrive-hls-vault\tools\encode_ffmpeg_hls.ps1 `
-  -InputFile "D:\Videos\lesson01.mp4" `
-  -VideoId "lesson01"
+$env:REMIX_API_ORIGIN="https://api.mathremix.pro.vn"
+$env:REMIX_ACCESS_TOKEN_FILE="D:\secrets\remix-access-token.txt"
+
+npm run encode:hls:native -- `
+  --input "D:\Videos\lesson01.mp4" `
+  --video-id "lesson01"
 ```
 
-Upload toàn bộ thư mục output `lesson01` vào:
+Có thể truyền trực tiếp token bằng `REMIX_ACCESS_TOKEN`, nhưng file token là lựa chọn an toàn hơn. Có thể giữ output HLS local để kiểm tra bằng `--keep-output`; mặc định thư mục tạm và khóa media local sẽ bị xóa sau khi chạy.
+
+Các tùy chọn hữu ích:
 
 ```text
-OneDrive/VideoVault/lesson01/
-  master.m3u8
-  1080p/
-  720p/
+--api-origin <origin>   API Math Remix, mặc định https://api.mathremix.pro.vn
+--ffmpeg <path>         Đường dẫn ffmpeg.exe
+--threads <n>           Số luồng encode, mặc định số CPU - 1
+--keep-output           Giữ thư mục HLS tạm sau khi upload
 ```
 
-Không upload `key.bin`. Script encode tạo key tạm từ master key rồi xóa thư
-mục tạm sau khi hoàn tất.
+Script lấy khóa AES-128 theo video từ endpoint admin, chỉ dùng khóa đó trong lúc encode, rồi xóa file khóa tạm. Master key chỉ tồn tại trong server runtime và không được đặt trên máy local.
 
 ## Cấu hình website
 
@@ -43,7 +50,8 @@ MEDIA_MASTER_KEY_HEX=<cùng giá trị dùng khi encode>
 ```
 
 Website dùng kết nối Microsoft Graph delegated hiện có để đọc folder HLS. Kết
-nối Microsoft trước trong trang quản trị nếu chưa có connection hoạt động.
+nối Microsoft trước trong trang quản trị nếu chưa có connection hoạt động. API
+upload sẽ tự tạo `VideoVault/<videoId>/1080p` và `720p` trước khi nhận file.
 
 ## Migration
 
