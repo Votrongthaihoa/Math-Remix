@@ -320,6 +320,60 @@
 .admin-hls-vault-spin { animation: admin-hls-vault-spin .8s linear infinite; }
 @keyframes admin-hls-vault-spin { to { transform: rotate(360deg); } }
 
+.admin-hls-vault-engine {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+}
+.admin-hls-vault-engine legend { padding: 0; color: var(--hls-ink); font-size: 12px; font-weight: 750; }
+.admin-hls-vault-engine-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid var(--hls-line);
+  border-radius: 12px;
+  color: var(--hls-ink);
+  background: #fff;
+  cursor: pointer;
+}
+.admin-hls-vault-engine-option:has(input:checked) { border-color: #d99aa3; background: #fffafb; }
+.admin-hls-vault-engine-option input { accent-color: var(--hls-red); }
+.admin-hls-vault-engine-option > span:nth-child(2) { display: grid; gap: 3px; min-width: 0; }
+.admin-hls-vault-engine-option b,
+.admin-hls-vault-engine-option small { min-width: 0; overflow-wrap: break-word; }
+.admin-hls-vault-engine-option b { font-size: 12px; }
+.admin-hls-vault-engine-option small { color: var(--hls-muted); font-size: 11px; font-weight: 500; line-height: 1.4; }
+.admin-hls-vault-agent-pill { flex: 0 0 auto; padding: 4px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.admin-hls-vault-agent-pill.agent-ready { color: #166534; background: #dcfce7; }
+.admin-hls-vault-agent-pill.agent-checking { color: #92400e; background: #fef3c7; }
+.admin-hls-vault-agent-pill.agent-offline { color: #991b1b; background: #fee2e2; }
+.admin-hls-vault-agent-pill.agent-fallback { color: #475569; background: #f1f5f9; }
+.admin-hls-vault-agent-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--hls-muted);
+  background: #f8fafc;
+  font-size: 11px;
+}
+.admin-hls-vault-agent-status > span { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.admin-hls-vault-agent-status > span svg { width: 15px; height: 15px; }
+.admin-hls-vault-agent-status b { min-width: 0; overflow-wrap: break-word; }
+.admin-hls-vault-agent-refresh { display: inline-flex; align-items: center; flex: 0 0 auto; gap: 5px; padding: 4px 0; border: 0; color: var(--hls-red); background: transparent; font-size: 11px; font-weight: 750; cursor: pointer; }
+.admin-hls-vault-agent-refresh:disabled { cursor: wait; opacity: .55; }
+.admin-hls-vault-agent-refresh svg { width: 14px; height: 14px; }
+
 .admin-hls-vault-progress-card { display: grid; gap: 13px; }
 .admin-hls-vault-state { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; color: var(--hls-muted); font-size: 12px; font-weight: 750; }
 .admin-hls-vault-state.state-done { color: #19734b; }
@@ -356,4 +410,7 @@
   .admin-hls-vault-card-head { gap: 12px; }
   .admin-hls-vault-step { width: 36px; height: 36px; }
   .admin-hls-vault-actions > * { flex: 1 1 100%; }
+  .admin-hls-vault-engine-option { grid-template-columns: auto minmax(0, 1fr); }
+  .admin-hls-vault-agent-pill { grid-column: 2; justify-self: start; }
+  .admin-hls-vault-agent-status { align-items: flex-start; flex-direction: column; }
 }

@@ -4,7 +4,7 @@
 
 Để encode nhanh hơn, chạy `scripts/encode-hls-native.mjs` trên máy có FFmpeg native. Máy local sẽ encode hai rendition `1080p` và `720p`, sau đó upload từng manifest/segment qua API admin vào `VideoVault/<videoId>/`. MP4 gốc không được upload lên website. Sau khi upload xong, web tự đọc OneDrive, rewrite HLS và phát video qua gateway có kiểm tra quyền.
 
-Trang `Quản trị → Encode HLS` (`/admin/hls-vault`) vẫn có thể dùng khi không muốn cài FFmpeg local; trang này dùng FFmpeg WebAssembly trong trình duyệt.
+Trang `Quản trị → Encode HLS` (`/admin/hls-vault`) có thể điều khiển FFmpeg native local qua một agent trên `127.0.0.1`; nếu agent chưa chạy, trang vẫn có tùy chọn FFmpeg WebAssembly dự phòng trong trình duyệt.
 
 Sau khi tool báo hoàn tất, vào trình soạn khóa học, chọn `OneDrive HLS Vault`, nhập cùng `videoId` và tạo resource cho lesson. Tool không tự tạo database resource để tách riêng bước upload file và bước gắn video vào lesson.
 
@@ -36,6 +36,22 @@ npm.cmd run encode:hls:native -- --check-ffmpeg
 ```
 
 Nếu FFmpeg đã được thêm vào `PATH`, có thể chỉ rõ bằng `--ffmpeg ffmpeg`; nếu cài ở thư mục khác, dùng đường dẫn đầy đủ với `--ffmpeg`. Trên một số Windows dev shell, `node`/`npm` có thể bị app execution alias rỗng trong `C:\Windows\System32` che khuất Node thật; `npm.cmd` sẽ gọi đúng Node cài tại `C:\Program Files\nodejs`.
+
+## Dùng FFmpeg native từ giao diện web
+
+Mở terminal tại thư mục repo và giữ agent chạy trong lúc dùng trang quản trị:
+
+```powershell
+npm.cmd run ffmpeg:agent
+```
+
+Sau đó mở `Quản trị → Encode HLS`, chọn `FFmpeg native trên máy`, chọn MP4, nhập `videoId` và bấm `Encode native và upload`. Trình duyệt gửi MP4 vào agent local; agent gọi FFmpeg native và dùng session admin hiện tại để gọi API. Access token chỉ nằm trong bộ nhớ của agent trong thời gian job, không ghi vào file hoặc log.
+
+Agent chỉ lắng nghe trên `127.0.0.1:49321` và chỉ nhận request từ các origin Math Remix hoặc localhost. Nếu dùng site production khác origin, truyền thêm origin khi khởi động:
+
+```powershell
+npm.cmd run ffmpeg:agent -- --web-origin https://mathremix.pro.vn
+```
 
 Các tùy chọn hữu ích:
 

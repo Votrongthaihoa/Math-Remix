@@ -437,6 +437,7 @@ if (isMain) {
 
 export {
   DEFAULT_FFMPEG_PATH,
+  DEFAULT_API_ORIGIN,
   HLS_UPLOAD_CONCURRENCY,
   RENDITIONS,
   ffmpegArguments,

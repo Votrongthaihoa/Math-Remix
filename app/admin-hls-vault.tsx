@@ -1,14 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { ArrowUpToLine, CheckCircle2, FileVideo, LoaderCircle, ShieldCheck, UploadCloud } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { ArrowUpToLine, CheckCircle2, Cpu, FileVideo, LoaderCircle, RefreshCw, ShieldCheck, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import { authenticatedFetch } from "../lib/auth-client";
+import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
+import { apiRequestUrl } from "../lib/api-url";
 import { clearAttachedBytes } from "../lib/hls-upload";
 import "./admin-hls-vault.css";
 
 type RunState = "idle" | "loading" | "encoding" | "uploading" | "done" | "error";
+type EncoderMode = "native" | "browser";
+type NativeAgentStatus = "checking" | "ready" | "offline";
+type NativeJob = {
+  id: string;
+  status: string;
+  stage: string;
+  progress: number;
+  bytesReceived: number;
+  totalBytes: number;
+  uploadedFiles: number;
+  totalFiles: number;
+  error?: string;
+  logs?: string[];
+};
 type FfmpegFile = { name: string; isDir: boolean };
 type FfmpegEventPayload = { progress?: number; message?: string };
 type FfmpegLoadOptions = { coreURL: string; wasmURL: string; workerURL?: string };
@@ -29,6 +44,7 @@ const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core-mt@0.12.10/dist
 const CORE_FALLBACK_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 const HLS_SEGMENT_SECONDS = 6;
 const HLS_UPLOAD_CONCURRENCY = 6;
+const NATIVE_AGENT_ORIGIN = "http://127.0.0.1:49321";
 const RENDITIONS = [
   {
     name: "1080p",
@@ -152,6 +168,9 @@ async function createFfmpeg(
 export default function AdminHlsVault() {
   const [file, setFile] = useState<File | null>(null);
   const [videoId, setVideoId] = useState("lesson01");
+  const [encoderMode, setEncoderMode] = useState<EncoderMode>("native");
+  const [nativeAgentStatus, setNativeAgentStatus] = useState<NativeAgentStatus>("checking");
+  const [nativeAgentVersion, setNativeAgentVersion] = useState("");
   const [state, setState] = useState<RunState>("idle");
   const [progress, setProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState(0);
@@ -164,6 +183,28 @@ export default function AdminHlsVault() {
   const ffmpegRefs = useRef<FfmpegLike[]>([]);
   const progressValuesRef = useRef<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const checkNativeAgent = useCallback(async () => {
+    setNativeAgentStatus("checking");
+    try {
+      const response = await fetch(`${NATIVE_AGENT_ORIGIN}/health`, { headers: { accept: "application/json" }, cache: "no-store" });
+      const payload = await response.json().catch(() => null) as { ready?: boolean; ffmpegVersion?: string } | null;
+      if (!response.ok || !payload?.ready) throw new Error("Agent chưa sẵn sàng.");
+      setNativeAgentVersion(payload.ffmpegVersion || "FFmpeg native");
+      setNativeAgentStatus("ready");
+      return true;
+    } catch {
+      setNativeAgentVersion("");
+      setNativeAgentStatus("offline");
+      return false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (encoderMode !== "native") return;
+    const timer = window.setTimeout(() => { void checkNativeAgent(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [checkNativeAgent, encoderMode]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -196,6 +237,83 @@ export default function AdminHlsVault() {
     setFfmpegLog("");
     setDuration(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function nativeApiOrigin() {
+    const apiUrl = apiRequestUrl("/api/admin/hls-vault/upload");
+    return new URL(String(apiUrl), window.location.href).origin;
+  }
+
+  async function nativeJobRequest(jobId: string, method: "GET" | "POST" | "DELETE" = "GET") {
+    const response = await fetch(`${NATIVE_AGENT_ORIGIN}/jobs/${encodeURIComponent(jobId)}`, {
+      method,
+      headers: { accept: "application/json" },
+      cache: "no-store",
+    });
+    const payload = await response.json().catch(() => null) as NativeJob | { error?: string } | null;
+    if (!response.ok) throw new Error(payload && "error" in payload && payload.error ? payload.error : "Không đọc được trạng thái FFmpeg native.");
+    return payload as NativeJob;
+  }
+
+  async function waitForNativeJob(jobId: string, normalizedVideoId: string) {
+    while (true) {
+      const job = await nativeJobRequest(jobId);
+      setProgress(Math.min(100, Math.max(0, job.progress || 0)));
+      setUploadedFiles(job.uploadedFiles || 0);
+      setTotalFiles(job.totalFiles || 0);
+      setStage(job.stage || "FFmpeg native đang xử lý…");
+      setFfmpegLog(job.logs?.at(-1) || "");
+      if (job.status === "done") {
+        setState("done");
+        setProgress(100);
+        setStage("Đã encode và upload xong bằng FFmpeg native.");
+        setNotice(`OneDrive đã có VideoVault/${normalizedVideoId}/. Bước tiếp theo: tạo resource trong trình soạn khóa học.`);
+        return;
+      }
+      if (["failed", "cancelled"].includes(job.status)) throw new Error(job.error || "Encode FFmpeg native thất bại.");
+      setState(job.status === "uploading" ? "uploading" : job.status === "encoding" ? "encoding" : "loading");
+      await new Promise(resolve => setTimeout(resolve, 900));
+    }
+  }
+
+  async function startNative(normalizedVideoId: string) {
+    let jobId = "";
+    try {
+      const agentReady = nativeAgentStatus === "ready" || await checkNativeAgent();
+      if (!agentReady) throw new Error("Chưa kết nối được local FFmpeg agent. Hãy chạy `npm.cmd run ffmpeg:agent` trên máy này rồi thử lại.");
+      setStage("Đang kết nối local FFmpeg agent…");
+      const token = await activeSessionToken();
+      const createResponse = await fetch(`${NATIVE_AGENT_ORIGIN}/jobs`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({
+          apiOrigin: nativeApiOrigin(),
+          fileName: file!.name,
+          fileSize: file!.size,
+          videoId: normalizedVideoId,
+        }),
+      });
+      const created = await createResponse.json().catch(() => null) as NativeJob | { error?: string } | null;
+      if (!createResponse.ok || !created || !("id" in created)) throw new Error(created && "error" in created && created.error ? created.error : "Không tạo được native FFmpeg job.");
+      jobId = created.id;
+      setStage("Đang chuyển MP4 vào local agent…");
+      const inputResponse = await fetch(`${NATIVE_AGENT_ORIGIN}/jobs/${encodeURIComponent(jobId)}/input`, {
+        method: "PUT",
+        headers: { "content-type": file!.type || "video/mp4" },
+        body: file,
+      });
+      const uploaded = await inputResponse.json().catch(() => null) as NativeJob | { error?: string } | null;
+      if (!inputResponse.ok) throw new Error(uploaded && "error" in uploaded && uploaded.error ? uploaded.error : "Không chuyển được MP4 vào local agent.");
+      setProgress(10);
+      setStage("MP4 đã sẵn sàng. Đang khởi động FFmpeg native…");
+      await nativeJobRequest(jobId, "POST");
+      await waitForNativeJob(jobId, normalizedVideoId);
+    } catch (value) {
+      if (jobId) await nativeJobRequest(jobId, "DELETE").catch(() => undefined);
+      setState("error");
+      setError(value instanceof Error ? value.message : "Encode FFmpeg native thất bại.");
+      setStage("Quy trình đã dừng. Kiểm tra local agent rồi thử lại.");
+    }
   }
 
   async function getFfmpeg(index: number, multithread: boolean, loadOptions: FfmpegLoadOptions) {
@@ -327,6 +445,10 @@ export default function AdminHlsVault() {
     if (!file) { setError("Hãy chọn file MP4 trước."); return; }
     if (!/^[A-Za-z0-9_-]{1,80}$/.test(normalizedVideoId)) { setError("Mã video chỉ được dùng chữ, số, gạch ngang và gạch dưới."); return; }
     setState("loading"); setProgress(0); setUploadedFiles(0); setTotalFiles(0); setError(""); setNotice(""); setFfmpegLog("");
+    if (encoderMode === "native") {
+      await startNative(normalizedVideoId);
+      return;
+    }
     let mediaKey: Uint8Array | null = null;
     let loadOptions: FfmpegLoadOptions | null = null;
     try {
@@ -420,15 +542,29 @@ export default function AdminHlsVault() {
       <div className="admin-hls-vault-card-head"><div><span className="admin-hls-vault-eyebrow">BƯỚC 1 · CHUẨN BỊ</span><h2>Chọn video nguồn</h2><p>Không upload MP4 gốc. File sẽ được encode local thành manifest và segment mã hóa.</p></div><span className="admin-hls-vault-step">01</span></div>
       <div className="admin-hls-vault-form-grid">
         <label className="admin-hls-vault-field"><span>Mã video HLS</span><input value={videoId} onChange={event => setVideoId(event.target.value)} placeholder="lesson01" pattern="[A-Za-z0-9_-]{1,80}" disabled={busy}/><small>Dùng cùng mã này khi tạo resource trong lesson.</small></label>
-        <div className="admin-hls-vault-file-field"><span>File MP4 local</span><button type="button" className="admin-hls-vault-dropzone" onClick={() => fileInputRef.current?.click()} disabled={busy}><FileVideo aria-hidden="true"/><b>{file ? file.name : "Chọn file MP4"}</b><small>{file ? formatBytes(file.size) : "Chỉ nhận video/mp4"}</small></button><input ref={fileInputRef} className="admin-hls-vault-hidden-input" type="file" accept="video/mp4,.mp4" onChange={selectFile} disabled={busy}/></div>
+        <div className="admin-hls-vault-file-field"><span>File MP4 local</span><button type="button" className="admin-hls-vault-dropzone" onClick={() => fileInputRef.current?.click()} disabled={busy}><FileVideo aria-hidden="true"/><b>{file ? file.name : "Chọn file MP4"}</b><small>{file ? formatBytes(file.size) : "Chỉ nhận video/mp4"}</small></button><input ref={fileInputRef} className="admin-hls-vault-hidden-input" type="file" accept="video/mp4,.mp4" aria-label="File MP4 local" onChange={selectFile} disabled={busy}/></div>
       </div>
+      <fieldset className="admin-hls-vault-engine" disabled={busy}>
+        <legend>Phương thức encode</legend>
+        <label className="admin-hls-vault-engine-option">
+          <input type="radio" name="hls-encoder-mode" value="native" checked={encoderMode === "native"} onChange={() => setEncoderMode("native")} />
+          <span><b>FFmpeg native trên máy</b><small>Dùng FFmpeg thật, nhanh hơn và không tải MP4 lên website.</small></span>
+          <span className={`admin-hls-vault-agent-pill agent-${nativeAgentStatus}`}>{nativeAgentStatus === "ready" ? "Sẵn sàng" : nativeAgentStatus === "checking" ? "Đang kiểm tra" : "Chưa kết nối"}</span>
+        </label>
+        <label className="admin-hls-vault-engine-option">
+          <input type="radio" name="hls-encoder-mode" value="browser" checked={encoderMode === "browser"} onChange={() => setEncoderMode("browser")} />
+          <span><b>FFmpeg trong trình duyệt</b><small>Phương án dự phòng khi local agent chưa chạy.</small></span>
+          <span className="admin-hls-vault-agent-pill agent-fallback">Dự phòng</span>
+        </label>
+      </fieldset>
+      {encoderMode === "native" && <div className="admin-hls-vault-agent-status" role="status" aria-live="polite"><span><Cpu aria-hidden="true"/><b>{nativeAgentStatus === "ready" ? `Native agent sẵn sàng${nativeAgentVersion ? ` · ${nativeAgentVersion}` : ""}` : nativeAgentStatus === "checking" ? "Đang tìm local FFmpeg agent…" : "Local FFmpeg agent chưa chạy"}</b></span><button type="button" className="admin-hls-vault-agent-refresh" onClick={() => void checkNativeAgent()} disabled={nativeAgentStatus === "checking" || busy}><RefreshCw aria-hidden="true"/> Kiểm tra lại</button></div>}
       {file && <div className="admin-hls-vault-file-summary"><span><b>{file.name}</b><small>{formatBytes(file.size)}{duration ? ` · ${formatDuration(duration)}` : ""}</small></span><button type="button" onClick={reset} disabled={busy}>Đổi file</button></div>}
-      <div className="admin-hls-vault-actions"><button type="button" className="primary-btn admin-hls-vault-start" onClick={() => void start()} disabled={busy || !file}>{busy ? <><LoaderCircle className="admin-hls-vault-spin" aria-hidden="true"/> Đang xử lý…</> : <><ArrowUpToLine aria-hidden="true"/> Encode và upload OneDrive</>}</button>{state === "done" || state === "error" ? <button type="button" className="outline-btn" onClick={reset}>Bắt đầu video khác</button> : null}</div>
+      <div className="admin-hls-vault-actions"><button type="button" className="primary-btn admin-hls-vault-start" onClick={() => void start()} disabled={busy || !file}>{busy ? <><LoaderCircle className="admin-hls-vault-spin" aria-hidden="true"/> Đang xử lý…</> : <><ArrowUpToLine aria-hidden="true"/> {encoderMode === "native" ? "Encode native và upload" : "Encode và upload OneDrive"}</>}</button>{state === "done" || state === "error" ? <button type="button" className="outline-btn" onClick={reset}>Bắt đầu video khác</button> : null}</div>
     </section>
 
     <section className="admin-hls-vault-card admin-hls-vault-progress-card" aria-live="polite">
       <div className="admin-hls-vault-card-head"><div><span className="admin-hls-vault-eyebrow">BƯỚC 2 · XỬ LÝ</span><h2>Tiến trình</h2></div><span className={`admin-hls-vault-state state-${state}`}>{state === "done" ? <><CheckCircle2 aria-hidden="true"/> Hoàn tất</> : state === "error" ? "Có lỗi" : busy ? "Đang chạy" : "Chờ thao tác"}</span></div>
-      <div className="admin-hls-vault-progress-track"><span style={{ width: `${progress}%` }}/></div>
+      <div className="admin-hls-vault-progress-track" role="progressbar" aria-label="Tiến trình encode và upload" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }}/></div>
       <div className="admin-hls-vault-progress-meta"><b>{stage}</b><span>{uploadedFiles}{totalFiles ? ` / ${totalFiles}` : ""} file</span></div>
       {ffmpegLog && <p className="admin-hls-vault-log" title={ffmpegLog}>{ffmpegLog}</p>}
       {notice && <p className="admin-hls-vault-notice" role="status">{notice} <Link href="/admin/content">Mở trình soạn nội dung</Link></p>}

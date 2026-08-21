@@ -17,6 +17,7 @@ test("native HLS encoder uses local FFmpeg and the existing protected upload con
   assert.match(script, /authorization/i);
   assert.doesNotMatch(script, /MEDIA_MASTER_KEY_HEX/);
   assert.match(packageJson, /"encode:hls:native"\s*:/);
+  assert.match(packageJson, /"ffmpeg:agent"\s*:/);
   assert.match(docs, /encode-hls-native\.mjs/);
   assert.match(docs, /--check-ffmpeg/);
 });

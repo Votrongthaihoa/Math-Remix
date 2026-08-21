@@ -44,6 +44,9 @@ test("admin HLS tool encodes locally and never embeds the master secret", async 
   assert.match(component, /crossOriginIsolated/);
   assert.match(component, /workerURL/);
   assert.match(component, /\/api\/admin\/hls-vault\/upload/);
+  assert.match(component, /NATIVE_AGENT_ORIGIN/);
+  assert.match(component, /activeSessionToken/);
+  assert.match(component, /FFmpeg native trên máy/);
   assert.match(component, /hls\.key/);
   assert.match(component, /clearAttachedBytes\(ffmpegKey\)/);
   assert.doesNotMatch(component, /ffmpegKey\.fill\(0\)/);
