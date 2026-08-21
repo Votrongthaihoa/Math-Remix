@@ -47,5 +47,19 @@ test("HLS Vault routes use the existing content-token and resource-access bounda
   assert.match(adminRoute, /profile\.role !== "admin"/);
   assert.match(adminRoute, /resource_type:\s*"hls_vault"/);
   assert.match(player, /import\("hls\.js"\)/);
+  assert.match(player, /import\("plyr"\)/);
+  assert.match(player, /new Plyr\(/);
+  assert.match(player, /disableContextMenu:\s*true/);
   assert.match(player, /content\.type === "hls_vault"/);
+  assert.match(player, /controlsList="nodownload noremoteplayback"/);
+});
+
+test("HLS gateway proxies segments and throttles bulk downloader requests", async () => {
+  const route = await readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8");
+
+  assert.match(route, /consumeRequestBudget/);
+  assert.match(route, /security_events/);
+  assert.match(route, /range_not_supported/);
+  assert.match(route, /new Response\(source\.body/);
+  assert.doesNotMatch(route, /Response\.redirect\(origin, 302\)/);
 });

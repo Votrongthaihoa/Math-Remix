@@ -2,6 +2,11 @@ export function hlsVideoId(value: unknown) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{1,80}$/.test(value) ? value : null;
 }
 
+// A normal player requests a small burst at startup and then roughly one
+// segment per HLS duration. Bulk downloaders consume the burst immediately;
+// the refill rate then makes the gateway reject sustained parallel fetching.
+export const HLS_PLAYBACK_RATE_LIMIT = { capacity: 48, refillSeconds: 4 } as const;
+
 function safeRelativePath(value: string) {
   if (!value || value.length > 800 || value.includes("\\") || value.includes("\0")) return false;
   const parts = value.split("/");

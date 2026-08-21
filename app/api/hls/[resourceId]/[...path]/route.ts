@@ -1,10 +1,11 @@
 import { contentServer } from "../../../../../lib/content-server";
 import { verifyContentToken } from "../../../../../lib/content-token";
 import { hlsMediaKeyFromEnvironment } from "../../../../../lib/hls-key";
-import { rewriteHlsManifest } from "../../../../../lib/hls-vault";
+import { HLS_PLAYBACK_RATE_LIMIT, rewriteHlsManifest } from "../../../../../lib/hls-vault";
 import { getHlsOriginRedirect, hlsVideoId } from "../../../../../lib/microsoft-graph-hls";
+import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
 import { guardResourceAccess } from "../../../../../lib/resource-access-server";
-import { activeAccount, type SecurityProfile } from "../../../../../lib/security-server";
+import { activeAccount, hashedRequestIp, type SecurityProfile } from "../../../../../lib/security-server";
 
 type RouteContext = { params: Promise<{ resourceId: string; path: string[] }> };
 const MAX_MANIFEST_BYTES = 4 * 1024 * 1024;
@@ -19,6 +20,28 @@ function noStore(extra: HeadersInit = {}) {
 
 function jsonError(error: string, status: number) {
   return Response.json({ error }, { status, headers: noStore() });
+}
+
+async function playbackSubjectHash(userId: string, resourceId: string, request: Request) {
+  const ipHash = await hashedRequestIp(request);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`hls-playback:${userId}:${resourceId}:${ipHash}`));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function recordPlaybackThrottle(admin: Parameters<typeof guardResourceAccess>[0], userId: string, resourceId: string, relative: string, request: Request, denials: number) {
+  const { error } = await admin.from("security_events").insert({
+    user_id: userId,
+    event_type: "warning",
+    risk_score: Math.min(90, 40 + denials * 5),
+    reason: "HLS playback traffic was throttled.",
+    evidence: {
+      resourceId,
+      path: relative.slice(0, 240),
+      denialCount: denials,
+      userAgent: (request.headers.get("user-agent") || "").slice(0, 180),
+    },
+  });
+  if (error) console.warn("[hls] could not record playback throttle", { code: error.code, message: error.message });
 }
 
 function safeRelativePath(value: string) {
@@ -74,16 +97,29 @@ export async function GET(request: Request, context: RouteContext) {
   let relative: string;
   try { relative = params.path.map(value => decodeURIComponent(value)).join("/"); }
   catch { return jsonError("invalid_hls_path", 400); }
-    if (!safeRelativePath(relative)) return jsonError("invalid_hls_path", 400);
+  if (!safeRelativePath(relative)) return jsonError("invalid_hls_path", 400);
+  const isManifest = relative.toLowerCase().endsWith(".m3u8");
+  const isSegment = relative.toLowerCase().endsWith(".ts");
+  if (isSegment && request.headers.has("range")) return jsonError("range_not_supported", 416);
   try {
+    const budget = await consumeRequestBudget(admin, "hls-playback", await playbackSubjectHash(payload.sub, params.resourceId, request), HLS_PLAYBACK_RATE_LIMIT);
+    if (!budget.allowed) {
+      if (budget.denialsLastMinute <= 1) await recordPlaybackThrottle(admin, payload.sub, params.resourceId, relative, request, budget.denialsLastMinute);
+      return Response.json({ error: "HLS playback rate limited", code: "HLS_PLAYBACK_RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...noStore(), "retry-after": String(budget.retryAfterSeconds) } });
+    }
     if (relative === "key") {
       const key = await hlsMediaKeyFromEnvironment(videoId);
       return new Response(key, { status: 200, headers: noStore({ "content-type": "application/octet-stream" }) });
     }
     const origin = await getHlsOriginRedirect(videoId, relative, admin);
-    if (!relative.toLowerCase().endsWith(".m3u8")) return Response.redirect(origin, 302);
     const source = await fetch(origin, { headers: { accept: "application/vnd.apple.mpegurl,text/plain,*/*" }, cache: "no-store" });
-    if (!source.ok) return jsonError("hls_manifest_unavailable", 502);
+    if (!source.ok) return jsonError(isManifest ? "hls_manifest_unavailable" : "hls_segment_unavailable", 502);
+    if (!isManifest) {
+      return new Response(source.body, { status: 200, headers: noStore({
+        "content-type": source.headers.get("content-type") || (isSegment ? "video/mp2t" : "application/octet-stream"),
+        "content-disposition": "inline",
+      }) });
+    }
     const rewritten = rewriteHlsManifest(await readLimited(source), params.resourceId, relative, token);
     return new Response(rewritten, { status: 200, headers: noStore({ "content-type": "application/vnd.apple.mpegurl; charset=utf-8" }) });
   } catch (error) {
