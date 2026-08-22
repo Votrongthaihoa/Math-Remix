@@ -611,7 +611,6 @@
   .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role {
     display: none;
   }
-}
 
 @media (max-width: 767px) {
   .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page {
@@ -654,6 +653,9 @@
 
   
 }
+
+
+
 
 
 

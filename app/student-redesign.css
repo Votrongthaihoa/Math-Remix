@@ -70,7 +70,6 @@
   .ui-shell.student-app.product-shell .overview-role {
     display: none;
   }
-}
 
 @media (max-width: 767px) {
   .ui-shell.student-app.product-shell .main-content,
@@ -193,6 +192,9 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+
+
 
 
 
