@@ -586,3 +586,167 @@
 @media (forced-colors: active) {
   .ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-search-field, .aeck-field input, .aeck-field select, .aeck-field textarea):focus-visible { outline: 2px solid CanvasText; }
 }
+
+/* Reference fidelity pass: keep the product shell quiet and readable while
+   giving the dashboard a clearer information hierarchy. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page {
+  width: min(1160px, 100%);
+  gap: 20px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-summary {
+  grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(132px, .72fr));
+  align-items: stretch;
+  gap: 0;
+  min-height: 148px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, .92);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(255, 255, 255, .78), transparent 13rem),
+    linear-gradient(135deg, #eaf4ff 0%, #f4f1ff 100%);
+  box-shadow: 0 12px 32px rgba(58, 83, 145, .10);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-user {
+  min-width: 0;
+  gap: 14px;
+  padding-inline: 2px 20px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-user h1 {
+  margin: 3px 0 4px;
+  color: var(--aeck-text);
+  font-size: clamp(21px, 2.5vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -.45px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-user small,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number small,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role small {
+  color: var(--aeck-text-muted);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-user p,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number span,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role span {
+  color: var(--aeck-text-body);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role {
+  min-width: 0;
+  padding-inline: 22px;
+  border-inline-start: 1px solid rgba(71, 85, 105, .14);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number b,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role b {
+  color: var(--aeck-text);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number b {
+  font-size: clamp(26px, 3vw, 32px);
+  line-height: 1.1;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role b {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .summary-divider {
+  display: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .dashboard-next-step {
+  border-color: #cfe0ff;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 92% 20%, rgba(88, 86, 214, .08), transparent 13rem),
+    rgba(255, 255, 255, .88);
+  box-shadow: 0 8px 22px rgba(30, 64, 175, .07);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .dashboard-next-step-action {
+  min-height: 40px;
+  padding-inline: 16px;
+  box-shadow: 0 6px 16px rgba(0, 102, 214, .16);
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-list-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .two-col > .section-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .activity-card {
+  border-color: rgba(71, 85, 105, .12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 8px 22px rgba(24, 32, 48, .055);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-list-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .two-col > .section-card {
+  min-height: 168px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-list-card li,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .attempt-list li {
+  border-color: rgba(71, 85, 105, .10);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .activity-card {
+  padding: 20px 22px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dashboard-v2 .admin-kpi-card,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dashboard-v2 .admin-action-panel,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dashboard-v2 .admin-session-list {
+  border-color: rgba(71, 85, 105, .12);
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(24, 32, 48, .055);
+}
+
+@media (max-width: 1050px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-summary {
+    grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(116px, .72fr));
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page {
+    gap: 16px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-user {
+    grid-column: 1 / -1;
+    padding: 4px 2px 12px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number {
+    min-height: 102px;
+    padding: 12px 14px 4px;
+    border-top: 1px solid rgba(71, 85, 105, .13);
+    border-inline-start: 0;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-list-card,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .two-col > .section-card {
+    min-height: 0;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .activity-card {
+    padding: 18px 16px;
+  }
+}
