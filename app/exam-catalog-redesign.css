@@ -98,7 +98,7 @@
 }
 
 .exam-room-page .exam-room-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   gap: 18px;
   align-items: stretch;
 }
@@ -341,7 +341,7 @@
 }
 
 .exam-list-page .exam-list-grid {
-  grid-template-columns: minmax(0, 520px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
   gap: 18px;
   justify-content: start;
   margin-top: 0;
@@ -671,12 +671,6 @@
 .exam-attempt-history-item:focus-visible {
   outline: 2px solid var(--catalog-primary);
   outline-offset: 3px;
-}
-
-@media (max-width: 1100px) {
-  .exam-room-page .exam-room-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .exam-room-page :where(a, button, input):focus-visible,

@@ -136,6 +136,9 @@
     width: 84px;
     margin-inline-start: -34px;
     justify-content: center;
+    /* The compact logo lives in the topbar while the rail is collapsed.
+     * Move its visual/hit area back over the 84px rail so its center is 42px. */
+    transform: translateX(-28px);
   }
 }
 
@@ -911,24 +914,24 @@
 .admin-login-page {
   /* Admin auth is rendered outside .ui-shell.admin-app. Keep the same
    * semantic tokens available without widening selectors globally. */
-  --admin-primary: #007aff;
-  --admin-primary-strong: #0066d6;
-  --admin-primary-soft: rgba(0, 122, 255, 0.1);
-  --admin-accent: #007aff;
-  --admin-accent-hover: #0066d6;
+  --admin-primary: #d25362;
+  --admin-primary-strong: #b5122b;
+  --admin-primary-soft: #fff1f3;
+  --admin-accent: #d25362;
+  --admin-accent-hover: #b5122b;
   --admin-ink: #1d1d1f;
   --admin-body: #424245;
   --admin-muted: #6e6e73;
   --admin-line: rgba(60, 60, 67, 0.16);
   background:
-    radial-gradient(circle at 12% 12%, rgba(0, 122, 255, 0.16), transparent 28rem),
-    radial-gradient(circle at 90% 88%, rgba(88, 86, 214, 0.16), transparent 30rem),
-    linear-gradient(135deg, #f5f5f7, #eef2fa);
+    radial-gradient(circle at 12% 12%, rgba(210, 83, 98, 0.14), transparent 28rem),
+    radial-gradient(circle at 90% 88%, rgba(181, 18, 43, 0.1), transparent 30rem),
+    linear-gradient(135deg, #fff8f9, #f8f5f6);
 }
 
 .admin-login-page .admin-login-brand > span {
-  background: linear-gradient(145deg, #0a84ff, #5856d6);
-  box-shadow: 0 10px 22px rgba(0, 122, 255, 0.2);
+  background: linear-gradient(145deg, #d25362, #b5122b);
+  box-shadow: 0 10px 22px rgba(181, 18, 43, 0.18);
 }
 
 .admin-login-page .admin-login-brand small,
@@ -1066,6 +1069,95 @@
   .ui-shell.admin-app.product-shell .admin-upload-search {
     width: 100%;
   }
+}
+
+/* Product admin palette: keep operational screens on the same light-red
+ * language as the student shell. The question-bank route is included because
+ * it was explicitly requested for visual alignment; runner/question behavior
+ * is not changed here. Protected exam authoring routes remain untouched. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) {
+  --admin-primary: #d25362;
+  --admin-primary-strong: #b5122b;
+  --admin-primary-soft: #fff1f3;
+  --admin-accent: #d25362;
+  --admin-accent-hover: #b5122b;
+  --admin-bg: #fff8f9;
+  --admin-focus: 0 0 0 4px rgba(210, 83, 98, 0.16);
+  --ui-info: #b5122b;
+  --ui-info-soft: #fff1f3;
+  --ui-focus: 0 0 0 3px rgba(210, 83, 98, 0.16);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .main-content,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .main-content {
+  background:
+    radial-gradient(circle at 86% 0%, rgba(210, 83, 98, 0.08), transparent 28rem),
+    radial-gradient(circle at 12% 28%, rgba(181, 18, 43, 0.035), transparent 24rem),
+    var(--admin-bg);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar nav button:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar-toggle:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .sidebar nav button:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .sidebar-toggle:hover {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar nav button.active,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .sidebar nav button.active {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea):focus-visible,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(button, a, input, select, textarea):focus-visible {
+  outline-color: rgba(210, 83, 98, 0.34);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-intro,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-workflow-intro {
+  background: rgba(210, 83, 98, 0.055);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > button:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-action-item:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-log-item:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-workflow-strip > button:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-action-item:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-log-item:hover {
+  background: rgba(210, 83, 98, 0.045);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.primary-btn, .workspace-button.primary, .admin-session-primary),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(.primary-btn, .workspace-button.primary, .admin-session-primary) {
+  background: var(--admin-primary, #d25362);
+  border-color: var(--admin-primary, #d25362);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(181, 18, 43, 0.14);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled) {
+  background: var(--admin-primary-strong, #b5122b);
+  border-color: var(--admin-primary-strong, #b5122b);
+  box-shadow: 0 9px 20px rgba(181, 18, 43, 0.18);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.outline-btn, .workspace-button.ghost, .admin-session-refresh, .admin-session-action):hover:not(:disabled),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(.outline-btn, .workspace-button.ghost, .admin-session-refresh, .admin-session-action):hover:not(:disabled) {
+  border-color: rgba(181, 18, 43, 0.32);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):hover {
+  border-color: rgba(210, 83, 98, 0.38);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(181, 18, 43, 0.72);
 }
 
 @media (max-width: 575px) {

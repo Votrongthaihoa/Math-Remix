@@ -17,6 +17,7 @@ const redesignRoutes = [
   ["admin-students", "/admin/students"],
   ["admin-enrollments", "/admin/enrollments"],
   ["admin-upload", "/admin/upload"],
+  ["admin-question-bank", "/admin/question-bank"],
   ["student-dashboard", "/dashboard"],
   ["student-courses", "/courses"],
   ["student-course-detail", "/courses/mock-course"],
@@ -77,8 +78,14 @@ const mockCourse = {
   created_at: "2026-08-08T08:00:00.000Z",
 };
 const mockRooms = [{ id: "mock-room", title: "Kỳ thi thử tháng 8", description: "", exam_type: "HSA", registration_start: null, registration_end: null, exam_start: null, exam_end: null, published: true, access_mode: "open", sort_order: 1 }];
-const mockExams = [{ id: "mock-exam", room_id: "mock-room", title: "Đề TSA tổng hợp", description: "", dashboard_title: null, exam_type: "HSA", mode: "free", duration_minutes: 90, published: true, sort_order: 1, created_at: "2026-08-04T08:00:00.000Z" }];
-const mockSections = [{ id: "mock-section", exam_id: "mock-exam", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null }];
+const mockExams = [
+  { id: "mock-exam", room_id: "mock-room", title: "Đề TSA tổng hợp", description: "", dashboard_title: null, exam_type: "HSA", mode: "free", duration_minutes: 90, published: true, sort_order: 1, created_at: "2026-08-04T08:00:00.000Z" },
+  { id: "mock-exam-2", room_id: "mock-room", title: "Đề TSA luyện tập số 2", description: "", dashboard_title: null, exam_type: "HSA", mode: "free", duration_minutes: 90, published: true, sort_order: 2, created_at: "2026-08-05T08:00:00.000Z" },
+];
+const mockSections = [
+  { id: "mock-section", exam_id: "mock-exam", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
+  { id: "mock-section-2", exam_id: "mock-exam-2", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
+];
 const mockAttempts = [
   { id: "mock-attempt-latest", exam_id: "mock-exam", status: "graded", score: 87.5, correct_answers: 42, total_questions: 50, started_at: "2026-08-09T07:00:00.000Z", submitted_at: "2026-08-09T08:12:00.000Z", duration_seconds: 4320 },
   { id: "mock-attempt-first", exam_id: "mock-exam", status: "completed", score: 72, correct_answers: 36, total_questions: 50, started_at: "2026-08-06T07:00:00.000Z", submitted_at: "2026-08-06T08:18:00.000Z", duration_seconds: 4680 },
@@ -307,10 +314,14 @@ async function inspectCollapsedAdminSidebar() {
       namedLinks: navLinks.filter(link => Boolean(link.getAttribute("aria-label"))).length,
       navLinks: navLinks.length,
       compactLogoLeft: logo ? Math.round(logo.left) : null,
+      compactLogoCenterOffset: logo ? Math.round(Math.abs((logo.left + logo.width / 2) - 42)) : null,
     };
   });
   await page.screenshot({ path: join(outputDir, "admin-sidebar-collapsed-1440.png"), fullPage: true });
   report.push({ name: "admin-sidebar-collapsed", path: "/admin/enrollments", width: 1440, ...state });
+  if (!state.collapsed || state.visibleSectionLabels !== 0 || state.namedLinks !== state.navLinks || state.compactLogoCenterOffset == null || state.compactLogoCenterOffset > 2) {
+    throw new Error(`Admin collapsed sidebar alignment failed: ${JSON.stringify(state)}`);
+  }
 }
 
 async function inspectDashboardDotAlignment() {
@@ -425,6 +436,7 @@ async function inspectExamHistoryDialog() {
         closeFocused: document.activeElement === close,
         backgroundInert: background.length > 0 && background.every(element => element instanceof HTMLElement && element.inert),
         dialogColumns: getComputedStyle(dialog?.querySelector(".exam-attempt-history-list")).gridTemplateColumns,
+        gridColumns: getComputedStyle(document.querySelector(".exam-list-grid")).gridTemplateColumns,
         cardWidth: card ? Math.round(card.width) : null,
         gridWidth: grid ? Math.round(grid.width) : null,
         horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
@@ -444,7 +456,7 @@ async function inspectExamHistoryDialog() {
     if (result.historyItems !== 2 || !result.closeFocused || !result.backgroundInert || !result.dialogClosed || !result.triggerRestored || result.horizontalOverflow) {
       throw new Error(`Exam history dialog failed at ${width}px: ${JSON.stringify(result)}`);
     }
-    if (width === 1440 && (result.cardWidth == null || result.cardWidth > 520 || result.dialogColumns.split(" ").length !== 2)) {
+    if (width === 1440 && (result.cardWidth == null || result.gridColumns.split(" ").length !== 2 || result.dialogColumns.split(" ").length !== 2)) {
       throw new Error(`Exam package desktop layout failed: ${JSON.stringify(result)}`);
     }
     if (width === 390 && (result.cardWidth == null || result.gridWidth == null || Math.abs(result.cardWidth - result.gridWidth) > 1 || result.dialogColumns.split(" ").length !== 1)) {

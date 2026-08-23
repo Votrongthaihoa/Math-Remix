@@ -1,6 +1,10 @@
 .ui-shell.admin-app.product-shell .question-bank-page {
   width: min(1400px, 100%);
   margin-inline: auto;
+  --admin-primary: #d25362;
+  --admin-primary-strong: #b5122b;
+  --admin-primary-soft: #fff1f3;
+  --admin-focus: 0 0 0 4px rgba(210, 83, 98, .16);
   color: var(--admin-ink);
 }
 
@@ -120,7 +124,7 @@
 .question-bank-node:hover,
 .question-bank-list > button.active,
 .question-bank-node.active {
-  border-color: rgba(0, 122, 255, .18);
+  border-color: rgba(181, 18, 43, .18);
   background: var(--admin-primary-soft);
   color: var(--admin-primary-strong);
 }
@@ -209,7 +213,7 @@
 .question-bank-search input,
 .question-bank-filter select { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--admin-body); font: inherit; font-size: 12px; }
 .question-bank-result-count { align-self: center; color: var(--admin-muted); font-size: 11px; white-space: nowrap; }
-.question-bank-attach-form { display: grid; grid-template-columns: minmax(220px, 1.3fr) minmax(180px, 1fr) minmax(180px, 1fr) auto; align-items: end; gap: 12px; background: linear-gradient(135deg, rgba(0,122,255,.08), rgba(255,255,255,.55)); }
+.question-bank-attach-form { display: grid; grid-template-columns: minmax(220px, 1.3fr) minmax(180px, 1fr) minmax(180px, 1fr) auto; align-items: end; gap: 12px; background: linear-gradient(135deg, rgba(210,83,98,.08), rgba(255,255,255,.55)); }
 .question-bank-attach-form > div { align-self: start; }
 .question-bank-attach-form h3 { font-size: 16px; }
 .question-bank-attach-form p { font-size: 11px; }
@@ -222,7 +226,7 @@
 .question-bank-item-list { display: grid; gap: 10px; }
 .question-bank-item-card { display: flex; gap: 11px; padding: 14px; border: 1px solid var(--admin-line); border-radius: 12px; background: rgba(255,255,255,.65); transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease; }
 .question-bank-item-card:hover,
-.question-bank-item-card.selected { border-color: rgba(0,122,255,.34); background: rgba(255,255,255,.9); box-shadow: 0 8px 22px rgba(24,32,48,.06); }
+.question-bank-item-card.selected { border-color: rgba(181,18,43,.34); background: rgba(255,255,255,.9); box-shadow: 0 8px 22px rgba(115,33,47,.06); }
 .question-bank-item-select { position: relative; display: flex; align-items: flex-start; padding-top: 2px; cursor: pointer; }
 .question-bank-item-select input { position: absolute; opacity: 0; }
 .question-bank-item-select span { display: block; width: 18px; height: 18px; border: 1px solid var(--admin-border-strong); border-radius: 5px; background: #fff; }

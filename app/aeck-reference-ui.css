@@ -163,6 +163,25 @@
     height: 42px;
     object-fit: contain;
   }
+
+  /* Keep the compact mark optically centered inside the 80px rail while the
+   * full wordmark retains the expanded sidebar's 288px alignment. */
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-brand {
+    width: 80px;
+    min-width: 80px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-brand .student-sidebar-logo-compact {
+    margin-inline: auto;
+    transform: translateX(-1px);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]).sidebar-expanded .student-sidebar-brand {
+    width: 288px;
+    min-width: 288px;
+  }
 }
 
 .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav {
@@ -470,6 +489,39 @@
 .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page {
   width: min(100%, 1440px);
   max-width: none;
+}
+
+/* Let the lesson media own more of the desktop canvas. The curriculum stays
+ * readable at 320px, while the video gains the space released from the old
+ * 400px rail and 32px gap. */
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .lesson-layout {
+  gap: 24px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .curriculum-panel {
+  width: 320px;
+  flex-basis: 320px;
+}
+
+@media (max-width: 1100px) {
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .lesson-layout {
+    flex-direction: column;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .viewer-card,
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .curriculum-panel {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .curriculum-panel {
+    position: static;
+    max-height: none;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page .lesson-nav > .lesson-curriculum-list {
+    overflow: visible;
+  }
 }
 
 .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback {

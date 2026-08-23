@@ -38,13 +38,12 @@ test("exam-list footer stacks actions before narrow labels become cramped", asyn
   );
 });
 
-test("learner room catalog keeps a fixed three/two/one-column slot layout", async () => {
+test("learner room catalog fills each row before wrapping cards", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
-  assert.match(css, /\.exam-room-page \.exam-room-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);[\s\S]*?align-items:\s*stretch;/);
-  assert.match(css, /@media\s*\(max-width:\s*1100px\)[\s\S]*?\.exam-room-page \.exam-room-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(css, /\.exam-room-page \.exam-room-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 340px\), 1fr\)\);[\s\S]*?align-items:\s*stretch;/);
+  assert.doesNotMatch(css, /@media\s*\(max-width:\s*1100px\)[\s\S]*?\.exam-room-page \.exam-room-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media\s*\(max-width:\s*767px\)[\s\S]*?\.exam-room-page \.exam-room-grid[\s\S]*?grid-template-columns:\s*1fr;/);
-  assert.doesNotMatch(css, /\.exam-room-page \.exam-room-grid\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit/);
 });
 
 test("room catalog tags and titles share a centered, long-text-safe axis", async () => {
@@ -77,11 +76,11 @@ test("room and exam cards share one restrained crimson type badge", async () => 
   );
 });
 
-test("exam package cards stay in one fixed-width vertical column", async () => {
+test("exam package cards fill a row before wrapping", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
-  assert.match(css, /\.exam-list-page \.exam-list-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 520px\);[^}]*justify-content:\s*start;/);
-  assert.doesNotMatch(css, /\.exam-list-page \.exam-list-grid\s*\{[^}]*repeat\(auto-fit/);
+  assert.match(css, /\.exam-list-page \.exam-list-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 480px\), 1fr\)\);[\s\S]*?justify-content:\s*start;/);
+  assert.doesNotMatch(css, /\.exam-list-page \.exam-list-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 520px\);/);
   assert.match(css, /@media\s*\(max-width:\s*767px\)[\s\S]*?\.exam-list-page \.exam-list-grid[\s\S]*?grid-template-columns:\s*1fr;/);
 });
 
