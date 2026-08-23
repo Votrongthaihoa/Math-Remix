@@ -4,6 +4,36 @@ import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const listStatuses = new Set(["all", "active", "temporarily_banned", "permanently_banned", "violations"]);
+const defaultPageSize = 20;
+const maxPageSize = 50;
+const authLookupConcurrency = 5;
+const authEmailCacheTtlMs = 60_000;
+const authEmailCacheMaxEntries = 2_000;
+const authEmailCache = new Map<string, { email: string; expiresAt: number }>();
+
+function cacheAuthEmail(id: string, email: string) {
+  if (!authEmailCache.has(id) && authEmailCache.size >= authEmailCacheMaxEntries) {
+    const oldestId = authEmailCache.keys().next().value;
+    if (oldestId) authEmailCache.delete(oldestId);
+  }
+  authEmailCache.set(id, { email, expiresAt: Date.now() + authEmailCacheTtlMs });
+}
+
+function positiveInteger(value: string | null, fallback: number, maximum: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.min(parsed, maximum);
+}
+
+function safeSearchTerm(value: string | null) {
+  return (value ?? "")
+    .trim()
+    .slice(0, 100)
+    .replace(/[^\p{L}\p{N}\s@._+-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 async function adminRequest(request: Request) {
   const security = await ensureActiveAccount(request);
@@ -16,18 +46,96 @@ export async function GET(request: Request) {
   const security = await adminRequest(request);
   if (!security.ok) return security.response;
   const { admin, user } = security;
-  const userId = new URL(request.url).searchParams.get("userId")?.trim() || "";
+  const searchParams = new URL(request.url).searchParams;
+  const userId = searchParams.get("userId")?.trim() || "";
   if (userId && !uuid.test(userId)) return Response.json({ error: "Mã tài khoản không hợp lệ." }, { status: 400, headers });
 
   if (!userId) {
-    const [{ data: profiles, error }, { data: authPage }] = await Promise.all([
-      admin.from("profiles").select("id,full_name,student_code,role,status,account_status,violation_count,banned_at,banned_until,ban_reason,ban_event_id,created_at").eq("role", "student").order("banned_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
-      admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    ]);
-    if (error) return Response.json({ error: error.message }, { status: 400, headers });
-    const emails = new Map((authPage?.users ?? []).map(user => [user.id, user.email ?? ""]));
-    const rows = (profiles ?? []).map(profile => ({ ...profile, email: emails.get(profile.id) ?? "" }));
-    return Response.json({ users: rows, serverTime: new Date().toISOString() }, { headers });
+    const q = safeSearchTerm(searchParams.get("q"));
+    const requestedStatus = searchParams.get("status")?.trim() || "all";
+    if (!listStatuses.has(requestedStatus)) return Response.json({ error: "Bộ lọc trạng thái không hợp lệ." }, { status: 400, headers });
+    let page = positiveInteger(searchParams.get("page"), 1, 10_000);
+    const limit = positiveInteger(searchParams.get("limit"), defaultPageSize, maxPageSize);
+    let offset = (page - 1) * limit;
+    const emailMatchIds: string[] = [];
+    const scannedEmails = new Map<string, string>();
+
+    if (q.includes("@")) {
+      const emailQuery = q.toLocaleLowerCase("vi");
+      const authPageSize = 1000;
+      let authPage = 1;
+      while (authPage > 0) {
+        const { data: authUsers, error: authError } = await admin.auth.admin.listUsers({ page: authPage, perPage: authPageSize });
+        if (authError) return Response.json({ error: authError.message }, { status: 400, headers });
+        for (const user of authUsers.users) {
+          const id = user.id;
+          if (!uuid.test(id)) continue;
+          const email = user.email ?? "";
+          scannedEmails.set(id, email);
+          cacheAuthEmail(id, email);
+          if (email.toLocaleLowerCase("vi").includes(emailQuery)) emailMatchIds.push(id);
+        }
+        authPage = authUsers.nextPage ?? 0;
+      }
+    }
+
+    const serverNow = new Date().toISOString();
+    const executeProfilesPage = async (targetOffset: number) => {
+      let query = admin
+        .from("profiles")
+        .select("id,full_name,student_code,role,status,account_status,violation_count,banned_at,banned_until,ban_reason,ban_event_id,created_at", { count: "exact" })
+        .eq("role", "student");
+      if (requestedStatus === "violations") query = query.gt("violation_count", 0);
+      else if (requestedStatus === "active") query = query.or(`account_status.eq.active,and(account_status.eq.temporarily_banned,banned_until.lte.${serverNow})`);
+      else if (requestedStatus === "temporarily_banned") query = query.eq("account_status", "temporarily_banned").or(`banned_until.is.null,banned_until.gt.${serverNow}`);
+      else if (requestedStatus === "permanently_banned") query = query.eq("account_status", "permanently_banned");
+      if (q) {
+        const filters = [`full_name.ilike.%${q}%`, `student_code.ilike.%${q}%`];
+        if (emailMatchIds.length) filters.push(`id.in.(${emailMatchIds.join(",")})`);
+        query = query.or(filters.join(","));
+      }
+      return query
+        .order("banned_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(targetOffset, targetOffset + limit - 1);
+    };
+
+    let profilePage = await executeProfilesPage(offset);
+    if (profilePage.error) return Response.json({ error: profilePage.error.message }, { status: 400, headers });
+    const total = profilePage.count ?? 0;
+    const pageCount = Math.max(1, Math.ceil(total / limit));
+    if (page > pageCount) {
+      page = pageCount;
+      offset = (page - 1) * limit;
+      profilePage = await executeProfilesPage(offset);
+      if (profilePage.error) return Response.json({ error: profilePage.error.message }, { status: 400, headers });
+    }
+
+    const profiles = profilePage.data ?? [];
+    const emails = new Map(scannedEmails);
+    const missingIds = profiles.map(profile => profile.id).filter(id => {
+      if (emails.has(id)) return false;
+      const cached = authEmailCache.get(id);
+      if (!cached || cached.expiresAt <= Date.now()) {
+        authEmailCache.delete(id);
+        return true;
+      }
+      emails.set(id, cached.email);
+      return false;
+    });
+    for (let index = 0; index < missingIds.length; index += authLookupConcurrency) {
+      const batch = await Promise.all(missingIds.slice(index, index + authLookupConcurrency).map(async id => {
+        const authUser = await admin.auth.admin.getUserById(id);
+        return [id, authUser.data.user?.email ?? ""] as const;
+      }));
+      for (const [id, email] of batch) {
+        emails.set(id, email);
+        cacheAuthEmail(id, email);
+      }
+    }
+    const rows = profiles.map(profile => ({ ...profile, email: emails.get(profile.id) ?? "" }));
+    return Response.json({ items: rows, total, page, limit, hasNextPage: offset + rows.length < total, serverTime: new Date().toISOString() }, { headers });
   }
 
   const { data: targetProfile, error: targetProfileError } = await admin.from("profiles").select("id,role").eq("id", userId).maybeSingle();

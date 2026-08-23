@@ -2,6 +2,17 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+test("upload proxy focus and thumbnails keep visible geometry", async () => {
+  const [component, styles] = await Promise.all([
+    readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-upload.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(component, /className="admin-upload-private-thumb"[^>]*width=\{640\} height=\{360\}/);
+  assert.match(component, /<img src=\{image\.url\}[^>]*width=\{640\} height=\{360\}/);
+  assert.match(styles, /\.admin-upload-dropzone:focus-within/);
+});
+
 test("public image library keeps load failures separate from the empty state", async () => {
   const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
 
@@ -28,6 +39,40 @@ test("upload controls and metadata formatting stay accessible and date-safe", as
   assert.match(component, /aria-label="Chọn ảnh để tải lên"/);
   assert.match(component, /<button type="submit" className="primary-btn admin-upload-submit"/);
   assert.match(component, /Number\.isNaN\(date\.getTime\(\)\)/);
+});
+
+test("image libraries use URL-driven tabs, search, pagination, and namespaced copy state", async () => {
+  const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /type LibraryTab = "public" \| "private"/);
+  assert.match(component, /url\.searchParams\.set\("library", activeLibrary\)/);
+  assert.match(component, /url\.searchParams\.set\("publicQ", searchTerm\)/);
+  assert.match(component, /url\.searchParams\.set\("privateQ", examSearchTerm\)/);
+  assert.match(component, /url\.searchParams\.set\("publicPage", String\(publicPage\)\)/);
+  assert.match(component, /url\.searchParams\.set\("privatePage", String\(privatePage\)\)/);
+  assert.match(component, /`public:\$\{image\.assetName\}`/);
+  assert.match(component, /`private:\$\{key\}`/);
+  assert.match(component, /className="admin-upload-live-region" role="status" aria-live="polite" aria-atomic="true"/);
+  assert.match(component, /Number\.isFinite\(parsed\)/);
+  assert.match(component, /setPublicPage\(page => Math\.min\(page, publicPageCount\)\)/);
+  assert.match(component, /setPrivatePage\(page => Math\.min\(page, privatePageCount\)\)/);
+});
+
+test("copy confirmations use a dedicated repeatable live announcement", async () => {
+  const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /const \[copyAnnouncement, setCopyAnnouncement\] = useState\(""\);/);
+  assert.match(component, /setCopyAnnouncement\(""\);[\s\S]*?requestAnimationFrame\([\s\S]*?setCopyAnnouncement\(`Đã sao chép URL ảnh \$\{image\.assetName\}\.`\)/);
+  assert.match(component, /className="admin-upload-live-region" role="status" aria-live="polite" aria-atomic="true">\{copyAnnouncement\}/);
+  assert.match(component, /\{notice \|\| \(activeLibrary === "public"/);
+});
+
+test("copy feedback cancels stale reset timers", async () => {
+  const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /const copyResetTimeoutRef = useRef<number \| null>\(null\);/);
+  assert.match(component, /if \(copyResetTimeoutRef\.current !== null\) \{[\s\S]*?window\.clearTimeout\(copyResetTimeoutRef\.current\);/);
+  assert.match(component, /copyResetTimeoutRef\.current = window\.setTimeout\(/);
 });
 
 test("lesson PDF upload validates course ownership and binds confirmation path", async () => {

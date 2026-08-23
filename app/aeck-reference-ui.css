@@ -1,0 +1,776 @@
+/*
+ * AECK reference layer for the student product shell.
+ *
+ * This file is intentionally scoped to the two non-runner route modes. The
+ * question, answer, result and authoring surfaces keep their own boundaries.
+ */
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) {
+  --aeck-logo: #d25362;
+  --aeck-logo-dark: #b5122b;
+  --aeck-logo-soft: #fff1f3;
+  --aeck-logo-selected: #ffe2e7;
+  --aeck-shell-bg: #fff8f9;
+  --aeck-shell-surface: #ffffff;
+  --aeck-shell-line: #f0dce0;
+  --aeck-shell-ink: #2a1b1f;
+  --aeck-shell-body: #5a3c42;
+  --aeck-shell-muted: #806a70;
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  background: var(--aeck-shell-bg);
+  color: var(--aeck-shell-ink);
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .student-global-bg {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 82% 18%, rgba(210, 83, 98, .08), transparent 26rem);
+  opacity: .9;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > :where(.topbar, .main-content) {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .sidebar {
+    width: 80px;
+    border-right: 1px solid var(--aeck-shell-line);
+    background: var(--aeck-shell-surface);
+    box-shadow: 4px 0 24px rgba(115, 33, 47, .035);
+    transition: width .24s cubic-bezier(.2, .8, .2, 1);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]).sidebar-expanded > .sidebar {
+    width: 288px;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .topbar {
+    height: 81px;
+    margin-inline-start: 80px;
+    padding-inline: 48px 40px;
+    border-bottom: 1px solid var(--aeck-shell-line);
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 1px 0 rgba(115, 33, 47, .025);
+    transition: margin-inline-start .24s cubic-bezier(.2, .8, .2, 1);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]).sidebar-expanded > .topbar {
+    margin-inline-start: 288px;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .main-content {
+    min-height: calc(100dvh - 81px);
+    margin-inline-start: 80px;
+    padding: 48px;
+    background: transparent;
+    transition: margin-inline-start .24s cubic-bezier(.2, .8, .2, 1);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]).sidebar-expanded > .main-content {
+    margin-inline-start: 288px;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .sidebar .mobile-sidebar-head {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-brand {
+    display: flex;
+    height: 81px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 18px 32px;
+    overflow: hidden;
+    color: var(--aeck-logo);
+    text-decoration: none;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-brand img {
+    display: block;
+    width: 176px;
+    height: auto;
+    flex: 0 0 auto;
+    object-fit: contain;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .sidebar nav.student-sidebar-nav {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 24px 16px 20px;
+    scrollbar-width: thin;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .header-brand {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .header-sidebar-toggle {
+    position: static;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    transform: none;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: var(--aeck-shell-muted);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .header-sidebar-toggle:hover {
+    background: var(--aeck-logo-soft);
+    color: var(--aeck-logo-dark);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .sidebar:not(.mobile-open) .student-sidebar-brand img {
+    max-width: 176px;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-brand {
+    justify-content: center;
+    padding-inline: 10px;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-brand img {
+    width: 46px;
+    height: 42px;
+    object-fit: cover;
+    object-position: left center;
+  }
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav {
+  color: var(--aeck-shell-muted);
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) {
+  display: flex;
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+  padding: 0 14px;
+  border-radius: 11px;
+  color: var(--aeck-shell-body);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-decoration: none;
+  cursor: pointer;
+  list-style: none;
+  transition: color .15s ease, background-color .15s ease;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-primary:hover,
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-disclosure > summary:hover {
+  background: var(--aeck-logo-soft);
+  color: var(--aeck-logo-dark);
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav :where(.student-nav-primary.active, .student-nav-disclosure.active-parent > summary) {
+  background: var(--aeck-logo-selected);
+  color: var(--aeck-logo-dark);
+  font-weight: 750;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure) > :where(svg:first-child) {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: currentColor;
+  stroke-width: 1.8;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-disclosure > summary > svg:last-child {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  color: var(--aeck-shell-muted);
+  transition: transform .18s ease, color .15s ease;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-disclosure[open] > summary > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-children {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 8px 24px;
+  padding: 2px 0 2px 12px;
+  border-inline-start: 1px solid var(--aeck-shell-line);
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-children a {
+  display: flex;
+  min-width: 0;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  color: var(--aeck-shell-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color .15s ease, background-color .15s ease;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-children a > span:first-child {
+  flex: 0 0 auto;
+  color: var(--aeck-logo);
+  font-size: 10px;
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-children a:hover,
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav .student-nav-children a.active {
+  background: var(--aeck-logo-soft);
+  color: var(--aeck-logo-dark);
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-nav :where(a, summary):focus-visible {
+  outline: 2px solid var(--aeck-logo);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) > span,
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-nav .student-nav-disclosure > summary > svg:last-child,
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-nav .student-nav-children {
+    display: none;
+  }
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .main-content.product-view-content {
+  background: transparent;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(.page-stack, .profile-grid, .lesson-page) {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(h1, h2, h3) {
+  color: var(--aeck-shell-ink);
+  letter-spacing: -.02em;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(p, small, .course-search-status) {
+  color: var(--aeck-shell-muted);
+}
+
+/* Course catalog: the measured reference uses a quiet heading and compact
+ * 16:9 cards with the action aligned to the bottom-right. */
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .courses-page {
+  width: min(100%, 1120px);
+  gap: 30px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .courses-toolbar {
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .courses-toolbar h1 {
+  margin: 0;
+  color: var(--aeck-shell-ink);
+  font-size: 30px;
+  font-weight: 750;
+  line-height: 36px;
+  letter-spacing: -.035em;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .courses-toolbar p {
+  max-width: 62ch;
+  margin: 8px 0 0;
+  color: var(--aeck-shell-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-search-wrap {
+  width: min(320px, 100%);
+  justify-items: stretch;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-search {
+  width: 100%;
+  min-height: 44px;
+  border-color: var(--aeck-shell-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .9);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-search:focus-within {
+  border-color: rgba(210, 83, 98, .72);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(210, 83, 98, .13);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-search svg {
+  color: var(--aeck-shell-muted);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-grid.reference-course-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card {
+  height: 350px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(115, 33, 47, .08);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(115, 33, 47, .05), 0 8px 22px rgba(115, 33, 47, .035);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card:hover {
+  border-color: rgba(210, 83, 98, .22);
+  box-shadow: 0 14px 30px rgba(115, 33, 47, .1);
+  transform: translateY(-3px);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card:focus-within {
+  border-color: rgba(210, 83, 98, .52);
+  box-shadow: 0 0 0 3px rgba(210, 83, 98, .14), 0 12px 28px rgba(115, 33, 47, .08);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-card-action {
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-cover {
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  background: var(--aeck-logo-soft);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / .1);
+  outline-offset: -1px;
+  transition: transform .3s ease;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card:hover .course-cover img {
+  transform: scale(1.025);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-cover-fallback,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-cover-fallback {
+  background: linear-gradient(135deg, var(--aeck-logo-dark), var(--aeck-logo));
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-body {
+  display: flex;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-body h3 {
+  display: -webkit-box;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--aeck-shell-ink);
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 24px;
+  text-wrap: balance;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-meta {
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--aeck-shell-line);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-meta span {
+  min-width: 0;
+  color: var(--aeck-shell-muted);
+  font-size: 12px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-meta svg {
+  color: var(--aeck-logo);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card .course-meta b {
+  color: var(--aeck-logo-dark);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+/* Detail route: keep the cover and curriculum visible together on desktop. */
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(330px, .82fr);
+  grid-template-areas:
+    "back back"
+    "hero curriculum";
+  align-items: start;
+  gap: 18px 28px;
+  width: min(100%, 1120px);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page > .back-btn {
+  grid-area: back;
+  width: fit-content;
+  min-height: 40px;
+  margin: 0;
+  padding: 7px 10px 7px 4px;
+  border-radius: 9px;
+  color: var(--aeck-shell-muted);
+  text-decoration: none;
+  transition: color .15s ease, background-color .15s ease;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page > .back-btn:hover {
+  background: var(--aeck-logo-soft);
+  color: var(--aeck-logo-dark);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero {
+  grid-area: hero;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero > :where(img, .course-study-cover-fallback) {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 12px 26px rgba(115, 33, 47, .1);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero > div {
+  min-width: 0;
+  padding: 22px 4px 0;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero .eyebrow {
+  color: var(--aeck-logo);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero h1 {
+  margin: 7px 0 8px;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--aeck-shell-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-curriculum-panel {
+  grid-area: curriculum;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--aeck-shell-line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 8px 22px rgba(115, 33, 47, .045);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-curriculum-head {
+  min-width: 0;
+  padding: 2px 2px 15px;
+  border-bottom: 1px solid var(--aeck-shell-line);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-curriculum-head h2 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-curriculum-head p {
+  margin: 5px 0 0;
+  color: var(--aeck-shell-muted);
+  font-size: 12px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--aeck-shell-line);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card > summary {
+  display: flex;
+  min-width: 0;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 13px;
+  color: var(--aeck-shell-body);
+  cursor: pointer;
+  list-style: none;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card > summary strong {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card > summary > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--aeck-logo);
+  transition: transform .18s ease;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card[open] > summary > svg {
+  transform: rotate(90deg);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-card > summary:hover {
+  background: var(--aeck-logo-soft);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-lessons {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 8px;
+  border-top: 1px solid var(--aeck-shell-line);
+  background: #fbfdfb;
+  list-style: none;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-lessons > li > a {
+  min-height: 40px;
+  align-items: center;
+  padding: 9px 10px;
+  color: var(--aeck-shell-body);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-lessons > li > a:hover {
+  color: var(--aeck-logo-dark);
+  background: var(--aeck-logo-soft);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-part-lessons-empty {
+  margin: 0;
+  padding: 14px;
+  border-top: 1px solid var(--aeck-shell-line);
+  color: var(--aeck-shell-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Catalog-only colors and spacing. These selectors do not reach the runner. */
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] > .main-content.product-view-content {
+  background: transparent;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] :where(.exam-room-page, .exam-list-page) {
+  --catalog-primary: var(--aeck-logo);
+  --catalog-primary-hover: var(--aeck-logo-dark);
+  --catalog-primary-pressed: #8e1527;
+  --catalog-primary-soft: var(--aeck-logo-soft);
+  --catalog-primary-selected: var(--aeck-logo-selected);
+  --catalog-line: var(--aeck-shell-line);
+  --catalog-ink: var(--aeck-shell-ink);
+  --catalog-body: var(--aeck-shell-body);
+  --catalog-muted: var(--aeck-shell-muted);
+  --catalog-subtle: #78857b;
+  --catalog-shadow: 0 0 0 1px rgba(115, 33, 47, .025), 0 8px 22px rgba(115, 33, 47, .055);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] :where(.exam-room-page, .exam-list-page) :where(a, button, input, summary):focus-visible {
+  outline-color: var(--aeck-logo);
+  box-shadow: 0 0 0 3px rgba(210, 83, 98, .14);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-room-page,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-list-page {
+  width: min(100%, 1120px);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-room-page .reference-room-card:hover,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-list-page .reference-exam-card:hover {
+  border-color: rgba(210, 83, 98, .24);
+  box-shadow: 0 14px 30px rgba(115, 33, 47, .1);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-room-page .reference-room-card-footer > :where(a, button),
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-list-page .reference-exam-start {
+  border-color: var(--aeck-logo);
+  background: var(--aeck-logo);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-room-page .reference-room-card-footer > :where(a, button):hover,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-list-page .reference-exam-start:hover {
+  border-color: var(--aeck-logo-dark);
+  background: var(--aeck-logo-dark);
+  box-shadow: 0 7px 16px rgba(142, 21, 39, .16);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-room-page .reference-room-card-title .exam-type-badge,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] .exam-list-page .reference-paper-label .exam-type-badge {
+  border-color: rgba(210, 83, 98, .2);
+  background: var(--aeck-logo-soft);
+  color: var(--aeck-logo-dark);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] :where(.exam-room-page, .exam-list-page) :where(.exam-meta-item svg, .reference-room-completion b, .reference-exam-history:hover) {
+  color: var(--aeck-logo);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] :where(.exam-room-page, .exam-list-page) .exam-progress {
+  background: var(--aeck-logo-selected);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] :where(.exam-room-page, .exam-list-page) .exam-progress > span {
+  background: var(--aeck-logo);
+}
+
+.ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) :where(a, button, summary):focus-visible {
+  outline: 2px solid var(--aeck-logo);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "back"
+      "hero"
+      "curriculum";
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-curriculum-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .topbar {
+    height: 65px;
+    margin-inline-start: 0;
+    padding-inline: 12px;
+    background: rgba(255, 255, 255, .94);
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .main-content {
+    min-height: calc(100dvh - 65px);
+    margin-inline-start: 0;
+    padding: 24px 16px 48px;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-brand {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .courses-toolbar {
+    gap: 16px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .courses-toolbar h1 {
+    font-size: 28px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-search-wrap {
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-grid.reference-course-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .reference-course-card {
+    height: auto;
+    min-height: 350px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page {
+    gap: 16px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-curriculum-panel {
+    padding: 16px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] :where(.exam-room-page, .exam-list-page) {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) :where(a, button, summary, img) {
+    scroll-behavior: auto;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) :where(a, button, summary, input):focus-visible {
+    outline: 2px solid CanvasText;
+    box-shadow: none;
+  }
+}

@@ -219,6 +219,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
       <button type="button" className={stateFilter === "upcoming" ? "active" : ""} aria-pressed={stateFilter === "upcoming"} onClick={() => updateFilter(stateFilter === "upcoming" ? "" : "upcoming")}><small>Sắp diễn ra</small><strong>{loading ? "—" : summary.upcoming}</strong></button>
       <button type="button" className={stateFilter === "open" ? "active" : ""} aria-pressed={stateFilter === "open"} onClick={() => updateFilter(stateFilter === "open" ? "" : "open")}><small>Đang mở</small><strong>{loading ? "—" : summary.open}</strong></button>
       <button type="button" className={stateFilter === "ended" ? "active" : ""} aria-pressed={stateFilter === "ended"} onClick={() => updateFilter(stateFilter === "ended" ? "" : "ended")}><small>Đã kết thúc</small><strong>{loading ? "—" : summary.ended}</strong></button>
+      <button type="button" className={stateFilter === "disabled" ? "active" : ""} aria-pressed={stateFilter === "disabled"} onClick={() => updateFilter(stateFilter === "disabled" ? "" : "disabled")}><small>Đã tắt</small><strong>{loading ? "—" : summary.disabled}</strong></button>
       <button type="button" className={!stateFilter ? "active" : ""} aria-pressed={!stateFilter} onClick={() => updateFilter("")}><small>Tất cả kíp thi</small><strong>{loading ? "—" : total}</strong></button>
     </div>
 

@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  cloneElement,
+  isValidElement,
   useEffect,
   useId,
   useRef,
   type ButtonHTMLAttributes,
   type HTMLAttributes,
   type InputHTMLAttributes,
+  type ReactElement,
   type ReactNode,
 } from "react";
 import { AlertCircle, ChevronRight, LoaderCircle, Search, X } from "lucide-react";
@@ -36,7 +39,7 @@ export function AeckButton({ variant = "secondary", size = "md", className, type
 }
 
 export function AeckIconButton({ label, className, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
-  return <button type="button" className={classes("aeck-icon-button", className)} aria-label={label} {...props}>{children}</button>;
+  return <button type="button" className={classes("aeck-icon-button", className)} aria-label={label} {...props}><span aria-hidden="true">{children}</span></button>;
 }
 
 export function AeckNavItem({ href, active = false, icon, children, className, onClick }: { href: string; active?: boolean; icon?: ReactNode; children: ReactNode; className?: string; onClick?: React.MouseEventHandler<HTMLAnchorElement> }) {
@@ -49,11 +52,11 @@ export function AeckSearchField({ label = "Tìm kiếm", className, ...props }: 
 }
 
 export function AeckFilterToolbar({ children, resultText, className }: { children: ReactNode; resultText?: string; className?: string }) {
-  return <div className={classes("aeck-filter-toolbar", className)}>{children}{resultText && <span className="aeck-result-count" role="status" aria-live="polite">{resultText}</span>}</div>;
+  return <div className={classes("aeck-filter-toolbar", className)}>{children}{resultText && <span className="aeck-live-count" role="status" aria-live="polite">{resultText}</span>}</div>;
 }
 
 export function AeckCard({ className, interactive = false, ...props }: HTMLAttributes<HTMLElement> & { interactive?: boolean }) {
-  return <article className={classes("aeck-card", interactive && "aeck-card-interactive", className)} {...props} />;
+  return <section className={classes("aeck-card", interactive && "aeck-card-interactive", className)} {...props} />;
 }
 
 export function AeckStatCard({ label, value, detail, icon, tone = "neutral" }: { label: string; value: ReactNode; detail?: string; icon?: ReactNode; tone?: StatusTone }) {
@@ -66,25 +69,48 @@ export function AeckBadge({ children, tone = "neutral", className }: { children:
 
 export const AeckStatus = AeckBadge;
 
-export function AeckField({ label, htmlFor, help, error, required, children, className }: { label: string; htmlFor: string; help?: string; error?: string; required?: boolean; children: ReactNode; className?: string }) {
+type AeckFieldControlProps = {
+  id?: string;
+  required?: boolean;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean | "false" | "true";
+};
+
+export function AeckField({ label, htmlFor, help, error, required, children, className }: { label: string; htmlFor: string; help?: string; error?: string; required?: boolean; children: ReactElement<AeckFieldControlProps>; className?: string }) {
   const helpId = `${htmlFor}-help`;
   const errorId = `${htmlFor}-error`;
-  return <div className={classes("aeck-field", className)}><label htmlFor={htmlFor}>{label}{required && <span aria-hidden="true"> *</span>}</label>{children}{help && <small id={helpId}>{help}</small>}{error && <p id={errorId} role="alert">{error}</p>}</div>;
+  const describedBy = [children.props["aria-describedby"], help ? helpId : "", error ? errorId : ""].filter(Boolean).join(" ") || undefined;
+  const control = isValidElement(children) ? cloneElement(children, {
+    id: children.props.id ?? htmlFor,
+    required: children.props.required ?? required,
+    "aria-describedby": describedBy,
+    "aria-invalid": error ? "true" : children.props["aria-invalid"],
+  }) : children;
+  return <div className={classes("aeck-field", className)}><label htmlFor={htmlFor}>{label}{required && <span aria-hidden="true"> *</span>}</label>{control}{help && <small id={helpId}>{help}</small>}{error && <p id={errorId} role="status" aria-live="polite">{error}</p>}</div>;
 }
 
 export function AeckDialog({ open, onClose, title, description, children, footer, busy = false }: { open: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; footer?: ReactNode; busy?: boolean }) {
   const ref = useRef<HTMLDialogElement | null>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const descriptionId = useId();
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) {
+      restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       dialog.showModal();
       window.requestAnimationFrame(() => (dialog.querySelector<HTMLElement>("[data-dialog-autofocus], button, input, select, textarea, a[href]") ?? dialog).focus());
-    } else if (!open && dialog.open) dialog.close();
+    } else if (!open && dialog.open) {
+      dialog.close();
+      window.requestAnimationFrame(() => restoreFocusRef.current?.focus());
+    }
+    return () => {
+      if (dialog.open) dialog.close();
+      restoreFocusRef.current?.focus();
+    };
   }, [open]);
-  return <dialog ref={ref} className="aeck-dialog" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} aria-busy={busy} onCancel={event => { event.preventDefault(); if (!busy) onClose(); }} onMouseDown={event => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+  return <dialog ref={ref} className="aeck-dialog" tabIndex={-1} aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} aria-busy={busy} onCancel={event => { event.preventDefault(); if (!busy) onClose(); }} onMouseDown={event => { if (event.target === event.currentTarget && !busy) onClose(); }}>
     <div className="aeck-dialog-surface"><header><div><h2 id={titleId}>{title}</h2>{description && <p id={descriptionId}>{description}</p>}</div><AeckIconButton label="Đóng hộp thoại" onClick={onClose} disabled={busy}><X aria-hidden="true" /></AeckIconButton></header><div className="aeck-dialog-body">{children}</div>{footer && <footer>{footer}</footer>}</div>
   </dialog>;
 }
@@ -98,7 +124,7 @@ export function AeckMenu({ label, children }: { label: ReactNode; children: Reac
 }
 
 export function AeckDataList({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={classes("aeck-data-list", className)} role="list">{children}</div>;
+  return <ul className={classes("aeck-data-list", className)}>{children}</ul>;
 }
 
 export function AeckTable({ label, children }: { label: string; children: ReactNode }) {
@@ -111,6 +137,13 @@ export function AeckPagination({ page, hasNextPage, onPrevious, onNext }: { page
 
 export function AeckEmptyState({ title, description, action, icon }: { title: string; description: string; action?: ReactNode; icon?: ReactNode }) {
   return <div className="aeck-state aeck-empty-state">{icon && <span>{icon}</span>}<h3>{title}</h3><p>{description}</p>{action}</div>;
+}
+
+export function AeckSkeleton({ rows = 3, className, label = "Đang tải nội dung…" }: { rows?: number; className?: string; label?: string }) {
+  const count = Math.max(1, Math.min(rows, 12));
+  return <div className={classes("aeck-skeleton", className)} role="status" aria-label={label}>
+    {Array.from({ length: count }, (_, index) => <span key={index} aria-hidden="true" />)}
+  </div>;
 }
 
 export function AeckLoadingState({ label = "Đang tải…" }: { label?: string }) {

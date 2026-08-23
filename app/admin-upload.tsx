@@ -38,7 +38,16 @@ type ExamUploadedImage = UploadedImage & {
   orphan: boolean;
 };
 
+type LibraryTab = "public" | "private";
+
 const MAX_SOURCE_BYTES = 12 * 1024 * 1024;
+const LIBRARY_PAGE_SIZE = 12;
+
+function positivePage(value: string | null) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(10_000, Math.max(1, Math.floor(parsed) || 1));
+}
 
 function formatBytes(value: number) {
   if (!value) return "0 KB";
@@ -100,7 +109,7 @@ function ProtectedImageThumbnail({ image }: { image: ExamUploadedImage }) {
   }, [image.url]);
 
   return src
-    ? <img className="admin-upload-private-thumb" src={src} alt={`Ảnh ${image.assetName}`} loading="lazy" />
+    ? <img className="admin-upload-private-thumb" src={src} alt={`Ảnh ${image.assetName}`} width={640} height={360} loading="lazy" />
     : <span className="admin-upload-private-thumb admin-upload-private-thumb-placeholder"><FileImage /></span>;
 }
 
@@ -110,6 +119,10 @@ export default function AdminUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [examSearchTerm, setExamSearchTerm] = useState("");
+  const [activeLibrary, setActiveLibrary] = useState<LibraryTab>("public");
+  const [publicPage, setPublicPage] = useState(1);
+  const [privatePage, setPrivatePage] = useState(1);
+  const [urlReady, setUrlReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [examLoading, setExamLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -119,6 +132,7 @@ export default function AdminUploadPage() {
   const [pendingExamImage, setPendingExamImage] = useState<ExamUploadedImage | null>(null);
   const [deletingExamAsset, setDeletingExamAsset] = useState("");
   const [copiedAsset, setCopiedAsset] = useState("");
+  const [copyAnnouncement, setCopyAnnouncement] = useState("");
   const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
   const [examLastLoadedAt, setExamLastLoadedAt] = useState<Date | null>(null);
   const [libraryError, setLibraryError] = useState("");
@@ -126,6 +140,38 @@ export default function AdminUploadPage() {
   const [examError, setExamError] = useState("");
   const [notice, setNotice] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const copyAnnouncementFrameRef = useRef<number | null>(null);
+  const copyResetTimeoutRef = useRef<number | null>(null);
+
+  const readUrlState = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+    setActiveLibrary(params.get("library") === "private" ? "private" : "public");
+    setSearchTerm(params.get("publicQ") ?? "");
+    setExamSearchTerm(params.get("privateQ") ?? "");
+    setPublicPage(positivePage(params.get("publicPage")));
+    setPrivatePage(positivePage(params.get("privatePage")));
+    setUrlReady(true);
+  }, []);
+
+  useEffect(() => {
+    // URL state is hydrated after mount to keep the server and first client
+    // render identical, then follows browser back/forward navigation.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    readUrlState();
+    window.addEventListener("popstate", readUrlState);
+    return () => window.removeEventListener("popstate", readUrlState);
+  }, [readUrlState]);
+
+  useEffect(() => {
+    if (!urlReady) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("library", activeLibrary);
+    if (searchTerm) url.searchParams.set("publicQ", searchTerm); else url.searchParams.delete("publicQ");
+    if (examSearchTerm) url.searchParams.set("privateQ", examSearchTerm); else url.searchParams.delete("privateQ");
+    url.searchParams.set("publicPage", String(publicPage));
+    url.searchParams.set("privatePage", String(privatePage));
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [activeLibrary, examSearchTerm, privatePage, publicPage, searchTerm, urlReady]);
 
   const loadImages = useCallback(async () => {
     setLoading(true);
@@ -170,6 +216,15 @@ export default function AdminUploadPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAllImages();
   }, [loadAllImages]);
+
+  useEffect(() => () => {
+    if (copyAnnouncementFrameRef.current !== null) {
+      window.cancelAnimationFrame(copyAnnouncementFrameRef.current);
+    }
+    if (copyResetTimeoutRef.current !== null) {
+      window.clearTimeout(copyResetTimeoutRef.current);
+    }
+  }, []);
 
   function clearSelectedFile() {
     setFile(null);
@@ -240,12 +295,26 @@ export default function AdminUploadPage() {
     }
   }
 
-  async function copyUrl(image: UploadedImage) {
+  async function copyUrl(image: UploadedImage, copyKey: string) {
     const value = publicHref(image.url);
     try {
       await navigator.clipboard.writeText(value);
-      setCopiedAsset(image.assetName);
-      window.setTimeout(() => setCopiedAsset((current) => current === image.assetName ? "" : current), 1800);
+      setCopiedAsset(copyKey);
+      if (copyAnnouncementFrameRef.current !== null) {
+        window.cancelAnimationFrame(copyAnnouncementFrameRef.current);
+      }
+      setCopyAnnouncement("");
+      copyAnnouncementFrameRef.current = window.requestAnimationFrame(() => {
+        setCopyAnnouncement(`Đã sao chép URL ảnh ${image.assetName}.`);
+        copyAnnouncementFrameRef.current = null;
+      });
+      if (copyResetTimeoutRef.current !== null) {
+        window.clearTimeout(copyResetTimeoutRef.current);
+      }
+      copyResetTimeoutRef.current = window.setTimeout(() => {
+        setCopiedAsset((current) => current === copyKey ? "" : current);
+        copyResetTimeoutRef.current = null;
+      }, 1800);
     } catch {
       setError("Không thể sao chép URL. Hãy chọn và sao chép thủ công.");
     }
@@ -325,6 +394,21 @@ export default function AdminUploadPage() {
     return examImages.filter((image) => `${image.assetName} ${image.examTitle} ${image.sectionTitle}`.toLowerCase().includes(query));
   }, [examImages, examSearchTerm]);
 
+  const publicPageCount = Math.max(1, Math.ceil(filteredImages.length / LIBRARY_PAGE_SIZE));
+  const privatePageCount = Math.max(1, Math.ceil(filteredExamImages.length / LIBRARY_PAGE_SIZE));
+  useEffect(() => {
+    if (loading) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- remote list size normalizes a URL-backed page after loading
+    setPublicPage(page => Math.min(page, publicPageCount));
+  }, [loading, publicPageCount]);
+  useEffect(() => {
+    if (examLoading) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- remote list size normalizes a URL-backed page after loading
+    setPrivatePage(page => Math.min(page, privatePageCount));
+  }, [examLoading, privatePageCount]);
+  const pagedImages = filteredImages.slice((Math.min(publicPage, publicPageCount) - 1) * LIBRARY_PAGE_SIZE, Math.min(publicPage, publicPageCount) * LIBRARY_PAGE_SIZE);
+  const pagedExamImages = filteredExamImages.slice((Math.min(privatePage, privatePageCount) - 1) * LIBRARY_PAGE_SIZE, Math.min(privatePage, privatePageCount) * LIBRARY_PAGE_SIZE);
+
   const usedCount = images.filter((image) => image.used).length;
   const examBytes = examImages.reduce((total, image) => total + image.size, 0);
   const closeImageRemoval = () => setPendingImage(null);
@@ -371,7 +455,9 @@ export default function AdminUploadPage() {
     </section>
 
     {error && <p className="form-error admin-upload-message" role="alert">{error}</p>}
-    {notice && <p className="form-success admin-upload-message" role="status">{notice}</p>}
+    {notice && <p className="form-success admin-upload-message">{notice}</p>}
+    <p className="admin-upload-live-region" role="status" aria-live="polite" aria-atomic="true">{copyAnnouncement}</p>
+    <p className="admin-upload-live-region admin-upload-library-live-region" role="status" aria-live="polite" aria-atomic="true">{notice || (activeLibrary === "public" ? loading ? "Đang đồng bộ kho ảnh công khai." : `Kho ảnh công khai có ${filteredImages.length} file.` : examLoading ? "Đang đồng bộ kho ảnh đề thi." : `Kho ảnh đề thi có ${filteredExamImages.length} file.`)}</p>
 
     <section className="admin-upload-upload-card">
       <div className="admin-upload-section-heading">
@@ -414,7 +500,12 @@ export default function AdminUploadPage() {
       <p className="admin-upload-public-note"><ShieldCheck /> Khi chưa có domain public, URL sao chép là link R2 tạm thời và hết hạn sau 7 ngày. Không tải dữ liệu nhạy cảm hoặc thông tin cá nhân lên đây.</p>
     </section>
 
-    <section className="admin-upload-library" aria-busy={loading}>
+    <nav className="admin-upload-library-tabs" aria-label="Chọn thư viện ảnh">
+      <button type="button" aria-pressed={activeLibrary === "public"} className={activeLibrary === "public" ? "active" : ""} onClick={() => setActiveLibrary("public")}><Images aria-hidden="true" />Kho công khai</button>
+      <button type="button" aria-pressed={activeLibrary === "private"} className={activeLibrary === "private" ? "active" : ""} onClick={() => setActiveLibrary("private")}><FolderOpen aria-hidden="true" />Ảnh đề thi</button>
+    </nav>
+
+    {activeLibrary === "public" && <section className="admin-upload-library" aria-busy={loading}>
       <div className="admin-upload-library-head">
         <div>
           <span className="eyebrow">PUBLIC ASSET LIBRARY</span>
@@ -424,14 +515,14 @@ export default function AdminUploadPage() {
         <div className="admin-upload-library-tools">
           <label className="admin-upload-search">
             <Search />
-            <input type="search" name="assetSearch" autoComplete="off" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Tìm theo tên file…" aria-label="Tìm ảnh theo tên file" />
-            {searchTerm && <button type="button" onClick={() => setSearchTerm("")} aria-label="Xóa tìm kiếm"><X /></button>}
+            <input type="search" name="assetSearch" autoComplete="off" value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setPublicPage(1); }} placeholder="Tìm theo tên file…" aria-label="Tìm ảnh theo tên file" />
+            {searchTerm && <button type="button" onClick={() => { setSearchTerm(""); setPublicPage(1); }} aria-label="Xóa tìm kiếm"><X /></button>}
           </label>
           <span className="admin-upload-count"><b>{filteredImages.length}</b> / {images.length} file</span>
         </div>
       </div>
       <div className="admin-upload-library-status">
-        <span role="status" aria-live="polite">{loading ? <><LoaderCircle className="admin-upload-spin" /> Đang đồng bộ kho ảnh…</> : libraryError ? <><Info /> Không thể đồng bộ kho ảnh</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(lastLoadedAt)}</>}</span>
+        <span>{loading ? <><LoaderCircle className="admin-upload-spin" /> Đang đồng bộ kho ảnh…</> : libraryError ? <><Info /> Không thể đồng bộ kho ảnh</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(lastLoadedAt)}</>}</span>
       </div>
 
       {libraryError && <div className="admin-upload-empty admin-upload-load-error" role="alert">
@@ -451,13 +542,13 @@ export default function AdminUploadPage() {
         <span className="admin-upload-empty-icon"><Search /></span>
         <h3>Không tìm thấy ảnh</h3>
         <p>Thử tìm với một phần khác trong tên file.</p>
-        <button type="button" className="outline-btn" onClick={() => setSearchTerm("")}><X /> Xóa tìm kiếm</button>
+        <button type="button" className="outline-btn" onClick={() => { setSearchTerm(""); setPublicPage(1); }}><X /> Xóa tìm kiếm</button>
       </div> : <div className="admin-upload-grid">
-        {filteredImages.map((image) => {
+        {pagedImages.map((image) => {
           const href = publicHref(image.url);
           return <article className="admin-upload-image-card" key={image.assetName}>
             <div className="admin-upload-preview">
-              <img src={image.url} alt={`Ảnh ${image.assetName}`} loading="lazy" />
+              <img src={image.url} alt={`Ảnh ${image.assetName}`} width={640} height={360} loading="lazy" />
               <span className={`admin-upload-status-badge ${image.used ? "used" : "free"}`}>
                 {image.used ? "Đang dùng" : "Sẵn sàng"}
               </span>
@@ -470,13 +561,13 @@ export default function AdminUploadPage() {
               </div>
               <div className="admin-upload-url-row">
                 <input readOnly value={href} aria-label={`URL ảnh ${image.assetName}`} onFocus={(event) => event.currentTarget.select()} />
-                <button type="button" className="admin-upload-copy" onClick={() => void copyUrl(image)} title="Sao chép URL" aria-label={`Sao chép URL ${image.assetName}`}>
-                  {copiedAsset === image.assetName ? <Check /> : <Copy />}
+                <button type="button" className="admin-upload-copy" onClick={() => void copyUrl(image, `public:${image.assetName}`)} title="Sao chép URL" aria-label={`Sao chép URL ${image.assetName}`}>
+                  {copiedAsset === `public:${image.assetName}` ? <Check /> : <Copy />}
                 </button>
               </div>
               <div className="admin-upload-card-actions">
-                <button type="button" className="admin-upload-copy-label" onClick={() => void copyUrl(image)}>
-                  {copiedAsset === image.assetName ? <><Check /> Đã sao chép</> : <><Copy /> Sao chép URL</>}
+                <button type="button" className="admin-upload-copy-label" onClick={() => void copyUrl(image, `public:${image.assetName}`)}>
+                  {copiedAsset === `public:${image.assetName}` ? <><Check /> Đã sao chép</> : <><Copy /> Sao chép URL</>}
                 </button>
                 <button type="button" className="admin-upload-delete" disabled={image.used || deletingAsset === image.assetName} onClick={() => requestImageRemoval(image)} title={image.used ? "Ảnh đang được tham chiếu trong đề thi" : "Xóa ảnh khỏi R2"}>
                   <Trash2 /> {deletingAsset === image.assetName ? "Đang xóa" : image.used ? "Đang dùng" : "Xóa"}
@@ -486,7 +577,8 @@ export default function AdminUploadPage() {
           </article>;
         })}
       </div>}
-    </section>
+      {filteredImages.length > LIBRARY_PAGE_SIZE && <nav className="admin-upload-pagination" aria-label="Phân trang kho ảnh công khai"><button type="button" disabled={publicPage <= 1} onClick={() => setPublicPage(page => Math.max(1, page - 1))}>Trang trước</button><span>Trang <b>{Math.min(publicPage, publicPageCount)}</b> / {publicPageCount}</span><button type="button" disabled={publicPage >= publicPageCount} onClick={() => setPublicPage(page => Math.min(publicPageCount, page + 1))}>Trang sau</button></nav>}
+    </section>}
 
     {pendingImage ? <MacAlert
       open
@@ -506,7 +598,7 @@ export default function AdminUploadPage() {
       onClose={closeExamImageRemoval}
     /> : null}
 
-    <section className="admin-upload-library admin-upload-private-library" aria-busy={examLoading}>
+    {activeLibrary === "private" && <section className="admin-upload-library admin-upload-private-library" aria-busy={examLoading}>
       <div className="admin-upload-library-head">
         <div>
           <span className="eyebrow">PRIVATE EXAM ASSET LIBRARY</span>
@@ -516,14 +608,14 @@ export default function AdminUploadPage() {
         <div className="admin-upload-library-tools">
           <label className="admin-upload-search">
             <Search />
-            <input type="search" name="examAssetSearch" autoComplete="off" value={examSearchTerm} onChange={(event) => setExamSearchTerm(event.target.value)} placeholder="Tìm đề, phần hoặc tên file…" aria-label="Tìm ảnh đề thi" />
-            {examSearchTerm && <button type="button" onClick={() => setExamSearchTerm("")} aria-label="Xoá tìm kiếm ảnh đề thi"><X /></button>}
+            <input type="search" name="examAssetSearch" autoComplete="off" value={examSearchTerm} onChange={(event) => { setExamSearchTerm(event.target.value); setPrivatePage(1); }} placeholder="Tìm đề, phần hoặc tên file…" aria-label="Tìm ảnh đề thi" />
+            {examSearchTerm && <button type="button" onClick={() => { setExamSearchTerm(""); setPrivatePage(1); }} aria-label="Xoá tìm kiếm ảnh đề thi"><X /></button>}
           </label>
           <span className="admin-upload-count"><b>{filteredExamImages.length}</b> / {examImages.length} file</span>
         </div>
       </div>
       <div className="admin-upload-library-status">
-        <span role="status" aria-live="polite">{examLoading ? <><LoaderCircle className="admin-upload-spin" /> Đang đọc thư mục exam-images…</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(examLastLoadedAt)} · {formatBytes(examBytes)}</>}</span>
+        <span>{examLoading ? <><LoaderCircle className="admin-upload-spin" /> Đang đọc thư mục exam-images…</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(examLastLoadedAt)} · {formatBytes(examBytes)}</>}</span>
       </div>
       {examError && <p className="form-error admin-upload-private-error" role="alert">{examError}</p>}
 
@@ -537,9 +629,9 @@ export default function AdminUploadPage() {
         <span className="admin-upload-empty-icon"><Search /></span>
         <h3>Không tìm thấy ảnh</h3>
         <p>Thử tìm bằng tên đề, tên phần hoặc một phần tên file.</p>
-        <button type="button" className="outline-btn" onClick={() => setExamSearchTerm("")}><X /> Xoá tìm kiếm</button>
+        <button type="button" className="outline-btn" onClick={() => { setExamSearchTerm(""); setPrivatePage(1); }}><X /> Xoá tìm kiếm</button>
       </div> : <div className="admin-upload-grid">
-        {filteredExamImages.map((image) => {
+        {pagedExamImages.map((image) => {
           const href = publicHref(image.url);
           const key = examImageKey(image);
           return <article className="admin-upload-image-card admin-upload-private-card" key={key}>
@@ -558,13 +650,13 @@ export default function AdminUploadPage() {
               </div>
               <div className="admin-upload-url-row">
                 <input readOnly value={href} aria-label={`URL ảnh ${image.assetName}`} onFocus={(event) => event.currentTarget.select()} />
-                <button type="button" className="admin-upload-copy" onClick={() => void copyUrl(image)} title="Sao chép URL ảnh riêng tư" aria-label={`Sao chép URL ${image.assetName}`}>
-                  {copiedAsset === image.assetName ? <Check /> : <Copy />}
+                <button type="button" className="admin-upload-copy" onClick={() => void copyUrl(image, `private:${key}`)} title="Sao chép URL ảnh riêng tư" aria-label={`Sao chép URL ${image.assetName}`}>
+                  {copiedAsset === `private:${key}` ? <Check /> : <Copy />}
                 </button>
               </div>
               <div className="admin-upload-card-actions">
-                <button type="button" className="admin-upload-copy-label" onClick={() => void copyUrl(image)}>
-                  {copiedAsset === image.assetName ? <><Check /> Đã sao chép</> : <><Copy /> Sao chép URL</>}
+                <button type="button" className="admin-upload-copy-label" onClick={() => void copyUrl(image, `private:${key}`)}>
+                  {copiedAsset === `private:${key}` ? <><Check /> Đã sao chép</> : <><Copy /> Sao chép URL</>}
                 </button>
                 <button type="button" className="admin-upload-delete" disabled={image.used || deletingExamAsset === key} onClick={() => requestExamImageRemoval(image)} title={image.used ? "Ảnh đang được tham chiếu trong đề thi" : "Xoá ảnh riêng tư khỏi R2"}>
                   <Trash2 /> {deletingExamAsset === key ? "Đang xoá" : image.used ? "Đang dùng" : "Xoá"}
@@ -574,7 +666,8 @@ export default function AdminUploadPage() {
           </article>;
         })}
       </div>}
+      {filteredExamImages.length > LIBRARY_PAGE_SIZE && <nav className="admin-upload-pagination" aria-label="Phân trang kho ảnh đề thi"><button type="button" disabled={privatePage <= 1} onClick={() => setPrivatePage(page => Math.max(1, page - 1))}>Trang trước</button><span>Trang <b>{Math.min(privatePage, privatePageCount)}</b> / {privatePageCount}</span><button type="button" disabled={privatePage >= privatePageCount} onClick={() => setPrivatePage(page => Math.min(privatePageCount, page + 1))}>Trang sau</button></nav>}
       <p className="admin-upload-private-note"><ShieldCheck /> Thumbnail được tải qua phiên admin. URL <code>/api/exam-images/...</code> là đường dẫn app ổn định để chèn vào bài thi; ảnh đang dùng sẽ bị khoá xoá.</p>
-    </section>
+    </section>}
   </div>;
 }

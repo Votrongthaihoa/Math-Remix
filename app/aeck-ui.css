@@ -1,34 +1,35 @@
 /*
  * AECK product design foundation.
- * Signature: a quiet blue wash marks page context and active state while
- * content surfaces remain neutral. Protected exam surfaces are excluded.
+ * This layer is opt-in: only routes classified as optimized content receive
+ * these tokens and components. Exam, result, review and authoring surfaces
+ * never receive the ui-optimized-surface class.
  */
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface),
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) {
-  --aeck-primary: #1d4ed8;
-  --aeck-primary-hover: #1e40af;
-  --aeck-primary-pressed: #1e3a8a;
-  --aeck-primary-soft: #eff6ff;
-  --aeck-primary-selected: #dbeafe;
-  --aeck-focus: #2563eb;
-  --aeck-bg: #f8fafc;
+.ui-shell.student-app.product-shell.ui-optimized-surface,
+.ui-shell.admin-app.product-shell.ui-optimized-surface {
+  --aeck-primary: #b5122b;
+  --aeck-primary-hover: #981025;
+  --aeck-primary-pressed: #7d1021;
+  --aeck-primary-soft: #fff1f3;
+  --aeck-primary-selected: #ffe2e7;
+  --aeck-focus: #b5122b;
+  --aeck-bg: #f6f7f9;
   --aeck-surface: #fff;
-  --aeck-surface-muted: #f1f5f9;
-  --aeck-text: #0f172a;
-  --aeck-text-body: #334155;
-  --aeck-text-muted: #475569;
-  --aeck-text-subtle: #64748b;
-  --aeck-border: #e2e8f0;
-  --aeck-border-strong: #cbd5e1;
-  --aeck-success: #166534;
-  --aeck-success-soft: #f0fdf4;
-  --aeck-warning: #92400e;
-  --aeck-warning-soft: #fffbeb;
-  --aeck-danger: #b91c1c;
-  --aeck-danger-soft: #fef2f2;
-  --aeck-info: #1d4ed8;
-  --aeck-info-soft: #eff6ff;
+  --aeck-surface-muted: #f0f2f5;
+  --aeck-text: #17191d;
+  --aeck-text-body: #343943;
+  --aeck-text-muted: #5d6572;
+  --aeck-text-subtle: #5d6572;
+  --aeck-border: #dfe3e8;
+  --aeck-border-strong: #c8ced7;
+  --aeck-success: #17663a;
+  --aeck-success-soft: #ecf8f0;
+  --aeck-warning: #8a4b08;
+  --aeck-warning-soft: #fff7e8;
+  --aeck-danger: #ad142b;
+  --aeck-danger-soft: #fff0f2;
+  --aeck-info: #365d8d;
+  --aeck-info-soft: #edf4fb;
   --aeck-space-1: 4px;
   --aeck-space-2: 8px;
   --aeck-space-3: 12px;
@@ -39,8 +40,13 @@
   --aeck-radius-md: 10px;
   --aeck-radius-lg: 14px;
   --aeck-radius-pill: 999px;
-  --aeck-shadow-sm: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px rgba(30, 64, 175, .05);
-  --aeck-shadow-md: 0 18px 48px rgba(15, 23, 42, .14);
+  --aeck-shadow-sm: 0 1px 2px rgba(17, 24, 39, .05);
+  --aeck-shadow-md: 0 16px 40px rgba(17, 24, 39, .16);
+  --aeck-dark-bg: #15171b;
+  --aeck-dark-surface: #1d2025;
+  --aeck-dark-text: #f6f7f9;
+  --aeck-dark-text-muted: #b9c0ca;
+  --aeck-dark-border: #343942;
   color: var(--aeck-text);
   background: var(--aeck-bg);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
@@ -50,67 +56,94 @@
   /* Compatibility aliases while legacy surfaces migrate component-by-component. */
   --mac-blue: var(--aeck-primary);
   --mac-blue-strong: var(--aeck-primary-hover);
-  --mac-blue-soft: rgba(29, 78, 216, .1);
+  --mac-blue-soft: rgba(181, 18, 43, .1);
   --admin-primary: var(--aeck-primary);
   --admin-primary-strong: var(--aeck-primary-hover);
-  --admin-primary-soft: rgba(29, 78, 216, .1);
+  --admin-primary-soft: rgba(181, 18, 43, .1);
   --admin-info: var(--aeck-info);
   --ui-info: var(--aeck-info);
   --ui-info-soft: var(--aeck-info-soft);
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .main-content,
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .main-content {
+.ui-shell.student-app.product-shell.ui-optimized-surface > .main-content,
+.ui-shell.admin-app.product-shell.ui-optimized-surface > .main-content {
   color: var(--aeck-text);
-  background:
-    radial-gradient(circle at 86% 0%, rgba(219, 234, 254, .9), transparent 28rem),
-    radial-gradient(circle at 12% 30%, rgba(239, 246, 255, .75), transparent 24rem),
-    var(--aeck-bg);
+  background: var(--aeck-bg);
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.topbar, .sidebar),
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.topbar, .sidebar) {
+.ui-shell.student-app.product-shell.ui-optimized-surface > :where(.topbar, .sidebar),
+.ui-shell.admin-app.product-shell.ui-optimized-surface > :where(.topbar, .sidebar) {
   border-color: var(--aeck-border);
-  background: rgba(248, 250, 252, .88);
+  background: var(--aeck-surface);
 }
 
-.ui-shell.product-shell:not(.protected-exam-surface) :where(p, small, b, strong, span) {
-  overflow-wrap: normal;
+/* Chrome-only routes (the room catalog) receive shell tokens on direct chrome
+ * children only. The exam catalog content remains outside the optimized
+ * content surface and cannot inherit these aliases. */
+.ui-shell.product-shell.ui-optimized-chrome > :where(.topbar, .sidebar) {
+  --aeck-primary: #b5122b;
+  --aeck-primary-hover: #981025;
+  --aeck-primary-soft: #fff1f3;
+  --aeck-primary-selected: #ffe2e7;
+  --aeck-primary-pressed: #7d1021;
+  --aeck-focus: #b5122b;
+  --aeck-surface: #fff;
+  --aeck-text-body: #343943;
+  --aeck-text-muted: #5d6572;
+  --aeck-border: #dfe3e8;
+  border-color: var(--aeck-border);
+  background: var(--aeck-surface);
+}
+
+.ui-shell.product-shell.ui-optimized-surface :where(p, small, b, strong, span) {
+  overflow-wrap: anywhere;
   word-break: normal;
 }
 
-.ui-shell.product-shell:not(.protected-exam-surface) :where(code, pre, .slot-token, .admin-session-result-copy code) {
+.ui-shell.product-shell.ui-optimized-surface :where(code, pre, .slot-token) {
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.primary-btn),
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.primary-btn) {
+.ui-shell.student-app.product-shell.ui-optimized-surface :where(.primary-btn),
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(.primary-btn) {
   background: var(--aeck-primary);
   color: #fff;
   text-decoration: none;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.primary-btn):hover:not(:disabled),
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.primary-btn):hover:not(:disabled) {
+.ui-shell.student-app.product-shell.ui-optimized-surface :where(.primary-btn):hover:not(:disabled),
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(.primary-btn):hover:not(:disabled) {
   background: var(--aeck-primary-hover);
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.text-btn, .overview-card-head button, .course-meta button, .back-btn),
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.text-btn, .admin-kicker, .eyebrow) {
+.ui-shell.student-app.product-shell.ui-optimized-surface :where(button, a, input, select, textarea, summary):focus-visible,
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(button, a, input, select, textarea, summary):focus-visible {
+  outline-color: var(--aeck-focus);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, .16);
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: var(--aeck-focus);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, .12);
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface :where(.text-btn, .overview-card-head button, .course-meta button, .back-btn),
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(.text-btn, .admin-kicker, .eyebrow) {
   color: var(--aeck-primary);
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-kicker, .eyebrow, .admin-sidebar-section-label, .admin-topbar-context span, .admin-kpi-label, .admin-kpi-sub, .admin-action-text small, .admin-log-date) {
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(.admin-kicker, .eyebrow, .admin-sidebar-section-label, .admin-topbar-context span, .admin-kpi-label, .admin-kpi-sub, .admin-action-text small, .admin-log-date) {
   font-size: 12px;
   line-height: 1.35;
 }
 
-.ui-shell.product-shell:not(.protected-exam-surface) :where(.overview-number b, .profile-score b, .history-row > strong, .admin-kpi-value, .admin-session-summary strong, time) {
+.ui-shell.product-shell.ui-optimized-surface :where(.overview-number b, .profile-score b, .history-row > strong, .admin-kpi-value, .admin-session-summary strong, time) {
   font-variant-numeric: tabular-nums;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .history-status > a {
+.ui-shell.student-app.product-shell.ui-optimized-surface .history-status > a {
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -121,42 +154,42 @@
   text-decoration: none;
   white-space: nowrap;
 }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .history-status > a:hover { color: var(--aeck-primary-hover); text-decoration: underline; text-underline-offset: 3px; }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .history-status > a svg { width: 14px; height: 14px; }
+.ui-shell.student-app.product-shell.ui-optimized-surface .history-status > a:hover { color: var(--aeck-primary-hover); text-decoration: underline; text-underline-offset: 3px; }
+.ui-shell.student-app.product-shell.ui-optimized-surface .history-status > a svg { width: 14px; height: 14px; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-search-field input, .aeck-field input, .aeck-field select, .aeck-field textarea, .aeck-menu summary):focus-visible {
+.ui-shell.product-shell.ui-optimized-surface :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-search-field input, .aeck-field input, .aeck-field select, .aeck-field textarea, .aeck-menu summary):focus-visible {
   outline: 2px solid var(--aeck-focus);
   outline-offset: 3px;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .16);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, .16);
 }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header {
+.ui-shell.product-shell.ui-optimized-surface .aeck-page-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--aeck-space-6);
   min-width: 0;
   padding: 22px 24px;
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--aeck-border);
   border-radius: var(--aeck-radius-lg);
-  background: linear-gradient(135deg, #eff6ff 0%, #fff 68%);
+  background: var(--aeck-surface);
   box-shadow: var(--aeck-shadow-sm);
 }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header-copy { min-width: 0; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-kicker { color: var(--aeck-primary); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header h1 { margin: 6px 0 0; font-size: 24px; line-height: 1.25; letter-spacing: -.02em; text-wrap: balance; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header p { max-width: 65ch; margin: 6px 0 0; color: var(--aeck-text-muted); text-wrap: pretty; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header-actions,
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-section-actions { display: flex; flex-wrap: wrap; gap: var(--aeck-space-2); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-page-header-copy { min-width: 0; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-kicker { color: var(--aeck-primary); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-page-header h1 { margin: 6px 0 0; font-size: 24px; line-height: 1.25; letter-spacing: -.02em; text-wrap: balance; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-page-header p { max-width: 65ch; margin: 6px 0 0; color: var(--aeck-text-muted); text-wrap: pretty; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-page-header-actions,
+.ui-shell.product-shell.ui-optimized-surface .aeck-section-actions { display: flex; flex-wrap: wrap; gap: var(--aeck-space-2); }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-section-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--aeck-space-4); min-width: 0; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-section-header > div:first-child { min-width: 0; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-section-header h2 { margin: 0; font-size: 20px; line-height: 1.3; text-wrap: balance; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-section-header p { max-width: 65ch; margin: 4px 0 0; color: var(--aeck-text-muted); text-wrap: pretty; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-section-header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--aeck-space-4); min-width: 0; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-section-header > div:first-child { min-width: 0; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-section-header h2 { margin: 0; font-size: 20px; line-height: 1.3; text-wrap: balance; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-section-header p { max-width: 65ch; margin: 4px 0 0; color: var(--aeck-text-muted); text-wrap: pretty; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button,
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-icon-button {
+.ui-shell.product-shell.ui-optimized-surface .aeck-button,
+.ui-shell.product-shell.ui-optimized-surface .aeck-icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -171,27 +204,27 @@
   cursor: pointer;
   transition: color .15s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-sm { min-height: 36px; padding: 7px 11px; font-size: 13px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-primary { background: var(--aeck-primary); color: #fff; box-shadow: 0 5px 14px rgba(29, 78, 216, .2); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-primary:hover:not(:disabled) { background: var(--aeck-primary-hover); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-secondary { border-color: var(--aeck-border-strong); background: #fff; color: var(--aeck-text-body); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-secondary:hover:not(:disabled) { border-color: #93c5fd; background: var(--aeck-primary-soft); color: var(--aeck-primary); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-quiet { background: transparent; color: var(--aeck-primary); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-quiet:hover:not(:disabled) { background: var(--aeck-primary-soft); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button-danger { background: var(--aeck-danger); color: #fff; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-button:active:not(:disabled),
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-icon-button:active:not(:disabled) { transform: scale(.96); }
-.ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-button, .aeck-icon-button):disabled { cursor: not-allowed; opacity: .55; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-icon-button { width: 40px; padding: 0; border-color: var(--aeck-border); background: #fff; color: var(--aeck-text-muted); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-icon-button svg { width: 18px; height: 18px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-sm { min-height: 36px; padding: 7px 11px; font-size: 13px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-primary { background: var(--aeck-primary); color: #fff; box-shadow: 0 1px 2px rgba(125, 16, 33, .2); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-primary:hover:not(:disabled) { background: var(--aeck-primary-hover); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-secondary { border-color: var(--aeck-border-strong); background: #fff; color: var(--aeck-text-body); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-secondary:hover:not(:disabled) { border-color: #e4a7b1; background: var(--aeck-primary-soft); color: var(--aeck-primary); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-quiet { background: transparent; color: var(--aeck-primary); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-quiet:hover:not(:disabled) { background: var(--aeck-primary-soft); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button-danger { background: var(--aeck-danger); color: #fff; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-button:active:not(:disabled),
+.ui-shell.product-shell.ui-optimized-surface .aeck-icon-button:active:not(:disabled) { transform: scale(.96); }
+.ui-shell.product-shell.ui-optimized-surface :where(.aeck-button, .aeck-icon-button):disabled { cursor: not-allowed; opacity: .55; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-icon-button { width: 40px; padding: 0; border-color: var(--aeck-border); background: #fff; color: var(--aeck-text-muted); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-icon-button svg { width: 18px; height: 18px; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-nav-item { display: flex; align-items: center; gap: 12px; min-height: 44px; border-radius: var(--aeck-radius-md); padding: 10px 12px; color: var(--aeck-text-muted); text-decoration: none; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-nav-item:hover { background: var(--aeck-primary-soft); color: var(--aeck-primary); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-nav-item.active { background: var(--aeck-primary-selected); color: var(--aeck-primary-pressed); font-weight: 700; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-nav-item { display: flex; align-items: center; gap: 12px; min-height: 44px; border-radius: var(--aeck-radius-md); padding: 10px 12px; color: var(--aeck-text-muted); text-decoration: none; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-nav-item:hover { background: var(--aeck-primary-soft); color: var(--aeck-primary); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-nav-item.active { background: var(--aeck-primary-selected); color: var(--aeck-primary-pressed); font-weight: 700; }
 
 /* Existing shell navigation migrated from action buttons to real links. */
-.ui-shell.student-app.product-shell .sidebar nav a,
-.ui-shell.admin-app.product-shell .sidebar nav a {
+.ui-shell.student-app.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a,
+.ui-shell.admin-app.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a {
   display: flex;
   align-items: center;
   gap: 13px;
@@ -207,54 +240,54 @@
   word-break: normal;
 }
 
-.ui-shell.student-app.product-shell .sidebar nav a:hover,
-.ui-shell.admin-app.product-shell .sidebar nav a:hover {
-  background: var(--aeck-primary-soft, #eff6ff);
-  color: var(--aeck-primary, #1d4ed8);
+.ui-shell.student-app.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a:hover,
+.ui-shell.admin-app.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a:hover {
+  background: var(--aeck-primary-soft, #fff1f3);
+  color: var(--aeck-primary, #b5122b);
 }
 
-.ui-shell.student-app.product-shell .sidebar nav a.active,
-.ui-shell.admin-app.product-shell .sidebar nav a.active {
-  background: var(--aeck-primary-selected, #dbeafe);
-  color: var(--aeck-primary-pressed, #1e3a8a);
+.ui-shell.student-app.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a.active,
+.ui-shell.admin-app.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a.active {
+  background: var(--aeck-primary-selected, #ffe2e7);
+  color: var(--aeck-primary-pressed, #7d1021);
   font-weight: 700;
 }
 
-.ui-shell.product-shell .sidebar nav a > svg { width: 20px; height: 20px; flex: 0 0 auto; }
-.ui-shell.product-shell .sidebar nav a > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
-.ui-shell.product-shell:not(.sidebar-expanded) .sidebar nav a {
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a > svg { width: 20px; height: 20px; flex: 0 0 auto; }
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar nav a > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome):not(.sidebar-expanded) > .sidebar nav a {
   justify-content: center;
   gap: 0;
   padding-inline: 0;
 }
-.ui-shell.product-shell:not(.sidebar-expanded) .sidebar nav a > span { display: none; }
-.ui-shell.product-shell.sidebar-expanded .sidebar nav a > span { display: block; }
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome):not(.sidebar-expanded) > .sidebar nav a > span { display: none; }
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome).sidebar-expanded > .sidebar nav a > span { display: block; }
 
 @media (min-width: 768px) {
-  .ui-shell.admin-app.product-shell:not(.sidebar-expanded) .admin-sidebar-section-label {
+  .ui-shell.admin-app.product-shell.ui-optimized-surface:not(.sidebar-expanded) .admin-sidebar-section-label {
     display: none;
   }
 
-  .ui-shell.admin-app.product-shell:not(.sidebar-expanded) .admin-sidebar-group + .admin-sidebar-group {
+  .ui-shell.admin-app.product-shell.ui-optimized-surface:not(.sidebar-expanded) .admin-sidebar-group + .admin-sidebar-group {
     margin-top: 4px;
     padding-top: 4px;
     border-top: 1px solid var(--aeck-border, #e2e8f0);
   }
 
-  .ui-shell.admin-app.product-shell:not(.sidebar-expanded) .sidebar nav a {
+  .ui-shell.admin-app.product-shell.ui-optimized-surface:not(.sidebar-expanded) > .sidebar nav a {
     margin-block: 2px;
   }
 
-  .ui-shell.product-shell:not(.sidebar-expanded) .header-brand {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome):not(.sidebar-expanded) .header-brand {
     margin-inline-start: -6px;
   }
 }
-.ui-shell.product-shell:not(.protected-exam-surface) .mobile-sidebar-brand,
-.ui-shell.product-shell:not(.protected-exam-surface) .header-brand,
-.ui-shell.product-shell:not(.protected-exam-surface) .mobile-sidebar-account { text-decoration: none; }
-.ui-shell.product-shell:not(.protected-exam-surface) .account-dropdown a[role="menuitem"] { display: flex; align-items: center; gap: 9px; min-height: 40px; border-radius: 8px; padding: 8px 10px; color: var(--aeck-text-body); text-decoration: none; }
-.ui-shell.product-shell:not(.protected-exam-surface) .account-dropdown a[role="menuitem"]:hover { background: var(--aeck-primary-soft); color: var(--aeck-primary); }
-.app-shell.ui-shell.product-shell .account-trigger > .account-avatar {
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .mobile-sidebar-brand,
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .header-brand,
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .mobile-sidebar-account { text-decoration: none; }
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-dropdown a[role="menuitem"] { display: flex; align-items: center; gap: 9px; min-height: 40px; border-radius: 8px; padding: 8px 10px; color: var(--aeck-text-body); text-decoration: none; }
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-dropdown a[role="menuitem"]:hover { background: var(--aeck-primary-soft); color: var(--aeck-primary); }
+.app-shell.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-trigger > .account-avatar {
   display: grid;
   width: 32px;
   height: 32px;
@@ -262,37 +295,37 @@
   place-items: center;
   overflow: visible;
   border-radius: 10px;
-  background: var(--aeck-primary-selected, #dbeafe);
-  color: var(--aeck-primary-pressed, #1e3a8a);
+  background: var(--aeck-primary-selected, #ffe2e7);
+  color: var(--aeck-primary-pressed, #7d1021);
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
 }
-.ui-shell.product-shell .account-trigger > .account-name {
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-trigger > .account-name {
   overflow-wrap: normal;
   word-break: normal;
 }
-.ui-shell.product-shell .skip-link {
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .skip-link {
   position: fixed;
   z-index: 10000;
   inset-block-start: 76px;
   inset-inline-start: 12px;
   padding: 10px 14px;
   border-radius: 10px;
-  background: var(--aeck-primary, #1d4ed8);
+  background: var(--aeck-primary, #b5122b);
   color: #fff;
   font-weight: 700;
   text-decoration: none;
   transform: translateY(calc(-100% - 88px));
   transition: none;
 }
-.ui-shell.product-shell .skip-link:focus-visible {
+.ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .skip-link:focus-visible {
   transform: translateY(0);
-  outline: 3px solid var(--aeck-focus, #2563eb);
+  outline: 3px solid var(--aeck-focus, #b5122b);
   outline-offset: 2px;
 }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-card-status { border-radius: var(--aeck-radius-pill); background: var(--aeck-surface-muted); color: var(--aeck-text-muted); padding: 4px 8px; font-size: 12px; font-weight: 650; white-space: nowrap; }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-card-head > a {
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-card-status { border-radius: var(--aeck-radius-pill); background: var(--aeck-surface-muted); color: var(--aeck-text-muted); padding: 4px 8px; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-card-head > a {
   display: inline-flex;
   min-height: 40px;
   align-items: center;
@@ -304,8 +337,8 @@
   font-weight: 700;
   text-decoration: none;
 }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-card-head > a:hover { background: var(--aeck-primary-soft); }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-list-card li > a {
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-card-head > a:hover { background: var(--aeck-primary-soft); }
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-list-card li > a {
   display: flex;
   min-width: 0;
   min-height: 40px;
@@ -315,25 +348,25 @@
   text-decoration: none;
   overflow-wrap: break-word;
 }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .overview-list-card li > a:hover { color: var(--aeck-primary); }
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .activity-year { display: inline-flex; width: fit-content; background: var(--aeck-primary); color: #fff; font-variant-numeric: tabular-nums; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-dash-actions a, .admin-kpi-card, .admin-workflow-strip > a) { text-decoration: none; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) a.admin-kpi-card { display: flex; flex-direction: column; color: inherit; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) a.admin-kpi-card:hover { border-color: #93c5fd; background: var(--aeck-primary-soft); }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-width: 0; padding: 13px 14px; border-inline-start: 1px solid var(--admin-line, var(--aeck-border)); background: #fff; color: var(--aeck-text-body); text-align: start; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a:hover { background: var(--aeck-primary-soft); color: var(--aeck-primary); }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a > i { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; background: var(--aeck-primary-soft); color: var(--aeck-primary); font-size: 9px; font-style: normal; font-weight: 800; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a > span { display: grid; min-width: 0; gap: 3px; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a b,
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a b { font-size: 12px; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a small { color: var(--aeck-text-muted); font-size: 12px; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a > svg { width: 14px; color: var(--aeck-text-subtle); }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-status-rail { order: 2; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-attention-grid { order: 3; }
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-dash-workflow { order: 4; }
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-list-card li > a:hover { color: var(--aeck-primary); }
+.ui-shell.student-app.product-shell.ui-optimized-surface .activity-year { display: inline-flex; width: fit-content; background: var(--aeck-primary); color: #fff; font-variant-numeric: tabular-nums; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface :where(.admin-dash-actions a, .admin-kpi-card, .admin-workflow-strip > a) { text-decoration: none; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface a.admin-kpi-card { display: flex; flex-direction: column; color: inherit; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface a.admin-kpi-card:hover { border-color: #e4a7b1; background: var(--aeck-primary-soft); }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-width: 0; padding: 13px 14px; border-inline-start: 1px solid var(--admin-line, var(--aeck-border)); background: #fff; color: var(--aeck-text-body); text-align: start; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a:hover { background: var(--aeck-primary-soft); color: var(--aeck-primary); }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a > i { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; background: var(--aeck-primary-soft); color: var(--aeck-primary); font-size: 9px; font-style: normal; font-weight: 800; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a > span { display: grid; min-width: 0; gap: 3px; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a b,
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a b { font-size: 12px; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a small { color: var(--aeck-text-muted); font-size: 12px; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a > svg { width: 14px; color: var(--aeck-text-subtle); }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-dash-status-rail { order: 2; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-dash-attention-grid { order: 3; }
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-dash-workflow { order: 4; }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context {
   display: flex;
   flex: 0 1 auto;
   flex-direction: row;
@@ -349,22 +382,22 @@
   line-height: 1.25;
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > a {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > a {
   display: inline-flex;
   min-height: 32px;
   align-items: center;
   border-radius: 8px;
   padding-inline: 8px;
-  color: var(--aeck-primary, #1d4ed8);
+  color: var(--aeck-primary, #b5122b);
   text-decoration: none;
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > a:hover {
-  background: var(--aeck-primary-soft, #eff6ff);
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > a:hover {
+  background: var(--aeck-primary-soft, #fff1f3);
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > a,
-.ui-shell.admin-app.product-shell .admin-topbar-context > span {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > a,
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > span {
   min-width: 0;
   color: var(--aeck-text-muted, #475569);
   font-size: 13px;
@@ -376,136 +409,140 @@
   white-space: nowrap;
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > a {
-  color: var(--aeck-primary, #1d4ed8);
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > a {
+  color: var(--aeck-primary, #b5122b);
   text-decoration: none;
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > a:hover {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > span {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > span {
   overflow: hidden;
   color: var(--aeck-text-body, #334155);
   text-overflow: ellipsis;
 }
 
-.ui-shell.admin-app.product-shell .admin-topbar-context > svg {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context > svg {
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
   color: var(--aeck-text-subtle, #64748b);
 }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-filter-toolbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--aeck-space-3); min-width: 0; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-search-field { display: flex; align-items: center; gap: 8px; min-width: min(100%, 280px); min-height: 42px; border: 1px solid var(--aeck-border-strong); border-radius: var(--aeck-radius-md); background: #fff; padding-inline: 11px; color: var(--aeck-text-subtle); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-search-field:focus-within { border-color: var(--aeck-focus); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-search-field svg { width: 17px; flex: 0 0 auto; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-search-field input { min-width: 0; width: 100%; min-height: 40px; border: 0; outline: 0; background: transparent; color: var(--aeck-text); font: inherit; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-result-count { margin-inline-start: auto; color: var(--aeck-text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-filter-toolbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--aeck-space-3); min-width: 0; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-search-field { display: flex; align-items: center; gap: 8px; min-width: min(100%, 280px); min-height: 42px; border: 1px solid var(--aeck-border-strong); border-radius: var(--aeck-radius-md); background: #fff; padding-inline: 11px; color: var(--aeck-text-subtle); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-search-field:focus-within { border-color: var(--aeck-focus); box-shadow: 0 0 0 3px rgba(181, 18, 43, .12); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-search-field svg { width: 17px; flex: 0 0 auto; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-search-field input { min-width: 0; width: 100%; min-height: 40px; border: 0; outline: 0; background: transparent; color: var(--aeck-text); font: inherit; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-live-count { margin-inline-start: auto; color: var(--aeck-text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-card,
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-card { min-width: 0; border: 1px solid var(--aeck-border); border-radius: var(--aeck-radius-lg); background: var(--aeck-surface); box-shadow: var(--aeck-shadow-sm); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-card { padding: 20px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-card-interactive { transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-card-interactive:hover { border-color: #bfdbfe; box-shadow: 0 14px 30px rgba(30, 64, 175, .09); transform: translateY(-1px); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-card { display: flex; align-items: flex-start; gap: 14px; padding: 18px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-card > div { display: grid; min-width: 0; gap: 4px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-card small { color: var(--aeck-text-muted); font-size: 12px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-card strong { font-size: 24px; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-card p { margin: 0; color: var(--aeck-text-subtle); font-size: 12px; overflow-wrap: break-word; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-stat-icon { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 10px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-card,
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-card { min-width: 0; border: 1px solid var(--aeck-border); border-radius: var(--aeck-radius-lg); background: var(--aeck-surface); box-shadow: var(--aeck-shadow-sm); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-card { padding: 20px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-card-interactive { transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-card-interactive:hover { border-color: #e8b6be; box-shadow: 0 8px 20px rgba(60, 22, 30, .07); transform: translateY(-1px); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-card { display: flex; align-items: flex-start; gap: 14px; padding: 18px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-card > div { display: grid; min-width: 0; gap: 4px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-card small { color: var(--aeck-text-muted); font-size: 12px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-card strong { font-size: 24px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-card p { margin: 0; color: var(--aeck-text-subtle); font-size: 12px; overflow-wrap: break-word; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-stat-icon { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 10px; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; border-radius: var(--aeck-radius-pill); padding: 4px 8px; font-size: 12px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-badge i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-tone-neutral { background: var(--aeck-surface-muted); color: var(--aeck-text-muted); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-tone-info { background: var(--aeck-info-soft); color: var(--aeck-info); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-tone-success { background: var(--aeck-success-soft); color: var(--aeck-success); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-tone-warning { background: var(--aeck-warning-soft); color: var(--aeck-warning); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-tone-danger { background: var(--aeck-danger-soft); color: var(--aeck-danger); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; border-radius: var(--aeck-radius-pill); padding: 4px 8px; font-size: 12px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-badge i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-tone-neutral { background: var(--aeck-surface-muted); color: var(--aeck-text-muted); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-tone-info { background: var(--aeck-info-soft); color: var(--aeck-info); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-tone-success { background: var(--aeck-success-soft); color: var(--aeck-success); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-tone-warning { background: var(--aeck-warning-soft); color: var(--aeck-warning); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-tone-danger { background: var(--aeck-danger-soft); color: var(--aeck-danger); }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-field { display: grid; gap: 7px; min-width: 0; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-field label { color: var(--aeck-text-body); font-size: 13px; font-weight: 650; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-field :where(input, select, textarea) { min-width: 0; width: 100%; min-height: 42px; border: 1px solid var(--aeck-border-strong); border-radius: var(--aeck-radius-sm); background: #fff; color: var(--aeck-text); padding: 9px 11px; font: inherit; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-field textarea { min-height: 96px; resize: vertical; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-field small { color: var(--aeck-text-muted); font-size: 12px; overflow-wrap: break-word; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-field > p { margin: 0; color: var(--aeck-danger); font-size: 12px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-field { display: grid; gap: 7px; min-width: 0; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-field label { color: var(--aeck-text-body); font-size: 13px; font-weight: 650; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-field :where(input, select, textarea) { min-width: 0; width: 100%; min-height: 42px; border: 1px solid var(--aeck-border-strong); border-radius: var(--aeck-radius-sm); background: #fff; color: var(--aeck-text); padding: 9px 11px; font: inherit; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-field textarea { min-height: 96px; resize: vertical; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-field small { color: var(--aeck-text-muted); font-size: 12px; overflow-wrap: break-word; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-field > p { margin: 0; color: var(--aeck-danger); font-size: 12px; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border: 0; border-radius: var(--aeck-radius-lg); padding: 0; background: transparent; color: var(--aeck-text); box-shadow: var(--aeck-shadow-md); overscroll-behavior: contain; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog::backdrop { background: rgba(15, 23, 42, .42); backdrop-filter: blur(4px); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog-surface { overflow: auto; max-height: calc(100dvh - 32px); border: 1px solid rgba(255,255,255,.7); border-radius: inherit; background: rgba(255,255,255,.97); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog-surface > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 20px 14px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog-surface h2 { margin: 0; font-size: 20px; line-height: 1.3; text-wrap: balance; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog-surface header p { margin: 5px 0 0; color: var(--aeck-text-muted); text-wrap: pretty; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog-body { padding: 0 20px 20px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-dialog-surface > footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--aeck-border); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-drawer-content { min-height: 160px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border: 0; border-radius: var(--aeck-radius-lg); padding: 0; background: transparent; color: var(--aeck-text); box-shadow: var(--aeck-shadow-md); overscroll-behavior: contain; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog::backdrop { background: rgba(17, 24, 39, .46); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog-surface { overflow: auto; max-height: calc(100dvh - 32px); border: 1px solid var(--aeck-border); border-radius: inherit; background: var(--aeck-surface); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog-surface > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 20px 14px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog-surface h2 { margin: 0; font-size: 20px; line-height: 1.3; text-wrap: balance; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog-surface header p { margin: 5px 0 0; color: var(--aeck-text-muted); text-wrap: pretty; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog-body { padding: 0 20px 20px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-dialog-surface > footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--aeck-border); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-drawer-content { min-height: 160px; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-menu { position: relative; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-menu summary { display: flex; align-items: center; min-height: 40px; border-radius: var(--aeck-radius-sm); cursor: pointer; list-style: none; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-menu summary::-webkit-details-marker { display: none; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-menu-panel { position: absolute; z-index: 30; inset-block-start: calc(100% + 8px); inset-inline-end: 0; min-width: 200px; border: 1px solid var(--aeck-border); border-radius: var(--aeck-radius-md); background: #fff; padding: 6px; box-shadow: var(--aeck-shadow-md); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-menu { position: relative; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-menu summary { display: flex; align-items: center; min-height: 40px; border-radius: var(--aeck-radius-sm); cursor: pointer; list-style: none; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-menu summary::-webkit-details-marker { display: none; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-menu-panel { position: absolute; z-index: 30; inset-block-start: calc(100% + 8px); inset-inline-end: 0; min-width: 200px; border: 1px solid var(--aeck-border); border-radius: var(--aeck-radius-md); background: #fff; padding: 6px; box-shadow: var(--aeck-shadow-md); }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-data-list { display: grid; min-width: 0; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-table-wrap { overflow: auto; max-width: 100%; border: 1px solid var(--aeck-border); border-radius: var(--aeck-radius-md); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-table-wrap table { width: 100%; border-collapse: collapse; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-table-wrap :where(th, td) { padding: 12px 14px; border-bottom: 1px solid var(--aeck-border); text-align: start; vertical-align: top; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-table-wrap th { background: var(--aeck-surface-muted); color: var(--aeck-text-muted); font-size: 12px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-pagination > span { color: var(--aeck-text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-data-list { display: grid; min-width: 0; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-table-wrap { overflow: auto; max-width: 100%; border: 1px solid var(--aeck-border); border-radius: var(--aeck-radius-md); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-table-wrap table { width: 100%; border-collapse: collapse; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-table-wrap :where(th, td) { padding: 12px 14px; border-bottom: 1px solid var(--aeck-border); text-align: start; vertical-align: top; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-table-wrap th { background: var(--aeck-surface-muted); color: var(--aeck-text-muted); font-size: 12px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-pagination > span { color: var(--aeck-text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-state { display: grid; justify-items: center; gap: 8px; min-height: 180px; place-content: center; padding: 28px; color: var(--aeck-text-muted); text-align: center; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-state > span { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 14px; background: var(--aeck-primary-soft); color: var(--aeck-primary); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-state h3 { margin: 4px 0 0; color: var(--aeck-text); font-size: 16px; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-state p { max-width: 54ch; margin: 0; text-wrap: pretty; }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-error-state > svg { color: var(--aeck-danger); }
-.ui-shell.product-shell:not(.protected-exam-surface) .aeck-spinner { width: 22px; animation: aeck-spin .8s linear infinite; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-state { display: grid; justify-items: center; gap: 8px; min-height: 180px; place-content: center; padding: 28px; color: var(--aeck-text-muted); text-align: center; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-state > span { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 14px; background: var(--aeck-primary-soft); color: var(--aeck-primary); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-state h3 { margin: 4px 0 0; color: var(--aeck-text); font-size: 16px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-state p { max-width: 54ch; margin: 0; text-wrap: pretty; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-error-state > svg { color: var(--aeck-danger); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-skeleton { display: grid; min-width: 0; gap: 12px; padding-block: 4px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-skeleton > span { display: block; width: 100%; min-height: 16px; border-radius: 6px; background: var(--aeck-surface-muted); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-skeleton > span:first-child { width: min(62%, 28rem); min-height: 22px; }
+.ui-shell.product-shell.ui-optimized-surface .aeck-skeleton > span:last-child { width: min(76%, 36rem); }
+.ui-shell.product-shell.ui-optimized-surface .aeck-spinner { width: 22px; animation: aeck-spin .8s linear infinite; }
 @keyframes aeck-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 700px) {
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header,
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-section-header { align-items: stretch; flex-direction: column; }
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header { padding: 18px 16px; }
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-page-header-actions > * { flex: 1 1 auto; }
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-filter-toolbar > * { flex: 1 1 100%; }
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-search-field { width: 100%; }
-  .ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-search-field input, .aeck-field input, .aeck-field select, .aeck-field textarea) { font-size: 16px; }
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-result-count { margin-inline-start: 0; }
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > a { border-inline-start: 0; border-top: 1px solid var(--aeck-border); }
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-topbar-context { display: none; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-page-header,
+  .ui-shell.product-shell.ui-optimized-surface .aeck-section-header { align-items: stretch; flex-direction: column; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-page-header { padding: 18px 16px; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-page-header-actions > * { flex: 1 1 auto; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-filter-toolbar > * { flex: 1 1 100%; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-search-field { width: 100%; }
+  .ui-shell.product-shell.ui-optimized-surface :where(.aeck-search-field input, .aeck-field input, .aeck-field select, .aeck-field textarea) { font-size: 16px; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-live-count { margin-inline-start: 0; }
+  .ui-shell.admin-app.product-shell.ui-optimized-surface .admin-workflow-strip > a { border-inline-start: 0; border-top: 1px solid var(--aeck-border); }
+  .ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context { display: none; }
 }
 
 @media (pointer: coarse) {
-  .ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-menu summary) { min-height: 44px; }
+  .ui-shell.product-shell.ui-optimized-surface :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-menu summary) { min-height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-button, .aeck-icon-button, .aeck-card-interactive) { transition-duration: .01ms; }
-  .ui-shell.product-shell:not(.protected-exam-surface) .aeck-spinner { animation-duration: 1.6s; }
+  .ui-shell.product-shell.ui-optimized-surface :where(.aeck-button, .aeck-icon-button, .aeck-card-interactive) { transition-duration: .01ms; }
+  .ui-shell.product-shell.ui-optimized-surface .aeck-spinner { animation-duration: 1.6s; }
 }
 
 @media (max-width: 767px) {
-  .ui-shell.admin-app.product-shell .admin-sidebar-section-label {
+  .ui-shell.admin-app.product-shell.ui-optimized-surface .admin-sidebar-section-label {
     display: block;
     opacity: 1;
   }
 
-  .ui-shell.product-shell .sidebar {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar {
     width: min(88vw, 328px);
     transform: translateX(-100%);
   }
 
-  .ui-shell.product-shell .sidebar.mobile-open {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .sidebar.mobile-open {
     transform: translateX(0);
   }
 
-  .ui-shell.product-shell .header-sidebar-toggle {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .header-sidebar-toggle {
     display: none;
   }
 
-  .ui-shell.product-shell .mobile-menu {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .mobile-menu {
     display: grid;
     position: absolute;
     inset-inline-start: 10px;
@@ -515,17 +552,17 @@
     place-items: center;
   }
 
-  .ui-shell.product-shell .mobile-shade.show {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .mobile-shade.show {
     display: block;
   }
 
-  .ui-shell.product-shell .topbar {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) > .topbar {
     position: sticky;
     justify-content: space-between;
     padding-inline: 12px;
   }
 
-  .ui-shell.product-shell .header-brand {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .header-brand {
     position: absolute;
     inset-inline-start: 50%;
     width: 40px;
@@ -535,22 +572,22 @@
     transform: translateX(-50%);
   }
 
-  .ui-shell.product-shell .header-brand-logo-compact {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .header-brand-logo-compact {
     display: block;
     width: 36px;
     height: 36px;
   }
 
-  .ui-shell.product-shell .header-brand-logo-full,
-  .ui-shell.admin-app.product-shell .admin-topbar-context {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .header-brand-logo-full,
+  .ui-shell.admin-app.product-shell.ui-optimized-surface .admin-topbar-context {
     display: none;
   }
 
-  .ui-shell.product-shell .top-actions {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .top-actions {
     margin-inline-start: auto;
   }
 
-  .ui-shell.product-shell .account-trigger {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-trigger {
     width: 40px;
     height: 40px;
     min-height: 40px;
@@ -560,111 +597,141 @@
     background: transparent;
   }
 
-  .ui-shell.product-shell .account-trigger .account-name,
-  .ui-shell.product-shell .account-trigger > svg {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-trigger .account-name,
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-trigger > svg {
     display: none;
   }
 
-  .ui-shell.product-shell .account-menu-wrap {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome) .account-menu-wrap {
     margin: 0;
     padding: 0;
   }
 
-  .ui-shell.product-shell:not(.sidebar-expanded) .sidebar nav a,
-  .ui-shell.product-shell.sidebar-expanded .sidebar nav a {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome):not(.sidebar-expanded) > .sidebar nav a,
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome).sidebar-expanded > .sidebar nav a {
     justify-content: flex-start;
     gap: 13px;
     padding-inline: 15px;
   }
 
-  .ui-shell.product-shell:not(.sidebar-expanded) .sidebar nav a > span,
-  .ui-shell.product-shell.sidebar-expanded .sidebar nav a > span {
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome):not(.sidebar-expanded) > .sidebar nav a > span,
+  .ui-shell.product-shell:is(.ui-optimized-surface, .ui-optimized-chrome).sidebar-expanded > .sidebar nav a > span {
     display: block;
   }
 }
 
 @media (forced-colors: active) {
-  .ui-shell.product-shell:not(.protected-exam-surface) :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-search-field, .aeck-field input, .aeck-field select, .aeck-field textarea):focus-visible { outline: 2px solid CanvasText; }
+  .ui-shell.product-shell.ui-optimized-surface :where(.aeck-button, .aeck-icon-button, .aeck-nav-item, .aeck-search-field input, .aeck-field input, .aeck-field select, .aeck-field textarea):focus-visible { outline: 2px solid CanvasText; }
 }
 
-/* Reference fidelity pass: keep the product shell quiet and readable while
-   giving the dashboard a clearer information hierarchy. */
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page {
-  width: min(1160px, 100%);
-  gap: 20px;
+/* Dashboard density follows the approved quiet, list-led product concept. */
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page {
+  width: min(1180px, 100%);
+  gap: 18px;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-summary {
-    grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(132px, .72fr));
-    align-items: stretch;
-    gap: 16px;
-    min-height: 148px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.92);
-    border-radius: 20px;
-    background:
-      radial-gradient(circle at 96% 8%, rgba(255, 255, 255, 0.78), transparent 13rem),
-      linear-gradient(135deg, #eaf4ff 0%, #f4f1ff 100%);
-    box-shadow: 0 12px 36px rgba(0, 48, 128, 0.08);
-  }
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-next-step {
+  border-color: var(--aeck-border);
+  background: var(--aeck-surface);
+  box-shadow: var(--aeck-shadow-sm);
+}
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-role {
-    display: none;
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-next-step-icon {
+  background: var(--aeck-primary-soft);
+  color: var(--aeck-primary);
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-next-step-eyebrow {
+  color: var(--aeck-primary);
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-next-step-action {
+  background: var(--aeck-primary);
+  box-shadow: 0 4px 12px rgba(181, 18, 43, .16);
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-next-step-action:hover {
+  background: var(--aeck-primary-hover);
+  box-shadow: 0 5px 14px rgba(181, 18, 43, .2);
+  transform: none;
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-avatar {
+  border-color: #f0b4bd;
+  background: var(--aeck-primary-soft);
+  color: var(--aeck-primary);
+  box-shadow: none;
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .overview-list-card .dot.blue {
+  background: var(--aeck-primary);
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary {
+  grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, .72fr));
+  align-items: stretch;
+  gap: 0;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--aeck-border);
+  border-radius: var(--aeck-radius-lg);
+  background: var(--aeck-surface);
+  box-shadow: var(--aeck-shadow-sm);
+}
+
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-role {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary {
+    grid-template-columns: minmax(0, 1fr) repeat(3, minmax(110px, .6fr));
   }
+}
 
 @media (max-width: 767px) {
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page {
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page {
     gap: 16px;
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-summary {
-    grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(132px, .72fr));
-    align-items: stretch;
-    gap: 16px;
-    min-height: 148px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.92);
-    border-radius: 20px;
-    background:
-      radial-gradient(circle at 96% 8%, rgba(255, 255, 255, 0.78), transparent 13rem),
-      linear-gradient(135deg, #eaf4ff 0%, #f4f1ff 100%);
-    box-shadow: 0 12px 36px rgba(0, 48, 128, 0.08);
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    padding: 0;
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-user {
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-user {
+    grid-column: 1 / -1;
     min-width: 0;
-    gap: 16px;
-    padding: 8px 24px 8px 8px;
+    gap: 12px;
+    padding: 16px;
     display: flex;
     align-items: center;
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-number {
-    min-height: 102px;
-    padding: 12px 14px 4px;
-    border-top: 1px solid rgba(71, 85, 105, .13);
-    border-inline-start: 0;
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-number {
+    min-width: 0;
+    min-height: 88px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--aeck-border);
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .overview-list-card,
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .dashboard-page .two-col > .section-card {
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-list-card,
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .two-col > .section-card {
     min-height: 0;
   }
-
-  
 }
 
+@media (max-width: 360px) {
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-
-
-
-
-
-
-
-
-
-
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-user {
+    grid-column: auto;
+  }
+}
 
 
 

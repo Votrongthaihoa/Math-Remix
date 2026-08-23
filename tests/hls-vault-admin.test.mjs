@@ -102,3 +102,34 @@ test("HLS encoder route enables browser cross-origin isolation", async () => {
   assert.match(proxy, /cross-origin-opener-policy/);
   assert.match(proxy, /cross-origin-embedder-policy/);
 });
+
+test("admin HLS tool cancels both encoders, guards navigation, and announces only stages", async () => {
+  const [component, agent] = await Promise.all([
+    readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/native-hls-agent.mjs", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(component, /activeRunIdRef\.current \+= 1/);
+  assert.match(component, /disposeFfmpeg\(\)/);
+  assert.match(component, /nativeJobRequest\(jobId, "DELETE"\)/);
+  assert.match(component, /window\.addEventListener\("beforeunload", handleBeforeUnload\)/);
+  assert.match(component, /listenForProductNavigation\(event =>/);
+  assert.match(component, /runAbortControllerRef\.current\?\.abort\(\)/);
+  assert.match(component, /const runController = new AbortController\(\)/);
+  assert.match(component, /startNative\(normalizedVideoId, runId, runController\.signal\)/);
+  assert.match(component, /if \(!currentRun\(runId\)\) return;[\s\S]*?activeSessionToken\(\)/);
+  assert.match(component, /if \(jobId\) void nativeJobRequest\(jobId, "DELETE"\)/);
+  assert.match(component, /setState\("cancelled"\)[\s\S]*?if \(jobId\) await nativeJobRequest/);
+  assert.match(component, /className="admin-hls-vault-stage-live" role="status" aria-live="polite" aria-atomic="true"/);
+  assert.doesNotMatch(component, /admin-hls-vault-progress-card" aria-live/);
+  assert.match(component, /aria-invalid=\{Boolean\(fieldErrors\.videoId\)\}/);
+  assert.match(component, /aria-describedby=\{`admin-hls-video-id-help\$\{fieldErrors\.videoId \? " admin-hls-video-id-error" : ""\}`\}/);
+  assert.match(component, /aria-invalid=\{Boolean\(fieldErrors\.file\)\}/);
+  assert.match(component, /<b role="status" aria-live="polite" aria-atomic="true">/);
+  assert.match(component, /type="file"[^>]*tabIndex=\{-1\}/);
+  assert.match(component, /state === "done"[\s\S]*?Bước tiếp theo: mở trình soạn nội dung/);
+  assert.match(component, /className="admin-hls-vault-notice">\{notice\}/);
+  assert.doesNotMatch(component, /className="admin-hls-vault-notice" role="status"/);
+  assert.match(agent, /request\.method === "DELETE"/);
+  assert.match(agent, /job\.child\.kill\(\)/);
+});

@@ -10,6 +10,7 @@ test("admin session list keeps dates safe and mobile rows non-overlapping", asyn
 
   assert.match(component, /Number\.isNaN\(date\.getTime\(\)\)/);
   assert.match(component, /aria-pressed=\{stateFilter === "upcoming"\}/);
+  assert.match(component, /aria-pressed=\{stateFilter === "disabled"\}/);
   assert.match(css, /grid-template-areas:/);
   assert.match(component, /abortController\.current\?\.abort\(\)/);
   assert.match(component, /hasNextPage/);

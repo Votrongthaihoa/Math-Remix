@@ -16,7 +16,9 @@ test("the session wizard is reachable as a first-class admin route", async () =>
   assert.match(wizard, /\/api\/admin\/exam-policy/);
   assert.match(wizard, /action: "save_policy"/);
   assert.match(wizard, /action: "create_slot"/);
-  assert.match(wizard, /role="listbox"/);
+  assert.match(wizard, /<fieldset className="admin-session-choice-list">/);
+  assert.match(wizard, /<input type="radio" name="roomId"/);
+  assert.match(wizard, /<input type="radio" name="examId"/);
   assert.match(wizard, />Đảo câu hỏi</);
   assert.match(wizard, />Đảo đáp án</);
   assert.match(wizard, />Mỗi phần bắt đầu từ Câu 1</);

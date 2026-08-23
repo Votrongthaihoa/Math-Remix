@@ -1,0 +1,619 @@
+/* Authentication is an explicit non-exam surface. Keep every override behind
+   ui-auth-surface so protected runners and previews cannot inherit it. */
+.login-page.ui-auth-surface {
+  min-height: 100dvh;
+  overflow: auto;
+  place-items: center;
+  padding: clamp(24px, 5vw, 56px) 18px;
+  background: #f4f5f7;
+  color: #17191d;
+}
+
+.login-page.ui-auth-surface::before,
+.login-page.ui-auth-surface .login-orb {
+  display: none;
+}
+
+.login-page.ui-auth-surface .login-wrap {
+  width: min(100%, 420px);
+  min-width: 0;
+}
+
+.login-page.ui-auth-surface .login-brand {
+  gap: 11px;
+  margin-block-end: 22px;
+}
+
+.login-page.ui-auth-surface .login-brand > span {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: #b5122b;
+  box-shadow: 0 3px 9px rgba(125, 16, 33, .18);
+  font-size: 24px;
+}
+
+.login-page.ui-auth-surface .login-brand b {
+  font-size: 19px;
+  letter-spacing: .16em;
+}
+
+.login-page.ui-auth-surface .login-brand small {
+  color: #686d76;
+  font-size: 9px;
+  letter-spacing: .16em;
+}
+
+.login-page.ui-auth-surface .login-card {
+  min-width: 0;
+  padding: 30px;
+  border: 1px solid #dfe2e7;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(24, 30, 42, .07);
+}
+
+.login-page.ui-auth-surface.admin-login-page .login-card {
+  border-block-start: 1px solid #dfe2e7;
+}
+
+.login-page.ui-auth-surface .login-heading {
+  margin-block-end: 24px;
+  text-align: start;
+}
+
+.login-page.ui-auth-surface .login-heading .kicker {
+  color: #b5122b;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .12em;
+}
+
+.login-page.ui-auth-surface .login-heading h1 {
+  margin: 7px 0 8px;
+  color: #17191d;
+  font-size: clamp(26px, 7vw, 32px);
+  line-height: 1.15;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.login-page.ui-auth-surface .login-heading p,
+.login-page.ui-auth-surface .login-foot {
+  color: #686d76;
+  line-height: 1.55;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface .login-card > label,
+.login-page.ui-auth-surface .login-field-group > label {
+  color: #343840;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.login-page.ui-auth-surface .field {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  height: auto;
+  border: 1px solid #cfd3da;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.login-page.ui-auth-surface .field:hover {
+  border-color: #aeb4bf;
+}
+
+.login-page.ui-auth-surface .field:focus-within {
+  border-color: #b5122b;
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, .12);
+}
+
+.login-page.ui-auth-surface .field input {
+  min-width: 0;
+  min-height: 44px;
+  color: #17191d;
+  background: transparent;
+  font-size: 14px;
+}
+
+.login-page.ui-auth-surface .field button {
+  position: relative;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 8px;
+  color: #5f6570;
+}
+
+.login-page.ui-auth-surface :where(button, input):focus-visible {
+  outline: 2px solid #b5122b;
+  outline-offset: 2px;
+}
+
+.login-page.ui-auth-surface .field input:focus-visible {
+  outline: 0;
+}
+
+.login-page.ui-auth-surface .primary-btn {
+  min-height: 46px;
+  border-radius: 10px;
+  background: #b5122b;
+  box-shadow: 0 2px 7px rgba(125, 16, 33, .17);
+  font-size: 14px;
+}
+
+.login-page.ui-auth-surface .primary-btn:hover:not(:disabled) {
+  background: #971126;
+}
+
+.login-page.ui-auth-surface .primary-btn:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
+.login-page.ui-auth-surface .forgot {
+  min-height: 40px;
+  padding-block: 12px 0;
+  color: #971126;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.login-page.ui-auth-surface .form-error,
+.login-page.ui-auth-surface .form-success {
+  margin-block: 14px 0;
+  border: 1px solid #f0c7cd;
+  background: #fff5f6;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface .form-success {
+  border-color: #b9dcc8;
+  color: #17633f;
+  background: #f2faf5;
+}
+
+.login-page.ui-auth-surface .login-foot {
+  margin-block-start: 18px;
+  font-size: 11px;
+}
+
+@media (max-width: 520px) {
+  .login-page.ui-auth-surface {
+    align-items: start;
+    padding-block: max(22px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-bottom));
+  }
+
+  .login-page.ui-auth-surface .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-page.ui-auth-surface .field input {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page.ui-auth-surface .field {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .login-page.ui-auth-surface :where(button, input):focus-visible {
+    outline-color: CanvasText;
+  }
+
+  .login-page.ui-auth-surface .field input:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
+/* Auth refresh: the signed-out surface gets its own readable two-column
+   composition while remaining isolated from product and exam shells. */
+.login-page.ui-auth-surface .login-wrap {
+  display: grid;
+  width: min(100%, 1020px);
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
+  align-items: stretch;
+  gap: clamp(24px, 5vw, 72px);
+}
+
+.login-page.ui-auth-surface .login-main {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+}
+
+.login-page.ui-auth-surface .login-aside {
+  display: flex;
+  min-width: 0;
+  min-height: 560px;
+  flex-direction: column;
+  padding: clamp(28px, 4vw, 48px);
+  border: 1px solid #2c3038;
+  border-radius: 24px;
+  background: #17191d;
+  color: #f8f9fb;
+  box-shadow: 0 22px 48px rgba(24, 30, 42, .14);
+}
+
+.login-page.ui-auth-surface .login-aside-brand,
+.login-page.ui-auth-surface .login-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.login-page.ui-auth-surface .login-aside-brand {
+  gap: 12px;
+}
+
+.login-page.ui-auth-surface .login-aside-brand > span,
+.login-page.ui-auth-surface .login-brand > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  background: #b5122b;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(125, 16, 33, .22);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.login-page.ui-auth-surface .login-aside-brand > span svg,
+.login-page.ui-auth-surface .login-brand > span svg {
+  width: 22px;
+  height: 22px;
+}
+
+.login-page.ui-auth-surface .login-aside-brand > div,
+.login-page.ui-auth-surface .login-brand > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.login-page.ui-auth-surface .login-aside-brand b,
+.login-page.ui-auth-surface .login-brand b {
+  color: inherit;
+  font-size: 19px;
+  letter-spacing: .16em;
+  line-height: 1.1;
+}
+
+.login-page.ui-auth-surface .login-aside-brand small,
+.login-page.ui-auth-surface .login-brand small {
+  color: #aeb4bf;
+  font-size: 9px;
+  letter-spacing: .16em;
+  line-height: 1.2;
+}
+
+.login-page.ui-auth-surface .login-brand {
+  gap: 11px;
+  margin-block-end: 20px;
+}
+
+.login-page.ui-auth-surface .login-brand > span {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  font-size: 22px;
+}
+
+.login-page.ui-auth-surface .login-brand b {
+  color: #17191d;
+}
+
+.login-page.ui-auth-surface .login-brand small {
+  color: #686d76;
+}
+
+.login-page.ui-auth-surface .login-aside-copy {
+  min-width: 0;
+  margin-block: clamp(72px, 12vh, 132px) 28px;
+}
+
+.login-page.ui-auth-surface .login-aside-kicker,
+.login-page.ui-auth-surface .login-heading .kicker {
+  color: #ec8c9b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.login-page.ui-auth-surface .login-heading .kicker {
+  color: #b5122b;
+}
+
+.login-page.ui-auth-surface .login-aside-copy h2 {
+  max-width: 13ch;
+  margin: 8px 0 12px;
+  color: inherit;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.login-page.ui-auth-surface .login-aside-copy p,
+.login-page.ui-auth-surface .login-heading p,
+.login-page.ui-auth-surface .login-foot {
+  max-width: 54ch;
+  color: #b9c0ca;
+  line-height: 1.55;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface .login-aside-features {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login-page.ui-auth-surface .login-aside-features li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  color: #f1f3f6;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.login-page.ui-auth-surface .login-aside-features i {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #4b2c34;
+  border-radius: 50%;
+  color: #ec8c9b;
+  font-size: 10px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.login-page.ui-auth-surface .login-aside-features span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface .login-aside-foot {
+  margin: auto 0 0;
+  padding-block-start: 28px;
+  color: #858d99;
+  font-size: 11px;
+}
+
+.login-page.ui-auth-surface .login-card {
+  min-width: 0;
+  padding: clamp(24px, 4vw, 34px);
+  border: 1px solid #dfe2e7;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(24, 30, 42, .08);
+}
+
+.login-page.ui-auth-surface .login-heading {
+  min-width: 0;
+  margin-block-end: 24px;
+  text-align: start;
+}
+
+.login-page.ui-auth-surface .login-heading h1 {
+  margin: 7px 0 8px;
+  color: #17191d;
+  font-size: clamp(26px, 7vw, 34px);
+  line-height: 1.12;
+  letter-spacing: -.03em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface .login-heading p {
+  margin: 0;
+  color: #686d76;
+}
+
+.login-page.ui-auth-surface .field {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
+  margin-block-start: 7px;
+  padding-inline: 13px;
+  border: 1px solid #cfd3da;
+  border-radius: 11px;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.login-page.ui-auth-surface .field > svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: #7b8490;
+}
+
+.login-page.ui-auth-surface .field:focus-within {
+  border-color: #b5122b;
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, .12);
+}
+
+.login-page.ui-auth-surface .field input {
+  min-width: 0;
+  min-height: 48px;
+  flex: 1 1 auto;
+  border: 0;
+  color: #17191d;
+  background: transparent;
+  font-size: 14px;
+  outline: 0;
+}
+
+.login-page.ui-auth-surface .field input::placeholder {
+  color: #8b929d;
+}
+
+.login-page.ui-auth-surface .field button {
+  display: grid;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: #5f6570;
+}
+
+.login-page.ui-auth-surface .field button:hover {
+  color: #b5122b;
+  background: #fff1f3;
+}
+
+.login-page.ui-auth-surface :where(button, input):focus-visible {
+  outline: 2px solid #b5122b;
+  outline-offset: 2px;
+}
+
+.login-page.ui-auth-surface .field input:focus-visible {
+  outline: 0;
+}
+
+.login-page.ui-auth-surface .primary-btn {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #b5122b;
+  box-shadow: 0 3px 9px rgba(125, 16, 33, .18);
+  font-size: 14px;
+}
+
+.login-page.ui-auth-surface .primary-btn:hover:not(:disabled) {
+  background: #971126;
+}
+
+.login-page.ui-auth-surface .primary-btn:active:not(:disabled) {
+  transform: scale(.98);
+}
+
+.login-page.ui-auth-surface .primary-btn:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
+.login-page.ui-auth-surface .forgot {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding-block: 12px 0;
+  color: #971126;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.login-page.ui-auth-surface .login-foot {
+  margin: 18px 0 0;
+  color: #686d76;
+  font-size: 11px;
+}
+
+.login-page.ui-auth-surface.auth-flow-page .login-wrap {
+  display: block;
+  width: min(100%, 460px);
+}
+
+.login-page.ui-auth-surface.auth-flow-page .login-main {
+  display: block;
+}
+
+@media (max-width: 820px) {
+  .login-page.ui-auth-surface .login-wrap {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+    gap: 24px;
+  }
+
+  .login-page.ui-auth-surface .login-aside {
+    min-height: 500px;
+    padding: 28px;
+  }
+
+  .login-page.ui-auth-surface .login-aside-copy {
+    margin-block-start: 64px;
+  }
+}
+
+@media (max-width: 680px) {
+  .login-page.ui-auth-surface {
+    align-items: start;
+    padding-block: max(22px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-bottom));
+  }
+
+  .login-page.ui-auth-surface .login-wrap {
+    display: block;
+    width: min(100%, 460px);
+  }
+
+  .login-page.ui-auth-surface .login-aside {
+    display: none;
+  }
+
+  .login-page.ui-auth-surface .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-page.ui-auth-surface .field input {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page.ui-auth-surface :where(.field, .primary-btn) {
+    transition: none;
+  }
+
+  .login-page.ui-auth-surface .primary-btn:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .login-page.ui-auth-surface :where(button, input):focus-visible {
+    outline-color: CanvasText;
+  }
+
+  .login-page.ui-auth-surface .field input:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}

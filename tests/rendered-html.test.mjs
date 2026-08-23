@@ -86,7 +86,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /supabase\.from\("profiles"\)\.update\(\{ full_name: nextName/);
   assert.doesNotMatch(platform, /Minh Hoàng|minhhoang@example\.com/);
   assert.match(platform, /function RealAdminDashboard/);
-  assert.match(platform, /const \[adminRouteRequested, setAdminRouteRequested\] = useState\(initialAdminRoute\)/);
+  assert.match(platform, /const adminRouteRequested = pathname\.startsWith\("\/admin"\)/);
   assert.match(platform, /function AdminLoginPage/);
   assert.match(platform, /adminRouteRequested && \(!signedIn \|\| !isAdmin\)/);
   assert.match(platform, /loginContext === "admin" && profile\.role !== "admin"/);

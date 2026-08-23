@@ -6,7 +6,7 @@
   padding: 28px;
   border: 1px dashed #d7dce3;
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
   color: #64748b;
   text-align: center;
 }
@@ -14,7 +14,7 @@
 .admin-security-page .security-empty svg {
   width: 30px;
   height: 30px;
-  color: #007aff;
+  color: var(--aeck-primary, #b5122b);
 }
 
 .admin-security-page .security-empty h3 {
@@ -54,8 +54,6 @@
   place-items: center;
   padding: 20px;
   background: rgba(28, 28, 30, 0.42);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .admin-security-page .security-action-dialog {
@@ -63,15 +61,15 @@
   max-height: min(680px, calc(100vh - 40px));
   overflow: auto;
   padding: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--aeck-border, #dfe3ea);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
   color: #1d1d1f;
 }
 
 .admin-security-page .security-action-dialog:focus {
-  outline: 3px solid rgba(0, 122, 255, 0.28);
+  outline: 3px solid rgba(181, 18, 43, 0.22);
   outline-offset: 3px;
 }
 
@@ -95,7 +93,7 @@
 }
 
 .admin-security-page .security-action-kicker {
-  color: #007aff;
+  color: var(--aeck-primary, #b5122b);
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 1.4px;
@@ -110,7 +108,7 @@
   border: 1px solid rgba(60, 60, 67, 0.16);
   border-radius: 9px;
   color: #6e6e73;
-  background: rgba(245, 245, 247, 0.78);
+  background: #f7f7f8;
 }
 
 .admin-security-page .security-action-dialog header > button:hover:not(:disabled) {
@@ -152,14 +150,19 @@
 }
 
 .admin-security-page .security-action-dialog textarea:focus {
-  border-color: rgba(0, 122, 255, 0.72);
+  border-color: var(--aeck-primary, #b5122b);
   outline: 0;
-  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, 0.12);
+}
+
+.admin-security-page .security-action-dialog textarea:focus-visible {
+  outline: 2px solid var(--aeck-primary, #b5122b);
+  outline-offset: 2px;
 }
 
 .admin-security-page .security-action-dialog > form > small {
   margin-top: -8px;
-  color: #8e8e93;
+  color: #62626b;
   font-size: 10px;
   font-weight: 400;
 }
@@ -197,14 +200,14 @@
 .admin-security-page .security-action-secondary {
   border: 1px solid rgba(60, 60, 67, 0.16);
   color: #424245;
-  background: rgba(245, 245, 247, 0.78);
+  background: #f7f7f8;
 }
 
 .admin-security-page .security-action-primary {
-  border: 1px solid #007aff;
+  border: 1px solid var(--aeck-primary, #b5122b);
   color: #fff;
-  background: #007aff;
-  box-shadow: 0 7px 16px rgba(0, 122, 255, 0.16);
+  background: var(--aeck-primary, #b5122b);
+  box-shadow: 0 4px 10px rgba(125, 16, 33, 0.16);
 }
 
 .admin-security-page .security-action-dialog-actions button:hover:not(:disabled) {
@@ -212,14 +215,14 @@
 }
 
 .admin-security-page .security-action-secondary:hover:not(:disabled) {
-  border-color: rgba(0, 122, 255, 0.32);
-  color: #007aff;
-  background: rgba(0, 122, 255, 0.08);
+  border-color: rgba(181, 18, 43, 0.3);
+  color: var(--aeck-primary, #b5122b);
+  background: #fff5f6;
 }
 
 .admin-security-page .security-action-primary:hover:not(:disabled) {
-  border-color: #0066d6;
-  background: #0066d6;
+  border-color: var(--aeck-primary-hover, #971126);
+  background: var(--aeck-primary-hover, #971126);
 }
 
 .admin-security-page .security-action-dialog-actions button:disabled,
@@ -256,8 +259,15 @@
   }
 }
 
+@media (forced-colors: active) {
+  .admin-security-page .security-action-dialog textarea:focus-visible {
+    outline-color: CanvasText;
+    box-shadow: none;
+  }
+}
+
 /* Text-safe AECK header. Kept out of protected exam surfaces. */
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
@@ -265,43 +275,43 @@
   padding: 20px 22px;
   border-color: var(--aeck-border, #e2e8f0);
   border-radius: var(--aeck-radius-lg, 14px);
-  background: linear-gradient(135deg, var(--aeck-primary-soft, #eff6ff), #fff 70%);
+  background: #fff;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > div {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head > div {
   min-width: 0;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > div > span {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head > div > span {
   display: block;
-  color: var(--aeck-primary, #1d4ed8);
+  color: var(--aeck-primary, #b5122b);
   font-size: 12px;
   line-height: 1.35;
   overflow-wrap: normal;
   word-break: normal;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head h2,
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head p {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head h1,
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head p {
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: normal;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head h2 {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head h1 {
   color: var(--aeck-text, #0f172a);
   font-size: 24px;
   line-height: 1.25;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head p {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head p {
   max-width: 65ch;
   color: var(--aeck-text-muted, #475569);
   font-size: 14px;
   line-height: 1.5;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > button {
+.ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head > button {
   min-width: max-content;
   min-height: 40px;
   align-self: start;
@@ -309,13 +319,376 @@
 }
 
 @media (max-width: 640px) {
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head {
+  .ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head {
     grid-template-columns: 1fr;
     padding: 18px 16px;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .security-admin-head > button {
+  .ui-shell.admin-app.product-shell.ui-optimized-surface .security-admin-head > button {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* Admin Security local layout. This intentionally does not style shared or exam UI. */
+.admin-security-page .security-page-content {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.admin-security-page .security-admin-head h1 {
+  max-width: 100%;
+  margin: 5px 0;
+  color: var(--aeck-text, #0f172a);
+  font-size: 24px;
+  line-height: 1.25;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.admin-security-page .security-list-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: end;
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-security-page .security-user-search,
+.admin-security-page .security-status-filter {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.admin-security-page .security-user-search input,
+.admin-security-page .security-status-filter select,
+.admin-security-page .security-pagination select {
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  color: #0f172a;
+  background: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.admin-security-page .security-user-search input {
+  width: 100%;
+  padding: 0 13px;
+}
+
+.admin-security-page .security-status-filter select,
+.admin-security-page .security-pagination select {
+  padding: 0 34px 0 12px;
+}
+
+.admin-security-page :where(input, select, button):focus-visible {
+  outline: 2px solid var(--aeck-primary, #b5122b);
+  outline-offset: 2px;
+}
+
+.admin-security-page .security-list-status {
+  min-height: 20px;
+  margin: -6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-security-page .security-user-grid {
+  min-width: 0;
+  transition: opacity 160ms ease;
+}
+
+.admin-security-page[aria-busy="true"] .security-user-grid {
+  opacity: 0.72;
+}
+
+.admin-security-page .security-user-grid > button {
+  min-width: 0;
+  min-height: 72px;
+}
+
+.admin-security-page .security-user-grid > button.selected {
+  border-color: var(--aeck-primary, #b5122b);
+  background: #fff7f8;
+  box-shadow: 0 0 0 2px rgba(181, 18, 43, 0.1);
+}
+
+.admin-security-page .security-user-grid > button > span:first-child,
+.admin-security-page .security-device > div,
+.admin-security-page .security-session > span,
+.admin-security-page .security-detail-content > header > div {
+  min-width: 0;
+}
+
+.admin-security-page :where(.security-user-grid b, .security-user-grid small, .security-device b, .security-device small, .security-session b, .security-session small, .security-event p, .security-ban-reason small, .security-detail-content h2, .security-detail-content p) {
+  overflow-wrap: anywhere;
+}
+
+.admin-security-page .security-user-grid b {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.admin-security-page .security-user-grid small,
+.admin-security-page .security-user-grid strong,
+.admin-security-page .security-account-status {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.admin-security-page .security-account-status {
+  white-space: nowrap;
+}
+
+.admin-security-page .security-empty > button,
+.admin-security-page .security-pagination > button,
+.admin-security-page .security-detail-error button,
+.admin-security-page .security-admin-actions button,
+.admin-security-page .security-device button,
+.admin-security-page .security-event button {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.admin-security-page .security-empty > button {
+  border: 1px solid #e8b6be;
+  border-radius: 10px;
+  color: var(--aeck-primary, #b5122b);
+  background: #fff7f8;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.admin-security-page .security-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 2px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.admin-security-page .security-pagination > button {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  color: #334155;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-security-page .security-pagination > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.admin-security-page .security-pagination label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.admin-security-page .security-pagination select {
+  min-height: 40px;
+}
+
+.admin-security-page .security-detail-panel {
+  overscroll-behavior: contain;
+}
+
+.admin-security-page .security-detail-content {
+  min-width: 0;
+}
+
+.admin-security-page .security-detail-content > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #dfe3ea;
+}
+
+.admin-security-page .security-detail-content > header span {
+  color: #b42318;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 1px;
+}
+
+.admin-security-page .security-detail-content > header h2 {
+  margin: 4px 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.admin-security-page .security-detail-content > header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-security-page .security-detail-content > header button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #dfe3ea;
+  border-radius: 10px;
+  color: #475569;
+  background: #fff;
+  cursor: pointer;
+}
+
+.admin-security-page .security-detail-content > header button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-security-page .security-detail-content > section {
+  margin-top: 15px;
+  padding: 16px;
+  border: 1px solid #dfe3ea;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.admin-security-page .security-detail-content > section h3 {
+  margin: 0 0 13px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.admin-security-page .security-detail-content .muted,
+.admin-security-page .security-detail-loading {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-security-page .security-detail-error {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #991b1b;
+  background: #fff7f7;
+}
+
+.admin-security-page .security-detail-error p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-security-page .security-detail-error button {
+  justify-self: start;
+  border: 1px solid #fca5a5;
+  border-radius: 9px;
+  color: #991b1b;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.admin-security-page .security-device,
+.admin-security-page .security-session {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.admin-security-page .security-action-dialog header > button {
+  width: 44px;
+  height: 44px;
+}
+
+.admin-security-page .security-action-dialog-actions button {
+  min-height: 44px;
+  font-size: 13px;
+}
+
+.admin-security-page .security-action-dialog > form > small {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 700px) {
+  .admin-security-page .security-list-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-security-page .security-user-search input,
+  .admin-security-page .security-status-filter select,
+  .admin-security-page .security-pagination select {
+    font-size: 16px;
+  }
+
+  .admin-security-page .security-pagination {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "status status"
+      "previous next"
+      "size size";
+  }
+
+  .admin-security-page .security-pagination > span {
+    grid-area: status;
+    justify-self: center;
+  }
+
+  .admin-security-page .security-pagination > button:first-child {
+    grid-area: previous;
+  }
+
+  .admin-security-page .security-pagination > button:last-child {
+    grid-area: next;
+  }
+
+  .admin-security-page .security-pagination > button,
+  .admin-security-page .security-pagination select {
+    width: 100%;
+  }
+
+  .admin-security-page .security-pagination label {
+    grid-area: size;
+    justify-self: stretch;
+  }
+
+  .admin-security-page .security-device {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .admin-security-page .security-device > i,
+  .admin-security-page .security-device > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-security-page .security-user-grid {
+    transition: none;
   }
 }

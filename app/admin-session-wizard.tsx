@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { ArrowLeft, ArrowRight, CalendarClock, Check, CheckCircle2, ClipboardCheck, Copy, ExternalLink, FileText, Link2, LockKeyhole, QrCode, ShieldCheck, UserRound } from "lucide-react";
+import MacAlert from "../components/macos/MacAlert";
 import { authenticatedFetch } from "../lib/auth-client";
 import type { ExamPolicy } from "../lib/exam-policy";
 import { normalizeExamType } from "../lib/exam-config";
+import { listenForProductNavigation } from "./product-navigation-guard";
 import LoadingIndicator from "./loading-indicator";
 import "./admin-session-wizard.css";
 
@@ -56,6 +58,20 @@ type CatalogPayload = { rooms?: Room[]; exams?: Exam[]; sections?: Section[]; er
 type GuestSettings = Record<string, unknown>;
 type CreatedResult = { mode: SessionMode; examTitle: string; shareUrl?: string; tokenHint?: string };
 type NumericField = "gracePeriodMinutes" | "maxAttempts";
+type WizardField = NumericField | "roomId" | "examId" | "mode" | "name" | "startsAt" | "endsAt" | "sectionId" | "password";
+
+const wizardFieldSelectors: Record<WizardField, string> = {
+  roomId: 'input[name="roomId"]',
+  examId: 'input[name="examId"]',
+  mode: 'input[name="sessionMode"]',
+  name: 'input[maxlength="120"]:not([type="password"])',
+  startsAt: 'input[type="datetime-local"]:first-of-type',
+  endsAt: 'input[type="datetime-local"]:last-of-type',
+  gracePeriodMinutes: 'input[max="1440"]',
+  maxAttempts: 'input[max="1000"]',
+  sectionId: 'select[required]',
+  password: 'input[type="password"]',
+};
 
 const steps: Array<{ id: Step; label: string }> = [
   { id: 1, label: "Chọn đề" },
@@ -159,7 +175,14 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
   const [created, setCreated] = useState<CreatedResult | null>(null);
   const [qrData, setQrData] = useState("");
   const [copied, setCopied] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<NumericField, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<WizardField, string>>>({});
+  const [announcedStep, setAnnouncedStep] = useState<Step | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState("");
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const wizardFormRef = useRef<HTMLFormElement | null>(null);
+  const pendingFocusField = useRef<WizardField | null>(null);
+  const allowNextNavigationRef = useRef(false);
 
   const selectedRoom = useMemo(() => rooms.find(room => room.id === form.roomId) ?? null, [form.roomId, rooms]);
   const selectedExam = useMemo(() => exams.find(exam => exam.id === form.examId) ?? null, [exams, form.examId]);
@@ -167,6 +190,14 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
   const independentSubjectExam = isIndependentSubjectExam(selectedExam);
   const availableExams = useMemo(() => exams.filter(exam => exam.room_id === form.roomId && `${exam.title} ${exam.description ?? ""}`.toLocaleLowerCase("vi").includes(examQuery.trim().toLocaleLowerCase("vi"))), [examQuery, exams, form.roomId]);
   const visibleRooms = useMemo(() => rooms.filter(room => `${room.title} ${room.description ?? ""} ${room.exam_type}`.toLocaleLowerCase("vi").includes(roomQuery.trim().toLocaleLowerCase("vi"))), [roomQuery, rooms]);
+
+  function findWizardControl(field: WizardField) {
+    if (field === "startsAt" || field === "endsAt") {
+      const controls = wizardFormRef.current?.querySelectorAll<HTMLElement>('input[type="datetime-local"]');
+      return controls?.[field === "startsAt" ? 0 : 1] ?? null;
+    }
+    return wizardFormRef.current?.querySelector<HTMLElement>(wizardFieldSelectors[field]) ?? null;
+  }
 
   const updateForm = useCallback((changes: Partial<WizardForm>) => {
     setForm(current => {
@@ -176,8 +207,49 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
       if (next.mode !== "account" && next.releaseMode === "manual") next.releaseMode = "after_slot";
       return next;
     });
+    setDirty(true);
+    const changedFields = Object.keys(changes) as WizardField[];
+    setFieldErrors(current => {
+      const next = { ...current };
+      changedFields.forEach(field => { delete next[field]; });
+      return next;
+    });
+    changedFields.forEach(field => {
+      const control = findWizardControl(field);
+      control?.removeAttribute("aria-invalid");
+      control?.removeAttribute("aria-describedby");
+    });
     setError("");
   }, []);
+
+  function reportFieldError(field: WizardField, message: string) {
+    pendingFocusField.current = field;
+    setFieldErrors(current => ({ ...current, [field]: message }));
+    window.requestAnimationFrame(() => {
+      const control = findWizardControl(field);
+      control?.setAttribute("aria-invalid", "true");
+      control?.setAttribute("aria-describedby", `wizard-${field}-error`);
+      control?.focus();
+      pendingFocusField.current = null;
+    });
+    return message;
+  }
+
+  function requestNavigation(path: string) {
+    if (dirty && !created) {
+      setPendingNavigation(path);
+      return;
+    }
+    navigate(path);
+  }
+
+  function confirmNavigation() {
+    const path = pendingNavigation;
+    allowNextNavigationRef.current = true;
+    setPendingNavigation("");
+    setDirty(false);
+    if (path) navigate(path);
+  }
 
   const loadCatalog = useCallback(async () => {
     setLoadingCatalog(true);
@@ -271,6 +343,38 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
     return () => { active = false; };
   }, [created]);
 
+  useEffect(() => {
+    if (!announcedStep) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      stepHeadingRef.current = wizardFormRef.current?.querySelector<HTMLHeadingElement>(".admin-session-wizard-panel h2") ?? null;
+      stepHeadingRef.current?.setAttribute("tabindex", "-1");
+      stepHeadingRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [announcedStep]);
+
+  useEffect(() => {
+    if (!dirty || created) return undefined;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [created, dirty]);
+
+  useEffect(() => {
+    if (!dirty || created) return undefined;
+    return listenForProductNavigation(event => {
+      if (allowNextNavigationRef.current) {
+        allowNextNavigationRef.current = false;
+        return;
+      }
+      event.preventDefault();
+      setPendingNavigation(event.detail.path);
+    });
+  }, [created, dirty]);
+
   function selectRoom(roomId: string) {
     const nextExam = exams.find(exam => exam.room_id === roomId);
     setSections([]);
@@ -348,31 +452,32 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
       maxAttempts: "error" in attempts ? attempts.error : undefined,
     };
     setFieldErrors(nextErrors);
-    if ("error" in grace) return grace.error;
-    if ("error" in attempts) return attempts.error;
+    if ("error" in grace) return reportFieldError("gracePeriodMinutes", grace.error ?? "Kiểm tra thời gian gia hạn.");
+    if ("error" in attempts) return reportFieldError("maxAttempts", attempts.error ?? "Kiểm tra số lượt làm tối đa.");
     updateForm({ gracePeriodMinutes: grace.value, maxAttempts: attempts.value });
     return "";
   }
 
   function validateCurrentStep(currentStep: Step) {
     if (currentStep === 1) {
-      if (!form.roomId || !selectedRoom) return "Chọn một phòng thi.";
-      if (!form.examId || !selectedExam) return "Chọn một đề đã xuất bản trong phòng.";
+      if (!form.roomId || !selectedRoom) return reportFieldError("roomId", "Chọn một phòng thi.");
+      if (!form.examId || !selectedExam) return reportFieldError("examId", "Chọn một đề đã xuất bản trong phòng.");
     }
-    if (currentStep === 2 && !form.mode) return "Chọn cách tham gia.";
+    if (currentStep === 2 && !form.mode) return reportFieldError("mode", "Chọn cách tham gia.");
     if (currentStep === 3) {
-      if (!form.name.trim()) return "Nhập tên kíp thi.";
-      if (form.name.trim().length > 120) return "Tên kíp thi tối đa 120 ký tự.";
+      if (!form.name.trim()) return reportFieldError("name", "Nhập tên kíp thi.");
+      if (form.name.trim().length > 120) return reportFieldError("name", "Tên kíp thi tối đa 120 ký tự.");
       const startsAt = parseDateTime(form.startsAt);
       const endsAt = parseDateTime(form.endsAt);
       const duration = Math.max(1, Number(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes) || 1);
-      if (!startsAt || !endsAt) return "Chọn đủ thời gian mở và kết thúc kíp.";
-      if (endsAt.getTime() <= startsAt.getTime()) return "Thời điểm kết thúc phải sau thời điểm mở.";
-      if (endsAt.getTime() - startsAt.getTime() < duration * 60_000) return `Khung kíp cần ít nhất ${duration} phút theo thời lượng đề.`;
+      if (!startsAt) return reportFieldError("startsAt", "Chọn thời gian mở kíp.");
+      if (!endsAt) return reportFieldError("endsAt", "Chọn thời gian kết thúc kíp.");
+      if (endsAt.getTime() <= startsAt.getTime()) return reportFieldError("endsAt", "Thời điểm kết thúc phải sau thời điểm mở.");
+      if (endsAt.getTime() - startsAt.getTime() < duration * 60_000) return reportFieldError("endsAt", `Khung kíp cần ít nhất ${duration} phút theo thời lượng đề.`);
       const numericError = validateNumericFields();
       if (numericError) return numericError;
-      if (independentSubjectExam && !form.sectionId) return "Chọn môn thi áp dụng cho kíp này.";
-      if (form.password.length > 120) return "Mật khẩu kíp tối đa 120 ký tự.";
+      if (independentSubjectExam && !form.sectionId) return reportFieldError("sectionId", "Chọn môn thi áp dụng cho kíp này.");
+      if (form.password.length > 120) return reportFieldError("password", "Mật khẩu kíp tối đa 120 ký tự.");
     }
     return "";
   }
@@ -381,12 +486,16 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
     const validation = validateCurrentStep(step);
     if (validation) { setError(validation); return; }
     setError("");
-    setStep(current => Math.min(4, current + 1) as Step);
+    const next = Math.min(4, step + 1) as Step;
+    setStep(next);
+    setAnnouncedStep(next);
   }
 
   function previousStep() {
     setError("");
-    setStep(current => Math.max(1, current - 1) as Step);
+    const next = Math.max(1, step - 1) as Step;
+    setStep(next);
+    setAnnouncedStep(next);
   }
 
   async function post(path: string, body: Record<string, unknown>) {
@@ -451,6 +560,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
         };
         await post("/api/admin/exam-policy", { action: "save_policy", examId: selectedExam.id, policy: nextPolicy });
         if (!hasLinkAccess) {
+          setDirty(false);
           setCreated({ mode: "account", examTitle: selectedExam.title });
           return;
         }
@@ -480,6 +590,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
         gracePeriodMinutes: Number(form.gracePeriodMinutes),
         password: form.password,
       });
+      setDirty(false);
       setCreated({ mode: form.mode, examTitle: selectedExam.title, shareUrl: payload.shareUrl, tokenHint: payload.tokenHint });
     } catch (value) {
       setError(value instanceof Error ? value.message : "Không thể tạo kíp thi.");
@@ -512,15 +623,16 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
   if (loadingCatalog) return <div className="admin-session-wizard-loading"><LoadingIndicator label="Đang tải phòng và đề thi…" /></div>;
 
   return <section className="admin-session-wizard">
-    <header className="admin-session-wizard-header"><div><button type="button" className="admin-session-wizard-back" onClick={() => navigate("/admin/sessions")}><ArrowLeft aria-hidden="true" />Đợt thi</button><span className="admin-session-wizard-kicker">TỔ CHỨC KỲ THI</span><h1>Tạo kíp thi</h1><p>Chọn đề trước, sau đó thiết lập thời gian và cách tham gia trong một luồng duy nhất.</p></div><div className="admin-session-wizard-header-icon" aria-hidden="true"><CalendarClock /></div></header>
+    <header className="admin-session-wizard-header"><div><button type="button" className="admin-session-wizard-back" onClick={() => requestNavigation("/admin/sessions")}><ArrowLeft aria-hidden="true" />Đợt thi</button><span className="admin-session-wizard-kicker">TỔ CHỨC KỲ THI</span><h1>Tạo kíp thi</h1><p>Chọn đề trước, sau đó thiết lập thời gian và cách tham gia trong một luồng duy nhất.</p></div><div className="admin-session-wizard-header-icon" aria-hidden="true"><CalendarClock /></div></header>
     <nav className="admin-session-stepper" aria-label="Các bước tạo kíp thi">{steps.map(item => <div className={step === item.id ? "active" : step > item.id ? "completed" : ""} aria-current={step === item.id ? "step" : undefined} key={item.id}><span>{step > item.id ? <Check aria-hidden="true" /> : item.id}</span><b>{item.label}</b></div>)}</nav>
-    {error && <div className="admin-session-wizard-error" role="alert">{error}</div>}
+    <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcedStep ? `Bước ${announcedStep} trên 4: ${steps.find(item => item.id === announcedStep)?.label ?? ""}` : ""}</p>
+    {error && !Object.values(fieldErrors).some(Boolean) && <div className="admin-session-wizard-error" role="alert">{error}</div>}
     {Object.values(fieldErrors).some(Boolean) && <div className="admin-session-field-error-summary" role="alert"><b>Kiểm tra lại thông tin:</b><ul>{Object.entries(fieldErrors).filter((entry): entry is [string, string] => Boolean(entry[1])).map(([field, message]) => <li key={field}>{message}</li>)}</ul></div>}
 
-    <form onChangeCapture={captureNumericChange} onSubmit={event => { event.preventDefault(); if (step === 4) void submit(); else nextStep(); }}>
-      {step === 1 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-select-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 1 / 4</span><h2 id="wizard-select-title">Chọn đề từ phòng thi</h2><p>Luồng bắt đầu từ phòng và đề đã xuất bản, không cần mở phòng trước.</p></div><FileText aria-hidden="true" /></div><div className="admin-session-selection-grid"><div className="admin-session-selection-column"><label className="admin-session-field"><span>Phòng thi</span><div className="admin-session-search-field"><FileText aria-hidden="true" /><input type="search" value={roomQuery} onChange={event => setRoomQuery(event.target.value)} placeholder="Tìm phòng thi…" aria-label="Tìm phòng thi" /></div></label><div className="admin-session-choice-list" role="listbox" aria-label="Chọn phòng thi">{visibleRooms.length ? visibleRooms.map(room => <button type="button" role="option" aria-selected={room.id === form.roomId} className={room.id === form.roomId ? "selected" : ""} key={room.id} onClick={() => selectRoom(room.id)}><span className="admin-session-choice-icon"><ClipboardCheck aria-hidden="true" /></span><span><b>{room.title}</b><small>{normalizeExamType(room.exam_type)} · {room.access_mode === "open" ? "Mở cho học viên" : "Theo phân quyền"}</small></span><ArrowRight aria-hidden="true" /></button>) : <p className="admin-session-muted">Không tìm thấy phòng phù hợp.</p>}</div></div><div className="admin-session-selection-column"><label className="admin-session-field"><span>Đề thi trong phòng {selectedRoom ? `· ${selectedRoom.title}` : ""}</span><div className="admin-session-search-field"><SearchIcon /><input type="search" value={examQuery} onChange={event => setExamQuery(event.target.value)} placeholder={selectedRoom ? "Tìm đề thi…" : "Chọn phòng trước"} aria-label="Tìm đề thi" disabled={!selectedRoom} /></div></label><div className="admin-session-exam-list" role="listbox" aria-label="Chọn đề thi">{availableExams.length ? availableExams.map(exam => <button type="button" role="option" aria-selected={exam.id === form.examId} className={exam.id === form.examId ? "selected" : ""} key={exam.id} onClick={() => selectExam(exam.id)}><span><b>{exam.title}</b><small>{normalizeExamType(exam.exam_type)} · {formatDuration(exam.duration_minutes)}</small></span><ArrowRight aria-hidden="true" /></button>) : <p className="admin-session-muted">{selectedRoom ? "Phòng này chưa có đề đã xuất bản." : "Chọn phòng để xem các đề."}</p>}</div></div></div></section>}
+    <form ref={wizardFormRef} onChangeCapture={captureNumericChange} onSubmit={event => { event.preventDefault(); if (step === 4) void submit(); else nextStep(); }}>
+      {step === 1 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-select-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 1 / 4</span><h2 id="wizard-select-title">Chọn đề từ phòng thi</h2><p>Luồng bắt đầu từ phòng và đề đã xuất bản, không cần mở phòng trước.</p></div><FileText aria-hidden="true" /></div><div className="admin-session-selection-grid"><div className="admin-session-selection-column"><label className="admin-session-field"><span>Phòng thi</span><div className="admin-session-search-field"><FileText aria-hidden="true" /><input type="search" value={roomQuery} onChange={event => setRoomQuery(event.target.value)} placeholder="Tìm phòng thi…" aria-label="Tìm phòng thi" /></div></label><fieldset className="admin-session-choice-list"><legend className="sr-only">Chọn phòng thi</legend>{visibleRooms.length ? visibleRooms.map(room => <label className={room.id === form.roomId ? "selected" : ""} key={room.id}><input type="radio" name="roomId" className="admin-session-card-radio" value={room.id} checked={room.id === form.roomId} onChange={() => selectRoom(room.id)} /><span className="admin-session-choice-icon"><ClipboardCheck aria-hidden="true" /></span><span><b>{room.title}</b><small>{normalizeExamType(room.exam_type)} · {room.access_mode === "open" ? "Mở cho học viên" : "Theo phân quyền"}</small></span><ArrowRight aria-hidden="true" /></label>) : <p className="admin-session-muted">Không tìm thấy phòng phù hợp.</p>}</fieldset></div><div className="admin-session-selection-column"><label className="admin-session-field"><span>Đề thi trong phòng {selectedRoom ? `· ${selectedRoom.title}` : ""}</span><div className="admin-session-search-field"><SearchIcon /><input type="search" value={examQuery} onChange={event => setExamQuery(event.target.value)} placeholder={selectedRoom ? "Tìm đề thi…" : "Chọn phòng trước"} aria-label="Tìm đề thi" disabled={!selectedRoom} /></div></label><fieldset className="admin-session-exam-list"><legend className="sr-only">Chọn đề thi</legend>{availableExams.length ? availableExams.map(exam => <label className={exam.id === form.examId ? "selected" : ""} key={exam.id}><input type="radio" name="examId" className="admin-session-card-radio" value={exam.id} checked={exam.id === form.examId} onChange={() => selectExam(exam.id)} /><span><b>{exam.title}</b><small>{normalizeExamType(exam.exam_type)} · {formatDuration(exam.duration_minutes)}</small></span><ArrowRight aria-hidden="true" /></label>) : <p className="admin-session-muted">{selectedRoom ? "Phòng này chưa có đề đã xuất bản." : "Chọn phòng để xem các đề."}</p>}</fieldset></div></div></section>}
 
-      {step === 2 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-mode-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 2 / 4</span><h2 id="wizard-mode-title">Chọn cách người tham gia vào kíp</h2><p>Cho phép học viên có tài khoản vào nhanh; người chưa có tài khoản chỉ điền thông tin cần thiết qua link.</p></div><ShieldCheck aria-hidden="true" /></div><div className="admin-session-mode-grid"><button type="button" className={form.mode === "account" ? "selected" : ""} aria-pressed={form.mode === "account"} onClick={() => updateForm({ mode: "account" })}><span className="admin-session-mode-icon"><UserRound aria-hidden="true" /></span><span><b>Tài khoản học viên</b><small>Học viên đăng nhập bằng tài khoản được cấp. Phù hợp thi nội bộ, theo lớp hoặc theo phân quyền.</small></span><i>{form.mode === "account" ? <Check aria-hidden="true" /> : null}</i></button><button type="button" className={form.mode === "link_qr" ? "selected" : ""} aria-pressed={form.mode === "link_qr"} onClick={() => updateForm({ mode: "link_qr" })}><span className="admin-session-mode-icon"><Link2 aria-hidden="true" /></span><span><b>Link / QR không cần tài khoản</b><small>Người tham gia mở link rồi điền các trường thông tin được yêu cầu.</small></span><i>{form.mode === "link_qr" ? <Check aria-hidden="true" /> : null}</i></button><button type="button" className={form.mode === "both" ? "selected" : ""} aria-pressed={form.mode === "both"} onClick={() => updateForm({ mode: "both" })}><span className="admin-session-mode-icon"><ClipboardCheck aria-hidden="true" /></span><span><b>Tài khoản + Link/QR</b><small>Học viên có tài khoản đăng nhập như bình thường; người chưa có tài khoản dùng link và chỉ nhập thông tin còn thiếu.</small></span><i>{form.mode === "both" ? <Check aria-hidden="true" /> : null}</i></button></div><div className="admin-session-info-callout"><CheckCircle2 aria-hidden="true" /><p><b>{selectedExam?.title}</b> · {selectedRoom?.title}. Hai cách tham gia dùng chung thời gian kíp và được theo dõi trong cùng trang kết quả.</p></div></section>}
+      {step === 2 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-mode-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 2 / 4</span><h2 id="wizard-mode-title">Chọn cách người tham gia vào kíp</h2><p>Cho phép học viên có tài khoản vào nhanh; người chưa có tài khoản chỉ điền thông tin cần thiết qua link.</p></div><ShieldCheck aria-hidden="true" /></div><fieldset className="admin-session-mode-grid"><legend className="sr-only">Cách tham gia</legend><label className={form.mode === "account" ? "selected" : ""}><input type="radio" name="sessionMode" className="admin-session-card-radio" value="account" checked={form.mode === "account"} onChange={() => updateForm({ mode: "account" })} /><span className="admin-session-mode-icon"><UserRound aria-hidden="true" /></span><span><b>Tài khoản học viên</b><small>Học viên đăng nhập bằng tài khoản được cấp. Phù hợp thi nội bộ, theo lớp hoặc theo phân quyền.</small></span><i>{form.mode === "account" ? <Check aria-hidden="true" /> : null}</i></label><label className={form.mode === "link_qr" ? "selected" : ""}><input type="radio" name="sessionMode" className="admin-session-card-radio" value="link_qr" checked={form.mode === "link_qr"} onChange={() => updateForm({ mode: "link_qr" })} /><span className="admin-session-mode-icon"><Link2 aria-hidden="true" /></span><span><b>Link / QR không cần tài khoản</b><small>Người tham gia mở link rồi điền các trường thông tin được yêu cầu.</small></span><i>{form.mode === "link_qr" ? <Check aria-hidden="true" /> : null}</i></label><label className={form.mode === "both" ? "selected" : ""}><input type="radio" name="sessionMode" className="admin-session-card-radio" value="both" checked={form.mode === "both"} onChange={() => updateForm({ mode: "both" })} /><span className="admin-session-mode-icon"><ClipboardCheck aria-hidden="true" /></span><span><b>Tài khoản + Link/QR</b><small>Học viên có tài khoản đăng nhập như bình thường; người chưa có tài khoản dùng link và chỉ nhập thông tin còn thiếu.</small></span><i>{form.mode === "both" ? <Check aria-hidden="true" /> : null}</i></label></fieldset><div className="admin-session-info-callout"><CheckCircle2 aria-hidden="true" /><p><b>{selectedExam?.title}</b> · {selectedRoom?.title}. Hai cách tham gia dùng chung thời gian kíp và được theo dõi trong cùng trang kết quả.</p></div></section>}
 
       {step === 3 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-time-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 3 / 4</span><h2 id="wizard-time-title">Thiết lập thời gian và quy tắc</h2><p>Thời lượng đề là thời gian làm bài; thời gian kíp là khoảng cho phép người tham gia bắt đầu.</p></div><CalendarClock aria-hidden="true" /></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Lịch mở kíp</b><span>Thời lượng đề: {formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</span></div><div className="admin-session-quick-actions"><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("now")}><CalendarClock aria-hidden="true" /><span><b>Mở sau 5 phút</b><small>Phù hợp khi cần chia sẻ ngay</small></span></button><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("later")}><CalendarClock aria-hidden="true" /><span><b>Đặt lịch sau 1 giờ</b><small>Có thể chỉnh lại ngày giờ bên dưới</small></span></button></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Thời điểm mở</span><input type="datetime-local" value={form.startsAt} onChange={event => updateForm({ startsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Thời điểm kết thúc nhận bài</span><input type="datetime-local" value={form.endsAt} onChange={event => updateForm({ endsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Gia hạn sau giờ kết thúc (phút)</span><input type="number" min={0} max={1440} value={form.gracePeriodMinutes} onChange={event => updateForm({ gracePeriodMinutes: Number(event.target.value) })} /><small>Khuyến nghị 30 phút để lượt đang làm có thể hoàn tất.</small></label></div></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Thông tin kíp</b><span>{form.mode === "account" ? "Tên kíp giúp nhận biết lịch tài khoản." : form.mode === "both" ? "Một kíp, hai cách tham gia; người có tài khoản không cần điền lại thông tin." : "Tên này sẽ xuất hiện trong danh sách link."}</span></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Tên kíp thi</span><input value={form.name} maxLength={120} onChange={event => updateForm({ name: event.target.value })} placeholder="Ví dụ: Kíp sáng · Lớp 12A1" required /><small>Dùng tên ngắn, dễ phân biệt khi theo dõi.</small></label><label className="admin-session-field"><span>Số lượt làm tối đa</span><input type="number" min={0} max={1000} value={form.maxAttempts} onChange={event => updateForm({ maxAttempts: Number(event.target.value) })} /><small>0 = không giới hạn.</small></label></div>{(form.mode === "account" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người có tài khoản</b><small>Đăng nhập để dùng thông tin đã có trong hồ sơ.</small></div><label><span>Phạm vi học viên</span><select value={form.rosterMode} onChange={event => updateForm({ rosterMode: event.target.value as RosterMode })}><option value="open">Tất cả học viên có quyền vào phòng</option><option value="enrolled">Chỉ học viên được phân quyền</option></select></label></div>}{(form.mode === "link_qr" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người chưa có tài khoản</b><small>Vào bằng link/QR và chỉ điền thông tin được yêu cầu.</small></div><label><span>Giám sát kỹ thuật</span><select value={form.monitorMode} onChange={event => updateForm({ monitorMode: event.target.value as MonitorMode })}><option value="off">Tắt</option><option value="exit">Ghi nhận rời tab / toàn màn hình</option><option value="advanced">Nâng cao: thêm mất focus, copy/dán</option></select></label>{independentSubjectExam && <label className="admin-session-field admin-session-subject-field"><span>Môn thi áp dụng cho link</span><select value={form.sectionId} onChange={event => updateForm({ sectionId: event.target.value })} required><option value="">Chọn môn thi</option>{sections.map(section => <option value={section.id} key={section.id}>{section.title}{section.duration_minutes ? ` · ${section.duration_minutes} phút` : ""}</option>)}</select><small>Đề {normalizeExamType(selectedExam?.exam_type)} gồm các phần độc lập; mỗi link nên gắn với một môn.</small></label>}<label className="admin-session-field admin-session-password-field"><span><LockKeyhole aria-hidden="true" /> Mật khẩu kíp (tùy chọn)</span><input type="password" autoComplete="new-password" value={form.password} maxLength={120} onChange={event => updateForm({ password: event.target.value })} placeholder="Bỏ trống nếu không dùng" /></label></div>}<div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Công bố kết quả</b><small>Chọn thời điểm công bố điểm thi cho thí sinh.</small></div><label><span>Công bố điểm</span><select value={form.releaseMode} onChange={event => updateForm({ releaseMode: event.target.value as ReleaseMode })}><option value="after_submit">Ngay sau khi nộp bài</option><option value="after_slot">Sau khi kíp kết thúc</option><option value="manual">Giáo viên công bố thủ công</option><option value="never">Không công bố điểm</option></select></label></div></div></section>}
 
@@ -528,8 +640,10 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
 
       {step === 4 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-review-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 4 / 4</span><h2 id="wizard-review-title">Kiểm tra trước khi tạo</h2><p>Kiểm tra nhanh các thông tin chính. Bạn vẫn có thể quay lại chỉnh sửa.</p></div><CheckCircle2 aria-hidden="true" /></div><div className="admin-session-review"><div className="admin-session-review-hero"><span className="admin-session-review-type">{form.mode === "account" ? <UserRound aria-hidden="true" /> : form.mode === "both" ? <ClipboardCheck aria-hidden="true" /> : <Link2 aria-hidden="true" />}{modeLabel(form.mode)}</span><h3>{form.name || selectedExam?.title}</h3><p>{selectedExam?.title} · {selectedRoom?.title}</p></div><dl><div><dt>Thời gian kíp</dt><dd>{formatDateTime(form.startsAt)} → {formatDateTime(form.endsAt)}</dd></div><div><dt>Thời lượng mỗi lượt</dt><dd>{formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</dd></div><div><dt>Gia hạn</dt><dd>{form.gracePeriodMinutes} phút</dd></div><div><dt>Lượt làm tối đa</dt><dd>{form.maxAttempts === 0 ? "Không giới hạn" : `${form.maxAttempts} lượt`}</dd></div><div><dt>Người có tài khoản</dt><dd>{form.mode === "link_qr" ? "Không áp dụng" : form.rosterMode === "enrolled" ? "Học viên được phân quyền" : "Học viên có quyền vào phòng"}</dd></div><div><dt>Người chưa có tài khoản</dt><dd>{form.mode === "account" ? "Không áp dụng" : "Điền thông tin qua link / QR"}</dd></div><div><dt>Giám sát kỹ thuật</dt><dd>{form.mode === "account" ? "Không áp dụng" : form.monitorMode === "advanced" ? "Nâng cao (Rời tab, focus, copy/dán)" : form.monitorMode === "exit" ? "Ghi nhận rời tab / toàn màn hình" : "Tắt"}</dd></div><div><dt>Kết quả</dt><dd>{form.releaseMode === "manual" ? "Giáo viên công bố thủ công" : form.releaseMode === "after_submit" ? "Ngay sau khi nộp bài" : form.releaseMode === "never" ? "Không công bố điểm" : "Sau khi kíp kết thúc"}</dd></div></dl></div><RandomizationReview form={form} /><div className="admin-session-review-note"><ShieldCheck aria-hidden="true" /><p>{form.mode === "account" ? "Hệ thống sẽ lưu lịch vào quy tắc tài khoản của đề. Các lượt thi mới dùng snapshot quy tắc này." : loadingGuestSettings ? "Đang kiểm tra cấu hình link hiện tại…" : form.mode === "both" ? "Hệ thống sẽ lưu cùng thời gian cho tài khoản và link/QR, sau đó tạo token chia sẻ. Người có tài khoản không cần nhập lại thông tin hồ sơ." : "Hệ thống sẽ lưu cấu hình link trước rồi tạo token mới. Link cũ của các kíp khác không bị ảnh hưởng."}</p></div></section>}
 
-      <footer className="admin-session-wizard-footer"><button type="button" className="admin-session-wizard-secondary" onClick={step === 1 ? () => navigate("/admin/sessions") : previousStep}><ArrowLeft aria-hidden="true" />{step === 1 ? "Hủy" : "Quay lại"}</button><span className="admin-session-wizard-footer-hint">{step < 4 ? "Bạn có thể kiểm tra lại ở bước cuối." : "Các thay đổi chỉ áp dụng cho lượt thi mới."}</span>{step < 4 ? <button type="submit" className="admin-session-wizard-primary" disabled={loadingExam || !selectedExam}>{step === 1 ? "Tiếp tục" : "Tiếp tục"}<ArrowRight aria-hidden="true" /></button> : <button type="submit" className="admin-session-wizard-primary" disabled={saving || loadingGuestSettings}>{saving ? "Đang tạo…" : form.mode === "account" ? "Lưu lịch tài khoản" : "Tạo kíp & sinh link"}<Check aria-hidden="true" /></button>}</footer>
+      {Object.entries(fieldErrors).some(([, message]) => Boolean(message)) && <div className="admin-session-inline-errors" aria-label="Các trường cần kiểm tra">{Object.entries(fieldErrors).filter((entry): entry is [WizardField, string] => Boolean(entry[1])).map(([field, message]) => <p id={`wizard-${field}-error`} key={field}>{message}</p>)}</div>}
+      <footer className="admin-session-wizard-footer"><button type="button" className="admin-session-wizard-secondary" onClick={step === 1 ? () => requestNavigation("/admin/sessions") : previousStep}><ArrowLeft aria-hidden="true" />{step === 1 ? "Hủy" : "Quay lại"}</button><span className="admin-session-wizard-footer-hint">{step < 4 ? "Bạn có thể kiểm tra lại ở bước cuối." : "Các thay đổi chỉ áp dụng cho lượt thi mới."}</span>{step < 4 ? <button type="submit" className="admin-session-wizard-primary" disabled={loadingExam || !selectedExam}>{step === 1 ? "Tiếp tục" : "Tiếp tục"}<ArrowRight aria-hidden="true" /></button> : <button type="submit" className="admin-session-wizard-primary" disabled={saving || loadingGuestSettings}>{saving ? "Đang tạo…" : form.mode === "account" ? "Lưu lịch tài khoản" : "Tạo kíp & sinh link"}<Check aria-hidden="true" /></button>}</footer>
     </form>
+    {pendingNavigation ? <MacAlert open title="Rời trình tạo kíp thi?" description="Các thay đổi chưa lưu sẽ bị mất." secondaryAction={{ label: "Ở lại", onClick: () => setPendingNavigation("") }} primaryAction={{ label: "Rời trang", onClick: confirmNavigation }} onClose={() => setPendingNavigation("")} /> : null}
   </section>;
 }
 

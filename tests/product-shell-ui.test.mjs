@@ -16,9 +16,27 @@ test("AECK tokens and primitives are isolated from protected exam surfaces", asy
     readFile(new URL("../app/aeck-ui.tsx", import.meta.url), "utf8"),
   ]);
 
-  assert.match(css, /\.product-shell:not\(\.protected-exam-surface\)/);
-  assert.match(css, /--aeck-primary: #1d4ed8/);
-  assert.match(css, /--aeck-focus: #2563eb/);
+  const selectors = css
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .match(/[^{}]+(?=\{)/g)
+    ?.flatMap(group => group.split(",").map(selector => selector.trim())) ?? [];
+  const productShellSelectors = selectors.filter(selector => selector.includes(".product-shell"));
+
+  assert.ok(productShellSelectors.length > 0);
+  productShellSelectors.forEach(selector => {
+    assert.ok(selector.includes(".ui-optimized-surface") || selector.includes(".ui-optimized-chrome"), selector);
+    if (selector.includes(".ui-optimized-chrome")) {
+      assert.doesNotMatch(selector, /\.main-content|\.product-content-surface/);
+    }
+  });
+  assert.doesNotMatch(
+    selectors.join("\n"),
+    /\.(?:exam-|question-|answer-|exam-result|review-|solution-|admin-exam-|guest-exam)[\w-]*/i,
+  );
+  assert.match(css, /--aeck-primary: #b5122b/);
+  assert.match(css, /--aeck-focus: #b5122b/);
+  assert.match(css, /\.dashboard-next-step-action[\s\S]*?background: var\(--aeck-primary\)/);
+  assert.match(css, /\.overview-list-card \.dot\.blue[\s\S]*?background: var\(--aeck-primary\)/);
   assert.doesNotMatch(css, /(^|\n)\s*(button|input|textarea|select|body|h1)\s*[{,]/m);
   assert.match(components, /AeckPageHeader/);
   assert.match(components, /AeckDialog/);
@@ -52,22 +70,24 @@ test("product-shell smoke can focus on requested routes without unrelated intera
   const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
 
   assert.match(smoke, /SMOKE_EXTENDED_INTERACTIONS/);
+  assert.match(smoke, /const focusedAudit = requestedRoutes\.size > 0/);
+  assert.match(smoke, /!focusedAudit \|\| requestedRoutes\.has\("student-exam-list"\)/);
   assert.match(smoke, /if \(extendedInteractions\) \{/);
   assert.match(smoke, /SMOKE_RESOURCE_MODAL/);
   assert.match(smoke, /inspectCourseResourceModal/);
 });
 
 test("courses use native links and curriculum list semantics", async () => {
-  const [platform, studyCss] = await Promise.all([
+  const [platform, productCss] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/study.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/product-ui-v2.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /<Link className="course-card-action" href=\{href\}/);
   assert.doesNotMatch(platform, /<button className="course-card-action"/);
   assert.match(platform, /<ul className="course-part-lessons">/);
-  assert.match(platform, /<li key=\{lesson\.id\}><button/);
-  assert.match(studyCss, /\.course-part-lessons>li>button/);
+  assert.match(platform, /<li key=\{lesson\.id\}><Link/);
+  assert.match(productCss, /\.course-part-lessons > li > a/);
 });
 
 test("course content loaders always settle and ignore superseded routes", async () => {

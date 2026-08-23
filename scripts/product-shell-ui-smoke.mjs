@@ -1,4 +1,5 @@
 import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import { chromium } from "playwright";
 
 const baseUrl = process.env.E2E_BASE_URL ?? "http://localhost:5175";
@@ -8,12 +9,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const widths = [1440, 1280, 768, 740, 720, 390, 360, 320];
 const requestedWidths = (process.env.SMOKE_WIDTHS ?? "").split(",").map(value => Number(value)).filter(value => widths.includes(value));
 const auditWidths = requestedWidths.length ? requestedWidths : widths;
-const safeRoutes = [
+const redesignRoutes = [
   ["admin-dashboard", "/admin"],
-  ["admin-exam-catalog", "/admin/exams"],
-  ["admin-room-workspace", "/admin/exams/rooms/mock-room"],
   ["admin-sessions", "/admin/sessions"],
-  ["admin-exam-access", "/admin/exams/mock-exam/access?slotId=mock-slot"],
   ["admin-security", "/admin/security"],
   ["admin-content", "/admin/content"],
   ["admin-students", "/admin/students"],
@@ -23,17 +21,30 @@ const safeRoutes = [
   ["student-courses", "/courses"],
   ["student-profile", "/profile"],
   ["student-history", "/exam-history"],
+];
+const chromeOnlyRoutes = [
   ["student-exam-catalog", "/exam-room"],
   ["student-exam-list", "/exam-room/mock-room"],
 ];
+const protectedRegressionRoutes = [
+  ["protected-exam-runner", "/exam/mock-exam?mode=practice"],
+  ["protected-exam-result", "/exam/result/mock-attempt-latest"],
+  ["protected-admin-exam-catalog", "/admin/exams"],
+  ["protected-admin-authoring", "/admin/exams/mock-exam"],
+  ["protected-admin-question-bank", "/admin/question-bank"],
+  ["protected-admin-session-results", "/admin/sessions/mock-session/results"],
+];
 const requestedRoutes = new Set((process.env.SMOKE_ROUTES ?? "").split(",").map(value => value.trim()).filter(Boolean));
-const auditRoutes = requestedRoutes.size ? safeRoutes.filter(([name]) => requestedRoutes.has(name)) : safeRoutes;
+const focusedAudit = requestedRoutes.size > 0;
+const allAuditRoutes = [...redesignRoutes, ...chromeOnlyRoutes];
+const auditRoutes = requestedRoutes.size ? allAuditRoutes.filter(([name]) => requestedRoutes.has(name)) : allAuditRoutes;
 const startPath = process.env.SMOKE_START_PATH ?? "/admin";
 const stressEnabled = process.env.SMOKE_STRESS === "1";
 const extendedInteractions = process.env.SMOKE_EXTENDED_INTERACTIONS !== "0";
 const resourceModalEnabled = process.env.SMOKE_RESOURCE_MODAL === "1";
+const outputDir = process.env.SMOKE_OUTPUT_DIR ?? "artifacts/product-shell-ui-audit";
 
-await mkdir("artifacts/product-shell-ui-audit", { recursive: true });
+await mkdir(outputDir, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const report = [];
@@ -113,7 +124,16 @@ async function installMockAuth() {
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "room") return route.fulfill(jsonResponse({ room: mockRooms[0], exams: mockExams, sections: mockSections, attempts: mockAttempts }));
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "history") return route.fulfill(jsonResponse({ attempts: [] }));
       if (requestUrl.pathname === "/api/admin/users") return route.fulfill(jsonResponse({ users: [{ id: "mock-student-2", email: "student@example.com" }] }));
-      if (requestUrl.pathname === "/api/admin/security" && !requestUrl.searchParams.has("userId")) return route.fulfill(jsonResponse({ users: [mockSecurityUser] }));
+      if (requestUrl.pathname === "/api/admin/security" && !requestUrl.searchParams.has("userId")) {
+        return route.fulfill(jsonResponse({
+          items: [mockSecurityUser],
+          total: 1,
+          page: 1,
+          limit: 20,
+          hasNextPage: false,
+          serverTime: "2026-08-09T08:01:00.000Z",
+        }));
+      }
       if (requestUrl.pathname === "/api/admin/security" && requestUrl.searchParams.has("userId")) return route.fulfill(jsonResponse({ profile: mockSecurityUser, devices: [{ id: "33333333-3333-4333-8333-333333333333", device_name: "Máy tính xách tay Windows", browser: "Chrome", operating_system: "Windows 11", trusted_by_admin: false, verified_at: null, last_used_at: "2026-08-09T08:00:00.000Z", revoked_at: null }], sessions: [], events: [], violations: [], actions: [], serverTime: "2026-08-09T08:01:00.000Z" }));
       if (requestUrl.pathname === "/api/admin/sessions") return route.fulfill(jsonResponse({ items: [mockSession], summary: { upcoming: 1, open: 0, ended: 0, disabled: 0 }, total: 1, hasNextPage: false, page: 1, limit: 20 }));
       if (requestUrl.pathname === "/api/admin/exam-access") return route.fulfill(jsonResponse({ slots: [{ id: "mock-slot", exam_id: "mock-exam", name: "Kíp thi sáng", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, export_open_at: null, export_close_at: null, grace_period_minutes: 30, token_hint: "ABCD", created_at: "2026-08-08T08:00:00.000Z" }], attempts: [] }));
@@ -165,7 +185,7 @@ async function inspect(name, path, width, screenshot = false) {
       }),
     };
   });
-  if (screenshot) await page.screenshot({ path: `artifacts/product-shell-ui-audit/${name}-${width}.png`, fullPage: true });
+  if (screenshot) await page.screenshot({ path: join(outputDir, `${name}-${width}.png`), fullPage: true });
   report.push({ name, path, width, ...state });
 }
 
@@ -233,6 +253,16 @@ async function inspectSecurityDialogs() {
   await page.waitForTimeout(1_200);
   await page.locator(".security-user-grid > button").first().click();
   await page.locator(".security-detail-panel").waitFor({ state: "visible" });
+  const selectedUserId = new URL(page.url()).searchParams.get("userId");
+  await page.goBack({ waitUntil: "domcontentloaded" });
+  await page.locator(".security-detail-panel").waitFor({ state: "detached" });
+  const backClosedDetail = !new URL(page.url()).searchParams.has("userId");
+  await page.goForward({ waitUntil: "domcontentloaded" });
+  await page.locator(".security-detail-panel").waitFor({ state: "visible" });
+  const forwardRestoredDetail = new URL(page.url()).searchParams.get("userId") === selectedUserId;
+  if (!selectedUserId || !backClosedDetail || !forwardRestoredDetail) {
+    throw new Error(`Security drawer URL history failed: ${JSON.stringify({ selectedUserId, backClosedDetail, forwardRestoredDetail })}`);
+  }
   await page.locator(".security-admin-actions button").nth(1).click();
   await page.locator(".security-action-dialog").waitFor({ state: "visible" });
   await page.waitForTimeout(100);
@@ -246,7 +276,7 @@ async function inspectSecurityDialogs() {
     actionClosed: !document.querySelector(".security-action-dialog"),
     detailStillOpen: Boolean(document.querySelector(".security-detail-panel")),
   }));
-  report.push({ name: "admin-security-dialog-keyboard", path: "/admin/security", width: 1280, ...nested, ...escape });
+  report.push({ name: "admin-security-dialog-keyboard", path: "/admin/security", width: 1280, selectedUserId, backClosedDetail, forwardRestoredDetail, ...nested, ...escape });
 }
 
 async function inspectCollapsedAdminSidebar() {
@@ -268,7 +298,7 @@ async function inspectCollapsedAdminSidebar() {
       compactLogoLeft: logo ? Math.round(logo.left) : null,
     };
   });
-  await page.screenshot({ path: "artifacts/product-shell-ui-audit/admin-sidebar-collapsed-1440.png", fullPage: true });
+  await page.screenshot({ path: join(outputDir, "admin-sidebar-collapsed-1440.png"), fullPage: true });
   report.push({ name: "admin-sidebar-collapsed", path: "/admin/enrollments", width: 1440, ...state });
 }
 
@@ -288,7 +318,7 @@ async function inspectDashboardDotAlignment() {
       maxCenterOffset: offsets.length ? Math.max(...offsets) : null,
     };
   });
-  await page.screenshot({ path: "artifacts/product-shell-ui-audit/student-dashboard-dots-1440.png", fullPage: true });
+  await page.screenshot({ path: join(outputDir, "student-dashboard-dots-1440.png"), fullPage: true });
   report.push({ name: "student-dashboard-dot-alignment", path: "/dashboard", width: 1440, ...state });
 }
 
@@ -324,7 +354,7 @@ async function inspectCourseResourceModal() {
     });
     const result = { name: "admin-course-resource-modal", path: "/admin/content", width, optionCount, uploadVisible, linkVisible, youtubeVisible, microsoftVisible, ...state };
     report.push(result);
-    await page.screenshot({ path: `artifacts/product-shell-ui-audit/admin-course-resource-modal-${width}.png`, fullPage: true });
+    await page.screenshot({ path: join(outputDir, `admin-course-resource-modal-${width}.png`), fullPage: true });
     if (optionCount !== 4 || !uploadVisible || !linkVisible || !youtubeVisible || !microsoftVisible || result.horizontalOverflow || !result.modalInsideViewport || result.unnamedControls) {
       throw new Error(`Course resource modal failed at ${width}px: ${JSON.stringify(result)}`);
     }
@@ -361,7 +391,7 @@ async function inspectExamHistoryDialog() {
       };
     });
 
-    await page.screenshot({ path: `artifacts/product-shell-ui-audit/student-exam-history-${width}.png`, fullPage: true });
+    await page.screenshot({ path: join(outputDir, `student-exam-history-${width}.png`), fullPage: true });
     await page.keyboard.press("Escape");
     await page.waitForTimeout(100);
     const closed = await page.evaluate(() => ({
@@ -394,28 +424,31 @@ if (authenticated) {
   }
   if (extendedInteractions) {
     await inspectDrawer(mockRole === "admin" ? "/admin" : "/dashboard");
-    if (mockRole === "admin") {
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard") || requestedRoutes.has("admin-enrollments"))) {
       await inspectCollapsedAdminSidebar();
+    }
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("student-dashboard"))) {
       await inspectDashboardDotAlignment();
     }
     if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
-    await inspectExamHistoryDialog();
-    const catalogRoutes = [["student-exam-catalog-shell", "/exam-room"]];
-    if (mockRole === "admin") catalogRoutes.push(["admin-exam-catalog-shell", "/admin/exams"]);
-    for (const [name, path] of catalogRoutes) {
-      await inspect(name, path, 1440, true);
-      const latest = report.at(-1);
-      if (!latest?.shell?.includes("product-shell") || latest.shell.includes("protected-exam-surface")) {
-        throw new Error(`${name} did not expose the standardized product shell: ${latest?.shell}`);
+    if (!focusedAudit || requestedRoutes.has("student-exam-list")) await inspectExamHistoryDialog();
+    if (!focusedAudit || requestedRoutes.has("student-exam-catalog") || requestedRoutes.has("student-exam-list")) {
+      const catalogRoutes = [["student-exam-catalog-shell", "/exam-room"]];
+      for (const [name, path] of catalogRoutes) {
+        await inspect(name, path, 1440, true);
+        const latest = report.at(-1);
+        if (!latest?.shell?.includes("product-shell") || latest.shell.includes("protected-exam-surface")) {
+          throw new Error(`${name} did not expose the standardized product shell: ${latest?.shell}`);
+        }
       }
-    }
-    const protectedRoutes = [["protected-exam-runner", "/exam/mock-exam?mode=practice"]];
-    if (mockRole === "admin") protectedRoutes.push(["protected-admin-authoring", "/admin/exams/mock-exam"]);
-    for (const [name, path] of protectedRoutes) {
-      await inspect(name, path, 1440, true);
-      const latest = report.at(-1);
-      if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
-        throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+      const protectedRoutes = protectedRegressionRoutes.filter(([name]) => mockRole === "admin" || !name.startsWith("protected-admin"));
+      for (const [name, path] of protectedRoutes) {
+        await inspect(name, path, 1440, true);
+        const latest = report.at(-1);
+        if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
+          throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+        }
+        if (latest?.shell?.includes("ui-optimized-surface")) throw new Error(`${name} incorrectly opted into optimized content.`);
       }
     }
   }

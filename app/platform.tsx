@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase";
 import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import VideoPlayer, { type SecureLessonResource } from "./video-player";
@@ -11,6 +12,8 @@ import TurnstileChallenge from "./turnstile-login";
 import { normalizeExamType } from "../lib/exam-config";
 import AdminSecurity from "./admin-security";
 import { useAdminDialogFocus } from "./admin-dialog";
+import { classifyUiRoute, type UiRouteMode } from "./ui-route-mode";
+import { requestProductNavigation } from "./product-navigation-guard";
 import "./study.css";
 import "./admin-redesign.css";
 import "./student-redesign.css";
@@ -19,6 +22,9 @@ import "./product-polish.css";
 import "./text-overflow-polish.css";
 import "./product-shell-ux.css";
 import "./aeck-ui.css";
+import "./product-ui-v2.css";
+import "./aeck-reference-ui.css";
+import "./auth-ui-v2.css";
 import AdminSessionList from "./admin-sessions";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
@@ -54,6 +60,7 @@ type ResourceData = { id: string; lesson_id: string; title: string; resource_typ
 type MicrosoftVideoInspection = { providerLabel: string; name: string; mimeType: string; size: number | null; durationMs: number | null; playbackMode: "native" | "embed" | "external" };
 type LessonCurriculumSection = { id: string; title: string; sort_order: number; lessons: Array<LessonData & { resources: Array<SecureLessonResource & { lesson_id: string }> }> };
 type AuthPageProps = {
+  uiRouteMode: UiRouteMode;
   email: string;
   setEmail: React.Dispatch<React.SetStateAction<string>>;
   password: string;
@@ -116,6 +123,11 @@ function resourceTypeLabel(type: ResourceData["resource_type"]) {
   return type === "youtube" ? "Video YouTube" : type === "onedrive_video" ? "Video Microsoft" : type === "hls_vault" ? "Video HLS Vault" : type === "storage_pdf" ? "PDF trên R2 private" : "PDF / Google Drive";
 }
 
+const vietnameseDateFormatter = new Intl.DateTimeFormat("vi-VN", {
+  dateStyle: "short",
+  timeZone: "Asia/Ho_Chi_Minh",
+});
+
 const pathsByView: Record<View, string> = {
   overview: "/dashboard",
   exams: "/exam-room",
@@ -126,6 +138,26 @@ const pathsByView: Record<View, string> = {
   course: "/courses",
   lesson: "/courses",
 };
+
+function optimizedDocumentTitle(pathname: string, authenticationRequired = false) {
+  if (pathname === "/forgot-password") return "Khôi phục mật khẩu | Remix Education";
+  if (pathname === "/reset-password") return "Đặt mật khẩu mới | Remix Education";
+  if (authenticationRequired) return pathname.startsWith("/admin") ? "Đăng nhập quản trị | Remix Education" : "Đăng nhập | Remix Education";
+  if (pathname === "/" || pathname === "/dashboard") return "Tổng quan | Remix Education";
+  if (pathname === "/courses") return "Khóa học | Remix Education";
+  if (pathname.startsWith("/courses/")) return "Chi tiết khóa học | Remix Education";
+  if (pathname.startsWith("/lessons/")) return "Bài học | Remix Education";
+  if (pathname === "/exam-history") return "Lịch sử làm bài | Remix Education";
+  if (pathname === "/profile") return "Hồ sơ cá nhân | Remix Education";
+  if (pathname === "/admin/security") return "Bảo mật | Remix Education";
+  if (pathname.startsWith("/admin/content")) return "Quản lý nội dung | Remix Education";
+  if (pathname.startsWith("/admin/sessions")) return "Quản lý kíp thi | Remix Education";
+  if (pathname.startsWith("/admin/students")) return "Quản lý học viên | Remix Education";
+  if (pathname.startsWith("/admin/enrollments")) return "Phân quyền | Remix Education";
+  if (pathname.startsWith("/admin/upload")) return "Kho ảnh | Remix Education";
+  if (pathname.startsWith("/admin/hls-vault")) return "HLS Vault | Remix Education";
+  return "Quản trị | Remix Education";
+}
 
 function viewFromPath(pathname: string): View {
   if (pathname.startsWith("/lessons/")) return "lesson";
@@ -146,15 +178,8 @@ function isExamRunnerPath(pathname: string) {
 }
 
 function isProtectedProductPath(pathname: string) {
-  return isExamRunnerPath(pathname);
+  return classifyUiRoute(pathname) === "protected";
 }
-
-const nav = [
-  { id: "overview" as View, label: "Tổng quan", icon: LayoutDashboard },
-  { id: "exams" as View, label: "Phòng khảo thí", icon: ClipboardCheck },
-  { id: "courses" as View, label: "Khóa học", icon: BookOpen },
-  { id: "history" as View, label: "Lịch sử thi", icon: History },
-];
 
 const adminNav = [
   { id: "dashboard" as const, section: "Tổng quan", label: "Tổng quan", path: "/admin", icon: LayoutDashboard },
@@ -166,7 +191,7 @@ const adminNav = [
   { id: "students" as const, section: "Quản lý", label: "Học viên", path: "/admin/students", icon: Users },
   { id: "enrollments" as const, section: "Quản lý", label: "Phân quyền", path: "/admin/enrollments", icon: ShieldCheck },
   { id: "upload" as const, section: "Quản lý", label: "Kho ảnh", path: "/admin/upload", icon: ImagePlus },
-  { id: "settings" as const, section: "Quản lý", label: "Cài đặt", path: "/admin/security", icon: LockKeyhole },
+  { id: "settings" as const, section: "Quản lý", label: "Bảo mật", path: "/admin/security", icon: LockKeyhole },
 ];
 type AdminTab = typeof adminNav[number]["id"] | "students" | "upload" | "enrollments" | "security";
 
@@ -176,12 +201,18 @@ const adminNavGroups = ["Tổng quan", "Nội dung", "Kỳ thi", "Quản lý"].m
 }));
 
 
-export default function PlatformApp({ initialAdminRoute = false, initialStandaloneAdminPreview = false, initialGuestToken }: { initialAdminRoute?: boolean; initialStandaloneAdminPreview?: boolean; initialGuestToken?: string }) {
+export default function PlatformApp({ initialAdminRoute = false, initialGuestToken }: { initialAdminRoute?: boolean; initialStandaloneAdminPreview?: boolean; initialGuestToken?: string }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const shellSearchParams = useSearchParams();
+  const uiRouteMode = classifyUiRoute(pathname);
+  const currentView = viewFromPath(pathname);
+  const adminRouteRequested = pathname.startsWith("/admin");
+  const standaloneAdminPreview = /^\/admin\/exams\/[^/]+\/preview$/.test(pathname) || /^\/admin\/exams\/[^/]+\/sections\/[^/]+\/preview$/.test(pathname);
   const [signedIn, setSignedIn] = useState(false);
   const [checkingSession, setCheckingSession] = useState(() => Boolean(supabase));
   const [, setAuthReady] = useState(() => !supabase);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [view, setView] = useState<View>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [, setRouteVersion] = useState(0);
@@ -198,21 +229,60 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
   const [attempts, setAttempts] = useState<AttemptData[]>([]);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
-  const [adminRouteRequested, setAdminRouteRequested] = useState(initialAdminRoute);
-  const [standaloneAdminPreview, setStandaloneAdminPreview] = useState(initialStandaloneAdminPreview);
   const [loginContext, setLoginContext] = useState<"student" | "admin">(initialAdminRoute ? "admin" : "student");
   const authOperationRef = useRef(0);
   const overviewBootstrapRef = useRef(false);
+  const lastFocusedRouteRef = useRef<string | null>(null);
+  const popstateNavigationRef = useRef(false);
   const accountTriggerRef = useRef<HTMLButtonElement | null>(null);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
-  const shellPath = typeof window === "undefined" ? "" : window.location.pathname;
-  const runnerShellPath = isExamRunnerPath(shellPath);
+  const lastAllowedRouteRef = useRef(pathname);
+  const runnerShellPath = isExamRunnerPath(pathname);
   const closeMobileMenu = useCallback(() => {
     setMobileOpen(false);
     window.requestAnimationFrame(() => mobileMenuRef.current?.focus());
   }, []);
   const mobileSidebarRef = useAdminDialogFocus<HTMLElement>(mobileOpen && !runnerShellPath, closeMobileMenu);
+
+  useEffect(() => {
+    const adminPath = pathname.startsWith("/admin");
+    /* eslint-disable react-hooks/set-state-in-effect -- Next's pathname is the external navigation source; these legacy shell states must update together when native links change routes. */
+    if (adminPath || (["/forgot-password", "/reset-password"].includes(pathname) && shellSearchParams.get("from") === "admin")) setLoginContext("admin");
+    else if (!["/forgot-password", "/reset-password"].includes(pathname)) setLoginContext("student");
+    setAuthMode(pathname === "/forgot-password" ? "forgot" : pathname === "/reset-password" ? "reset" : "login");
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [pathname, shellSearchParams]);
+
+  useEffect(() => {
+    lastAllowedRouteRef.current = `${pathname}${window.location.search}${window.location.hash}`;
+  }, [pathname]);
+
+  useEffect(() => {
+    if (uiRouteMode !== "optimized-content") return;
+    const previousTitle = document.title;
+    const authenticationRequired = !signedIn || (pathname.startsWith("/admin") && !isAdmin);
+    const appliedTitle = optimizedDocumentTitle(pathname, authenticationRequired);
+    document.title = appliedTitle;
+    return () => {
+      if (document.title === appliedTitle) document.title = previousTitle;
+    };
+  }, [isAdmin, pathname, signedIn, uiRouteMode]);
+
+  useEffect(() => {
+    if (!signedIn) return;
+    const previousPath = lastFocusedRouteRef.current;
+    lastFocusedRouteRef.current = pathname;
+    const preserveScrollPosition = popstateNavigationRef.current;
+    popstateNavigationRef.current = false;
+    if (previousPath === null || previousPath === pathname || uiRouteMode === "protected") return;
+    const frame = window.requestAnimationFrame(() => {
+      const mainContent = document.getElementById("main-content");
+      mainContent?.focus({ preventScroll: true });
+      if (!preserveScrollPosition) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname, signedIn, uiRouteMode]);
 
   useEffect(() => {
     const currentParams = new URLSearchParams(window.location.search);
@@ -221,13 +291,19 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
       const remainingQuery = currentParams.toString();
       window.history.replaceState({}, "", `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ""}${window.location.hash}`);
     }
-    const syncRoute = () => {
+    const syncRoute = (event?: PopStateEvent) => {
+      const nextLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (!requestProductNavigation(nextLocation, "popstate")) {
+        event?.stopImmediatePropagation();
+        window.history.pushState(window.history.state, "", lastAllowedRouteRef.current);
+        return;
+      }
+      if (event) popstateNavigationRef.current = true;
+      lastAllowedRouteRef.current = nextLocation;
       const adminPath = window.location.pathname.startsWith("/admin");
-      setView(viewFromPath(window.location.pathname));
       setRouteVersion(value => value + 1);
-      setAdminRouteRequested(adminPath);
-      setStandaloneAdminPreview(adminPath && (/^\/admin\/exams\/[^/]+\/preview$/.test(window.location.pathname) || /^\/admin\/exams\/[^/]+\/sections\/[^/]+\/preview$/.test(window.location.pathname)));
-      setLoginContext(adminPath ? "admin" : "student");
+      if (adminPath) setLoginContext("admin");
+      else if (!["/forgot-password", "/reset-password"].includes(window.location.pathname)) setLoginContext("student");
       setAuthMode(window.location.pathname === "/forgot-password" ? "forgot" : window.location.pathname === "/reset-password" ? "reset" : "login");
     };
     syncRoute();
@@ -345,7 +421,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
   }, [accountMenuOpen]);
 
   useEffect(() => {
-    if (!signedIn || view !== "overview") return;
+    if (!signedIn || currentView !== "overview") return;
     // loadUserData already receives the rooms payload during session bootstrap.
     // Avoid fetching the same rooms/history data again in the same render cycle.
     if (overviewBootstrapRef.current) {
@@ -378,7 +454,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
     };
     void refreshOverviewData();
     return () => { active = false; };
-  }, [signedIn, view]);
+  }, [currentView, signedIn]);
 
   async function loadUserData(user: { id: string; email?: string | null }) {
     if (!supabase) return null;
@@ -530,9 +606,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
 
       setSignedIn(true);
       const adminPath = loginContext === "admin";
-      setView(adminPath ? "admin" : "overview");
       const adminDestination = window.location.pathname.startsWith("/admin") ? window.location.pathname : "/admin";
-      window.history.replaceState({}, "", adminPath ? adminDestination : "/dashboard");
+      router.replace(adminPath ? adminDestination : "/dashboard");
     } catch (error) {
       await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
       setSignedIn(false);
@@ -550,43 +625,43 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
 
   const showLogin = () => {
     setAuthMode("login");
-    window.history.replaceState({}, "", loginContext === "admin" ? "/admin" : "/");
+    router.replace(loginContext === "admin" ? "/admin" : "/");
   };
   if (checkingSession && !initialGuestToken) return <LoadingIndicator label="Đang xác thực tài khoản…" fullPage />;
   if (initialGuestToken && !adminRouteRequested) return <Suspense fallback={<LoadingIndicator label="Đang mở link thi…" fullPage />}><GuestExamModule token={initialGuestToken} /></Suspense>;
-  if (authMode === "forgot") return <ForgotPasswordPage initialEmail={email} onBack={showLogin} />;
+  if (authMode === "forgot") return <ForgotPasswordPage initialEmail={email} returnToAdmin={loginContext === "admin"} onBack={showLogin} />;
   if (authMode === "reset") return <ResetPasswordPage onComplete={showLogin} />;
-  if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
-  if (!signedIn) return <LoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
+  if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); router.push("/forgot-password?from=admin"); } }} />;
+  if (!signedIn) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
 
   const go = (next: View, pathOverride?: string) => {
     if (next === "admin" && !isAdmin) {
-      setView("overview");
       setMobileOpen(false);
-      window.history.replaceState({}, "", "/dashboard");
+      router.replace("/dashboard");
       return;
     }
-    setView(next);
-    setMobileOpen(false);
     const target = pathOverride ?? pathsByView[next];
-    if (`${window.location.pathname}${window.location.search}` !== target) {
-      window.history.pushState({}, "", target);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+    const routeChanged = `${window.location.pathname}${window.location.search}` !== target;
+    if (routeChanged && !requestProductNavigation(target)) return;
+    setMobileOpen(false);
+    if (routeChanged) {
+      lastAllowedRouteRef.current = target;
+      router.push(target);
+      setRouteVersion(value => value + 1);
     }
   };
-  if (!profileData) return <LoginPage {...{ email, setEmail, password, setPassword, showPassword, setShowPassword, authError: "Không tìm thấy hồ sơ tài khoản hợp lệ.", loading: false, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setAuthMode("forgot"); window.history.pushState({}, "", "/forgot-password"); } }} />;
+  if (!profileData) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError: "Không tìm thấy hồ sơ tài khoản hợp lệ.", loading: false, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
   if (standaloneAdminPreview) return <div className="ui-shell admin-app admin-exam-preview-host"><Suspense fallback={<LoadingIndicator label="Đang mở preview đề thi…" />}><AdminExamManager /></Suspense></div>;
   const activeProfile = profileData;
-  const currentView: View = view;
-  const currentAdminTab = adminRouteRequested ? adminTabFromPath(window.location.pathname) : "";
+  const currentAdminTab = adminRouteRequested ? adminTabFromPath(pathname) : "";
   const visibleCourses = assignedCourses;
-  const routeCourseId = currentView === "course" || currentView === "lesson" ? decodeURIComponent(window.location.pathname.split("/")[2] ?? "") : "";
+  const routeCourseId = currentView === "course" || currentView === "lesson" ? decodeURIComponent(pathname.split("/")[2] ?? "") : "";
   const selectedCourse = visibleCourses.find(course => String(course.id) === routeCourseId) ?? null;
   const accountLabel = activeProfile.email.split("@")[0] || activeProfile.full_name;
   const accountInitials = activeProfile.full_name.split(" ").filter(Boolean).slice(-2).map(value => value[0]).join("").toUpperCase();
   const adminNavigation = adminRouteRequested ? adminNav.map(item => item) : [];
   const activeAdminNavigation = adminNavigation.find(item => item.id === currentAdminTab) ?? adminNav[0];
-  const currentPath = typeof window === "undefined" ? "" : window.location.pathname;
+  const currentPath = pathname;
   const examRunnerSurface = currentView === "exams" && isExamRunnerPath(currentPath);
   const protectedProductSurface = isProtectedProductPath(currentPath);
   const handleNavigationLink = (event: React.MouseEvent<HTMLAnchorElement>, next: View, path: string) => {
@@ -613,27 +688,45 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
     items[nextIndex]?.focus();
   };
   return (
-    <div className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
-      {!examRunnerSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
+    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
+      {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
       <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={closeMobileMenu} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
-      {!examRunnerSurface && !protectedProductSurface && (
+      {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
+      {!examRunnerSurface && (
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
-           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img src="/logo_tsa.svg" alt="TSA"/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
-          <nav>
+           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img src="/logo_tsa.svg" alt="TSA" width={200} height={52}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
+          {!adminRouteRequested && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img src="/logo_tsa.svg" alt="TSA" width={2079} height={780}/></Link>}
+          <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
                 <div className="admin-sidebar-section-label">{group.section}</div>
                 {group.items.map(item => <Link key={`admin-${item.id}`} href={item.path} className={`admin-sidebar-nav-item ${currentAdminTab === item.id ? "active" : ""}`} onClick={event => handleNavigationLink(event, "admin", item.path)} title={item.label} aria-label={item.label} aria-current={currentAdminTab === item.id ? "page" : undefined}><item.icon aria-hidden="true" /><span>{item.label}</span></Link>)}
               </div>)}
-            </> : <>{nav.map(item => <Link key={item.id} href={pathsByView[item.id]} className={currentView === item.id ? "active" : ""} onClick={event => handleNavigationLink(event, item.id, pathsByView[item.id])} title={item.label} aria-label={item.label} aria-current={currentView === item.id ? "page" : undefined}><item.icon aria-hidden="true" /><span>{item.label}</span></Link>)}{isAdmin && <Link href="/admin" className={currentView === "admin" ? "active" : ""} onClick={event => handleNavigationLink(event, "admin", "/admin")} title="Quản trị" aria-label="Quản trị" aria-current={currentView === "admin" ? "page" : undefined}><ShieldCheck aria-hidden="true" /><span>Quản trị</span></Link>}</>}
+            </> : <>
+              <Link key="overview" href="/dashboard" className={`student-nav-primary ${currentView === "overview" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "overview", "/dashboard")} title="Tổng quan" aria-label="Tổng quan" aria-current={currentView === "overview" ? "page" : undefined}><LayoutDashboard aria-hidden="true" /><span>Tổng quan</span></Link>
+              <details className={`student-nav-disclosure ${currentView === "exams" ? "active-parent" : ""}`} open>
+                <summary><ClipboardCheck aria-hidden="true" /><span>Phòng khảo thí</span><ChevronDown aria-hidden="true" /></summary>
+                <div className="student-nav-children">
+                  {(["HSA", "QDA", "BCA"] as const).map(type => <Link key={type} href="/exam-room" className={currentView === "exams" && type === "HSA" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" && type === "HSA" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
+                </div>
+              </details>
+              <details className={`student-nav-disclosure ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active-parent" : ""}`} open>
+                <summary><BookOpen aria-hidden="true" /><span>Khóa học</span><ChevronDown aria-hidden="true" /></summary>
+                <div className="student-nav-children">
+                  {(["HSA", "QDA", "BCA"] as const).map(type => <Link key={type} href="/courses" className={currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active" : ""} onClick={event => handleNavigationLink(event, "courses", "/courses")}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
+                </div>
+              </details>
+              <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><History aria-hidden="true" /><span>Lịch sử thi</span></Link>
+              {isAdmin && <Link href="/admin" className="student-nav-primary" onClick={event => handleNavigationLink(event, "admin", "/admin")} title="Quản trị" aria-label="Quản trị"><ShieldCheck aria-hidden="true" /><span>Quản trị</span></Link>}
+            </>}
           </nav>
           <Link className="mobile-sidebar-account" href={adminRouteRequested ? "/admin" : "/profile"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "profile", adminRouteRequested ? "/admin" : "/profile")}><span className="mini-avatar">{activeProfile.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><span><b>{activeProfile.full_name}</b><small>{adminRouteRequested ? "Quản trị viên" : activeProfile.student_code}</small></span><ChevronRight aria-hidden="true"/></Link>
         </aside>
       )}
-      {!examRunnerSurface && !protectedProductSurface && (
+      {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
-          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo.svg" alt=""/><img className="header-brand-logo header-brand-logo-full" src="/logo_tsa.svg" alt=""/></Link>
-          <button type="button" className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}><ChevronRight /></button>
+          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo.svg" alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src="/logo_tsa.svg" alt="" width={155} height={56}/></Link>
+          <button type="button" className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{adminRouteRequested ? <ChevronRight /> : <Menu />}</button>
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
           <div className="top-actions">
@@ -641,17 +734,17 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
               <button type="button" ref={accountTriggerRef} className="account-trigger" aria-label={`Mở menu tài khoản ${accountLabel}`} aria-haspopup="menu" aria-controls="account-menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(value => !value)}><span className="account-avatar" aria-hidden="true">{accountInitials}</span><span className="account-name">{accountLabel}</span><ChevronDown aria-hidden="true" /></button>
               <div id="account-menu" ref={accountMenuRef} className="account-dropdown" role="menu" aria-label="Menu tài khoản" hidden={!accountMenuOpen} onKeyDown={handleAccountMenuKeyDown}>
                 <Link href="/profile" role="menuitem" data-account-menu-item onClick={event => { handleNavigationLink(event, "profile", "/profile"); setAccountMenuOpen(false); }}><UserRound aria-hidden="true" /><span>Tài khoản</span></Link>
-                <button type="button" role="menuitem" data-account-menu-item onClick={async () => { if (supabase) await supabase.auth.signOut(); setSignedIn(false); setView("overview"); setAccountMenuOpen(false); window.history.replaceState({}, "", "/"); }}><LogOut aria-hidden="true" /><span>Đăng xuất</span></button>
+                <button type="button" role="menuitem" data-account-menu-item onClick={async () => { if (!requestProductNavigation("/")) return; if (supabase) await supabase.auth.signOut(); setSignedIn(false); setAccountMenuOpen(false); router.replace("/"); }}><LogOut aria-hidden="true" /><span>Đăng xuất</span></button>
               </div>
             </div>
           </div>
         </header>
       )}
-      <main id="main-content" className={`main-content ${currentView === "lesson" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"}`}>
+      <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
         {currentView === "overview" && <Overview onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} />}
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
-        {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} onBack={() => go("courses")} onLesson={lessonId => go("lesson", `/lessons/${encodeURIComponent(lessonId)}`)} />}
-        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onBack={courseId => courseId ? go("course", `/courses/${encodeURIComponent(courseId)}`) : go("courses")} onLesson={(nextLessonId, resourceId) => go("lesson", `/lessons/${encodeURIComponent(nextLessonId)}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ""}`)} />}
+        {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
+        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} />}
@@ -662,9 +755,11 @@ export default function PlatformApp({ initialAdminRoute = false, initialStandalo
 }
 
 function LoginPage(p: AuthPageProps) {
-  return <main className="login-page">
+  return <main data-ui-mode={p.uiRouteMode} className="login-page ui-auth-surface">
     <div className="login-orb orb-one" /><div className="login-orb orb-two" />
     <section className="login-wrap">
+      <AuthAside />
+      <div className="login-main">
       <div className="login-brand"><span>R</span><div><b>REMIX</b><small>EDUCATION</small></div></div>
       <form className="login-card" onSubmit={p.login}>
         <div className="login-heading"><span className="kicker">CHÀO MỪNG TRỞ LẠI</span><h1>Đăng nhập</h1><p>Tài khoản học tập được cấp bởi quản trị viên.</p></div>
@@ -676,29 +771,46 @@ function LoginPage(p: AuthPageProps) {
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
       </form>
       <p className="login-foot">© 2026 REMIX Education · Học để trưởng thành</p>
+      </div>
     </section>
   </main>;
 }
 
+function AuthAside({ admin = false }: { admin?: boolean }) {
+  const titleId = admin ? "admin-login-aside-title" : "login-aside-title";
+  const features = admin
+    ? ["Quản lý nội dung học tập", "Theo dõi vận hành rõ ràng", "Bảo mật tài khoản tập trung"]
+    : ["Theo dõi lộ trình học tập", "Học theo từng khóa học", "Xem lại tiến độ và kết quả"];
+  return <aside className={`login-aside${admin ? " admin-login-aside" : ""}`} aria-labelledby={titleId}>
+    <div className="login-aside-brand"><span aria-hidden="true">{admin ? <ShieldCheck /> : "R"}</span><div><b>REMIX</b><small>{admin ? "TEACHER WORKSPACE" : "EDUCATION"}</small></div></div>
+    <div className="login-aside-copy"><span className="login-aside-kicker">{admin ? "KHU VỰC QUẢN TRỊ" : "NỀN TẢNG HỌC TẬP"}</span><h2 id={titleId}>{admin ? "Tổ chức lớp học rõ ràng." : "Học theo một lộ trình rõ ràng."}</h2><p>{admin ? "Một không gian gọn gàng để quản lý nội dung, vận hành và bảo mật tài khoản." : "Mọi nội dung cần thiết cho một buổi học đều được đặt ở nơi dễ tìm và dễ tiếp tục."}</p></div>
+    <ul className="login-aside-features">{features.map((feature, index) => <li key={feature}><i aria-hidden="true">{String(index + 1).padStart(2, "0")}</i><span>{feature}</span></li>)}</ul>
+    <p className="login-aside-foot">{admin ? "Chỉ dành cho giáo viên và quản trị viên." : "Tài khoản được cấp bởi quản trị viên."}</p>
+  </aside>;
+}
+
 function AdminLoginPage(p: AuthPageProps) {
-  return <main className="login-page admin-login-page">
+  return <main data-ui-mode={p.uiRouteMode} className="login-page admin-login-page ui-auth-surface">
     <section className="login-wrap">
+      <AuthAside admin />
+      <div className="login-main">
       <div className="login-brand admin-login-brand"><span><ShieldCheck/></span><div><b>REMIX</b><small>TEACHER WORKSPACE</small></div></div>
       <form className="login-card" onSubmit={p.login}>
-        <div className="login-heading"><span className="kicker">KHÔNG GIAN GIÁO VIÊN</span><h1>Đăng nhập để quản lý</h1><p>Soạn đề, tổ chức đợt thi và xem kết quả ở một nơi.</p></div>
+        <div className="login-heading"><span className="kicker">KHÔNG GIAN GIÁO VIÊN</span><h1>Đăng nhập để quản lý</h1><p>Soạn nội dung, tổ chức vận hành và xem kết quả ở một nơi.</p></div>
         <label htmlFor="admin-login-email">Email<div className="field"><Mail aria-hidden="true"/><input id="admin-login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setEmail(event.target.value)} placeholder="admin@example.com" required/></div></label>
-        <div className="login-field-group"><label htmlFor="admin-login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true"/><input id="admin-login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu admin" required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div></div>
+        <div className="login-field-group"><label htmlFor="admin-login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true"/><input id="admin-login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div></div>
         <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
         {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
         <button className="primary-btn" disabled={p.loading}>{p.loading ? "Đang xác thực…" : "Vào trang quản trị"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
       </form>
       <p className="login-foot">Không gian này chỉ dành cho giáo viên và quản trị viên.</p>
+      </div>
     </section>
   </main>;
 }
 
-function ForgotPasswordPage({ initialEmail, onBack }: { initialEmail: string; onBack: () => void }) {
+function ForgotPasswordPage({ initialEmail, returnToAdmin, onBack }: { initialEmail: string; returnToAdmin: boolean; onBack: () => void }) {
   const [recoveryEmail, setRecoveryEmail] = useState(initialEmail);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
@@ -716,7 +828,7 @@ function ForgotPasswordPage({ initialEmail, onBack }: { initialEmail: string; on
     setSending(true);
     try {
       if (!supabase) { setError("Chưa cấu hình Supabase."); return; }
-      const redirectTo = `${window.location.origin}/reset-password`;
+      const redirectTo = `${window.location.origin}/reset-password${returnToAdmin ? "?from=admin" : ""}`;
       const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), {
         redirectTo,
         captchaToken: turnstileToken,
@@ -735,7 +847,7 @@ function ForgotPasswordPage({ initialEmail, onBack }: { initialEmail: string; on
     }
   }
 
-  return <main className="login-page auth-flow-page">
+  return <main data-ui-mode="optimized-content" className="login-page auth-flow-page ui-auth-surface">
     <section className="login-wrap">
       <div className="login-brand"><span>R</span><div><b>REMIX</b><small>EDUCATION</small></div></div>
       <form className="login-card" onSubmit={sendRecovery}>
@@ -778,7 +890,7 @@ function ResetPasswordPage({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  return <main className="login-page auth-flow-page">
+  return <main data-ui-mode="optimized-content" className="login-page auth-flow-page ui-auth-surface">
     <section className="login-wrap">
       <div className="login-brand"><span>R</span><div><b>REMIX</b><small>EDUCATION</small></div></div>
       <form className="login-card" onSubmit={resetPassword}>
@@ -817,6 +929,10 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
     const count = inYear ? activity[key] ?? 0 : 0;
     return { date, count, inYear };
   });
+  const monthlyActivity = yearAttempts.reduce<number[]>((months, item) => {
+    months[new Date(item.submitted_at).getMonth()] += 1;
+    return months;
+  }, Array.from({ length: 12 }, () => 0));
   const activityDateFormat = new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const recent = completedAttempts.slice(0, 5);
   const top = [...completedAttempts].sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)).slice(0, 5);
@@ -870,7 +986,7 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
       <Link className="dashboard-next-step-action" href={nextStep.href} onClick={event => followLink(event, nextStep.onOpen)}>{nextStep.actionLabel}<ChevronRight aria-hidden="true" /></Link>
     </section>
     <section className="overview-lists">
-      <article className="overview-list-card"><div className="overview-card-head"><b>Khóa học</b><Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link></div>{userCourses.length ? <ul>{userCourses.map(c=><li key={c.id}><i className="dot blue"/><Link href="/courses" onClick={event => followLink(event, onCourses)}>{c.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa được phân khóa học</div>}</article>
+      <article className="overview-list-card"><div className="overview-card-head"><b>Khóa học</b><Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link></div>{userCourses.length ? <ul>{userCourses.map(c=><li key={c.id}><i className="dot blue"/><Link href={`/courses/${encodeURIComponent(String(c.id))}`}>{c.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa được phân khóa học</div>}</article>
       <article className="overview-list-card"><div className="overview-card-head"><b>Phòng luyện</b><Link href="/exam-room" onClick={event => followLink(event, onExams)}>Xem tất cả</Link></div>{practiceRooms.length ? <ul>{practiceRooms.slice(0,5).map(room=><li key={room.id}><i className="dot blue"/><Link href={`/exam-room/${encodeURIComponent(room.id)}`} onClick={event => followLink(event, () => onOpenRoom(room.id))} title={`${room.title} · ${room.examCount} đề`}>{room.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa có phòng luyện nào</div>}</article>
     </section>
     <section className="two-col"><div className="section-card"><div className="section-head"><h2>Bài thi gần đây</h2></div>{recent.length ? <ul className="attempt-list">{recent.map(item=><li key={item.id}><button className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><small>{new Date(item.submitted_at).toLocaleDateString("vi-VN")}</small></li>)}</ul> : <MiniEmpty text="Chưa có bài thi nào được thực hiện." />}</div><div className="section-card"><div className="section-head"><h2>Top 5 điểm cao nhất</h2></div>{top.length ? <ul className="attempt-list">{top.map(item=><li key={item.id}><button className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><b>{item.score}</b></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu xếp hạng." />}</div></section>
@@ -879,21 +995,46 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
       <span className="activity-year" aria-label={`Năm ${year}`}>{year}</span>
       <div className="heatmap-months">{Array.from({ length: 12 }, (_, index) => <span key={index} aria-label={`Tháng ${index + 1}`}><span className="heatmap-month-full">Th.{index + 1}</span><span className="heatmap-month-short">{index + 1}</span></span>)}</div>
       <div className="heatmap dashboard-heatmap" role="img" aria-label={`Biểu đồ hoạt động năm ${year}: ${yearAttempts.length} bài thi đã hoàn thành`}>{activityDays.map(({ date, count, inYear }, index) => { const detail = `${activityDateFormat.format(date)}: ${count} bài thi`; return <i key={`${date.toISOString()}-${index}`} className={inYear ? `level-${Math.min(count,4)}` : "outside-year"} title={inYear ? detail : undefined} aria-hidden="true" />; })}</div>
+      <ol className="activity-mobile-summary" aria-label={`Hoạt động theo tháng năm ${year}`}>{monthlyActivity.map((count, index) => <li key={index}><span>Tháng {index + 1}</span><strong>{count} bài</strong></li>)}</ol>
       <div className="activity-footer"><span>{yearAttempts.length} bài thi trong năm</span><div className="heatmap-legend"><span>Ít</span><i/><i/><i/><i/><i/><span>Nhiều</span></div></div>
     </section>
   </div>;
 }
 
-function Stat({ icon: Icon, value, label, color }: { icon: IconComponent; value: string | number; label: string; color: string }) { return <article className="stat-card"><span className={`stat-icon ${color}`}><Icon /></span><div><b>{value}</b><small>{label}</small></div></article>; }
-
 function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isAdmin: boolean }) {
-  const [courseSearch, setCourseSearch] = useState("");
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const routeCourseSearch = searchParams.get("q") ?? "";
+  const [courseSearch, setCourseSearch] = useState(routeCourseSearch);
+  const committedCourseSearchRef = useRef(routeCourseSearch);
+  useEffect(() => {
+    if (routeCourseSearch === committedCourseSearchRef.current) return;
+    committedCourseSearchRef.current = routeCourseSearch;
+    setCourseSearch(routeCourseSearch);
+  }, [routeCourseSearch]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const query = courseSearch.trimStart();
+      const currentParams = new URLSearchParams(window.location.search);
+      const currentQuery = currentParams.get("q") ?? "";
+      if (currentQuery === query) {
+        committedCourseSearchRef.current = query;
+        return;
+      }
+      if (query) currentParams.set("q", query); else currentParams.delete("q");
+      committedCourseSearchRef.current = query;
+      const nextQuery = currentParams.toString();
+      router.replace(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [courseSearch, pathname, router]);
   const filteredCourses = useMemo(() => {
     const query = courseSearch.trim().toLocaleLowerCase("vi");
     if (!query) return courseItems;
     return courseItems.filter(course => `${course.title} ${course.description}`.toLocaleLowerCase("vi").includes(query));
   }, [courseItems, courseSearch]);
-  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học</p></div><label className="course-search"><Search aria-hidden="true" /><input value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm kiếm giáo trình..." aria-label="Tìm kiếm giáo trình" /></label></div>{filteredCourses.length ? <div className="course-grid reference-course-grid">{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} />}</div>;
+  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học được phân cho tài khoản của bạn.</p></div><div className="course-search-wrap"><label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span></div></div>{filteredCourses.length ? <div className="course-grid reference-course-grid">{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}</div>;
 }
 
 function CourseCard({ course }: { course: CourseData }) {
@@ -909,11 +1050,12 @@ function CourseCard({ course }: { course: CourseData }) {
   </article>;
 }
 
-function CourseDetail({ course, showDrafts, onBack, onLesson }: { course: CourseData | null; showDrafts: boolean; onBack: () => void; onLesson: (lessonId: string) => void }) {
+function CourseDetail({ course, showDrafts }: { course: CourseData | null; showDrafts: boolean }) {
   const [chapters, setChapters] = useState<ChapterData[]>([]);
   const [courseLessons, setCourseLessons] = useState<LessonData[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
   const [contentError, setContentError] = useState("");
+  const [contentReloadVersion, setContentReloadVersion] = useState(0);
 
   useEffect(() => {
     if (!course || !supabase) return;
@@ -939,30 +1081,32 @@ function CourseDetail({ course, showDrafts, onBack, onLesson }: { course: Course
     }
     void loadCourseContent();
     return () => { cancelled = true; };
-  }, [course, showDrafts]);
+  }, [contentReloadVersion, course, showDrafts]);
 
-  if (!course) return <div className="page-stack"><button className="back-btn" onClick={onBack}><ArrowLeft /> Quay lại khóa học</button><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
+  if (!course) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
   return <div className="page-stack course-study-page">
-    <button className="back-btn" onClick={onBack}><ArrowLeft /> Quay lại khóa học</button>
+    <Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link>
     <section className="course-study-hero">
       {course.cover_url ? <img src={course.cover_url} alt={course.title} width={960} height={540} fetchPriority="high" decoding="async"/> : <div className="course-cover-fallback course-study-cover-fallback" style={courseColorStyle(course.color)}><span>REMIX</span><BookOpen/><small>LEARNING SERIES</small></div>}
       <div><span className="eyebrow">KHÓA HỌC</span><h1>{course.title}</h1><p>{course.description || "Nội dung khóa học đang được cập nhật."}</p></div>
     </section>
     <section className="course-curriculum-panel">
       <div className="course-curriculum-head"><h2>Nội dung giáo trình</h2><p>{chapters.length} phần • {courseLessons.length} bài học</p></div>
-      {contentError && <p className="form-error">{contentError}</p>}
-      {loadingContent ? <LoadingIndicator label="Đang tải nội dung…" /> : chapters.length ? <div className="course-curriculum-list">{chapters.map((chapter,partIndex)=>{const lessons=courseLessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="course-part-card" key={chapter.id} open={partIndex===0}><summary><strong>{formatPartTitle(chapter.title,chapter.sort_order)}</strong><ChevronRight/></summary>{lessons.length ? <ul className="course-part-lessons">{lessons.map(lesson=><li key={lesson.id}><button className={lesson.published?"published":"draft"} onClick={()=>onLesson(lesson.id)}><b>{formatLessonTitle(lesson.title,lesson.sort_order)}</b></button></li>)}</ul> : <p className="course-part-lessons-empty">Phần này chưa có bài học {showDrafts?"nào":"được xuất bản"}.</p>}</details>})}</div> : <MiniEmpty text={showDrafts?"Khóa học chưa có phần hoặc bài học.":"Khóa học chưa có phần hoặc bài học được xuất bản."} />}
+      {contentError && <div className="student-load-feedback" role="alert"><p>{contentError}</p><button type="button" className="outline-btn" onClick={() => setContentReloadVersion(version => version + 1)}>Thử tải lại</button></div>}
+      {loadingContent ? <CourseCurriculumSkeleton /> : chapters.length ? <div className="course-curriculum-list">{chapters.map((chapter,partIndex)=>{const lessons=courseLessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="course-part-card" key={chapter.id} open={partIndex===0}><summary><strong>{formatPartTitle(chapter.title,chapter.sort_order)}</strong><ChevronRight/></summary>{lessons.length ? <ul className="course-part-lessons">{lessons.map(lesson=><li key={lesson.id}><Link className={lesson.published?"published":"draft"} href={`/lessons/${encodeURIComponent(lesson.id)}`}><b>{formatLessonTitle(lesson.title,lesson.sort_order)}</b></Link></li>)}</ul> : <p className="course-part-lessons-empty">Phần này chưa có bài học {showDrafts?"nào":"được xuất bản"}.</p>}</details>})}</div> : !contentError ? <MiniEmpty text={showDrafts?"Khóa học chưa có phần hoặc bài học.":"Khóa học chưa có phần hoặc bài học được xuất bản."} /> : null}
     </section>
   </div>;
 }
 
-function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack: (courseId: string) => void; onLesson: (lessonId: string, resourceId?: string) => void }) {
+function LessonViewer({ lessonId }: { lessonId: string }) {
+  const router = useRouter();
   const [lesson, setLesson] = useState<(LessonData & { course_id: string; course_title: string; chapter_title: string; chapter_sort_order: number }) | null>(null);
   const [resources, setResources] = useState<SecureLessonResource[]>([]);
   const [curriculum, setCurriculum] = useState<LessonCurriculumSection[]>([]);
   const [selectedResourceId, setSelectedResourceId] = useState("");
   const [lessonLoading, setLessonLoading] = useState(() => Boolean(supabase && lessonId));
   const [lessonError, setLessonError] = useState("");
+  const [lessonReloadVersion, setLessonReloadVersion] = useState(0);
 
   useEffect(() => {
     if (!supabase || !lessonId) return;
@@ -1000,7 +1144,7 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
     }
     void loadLesson();
     return () => { cancelled = true; };
-  }, [lessonId]);
+  }, [lessonId, lessonReloadVersion]);
 
   const selectedResource = resources.find(resource=>resource.id===selectedResourceId) ?? resources[0];
   const lessonCount = curriculum.reduce((total, section) => total + section.lessons.length, 0);
@@ -1008,14 +1152,20 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
     setSelectedResourceId(resourceId);
     const url = new URL(window.location.href);
     url.searchParams.set("resource", resourceId);
-    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
   }
-  if (lessonLoading) return <div className="lesson-page"><LoadingIndicator label="Đang tải bài giảng…" /></div>;
-  if (!lesson) return <div className="lesson-page"><button className="back-btn" onClick={()=>onBack("")}><ArrowLeft/> Quay lại khóa học</button><EmptyState icon={BookOpen} title="Không tìm thấy bài học" text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."}/></div>;
+  if (lessonLoading) return <div className="lesson-page"><LessonViewerSkeleton /></div>;
+  if (!lesson) {
+    const sessionExpired = /phiên đăng nhập/i.test(lessonError);
+    const recoveryAction = sessionExpired
+      ? <Link className="outline-btn" href="/">Đăng nhập lại</Link>
+      : <button type="button" className="outline-btn" onClick={() => setLessonReloadVersion(version => version + 1)}>Thử tải lại</button>;
+    return <div className="lesson-page"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true"/> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy bài học" text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."} action={recoveryAction}/></div>;
+  }
   return <div className="lesson-page real-lesson-page">
     <AccountSecurityGuard activityType={selectedResource && ["youtube", "onedrive_video", "hls_vault"].includes(selectedResource.resource_type) ? "video" : selectedResource ? "pdf" : "lesson"} resourceId={selectedResource?.id ?? lessonId} />
     <nav className="lesson-breadcrumb" aria-label="Điều hướng bài học">
-      <button className="lesson-breadcrumb-back" onClick={()=>onBack(lesson.course_id)}><ArrowLeft/><span>Quay lại khóa học</span></button>
+      <Link className="lesson-breadcrumb-back" href={`/courses/${encodeURIComponent(lesson.course_id)}`}><ArrowLeft aria-hidden="true"/><span>Quay lại khóa học</span></Link>
       <span className="breadcrumb-separator" aria-hidden="true">/</span>
       <strong className="breadcrumb-course" title={lesson.course_title}>{lesson.course_title || "Khóa học"}</strong>
       <span className="breadcrumb-current-separator" aria-hidden="true">/</span>
@@ -1032,8 +1182,10 @@ function LessonViewer({ lessonId, onBack, onLesson }: { lessonId: string; onBack
           return <details key={section.id} open={containsCurrentLesson || partIndex === 0}>
             <summary><ChevronRight/><strong>{formatPartTitle(section.title, section.sort_order)}</strong></summary>
             <div className="lesson-curriculum-lessons">{section.lessons.map(item => <div className={`curriculum-lesson ${item.id === lessonId ? "current" : ""}`} key={item.id}>
-              <button className="curriculum-lesson-title" onClick={() => item.id !== lessonId && onLesson(item.id)}><b>{formatLessonTitle(item.title, item.sort_order)}</b></button>
-              {item.resources.map(resource => <button key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => item.id === lessonId ? selectResource(resource.id) : onLesson(item.id, resource.id)}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <CirclePlay/> : <BookOpen/>}</span><span><b>{resource.title}</b></span></button>)}
+              {item.id === lessonId ? <span className="curriculum-lesson-title" aria-current="page"><b>{formatLessonTitle(item.title, item.sort_order)}</b></span> : <Link className="curriculum-lesson-title" href={`/lessons/${encodeURIComponent(item.id)}`}><b>{formatLessonTitle(item.title, item.sort_order)}</b></Link>}
+              {item.resources.map(resource => item.id === lessonId
+                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => selectResource(resource.id)}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <CirclePlay aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></button>
+                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <CirclePlay aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></Link>)}
             </div>)}</div>
           </details>;
         })}</div> : <MiniEmpty text="Chưa có nội dung giáo trình."/>}
@@ -1112,7 +1264,7 @@ function ExamHistory({ attempts, onOpen }: { attempts: AttemptData[]; onOpen: (a
         : <EmptyState icon={History} title={searchTerm ? "Không tìm thấy bài thi" : "Bạn chưa có lịch sử làm bài"} text={searchTerm ? "Thử tìm bằng tên đề thi khác." : "Kết quả sẽ xuất hiện tại đây sau khi bạn nộp bài thi."} role="status" ariaLive="polite" />;
 
   return <div className={`page-stack ${thptqgHistory ? "thptqg-history" : ""}`}>
-    <div className="page-intro"><div><span className="eyebrow">KẾT QUẢ HỌC TẬP</span><h2>Lịch sử làm bài</h2><p>Xem lại kết quả các bài thi đã thực hiện.</p></div><label className="search"><Search aria-hidden="true" /><input name="historySearch" type="search" autoComplete="off" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Tìm kiếm bài thi…" aria-label="Tìm kiếm bài thi" /></label></div>
+    <div className="page-intro"><div><span className="eyebrow">KẾT QUẢ HỌC TẬP</span><h1>Lịch sử làm bài</h1><p>Xem lại kết quả các bài thi đã thực hiện.</p></div><label className="search"><Search aria-hidden="true" /><input name="historySearch" type="search" autoComplete="off" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Tìm kiếm bài thi…" aria-label="Tìm kiếm bài thi" /></label></div>
     <section className="history-frame">
       <div className="history-head"><span>KỲ THI / ĐỀ THI</span><span>THỜI GIAN NỘP</span><span>SỐ CÂU ĐÚNG</span><span>TRẠNG THÁI</span></div>
       {historyContent}
@@ -1128,6 +1280,20 @@ function HistoryLoading() {
   </section>;
 }
 
+function CourseCurriculumSkeleton() {
+  return <section className="student-content-skeleton curriculum-skeleton" role="status" aria-label="Đang tải nội dung khóa học">
+    <span className="student-skeleton-label">Đang tải nội dung khóa học…</span>
+    <i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" />
+  </section>;
+}
+
+function LessonViewerSkeleton() {
+  return <section className="student-content-skeleton lesson-viewer-skeleton" role="status" aria-label="Đang tải bài giảng">
+    <span className="student-skeleton-label">Đang tải bài giảng…</span>
+    <div aria-hidden="true"><i /><i /></div>
+  </section>;
+}
+
 function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData; attempts: AttemptData[]; onProfileUpdated: (profile: ProfileData) => void }) {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(profile.full_name);
@@ -1140,16 +1306,18 @@ function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData
   const [passwordMessage, setPasswordMessage] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const profileNameInputRef = useRef<HTMLInputElement | null>(null);
   useAdminDialogFocus(passwordModal, closePasswordModal);
 
   // Keep the editable draft synchronized when the profile changes remotely.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setDraftName(profile.full_name); }, [profile.full_name]);
 
-  async function saveProfile() {
+  async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setProfileError(""); setProfileMessage("");
     const nextName = draftName.trim();
-    if (!nextName) { setProfileError("Họ và tên không được để trống."); return; }
+    if (!nextName) { setProfileError("Họ và tên không được để trống."); window.requestAnimationFrame(() => profileNameInputRef.current?.focus()); return; }
     if (!supabase) { setProfileError("Chưa cấu hình Supabase."); return; }
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) { setProfileError("Phiên đăng nhập đã hết hạn."); return; }
@@ -1191,20 +1359,21 @@ function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData
   }
 
   const currentYear = new Date().getFullYear();
-  const yearAttempts = attempts.filter(attempt => new Date(attempt.submitted_at).getFullYear() === currentYear);
-  const completedAttempts = attempts.filter(attempt => attempt.status !== "in_progress");
-  const averageScore = completedAttempts.length ? Math.round(completedAttempts.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0) / completedAttempts.length) : 0;
+  const completedYearAttempts = attempts.filter(attempt => attempt.status !== "in_progress" && Boolean(attempt.submitted_at) && new Date(attempt.submitted_at).getFullYear() === currentYear);
+  const averageScore = completedYearAttempts.length ? Math.round(completedYearAttempts.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0) / completedYearAttempts.length) : 0;
   const profileHandle = `@${profile.email.split("@")[0] || profile.student_code.toLocaleLowerCase("vi")}`;
+  const profileFeedbackId = profileError || profileMessage ? "profile-name-feedback" : undefined;
 
   return <div className="profile-grid">
+    <header className="profile-page-heading"><span className="eyebrow">TÀI KHOẢN</span><h1>Hồ sơ cá nhân</h1><p>Quản lý thông tin hiển thị và bảo mật tài khoản.</p></header>
     <section className="profile-card identity"><span className="profile-label">HỒ SƠ HỌC VIÊN</span><span className="big-avatar" aria-hidden="true"><UserRound/></span><h2 className="profile-verified-name"><span>{profileHandle}</span><BadgeCheck aria-label="Tài khoản đã xác minh"/></h2><p className="profile-real-name">{profile.full_name}</p><span className={`status ${profile.status === "locked" ? "locked" : ""}`}><i/> {profile.status === "active" ? "Tài khoản đang hoạt động" : "Tài khoản đã bị khóa"}</span></section>
-    <section className="profile-card details"><div className="section-head"><div><span className="eyebrow">TÀI KHOẢN</span><h2>Thông tin chi tiết</h2></div><button className="outline-btn" onClick={()=>{setEditing(!editing);setDraftName(profile.full_name);setProfileError("");setProfileMessage("")}}>{editing?"Hủy":"Chỉnh sửa"}</button></div><div className="detail-list"><Detail icon={UserRound} label="Họ và tên" value={editing?<input value={draftName} onChange={event=>setDraftName(event.target.value)}/>:profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={BadgeCheck} label="Mã học viên" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "Quản trị viên" : "Học sinh"}/></div>{profileError&&<p className="form-error">{profileError}</p>}{profileMessage&&<p className="form-success">{profileMessage}</p>}{editing&&<button className="primary-btn small" onClick={saveProfile} disabled={savingProfile}>{savingProfile?"Đang lưu…":"Lưu thay đổi"}</button>}<hr/><div className="password-row"><div><LockKeyhole/><span><b>Đổi mật khẩu</b><small>Nên sử dụng mật khẩu mạnh và riêng biệt.</small></span></div><button className="outline-btn" onClick={()=>setPasswordModal(true)}>Cập nhật</button></div></section>
-    <section className="profile-card exam-profile"><div className="profile-stat-heading"><div><span className="eyebrow">THỐNG KÊ</span><h2>Hoạt động thi năm {currentYear}</h2></div><span className="profile-score"><small>Điểm trung bình</small><b>{averageScore}</b></span></div>{yearAttempts.length ? <ul className="attempt-list">{yearAttempts.slice(0,5).map(attempt=><li key={attempt.id}><span><b>{attempt.title}</b><small>{new Date(attempt.submitted_at).toLocaleDateString("vi-VN")}</small></span><strong>{attempt.score}</strong></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu bài thi." />}</section>
+    <form className="profile-card details profile-details-form" onSubmit={saveProfile} aria-busy={savingProfile}><div className="section-head"><div><span className="eyebrow">THÔNG TIN</span><h2>Thông tin chi tiết</h2></div><button type="button" className="outline-btn" onClick={()=>{setEditing(!editing);setDraftName(profile.full_name);setProfileError("");setProfileMessage("")}}>{editing?"Hủy":"Chỉnh sửa"}</button></div><div className="detail-list"><Detail icon={UserRound} label="Họ và tên" labelFor={editing ? "profile-full-name" : undefined} value={editing?<input ref={profileNameInputRef} id="profile-full-name" name="fullName" autoComplete="name" value={draftName} onChange={event=>setDraftName(event.target.value)} aria-invalid={Boolean(profileError)} aria-describedby={profileFeedbackId} maxLength={120} required/>:profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={BadgeCheck} label="Mã học viên" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "Quản trị viên" : "Học sinh"}/></div>{profileError&&<p id="profile-name-feedback" className="form-error" role="alert">{profileError}</p>}{profileMessage&&<p id="profile-name-feedback" className="form-success" role="status" aria-live="polite">{profileMessage}</p>}{editing&&<button type="submit" className="primary-btn small" disabled={savingProfile}>{savingProfile?"Đang lưu…":"Lưu thay đổi"}</button>}<hr/><div className="password-row"><div><LockKeyhole aria-hidden="true"/><span><b>Đổi mật khẩu</b><small>Nên sử dụng mật khẩu mạnh và riêng biệt.</small></span></div><button type="button" className="outline-btn" onClick={()=>setPasswordModal(true)}>Cập nhật mật khẩu</button></div></form>
+    <section className="profile-card exam-profile"><div className="profile-stat-heading"><div><span className="eyebrow">THỐNG KÊ</span><h2>Hoạt động thi năm {currentYear}</h2></div><span className="profile-score"><small>Điểm trung bình</small><b>{averageScore}</b></span></div>{completedYearAttempts.length ? <ul className="attempt-list">{completedYearAttempts.slice(0,5).map(attempt=><li key={attempt.id}><span><b>{attempt.title}</b><small>{vietnameseDateFormatter.format(new Date(attempt.submitted_at))}</small></span><strong>{attempt.score}</strong></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu bài thi trong năm nay." />}</section>
     {passwordModal && <div className="modal-shade"><form className="modal password-modal" role="dialog" aria-modal="true" aria-labelledby="profile-password-title" aria-busy={savingPassword} onSubmit={changePassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT</span><h2 id="profile-password-title">Đổi mật khẩu</h2></div><button type="button" className="icon-btn" onClick={closePasswordModal} aria-label="Đóng hộp thoại đổi mật khẩu" disabled={savingPassword}><X aria-hidden="true"/></button></div><label htmlFor="profile-new-password">Mật khẩu mới<input id="profile-new-password" name="newPassword" type="password" autoComplete="new-password" value={newPassword} onChange={event=>setNewPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label><label htmlFor="profile-confirm-password">Xác nhận mật khẩu<input id="profile-confirm-password" name="passwordConfirmation" type="password" autoComplete="new-password" value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{passwordError&&<p className="form-error" role="alert">{passwordError}</p>}{passwordMessage&&<p className="form-success" role="status" aria-live="polite">{passwordMessage}</p>}<button className="primary-btn" disabled={savingPassword||Boolean(passwordMessage)}>{savingPassword?"Đang cập nhật…":passwordMessage?"Đã cập nhật":"Đổi mật khẩu"}</button></form></div>}
   </div>;
 }
 
-function Detail({ icon: Icon, label, value }: { icon: IconComponent; label: string; value: React.ReactNode }) { return <div className="detail-row"><span><Icon /></span><div><small>{label}</small><b>{value}</b></div></div>; }
+function Detail({ icon: Icon, label, labelFor, value }: { icon: IconComponent; label: string; labelFor?: string; value: React.ReactNode }) { return <div className="detail-row"><span aria-hidden="true"><Icon /></span><div>{labelFor ? <label htmlFor={labelFor}>{label}</label> : <small>{label}</small>}<b>{value}</b></div></div>; }
 
 
 type AdminProfileRow = { id: string; full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; created_at: string; email: string };
@@ -1498,10 +1667,10 @@ function RealAdminDashboard() {
   }
 
   function navigateAdmin(path: string) {
+    if (!requestProductNavigation(path)) return;
     window.history.pushState({}, "", path);
     setTab(adminTabFromPath(path));
     setManagedCourseId("");
-    window.dispatchEvent(new PopStateEvent("popstate"));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1932,5 +2101,5 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   </section>;
 }
 
-function EmptyState({ icon: Icon, title, text, role, ariaLive }: { icon: IconComponent; title: string; text: string; role?: "status" | "alert"; ariaLive?: "polite" | "assertive" }) { return <section className="empty-state" role={role} aria-live={ariaLive}><span><Icon aria-hidden="true" /></span><h2>{title}</h2><p>{text}</p></section>; }
+function EmptyState({ icon: Icon, title, text, role, ariaLive, action }: { icon: IconComponent; title: string; text: string; role?: "status" | "alert"; ariaLive?: "polite" | "assertive"; action?: React.ReactNode }) { return <section className="empty-state" role={role} aria-live={ariaLive}><span><Icon aria-hidden="true" /></span><h2>{title}</h2><p>{text}</p>{action}</section>; }
 function MiniEmpty({text}:{text:string}){return <div className="mini-empty"><ClipboardCheck/><p>{text}</p></div>}

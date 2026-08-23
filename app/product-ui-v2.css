@@ -1,0 +1,289 @@
+/* Student content refinements. Every rule requires the explicit route boundary. */
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface {
+  min-width: 0;
+  scroll-margin-block-start: 20px;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface:focus-visible {
+  outline: 2px solid var(--aeck-focus, #b5122b);
+  outline-offset: -4px;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(.page-stack, .profile-grid, .lesson-page) {
+  width: min(100%, 1180px);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(p, li, a, b, strong, small, label) {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(.courses-toolbar, .course-search-wrap, .course-card-action, .course-body, .detail-row > div, .profile-stat-heading > *, .curriculum-lesson) {
+  min-width: 0;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search-wrap {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search-status {
+  color: var(--aeck-text-muted, #5d6572);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search:focus-within {
+  border-color: var(--aeck-focus, #b5122b);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, .12);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-part-lessons > li > a {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  text-decoration: none;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-part-lessons > li > a:hover {
+  background: var(--aeck-primary-soft, #fff1f3);
+  color: var(--aeck-primary, #b5122b);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-part-lessons > li > a:focus-visible {
+  outline: 2px solid var(--aeck-focus, #b5122b);
+  outline-offset: 2px;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(.back-btn, .lesson-breadcrumb-back, a.curriculum-lesson-title, a.curriculum-resource) {
+  text-decoration: none;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(a.curriculum-lesson-title, a.curriculum-resource):hover {
+  color: var(--aeck-primary, #b5122b);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .curriculum-lesson-title[aria-current="page"] {
+  cursor: default;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .activity-mobile-summary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  list-style: none;
+  padding: 0;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .profile-page-heading {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .profile-page-heading h1 {
+  margin: 5px 0 4px;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .profile-page-heading p {
+  margin: 0;
+  color: var(--aeck-text-muted, #5d6572);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .profile-details-form .detail-row label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--aeck-text-muted, #5d6572);
+  font-size: 12px;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .profile-details-form input[aria-invalid="true"] {
+  border-color: var(--aeck-danger, #ad142b);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .profile-details-form :where(.form-error, .form-success) {
+  margin-block: 10px;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .student-load-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin-block: 12px;
+  padding: 12px 14px;
+  border: 1px solid #f0b4bd;
+  border-radius: 10px;
+  background: var(--aeck-danger-soft, #fff0f2);
+  color: var(--aeck-danger, #ad142b);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .student-load-feedback p {
+  min-width: 0;
+  margin: 0;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .student-content-skeleton {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .student-skeleton-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .curriculum-skeleton > i {
+  display: block;
+  min-height: 58px;
+  border: 1px solid var(--aeck-border, #dfe3e8);
+  border-radius: 10px;
+  background: linear-gradient(100deg, #f0f2f5 20%, #f8f9fa 45%, #f0f2f5 70%);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .lesson-viewer-skeleton > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  gap: 18px;
+  min-height: min(62vh, 620px);
+}
+
+.ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .lesson-viewer-skeleton i {
+  display: block;
+  border: 1px solid var(--aeck-border, #dfe3e8);
+  border-radius: 14px;
+  background: linear-gradient(100deg, #eceff3 20%, #f8f9fa 45%, #eceff3 70%);
+}
+
+@media (max-width: 1024px) {
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .courses-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search-wrap {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search-wrap {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-search-status {
+    padding-inline: 3px;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .lesson-viewer-skeleton > div {
+    grid-template-columns: 1fr;
+    min-height: 520px;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .student-load-feedback {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(.heatmap-months, .dashboard-heatmap, .heatmap-legend) {
+    display: none;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .activity-mobile-summary {
+    position: static;
+    display: grid;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .activity-mobile-summary > li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    padding: 10px 11px;
+    border: 1px solid var(--aeck-border, #dfe3e8);
+    border-radius: 9px;
+    background: var(--aeck-surface, #fff);
+    font-size: 12px;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .activity-mobile-summary strong {
+    flex: 0 0 auto;
+    color: var(--aeck-primary, #b5122b);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .activity-footer {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 360px) {
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .activity-mobile-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575px) {
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .lesson-breadcrumb .breadcrumb-course,
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .lesson-breadcrumb .breadcrumb-current-separator {
+    display: none;
+  }
+
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface .lesson-breadcrumb .breadcrumb-current {
+    display: block;
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app[data-ui-mode="optimized-content"] > .main-content.product-content-surface :where(a, button, input) {
+    scroll-behavior: auto;
+    transition-duration: .01ms;
+  }
+
+}
