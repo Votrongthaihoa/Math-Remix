@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import test from "node:test";
 
 test("native HLS encoder uses local FFmpeg and the existing protected upload contract", async () => {
@@ -109,12 +110,15 @@ test("native HLS encoder creates one encrypted HLS index without an upscale", as
     nvencTune: "hq",
   }, 11, { cuda: true, scaleCuda: true });
 
-  assert.equal(arguments_.at(-1), "output\\index.m3u8");
+  assert.equal(arguments_.at(-1), join("output", "index.m3u8"));
   assert.equal(arguments_.includes("720p"), false);
   assert.equal(arguments_.includes("master.m3u8"), false);
   assert.equal(arguments_[arguments_.indexOf("-c:v") + 1], "h264_nvenc");
   assert.match(arguments_[arguments_.indexOf("-vf") + 1], /min\(1920/);
-  assert.match(arguments_[arguments_.indexOf("-hls_segment_filename") + 1], /output\\seg_%05d\.ts$/);
+  assert.equal(
+    arguments_[arguments_.indexOf("-hls_segment_filename") + 1],
+    join("output", "seg_%05d.ts"),
+  );
 });
 
 test("native HLS encoder keeps CUDA frames on the GPU for NVENC", async () => {

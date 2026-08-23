@@ -4,110 +4,15 @@
  * intentionally do not appear here.
  */
 
-/* The catalog uses the product shell. These parent rules only activate while
- * a catalog page exists in the shell; runner pages stay on exam-shell. */
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) {
-  --catalog-shell-bg: #f5f5f7;
-  background: var(--catalog-shell-bg);
+/* Shell geometry belongs to the shared product shell. The catalog only
+ * neutralizes its own content canvas, under the explicit catalog route mode. */
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"] {
+  background: #f5f5f7;
 }
 
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .main-content {
-  min-height: calc(100vh - 76px);
-  margin-left: 84px;
-  padding: 38px 42px 72px;
-  background:
-    radial-gradient(circle at 86% 0%, rgba(88, 86, 214, 0.08), transparent 28rem),
-    radial-gradient(circle at 12% 28%, rgba(0, 122, 255, 0.045), transparent 24rem),
-    #f5f5f7;
-}
-
-.ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .main-content {
-  margin-left: 280px;
-}
-
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .topbar {
-  height: 76px;
-  margin-left: 84px;
-  padding: 0 34px;
-  border-bottom-color: rgba(60, 60, 67, 0.1);
-  background: rgba(250, 250, 252, 0.78);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
-}
-
-.ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .topbar {
-  margin-left: 280px;
-}
-
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar {
-  width: 84px;
-  border-right-color: rgba(60, 60, 67, 0.1);
-  background: rgba(250, 250, 252, 0.72);
-  box-shadow: 6px 0 26px rgba(40, 40, 50, 0.035);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-}
-
-.ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .sidebar {
-  width: 280px;
-}
-
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav {
-  padding: 90px 12px 18px;
-}
-
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button {
-  height: 46px;
-  gap: 13px;
-  margin: 4px 0;
-  padding: 0 15px;
-  border-radius: 12px;
-  color: #6e6e73;
-  transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
-}
-
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button:hover,
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button.active {
-  color: #007aff;
-  background: rgba(0, 122, 255, 0.11);
-}
-
-.ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar nav button.active::after {
-  display: none;
-}
-
-@media (max-width: 1050px) {
-  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .main-content,
-  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .main-content {
-    margin-left: 84px;
-    padding-inline: 28px;
-  }
-
-  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .topbar,
-  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .topbar {
-    margin-left: 84px;
-  }
-}
-
-@media (max-width: 767px) {
-  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .main-content,
-  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .main-content {
-    margin-left: 0;
-    padding: 24px 16px 50px;
-  }
-
-  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .topbar,
-  .ui-shell.student-app.product-shell.sidebar-expanded:has(.exam-room-page, .exam-list-page) .topbar {
-    height: 68px;
-    margin-left: 0;
-    padding: 8px 12px;
-  }
-
-  .ui-shell.student-app.product-shell:has(.exam-room-page, .exam-list-page) .sidebar {
-    width: min(88vw, 328px);
-    background: rgba(250, 250, 252, 0.94);
-  }
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  > .main-content.product-view-content {
+  background: #f5f5f7;
 }
 
 .exam-room-page,
@@ -115,14 +20,16 @@
   --catalog-ink: #1d1d1f;
   --catalog-body: #424245;
   --catalog-muted: #6e6e73;
-  --catalog-subtle: #8e8e93;
+  --catalog-subtle: #74747a;
   --catalog-line: rgba(60, 60, 67, 0.14);
-  --catalog-blue: #1d4ed8;
-  --catalog-blue-strong: #1e40af;
-  --catalog-blue-soft: #eff6ff;
-  --catalog-surface: rgba(255, 255, 255, 0.78);
-  --catalog-surface-muted: #f8fafc;
-  --catalog-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(24, 32, 48, 0.06);
+  --catalog-primary: #b5122b;
+  --catalog-primary-hover: #981025;
+  --catalog-primary-pressed: #7d1021;
+  --catalog-primary-soft: #fff1f3;
+  --catalog-primary-selected: #ffe2e7;
+  --catalog-surface: #fff;
+  --catalog-surface-muted: #f8f8fa;
+  --catalog-shadow: 0 0 0 1px rgba(29, 29, 31, 0.025), 0 8px 20px rgba(53, 34, 39, 0.055);
   color: var(--catalog-ink);
 }
 
@@ -139,7 +46,7 @@
 
 .exam-room-page .reference-room-heading > span,
 .exam-list-page .exam-page-heading > span {
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.45px;
@@ -184,9 +91,9 @@
 
 .exam-room-page .exam-room-type-filters button:hover,
 .exam-room-page .exam-room-type-filters button.active {
-  border-color: rgba(29, 78, 216, 0.38);
-  background: var(--catalog-blue-soft);
-  color: var(--catalog-blue);
+  border-color: rgba(181, 18, 43, 0.32);
+  background: var(--catalog-primary-soft);
+  color: var(--catalog-primary);
   transform: translateY(-1px);
 }
 
@@ -206,15 +113,13 @@
   border-radius: 18px;
   background: var(--catalog-surface);
   box-shadow: var(--catalog-shadow);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   cursor: default;
   transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
 }
 
 .exam-room-page .reference-room-card:hover {
-  border-color: rgba(29, 78, 216, 0.3);
-  box-shadow: 0 18px 38px rgba(24, 50, 92, 0.12);
+  border-color: rgba(181, 18, 43, 0.24);
+  box-shadow: 0 14px 30px rgba(53, 34, 39, 0.09);
   transform: translateY(-3px);
 }
 
@@ -242,12 +147,27 @@
   word-break: normal;
 }
 
-.exam-room-page .exam-type-badge {
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  .exam-room-page .reference-room-card-title .exam-type-badge,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-paper-label .exam-type-badge {
+  display: inline-flex;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 24px;
   align-self: center;
-  border: 1px solid rgba(29, 78, 216, 0.18);
-  border-radius: 8px;
-  background: var(--catalog-blue-soft);
-  color: var(--catalog-blue);
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border: 1px solid rgba(181, 18, 43, 0.2);
+  border-radius: 999px;
+  background: var(--catalog-primary-soft);
+  color: var(--catalog-primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  line-height: 14px;
   overflow-wrap: normal;
   white-space: nowrap;
   word-break: normal;
@@ -285,7 +205,7 @@
 }
 
 .exam-room-page .reference-room-card-body .exam-meta-item svg {
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
 }
 
 .exam-room-page .reference-room-card-body .exam-meta-item small {
@@ -322,18 +242,18 @@
 }
 
 .exam-room-page .reference-room-completion b {
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
   font-size: 12px;
 }
 
 .exam-room-page .reference-room-card .exam-progress {
   height: 7px;
-  background: #dbeafe;
+  background: var(--catalog-primary-selected);
 }
 
 .exam-room-page .reference-room-card .exam-progress > span {
   height: 7px;
-  background: var(--catalog-blue);
+  background: var(--catalog-primary);
 }
 
 .exam-room-page .reference-room-card-footer > :where(a, button) {
@@ -342,9 +262,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--catalog-blue);
+  border: 1px solid var(--catalog-primary);
   border-radius: 11px;
-  background: var(--catalog-blue);
+  background: var(--catalog-primary);
   color: #fff;
   font-size: 12px;
   font-weight: 800;
@@ -353,9 +273,9 @@
 }
 
 .exam-room-page .reference-room-card-footer > :where(a, button):hover {
-  border-color: var(--catalog-blue-strong);
-  background: var(--catalog-blue-strong);
-  box-shadow: 0 8px 18px rgba(30, 64, 175, 0.18);
+  border-color: var(--catalog-primary-hover);
+  background: var(--catalog-primary-hover);
+  box-shadow: 0 7px 16px rgba(125, 16, 33, 0.16);
   transform: translateY(-1px);
 }
 
@@ -376,8 +296,8 @@
 }
 
 .exam-list-page .exam-back:hover {
-  color: var(--catalog-blue);
-  background: var(--catalog-blue-soft);
+  color: var(--catalog-primary);
+  background: var(--catalog-primary-soft);
 }
 
 .exam-list-page .exam-package-toolbar {
@@ -401,9 +321,9 @@
 }
 
 .exam-list-page .exam-package-search:focus-within {
-  border-color: rgba(0, 122, 255, 0.7);
+  border-color: rgba(181, 18, 43, 0.72);
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, 0.12);
 }
 
 .exam-list-page .exam-package-search svg {
@@ -437,8 +357,8 @@
 }
 
 .exam-list-page .reference-exam-card:hover {
-  border-color: rgba(0, 122, 255, 0.3) !important;
-  box-shadow: 0 16px 32px rgba(24, 50, 92, 0.11) !important;
+  border-color: rgba(181, 18, 43, 0.24) !important;
+  box-shadow: 0 14px 30px rgba(53, 34, 39, 0.09) !important;
   transform: translateY(-3px) !important;
 }
 
@@ -448,8 +368,17 @@
   border-color: var(--catalog-line);
 }
 
-.exam-list-page .reference-exam-card-head {
-  padding: 19px 20px;
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-paper-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  padding: 18px 20px 0;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-exam-card-head {
+  padding: 10px 20px 19px;
 }
 
 .exam-list-page .reference-exam-card-head h3 {
@@ -485,7 +414,7 @@
 .exam-list-page .reference-exam-status {
   border: 1px solid rgba(52, 199, 89, 0.22);
   background: rgba(52, 199, 89, 0.1);
-  color: #248a41;
+  color: #1f7a39;
 }
 
 .exam-list-page .reference-exam-card-footer {
@@ -497,7 +426,7 @@
 }
 
 .exam-list-page .reference-exam-history:hover {
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
 }
 
 .exam-list-page .reference-exam-history:disabled {
@@ -507,17 +436,19 @@
   text-decoration: none;
 }
 
-.exam-list-page .reference-exam-start {
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-exam-start {
   min-height: 40px;
   border-radius: 11px;
-  background: var(--catalog-blue);
+  background: var(--catalog-primary);
   color: #fff;
   transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.exam-list-page .reference-exam-start:hover {
-  background: var(--catalog-blue-strong);
-  box-shadow: 0 8px 18px rgba(0, 102, 214, 0.18);
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-exam-start:hover {
+  background: var(--catalog-primary-hover);
+  box-shadow: 0 7px 16px rgba(125, 16, 33, 0.16);
   transform: translateY(-1px);
 }
 
@@ -529,8 +460,6 @@
   place-items: center;
   padding: 16px;
   background: rgba(15, 23, 42, 0.42);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 .exam-attempt-history-dialog {
@@ -561,7 +490,7 @@
 }
 
 .exam-attempt-history-dialog > header span {
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.3px;
@@ -599,8 +528,8 @@
 }
 
 .exam-attempt-history-dialog > header button:hover {
-  background: var(--catalog-blue-soft);
-  color: var(--catalog-blue);
+  background: var(--catalog-primary-soft);
+  color: var(--catalog-primary);
 }
 
 .exam-attempt-history-list {
@@ -655,7 +584,7 @@
   padding: 4px 8px;
   border-radius: 999px;
   background: rgba(52, 199, 89, 0.12);
-  color: #248a41;
+  color: #1f7a39;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
@@ -668,16 +597,16 @@
   gap: 16px;
   align-items: center;
   padding: 16px;
-  border: 1px solid rgba(29, 78, 216, 0.14);
+  border: 1px solid rgba(181, 18, 43, 0.14);
   border-radius: 16px;
-  background: var(--catalog-blue-soft);
+  background: var(--catalog-primary-soft);
   transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .exam-attempt-history-item:hover .exam-attempt-history-summary {
-  border-color: rgba(29, 78, 216, 0.3);
+  border-color: rgba(181, 18, 43, 0.28);
   background: #fff;
-  box-shadow: 0 10px 24px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 10px 24px rgba(125, 16, 33, 0.08);
 }
 
 .exam-attempt-history-score {
@@ -696,7 +625,7 @@
 
 .exam-attempt-history-score strong {
   margin-top: 3px;
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
   font-size: 30px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -736,11 +665,11 @@
 .exam-attempt-history-summary > svg {
   width: 18px;
   height: 18px;
-  color: var(--catalog-blue);
+  color: var(--catalog-primary);
 }
 
 .exam-attempt-history-item:focus-visible {
-  outline: 3px solid rgba(29, 78, 216, 0.3);
+  outline: 2px solid var(--catalog-primary);
   outline-offset: 3px;
 }
 
@@ -750,9 +679,9 @@
   }
 }
 
-.exam-room-page :where(button, input):focus-visible,
-.exam-list-page :where(button, input):focus-visible {
-  outline: 3px solid rgba(0, 122, 255, 0.3);
+.exam-room-page :where(a, button, input):focus-visible,
+.exam-list-page :where(a, button, input):focus-visible {
+  outline: 2px solid var(--catalog-primary);
   outline-offset: 3px;
 }
 
@@ -790,6 +719,27 @@
     grid-template-columns: 72px minmax(0, 1fr) auto;
     gap: 12px;
     padding: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+    .exam-list-page .reference-exam-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+    .exam-list-page .reference-exam-history,
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+    .exam-list-page .reference-exam-start {
+    display: inline-flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
   }
 }
 

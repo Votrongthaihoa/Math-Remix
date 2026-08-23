@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import PlatformApp from "../platform";
+import LoadingIndicator from "../loading-indicator";
 import { notFound } from "next/navigation";
 
 const staticRoutes = new Set(["dashboard", "exam-room", "courses", "exam-history", "profile", "admin", "forgot-password", "reset-password"]);
@@ -41,5 +43,9 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
     || slug.length === 6 && slug[2] !== "rooms" && slug[3] === "sections" && Boolean(slug[4]) && slug[5] === "preview"
   );
   const guestToken = validDirectGuestExamRoute ? slug[1] : validLegacyGuestExamRoute ? slug[2] : undefined;
-  return <PlatformApp initialAdminRoute={slug[0] === "admin"} initialStandaloneAdminPreview={standaloneAdminPreview} initialGuestToken={guestToken} />;
+  return (
+    <Suspense fallback={<LoadingIndicator label="Đang tải trang…" fullPage />}>
+      <PlatformApp initialAdminRoute={slug[0] === "admin"} initialStandaloneAdminPreview={standaloneAdminPreview} initialGuestToken={guestToken} />
+    </Suspense>
+  );
 }
