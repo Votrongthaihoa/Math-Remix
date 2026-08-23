@@ -83,6 +83,61 @@
   padding: 90px 12px 18px;
 }
 
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  gap: 13px;
+  margin: 4px 0;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--admin-muted);
+  text-decoration: none;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item:hover,
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item:focus-visible {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item.active {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+  font-weight: 800;
+}
+
+.ui-shell.admin-app.product-shell:not(.sidebar-expanded) .sidebar nav a.admin-sidebar-nav-item {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.sidebar-expanded) .sidebar nav a.admin-sidebar-nav-item > span {
+  display: none;
+}
+
+.ui-shell.admin-app.product-shell.sidebar-expanded .sidebar nav a.admin-sidebar-nav-item > span {
+  display: block;
+}
+
 .ui-shell.admin-app.product-shell .sidebar nav button,
 .ui-shell.admin-app.product-shell .sidebar-toggle {
   height: 46px;

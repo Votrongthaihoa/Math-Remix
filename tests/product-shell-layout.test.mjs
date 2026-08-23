@@ -23,6 +23,14 @@ test("collapsed admin rail moves the compact topbar logo back over the rail", as
   assert.match(css, /@media\s*\(min-width:\s*768px\)[\s\S]*?\.ui-shell\.admin-app\.product-shell:not\(\.sidebar-expanded\) \.header-brand\s*\{[\s\S]*?width:\s*84px;[\s\S]*?transform:\s*translateX\(-28px\);/);
 });
 
+test("admin sidebar anchors preserve icon and label geometry on protected routes", async () => {
+  const css = await readFile(new URL("../app/admin-macos.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.sidebar nav a\.admin-sidebar-nav-item\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?gap:\s*13px;/);
+  assert.match(css, /\.sidebar nav a\.admin-sidebar-nav-item\s*>\s*svg\s*\{[\s\S]*?width:\s*20px;[\s\S]*?height:\s*20px;[\s\S]*?flex:\s*0 0 20px;/);
+  assert.match(css, /:not\(\.sidebar-expanded\) \.sidebar nav a\.admin-sidebar-nav-item\s*\{[\s\S]*?justify-content:\s*center;[\s\S]*?gap:\s*0;/);
+});
+
 test("admin product surfaces use the light-red brand palette", async () => {
   const [adminCss, questionBankCss] = await Promise.all([
     readFile(new URL("../app/admin-macos.css", import.meta.url), "utf8"),

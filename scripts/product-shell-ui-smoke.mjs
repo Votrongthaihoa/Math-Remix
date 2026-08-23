@@ -173,6 +173,16 @@ async function inspect(name, path, width, screenshot = false) {
     const root = document.documentElement;
     const shell = document.querySelector(".ui-shell");
     const controls = [...document.querySelectorAll("button, a, input, select, textarea")];
+    const adminNavItems = [...document.querySelectorAll(".admin-sidebar-nav-item")];
+    const adminNavItemGeometry = adminNavItems.map(item => {
+      const icon = [...item.children].find(child => child.tagName.toLowerCase() === "svg");
+      const label = [...item.children].find(child => child.tagName.toLowerCase() === "span");
+      return {
+        iconPresent: Boolean(icon),
+        iconVisible: Boolean(icon && getComputedStyle(icon).display !== "none" && icon.getBoundingClientRect().width > 0),
+        labelPresent: Boolean(label && label.textContent?.trim()),
+      };
+    });
     const unnamed = controls.filter(control => {
       const text = control.textContent?.trim();
       const label = control.getAttribute("aria-label") || control.getAttribute("title") || control.getAttribute("placeholder");
@@ -187,6 +197,10 @@ async function inspect(name, path, width, screenshot = false) {
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       shell: shell?.className ?? null,
       login: Boolean(document.querySelector("main.login-page")),
+      adminNavItems: adminNavItems.length,
+      adminNavItemsWithIcons: adminNavItemGeometry.filter(item => item.iconPresent).length,
+      adminNavItemsWithVisibleIcons: adminNavItemGeometry.filter(item => item.iconVisible).length,
+      adminNavItemsWithLabels: adminNavItemGeometry.filter(item => item.labelPresent).length,
       unnamedControls: unnamed.length,
       controlsOutsideViewport: controls.filter(control => {
         if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
@@ -203,6 +217,13 @@ async function inspect(name, path, width, screenshot = false) {
       }),
     };
   });
+  if (mockRole === "admin" && path.startsWith("/admin") && state.adminNavItems > 0 && (
+    state.adminNavItemsWithIcons !== state.adminNavItems
+    || state.adminNavItemsWithVisibleIcons !== state.adminNavItems
+    || state.adminNavItemsWithLabels !== state.adminNavItems
+  )) {
+    throw new Error(`Admin sidebar icon/label geometry failed at ${width}px: ${JSON.stringify(state)}`);
+  }
   if (screenshot) await page.screenshot({ path: join(outputDir, `${name}-${width}.png`), fullPage: true });
   report.push({ name, path, width, ...state });
 }
