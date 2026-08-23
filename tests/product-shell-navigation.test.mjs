@@ -24,3 +24,33 @@ test("product shell navigation exposes state and keyboard menu behavior", async 
   assert.match(platform, /element\.inert = original;/);
   assert.match(platform, /aria-label="Vị trí hiện tại"/);
 });
+
+test("student sidebar uses created rooms and courses instead of placeholder exam types", async () => {
+  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+
+  assert.match(platform, /const availableExamTypes = useMemo\(/);
+  assert.match(platform, /availableExamTypes\.map\(type =>/);
+  assert.match(platform, /visibleCourses\.map\(course =>/);
+  assert.match(platform, /const href = `\/courses\/\$\{encodeURIComponent\(String\(course\.id\)\)\}`/);
+  assert.doesNotMatch(platform, /\["HSA", "QDA", "BCA"\] as const/);
+});
+
+test("course shell removes demo copy and exposes cover management", async () => {
+  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+  const coverRoute = await readFile(new URL("../app/api/admin/course-covers/route.ts", import.meta.url), "utf8");
+  const publicCoverRoute = await readFile(new URL("../app/api/course-covers/[asset]/route.ts", import.meta.url), "utf8");
+
+  assert.doesNotMatch(platform, /LEARNING SERIES/);
+  assert.match(platform, /courseCoverPicker|course-cover-upload/);
+  assert.match(platform, /course-covers/);
+  assert.match(platform, /detail \? 960 : 640/);
+  assert.match(platform, /detail \? 540 : 360/);
+  assert.match(coverRoute, /export async function POST/);
+  assert.match(coverRoute, /export async function DELETE/);
+  assert.match(coverRoute, /putR2Object/);
+  assert.match(coverRoute, /deleteR2Object/);
+  assert.match(coverRoute, /consumeRequestBudget/);
+  assert.match(coverRoute, /retry-after/);
+  assert.match(platform, /onError=\{\(\) => setCoverPreviewErrorUrl\(coverUrl\)\}/);
+  assert.match(publicCoverRoute, /function decodeAsset/);
+});

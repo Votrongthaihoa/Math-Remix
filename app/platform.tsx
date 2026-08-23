@@ -29,7 +29,7 @@ import AdminSessionList from "./admin-sessions";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
-  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, FileVideo
+  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo
 } from "lucide-react";
 
 const ExamRoomModule = lazy(() => import("./exam-room"));
@@ -103,12 +103,14 @@ function courseColorStyle(value: string | null | undefined) {
   return { "--course-color": courseColor(value) } as React.CSSProperties;
 }
 
-function cleanPartTitle(title: string) {
-  return title.replace(/^\s*(?:phần|chương)\s+\d+\s*[:.\-–—]?\s*/i, "").trim() || title.trim();
+function cleanPartTitle(title: string | null | undefined) {
+  const value = String(title ?? "").trim();
+  return value.replace(/^\s*(?:phần|chương)\s+\d+\s*[:.\-–—]?\s*/i, "").trim() || value || "Chưa đặt tên";
 }
 
-function cleanLessonTitle(title: string) {
-  return title.replace(/^\s*bài\s+\d+\s*[:.\-–—]?\s*/i, "").trim() || title.trim();
+function cleanLessonTitle(title: string | null | undefined) {
+  const value = String(title ?? "").trim();
+  return value.replace(/^\s*bài\s+\d+\s*[:.\-–—]?\s*/i, "").trim() || value || "Chưa đặt tên";
 }
 
 function formatPartTitle(title: string, index: number) {
@@ -238,6 +240,14 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
   const lastAllowedRouteRef = useRef(pathname);
+  const availableExamTypes = useMemo(() => {
+    const types = new Set<string>();
+    for (const room of practiceRooms) {
+      const rawType = room.exam_type?.trim();
+      if (rawType) types.add(normalizeExamType(rawType));
+    }
+    return Array.from(types).sort((left, right) => left.localeCompare(right, "vi"));
+  }, [practiceRooms]);
   const runnerShellPath = isExamRunnerPath(pathname);
   const closeMobileMenu = useCallback(() => {
     setMobileOpen(false);
@@ -695,7 +705,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       {!examRunnerSurface && (
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
            <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img src="/logo_tsa.svg" alt="TSA" width={200} height={52}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
-          {!adminRouteRequested && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img src="/logo_tsa.svg" alt="TSA" width={2079} height={780}/></Link>}
+          {!adminRouteRequested && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_tsa.svg" alt="TSA" width={2079} height={780}/><img className="student-sidebar-logo-compact" src="/logo.svg" alt="" width={42} height={42}/></Link>}
           <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
@@ -704,18 +714,22 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
               </div>)}
             </> : <>
               <Link key="overview" href="/dashboard" className={`student-nav-primary ${currentView === "overview" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "overview", "/dashboard")} title="Tổng quan" aria-label="Tổng quan" aria-current={currentView === "overview" ? "page" : undefined}><LayoutDashboard aria-hidden="true" /><span>Tổng quan</span></Link>
-              <details className={`student-nav-disclosure ${currentView === "exams" ? "active-parent" : ""}`} open>
+              {availableExamTypes.length > 0 && <details className={`student-nav-disclosure ${currentView === "exams" ? "active-parent" : ""}`} open>
                 <summary><ClipboardCheck aria-hidden="true" /><span>Phòng khảo thí</span><ChevronDown aria-hidden="true" /></summary>
                 <div className="student-nav-children">
-                  {(["HSA", "QDA", "BCA"] as const).map(type => <Link key={type} href="/exam-room" className={currentView === "exams" && type === "HSA" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" && type === "HSA" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
+                  {availableExamTypes.map(type => <Link key={type} href="/exam-room" className={currentView === "exams" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
                 </div>
-              </details>
-              <details className={`student-nav-disclosure ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active-parent" : ""}`} open>
+              </details>}
+              {visibleCourses.length > 0 && <details className={`student-nav-disclosure ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active-parent" : ""}`} open>
                 <summary><BookOpen aria-hidden="true" /><span>Khóa học</span><ChevronDown aria-hidden="true" /></summary>
                 <div className="student-nav-children">
-                  {(["HSA", "QDA", "BCA"] as const).map(type => <Link key={type} href="/courses" className={currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active" : ""} onClick={event => handleNavigationLink(event, "courses", "/courses")}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
+                  {visibleCourses.map(course => {
+                    const href = `/courses/${encodeURIComponent(String(course.id))}`;
+                    const active = (currentView === "course" || currentView === "lesson") && String(course.id) === routeCourseId;
+                    return <Link key={course.id} href={href} className={active ? "active" : ""} onClick={event => handleNavigationLink(event, "course", href)} aria-current={active ? "page" : undefined}><span aria-hidden="true">☰</span><span>{course.title}</span></Link>;
+                  })}
                 </div>
-              </details>
+              </details>}
               <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><History aria-hidden="true" /><span>Lịch sử thi</span></Link>
               {isAdmin && <Link href="/admin" className="student-nav-primary" onClick={event => handleNavigationLink(event, "admin", "/admin")} title="Quản trị" aria-label="Quản trị"><ShieldCheck aria-hidden="true" /><span>Quản trị</span></Link>}
             </>}
@@ -726,7 +740,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
           <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo.svg" alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src="/logo_tsa.svg" alt="" width={155} height={56}/></Link>
-          <button type="button" className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{adminRouteRequested ? <ChevronRight /> : <Menu />}</button>
+          <button type="button" className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
           <div className="top-actions">
@@ -1037,12 +1051,26 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
   return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học được phân cho tài khoản của bạn.</p></div><div className="course-search-wrap"><label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span></div></div>{filteredCourses.length ? <div className="course-grid reference-course-grid">{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}</div>;
 }
 
+function CourseCoverVisual({ course, detail = false }: { course: CourseData; detail?: boolean }) {
+  const coverUrl = course.cover_url?.trim() ?? "";
+  const [failedCoverUrl, setFailedCoverUrl] = useState("");
+  if (coverUrl && failedCoverUrl !== coverUrl) {
+    return <img src={coverUrl} alt={course.title} width={detail ? 960 : 640} height={detail ? 540 : 360} loading={detail ? undefined : "lazy"} fetchPriority={detail ? "high" : undefined} decoding="async" onError={() => setFailedCoverUrl(coverUrl)} />;
+  }
+  return <div className={`course-cover-fallback${detail ? " course-study-cover-fallback" : ""}`} style={courseColorStyle(course.color)} role="img" aria-label={`Chưa có ảnh bìa: ${course.title}`}>
+    <span className="course-cover-fallback-kicker">KHÓA HỌC</span>
+    <span className="course-cover-fallback-icon"><BookOpen aria-hidden="true" /></span>
+    {!detail && <strong>{course.title}</strong>}
+    <small>Chưa có ảnh bìa</small>
+  </div>;
+}
+
 function CourseCard({ course }: { course: CourseData }) {
   const href = `/courses/${encodeURIComponent(String(course.id))}`;
   return <article className="course-card reference-course-card" style={courseColorStyle(course.color)}>
     <Link className="course-card-action" href={href} aria-label={`Vào học ${course.title}`}>
       <div className="course-cover">
-        {course.cover_url ? <img src={course.cover_url} alt={course.title} width={640} height={360} loading="lazy" decoding="async" /> : <div className="course-cover-fallback"><span>REMIX</span><BookOpen aria-hidden="true" /><small>LEARNING SERIES</small></div>}
+        <CourseCoverVisual course={course} />
         {course.published === false && <span className="course-draft-badge">Bản nháp</span>}
       </div>
       <div className="course-body"><h3>{course.title}</h3><div className="course-meta"><span><CirclePlay aria-hidden="true" /> {course.lessons} bài học</span><b>Vào học</b></div></div>
@@ -1087,8 +1115,8 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
   return <div className="page-stack course-study-page">
     <Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link>
     <section className="course-study-hero">
-      {course.cover_url ? <img src={course.cover_url} alt={course.title} width={960} height={540} fetchPriority="high" decoding="async"/> : <div className="course-cover-fallback course-study-cover-fallback" style={courseColorStyle(course.color)}><span>REMIX</span><BookOpen/><small>LEARNING SERIES</small></div>}
-      <div><span className="eyebrow">KHÓA HỌC</span><h1>{course.title}</h1><p>{course.description || "Nội dung khóa học đang được cập nhật."}</p></div>
+      <CourseCoverVisual course={course} detail />
+      <div className="course-study-copy"><span className="eyebrow">KHÓA HỌC</span><h1>{course.title}</h1><p>{course.description || "Nội dung khóa học đang được cập nhật."}</p></div>
     </section>
     <section className="course-curriculum-panel">
       <div className="course-curriculum-head"><h2>Nội dung giáo trình</h2><p>{chapters.length} phần • {courseLessons.length} bài học</p></div>
@@ -1423,7 +1451,7 @@ function RealAdminDashboard() {
   const [newCourseTitle, setNewCourseTitle] = useState("");
   const [newCourseDescription, setNewCourseDescription] = useState("");
   const [newCourseCoverUrl, setNewCourseCoverUrl] = useState("");
-  const [newCourseColor, setNewCourseColor] = useState("#cd1627");
+  const [newCourseColor, setNewCourseColor] = useState("#d25362");
   const [newCoursePublished, setNewCoursePublished] = useState(false);
   const [creatingCourse, setCreatingCourse] = useState(false);
   const [courseError, setCourseError] = useState("");
@@ -1612,7 +1640,7 @@ function RealAdminDashboard() {
         sort_order: adminCourses.length,
       });
       if (error) throw error;
-      setCourseModal(false); setNewCourseTitle(""); setNewCourseDescription(""); setNewCourseCoverUrl(""); setNewCourseColor("#1d4ed8"); setNewCoursePublished(false);
+      setCourseModal(false); setNewCourseTitle(""); setNewCourseDescription(""); setNewCourseCoverUrl(""); setNewCourseColor("#d25362"); setNewCoursePublished(false);
       setAdminNotice("Đã tạo khóa học.");
       await loadAdminData();
     } catch (value) {
@@ -1811,6 +1839,10 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   const [builderLoading, setBuilderLoading] = useState(true);
   const [builderError, setBuilderError] = useState("");
   const [builderNotice, setBuilderNotice] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverDeleting, setCoverDeleting] = useState(false);
+  const [coverPreviewErrorUrl, setCoverPreviewErrorUrl] = useState("");
+  const courseCoverPicker = useRef<HTMLInputElement | null>(null);
   const [builderModal, setBuilderModal] = useState<"chapter" | "lesson" | "resource" | null>(null);
   const [targetChapterId, setTargetChapterId] = useState("");
   const [targetLessonId, setTargetLessonId] = useState("");
@@ -1830,6 +1862,8 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   const [renameTarget, setRenameTarget] = useState<{ table: "chapters" | "lessons"; id: string; title: string } | null>(null);
   const [renameTitle, setRenameTitle] = useState("");
   const [savingBuilder, setSavingBuilder] = useState(false);
+  const coverPreviewFailed = Boolean(coverUrl && coverPreviewErrorUrl === coverUrl);
+  const coverUrlErrorId = "course-cover-url-error";
   const closeBuilderDialog = useCallback(() => {
     setBuilderModal(null);
     setRenameTarget(null);
@@ -1839,7 +1873,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
 
   // Reset the builder draft when the selected course changes.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setTitle(course.title); setDescription(course.description); setCoverUrl(course.cover_url ?? ""); setCoverColor(courseColor(course.cover_color)); setPublished(course.published); }, [course]);
+  useEffect(() => { setTitle(course.title); setDescription(course.description); setCoverUrl(course.cover_url ?? ""); setCoverPreviewErrorUrl(""); setCoverColor(courseColor(course.cover_color)); setPublished(course.published); }, [course]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1910,6 +1944,56 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     if (error) { setBuilderError(error.message); return; }
     setBuilderNotice("Đã lưu thông tin khóa học.");
     await onChanged();
+  }
+
+  async function uploadCourseCover(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || coverUploading || coverDeleting) return;
+    setBuilderError(""); setBuilderNotice("");
+    if (!file.type.startsWith("image/")) { setBuilderError("Hãy chọn file ảnh bìa."); return; }
+    if (file.size > 12 * 1024 * 1024) { setBuilderError("Ảnh bìa phải nhỏ hơn 12 MB."); return; }
+    setCoverUploading(true);
+    try {
+      const form = new FormData();
+      form.set("courseId", course.id);
+      form.set("file", file, file.name);
+      const response = await authenticatedFetch("/api/admin/course-covers", { method: "POST", body: form, cache: "no-store" });
+      const payload = await response.json().catch(() => null) as { url?: string; error?: string } | null;
+      if (!response.ok || !payload?.url) throw new Error(payload?.error || "Không thể tải ảnh bìa lên.");
+      setCoverUrl(payload.url);
+      setCoverPreviewErrorUrl("");
+      setBuilderNotice("Đã tải ảnh bìa lên. Tỉ lệ hiển thị được tối ưu theo khung 16:9.");
+      await onChanged();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể tải ảnh bìa lên. Hãy thử lại.");
+    } finally {
+      setCoverUploading(false);
+    }
+  }
+
+  async function deleteCourseCover() {
+    if (!coverUrl || coverDeleting || coverUploading) return;
+    if (!window.confirm("Xóa ảnh bìa khỏi khóa học?")) return;
+    setBuilderError(""); setBuilderNotice(""); setCoverDeleting(true);
+    try {
+      const response = await authenticatedFetch("/api/admin/course-covers", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ courseId: course.id }),
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Không thể xóa ảnh bìa.");
+      setCoverUrl("");
+      setCoverPreviewErrorUrl("");
+      setBuilderNotice("Đã xóa ảnh bìa. Khóa học sẽ dùng nền màu đã chọn.");
+      await onChanged();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể xóa ảnh bìa. Hãy thử lại.");
+    } finally {
+      setCoverDeleting(false);
+    }
   }
 
   async function deleteCourse() {
@@ -2080,7 +2164,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     <div className="builder-header"><div><span className="eyebrow">TRÌNH SOẠN NỘI DUNG</span><h2>{course.title}</h2><p>Khóa học → Phần → Bài → Bài giảng / tài liệu</p></div><div className="builder-actions"><button className="outline-btn danger" onClick={deleteCourse}><Trash2/> Xóa khóa</button><button className="primary-btn small" onClick={saveCourse} disabled={savingBuilder}><Save/> {savingBuilder?"Đang lưu…":"Lưu khóa học"}</button></div></div>
     {builderError&&<p className="form-error" role="alert">{builderError}</p>}{builderNotice&&<p className="form-success" role="status">{builderNotice}</p>}
      <div className="builder-layout">
-      <div className="section-card builder-settings"><h3>Thông tin khóa học</h3><label>Tên khóa học<input value={title} onChange={event=>setTitle(event.target.value)}/></label><label>Mô tả<textarea rows={5} value={description} onChange={event=>setDescription(event.target.value)}/></label><label>Ảnh bìa (URL)<input type="url" value={coverUrl} onChange={event=>setCoverUrl(event.target.value)}/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(coverColor)} onChange={event=>setCoverColor(event.target.value)}/><input value={coverColor} onChange={event=>setCoverColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={published} onChange={event=>setPublished(event.target.checked)}/><span>Đã xuất bản</span></label></div>
+      <div className="section-card builder-settings"><h3>Thông tin khóa học</h3><label>Tên khóa học<input value={title} onChange={event=>setTitle(event.target.value)}/></label><label>Mô tả<textarea rows={5} value={description} onChange={event=>setDescription(event.target.value)}/></label><div className="course-cover-editor"><span className="field-label">Ảnh bìa khóa học</span><div className="course-cover-editor-preview">{coverUrl && !coverPreviewFailed ? <img src={coverUrl} alt={`Ảnh bìa ${title}`} width={640} height={360} decoding="async" onError={() => setCoverPreviewErrorUrl(coverUrl)}/> : <div className="course-cover-editor-empty" style={courseColorStyle(coverColor)}><BookOpen aria-hidden="true"/><span>{coverPreviewFailed ? "Không thể tải ảnh từ URL này" : "Chưa có ảnh bìa"}</span></div>}</div>{coverPreviewFailed && <p id={coverUrlErrorId} className="course-cover-editor-error" role="alert">Kiểm tra lại đường dẫn ảnh hoặc tải file ảnh lên từ máy tính.</p>}<div className="course-cover-editor-actions"><input ref={courseCoverPicker} className="course-cover-picker" type="file" accept="image/*" onChange={uploadCourseCover} aria-label="Chọn ảnh bìa khóa học"/><button type="button" className="outline-btn" onClick={()=>courseCoverPicker.current?.click()} disabled={coverUploading||coverDeleting}><ImagePlus aria-hidden="true"/> {coverUploading ? "Đang tải…" : coverUrl && !coverPreviewFailed ? "Thay ảnh" : "Tải ảnh lên"}</button>{coverUrl&&<button type="button" className="outline-btn danger" onClick={()=>void deleteCourseCover()} disabled={coverUploading||coverDeleting}><Trash2 aria-hidden="true"/> {coverDeleting ? "Đang xóa…" : "Xóa ảnh"}</button>}</div><small className="course-cover-editor-help">Khung hiển thị 16:9 · khuyến nghị 1280 × 720 px · tối đa 12 MB.</small></div><label>Ảnh bìa từ URL (tùy chọn)<input type="url" value={coverUrl} onChange={event=>{setCoverUrl(event.target.value);setCoverPreviewErrorUrl("")}} placeholder="https://…" aria-invalid={coverPreviewFailed} aria-describedby={coverPreviewFailed ? coverUrlErrorId : undefined}/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(coverColor)} onChange={event=>setCoverColor(event.target.value)}/><input value={coverColor} onChange={event=>setCoverColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={published} onChange={event=>setPublished(event.target.checked)}/><span>Đã xuất bản</span></label></div>
       <div className="section-card builder-tree">
         <div className="section-head builder-tree-head"><div><span className="eyebrow">NỘI DUNG KHÓA HỌC</span><h3>Cấu trúc giáo trình</h3><p>{chapters.length} phần · {lessons.length} bài học · {resources.length} nội dung</p></div><button className="primary-btn small" onClick={()=>{setNewChapterTitle("");setBuilderModal("chapter")}}><FolderPlus/> Thêm phần</button></div>
         <div className="hierarchy-guide"><span><b>1</b> Phần</span><ChevronRight/><span><b>2</b> Bài</span><ChevronRight/><span><b>3</b> Bài giảng / tài liệu</span></div>

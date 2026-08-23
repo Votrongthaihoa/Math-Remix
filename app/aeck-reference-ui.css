@@ -53,7 +53,8 @@
 
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .topbar {
     height: 81px;
-    margin-inline-start: 80px;
+    margin-inline-start: 80px !important;
+    width: calc(100% - 80px);
     padding-inline: 48px 40px;
     border-bottom: 1px solid var(--aeck-shell-line);
     background: rgba(255, 255, 255, .92);
@@ -62,7 +63,8 @@
   }
 
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]).sidebar-expanded > .topbar {
-    margin-inline-start: 288px;
+    margin-inline-start: 288px !important;
+    width: calc(100% - 288px);
   }
 
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .main-content {
@@ -101,6 +103,10 @@
     object-fit: contain;
   }
 
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-logo-compact {
+    display: none;
+  }
+
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .sidebar nav.student-sidebar-nav {
     min-height: 0;
     flex: 1 1 auto;
@@ -130,6 +136,10 @@
     color: var(--aeck-logo-dark);
   }
 
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .header-sidebar-toggle svg {
+    transform: none;
+  }
+
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .sidebar:not(.mobile-open) .student-sidebar-brand img {
     max-width: 176px;
   }
@@ -139,11 +149,19 @@
     padding-inline: 10px;
   }
 
-  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-brand img {
-    width: 46px;
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .student-sidebar-brand .student-sidebar-logo-compact {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-logo-full {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]):not(.sidebar-expanded) .student-sidebar-logo-compact {
+    display: block;
+    width: 42px;
     height: 42px;
-    object-fit: cover;
-    object-position: left center;
+    object-fit: contain;
   }
 }
 
@@ -440,13 +458,93 @@
 /* Detail route: keep the cover and curriculum visible together on desktop. */
 .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page {
   display: grid;
-  grid-template-columns: minmax(0, 1.06fr) minmax(330px, .82fr);
+  grid-template-columns: minmax(0, 1.18fr) minmax(390px, .82fr);
   grid-template-areas:
     "back back"
     "hero curriculum";
   align-items: start;
   gap: 18px 28px;
-  width: min(100%, 1120px);
+  width: min(100%, 1280px);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .real-lesson-page {
+  width: min(100%, 1440px);
+  max-width: none;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: center;
+  justify-items: start;
+  gap: 10px;
+  padding: clamp(18px, 3vw, 30px);
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, var(--course-color, var(--aeck-logo-dark)), color-mix(in srgb, var(--course-color, var(--aeck-logo)) 62%, #fff));
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback::after {
+  position: absolute;
+  inset: auto -28px -70px auto;
+  width: 190px;
+  height: 190px;
+  border: 28px solid rgba(255, 255, 255, .14);
+  border-radius: 50%;
+  content: "";
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback-kicker {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, .78);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .12);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback-icon svg {
+  width: 23px;
+  height: 23px;
+  opacity: 1;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback strong,
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback small {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback strong {
+  font-size: clamp(14px, 2vw, 22px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-cover-fallback small {
+  color: rgba(255, 255, 255, .76);
+  font-size: 11px;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] > .main-content.product-content-surface .course-cover-fallback small {
+  color: rgba(255, 255, 255, .78);
 }
 
 .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page > .back-btn {
@@ -462,6 +560,19 @@
 }
 
 .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-page > .back-btn:hover {
+  background: var(--aeck-logo-soft);
+  color: var(--aeck-logo-dark);
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .lesson-breadcrumb-back {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  transition: color .15s ease, background-color .15s ease;
+}
+
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .lesson-breadcrumb-back:hover {
   background: var(--aeck-logo-soft);
   color: var(--aeck-logo-dark);
 }
@@ -489,7 +600,7 @@
   box-shadow: 0 12px 26px rgba(115, 33, 47, .1);
 }
 
-.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero > div {
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .course-study-hero > .course-study-copy {
   min-width: 0;
   padding: 22px 4px 0;
 }
@@ -708,6 +819,90 @@
   }
 }
 
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor .field-label {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-preview {
+  width: min(100%, 420px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--aeck-border, #dfe3e8);
+  border-radius: 14px;
+  background: var(--aeck-primary-soft, #fff1f3);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-preview img,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-preview img {
+  outline: 1px solid oklch(0 0 0 / .1);
+  outline-offset: -1px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: var(--aeck-primary, #b5122b);
+  background: linear-gradient(135deg, var(--aeck-primary-soft, #fff1f3), #fff);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-empty svg {
+  width: 30px;
+  height: 30px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-empty span {
+  max-width: 90%;
+  color: var(--aeck-text-muted, #5d6572);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-picker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-help {
+  color: var(--aeck-text-muted, #5d6572);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-cover-editor-error {
+  margin: -2px 0 0;
+  color: var(--aeck-danger, #ad142b);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 @media (max-width: 767px) {
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) > .topbar {
     height: 65px;
@@ -728,6 +923,11 @@
 
   .ui-shell.student-app.product-shell:is([data-ui-mode="optimized-content"], [data-ui-mode="optimized-chrome-only"]) .courses-toolbar {
     gap: 16px;
+  }
+
+  .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .lesson-breadcrumb-back {
+    justify-content: center;
+    padding-inline: 6px;
   }
 
   .ui-shell.student-app.product-shell[data-ui-mode="optimized-content"] .courses-toolbar h1 {

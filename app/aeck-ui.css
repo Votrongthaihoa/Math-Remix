@@ -669,7 +669,8 @@
 }
 
 .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary {
-  grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, .72fr));
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) auto repeat(2, minmax(0, .72fr));
   align-items: stretch;
   gap: 0;
   min-height: 0;
@@ -680,13 +681,24 @@
   box-shadow: var(--aeck-shadow-sm);
 }
 
+.ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary > .summary-divider {
+  width: 1px;
+  min-width: 1px;
+  margin: 0 4px;
+  background: var(--aeck-border);
+}
+
 .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-role {
   display: none;
 }
 
 @media (max-width: 960px) {
   .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary {
-    grid-template-columns: minmax(0, 1fr) repeat(3, minmax(110px, .6fr));
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(110px, .6fr));
+  }
+
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary > .summary-divider {
+    display: none;
   }
 }
 
@@ -699,6 +711,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0;
     padding: 0;
+  }
+
+  .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-summary > .summary-divider {
+    display: none;
   }
 
   .ui-shell.student-app.product-shell.ui-optimized-surface .dashboard-page .overview-user {
@@ -732,7 +748,5 @@
     grid-column: auto;
   }
 }
-
-
 
 

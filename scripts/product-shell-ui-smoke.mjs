@@ -19,6 +19,8 @@ const redesignRoutes = [
   ["admin-upload", "/admin/upload"],
   ["student-dashboard", "/dashboard"],
   ["student-courses", "/courses"],
+  ["student-course-detail", "/courses/mock-course"],
+  ["student-lesson", "/lessons/mock-lesson"],
   ["student-profile", "/profile"],
   ["student-history", "/exam-history"],
 ];
@@ -42,6 +44,7 @@ const startPath = process.env.SMOKE_START_PATH ?? "/admin";
 const stressEnabled = process.env.SMOKE_STRESS === "1";
 const extendedInteractions = process.env.SMOKE_EXTENDED_INTERACTIONS !== "0";
 const resourceModalEnabled = process.env.SMOKE_RESOURCE_MODAL === "1";
+const courseCoverEnabled = process.env.SMOKE_COURSE_COVER === "1";
 const outputDir = process.env.SMOKE_OUTPUT_DIR ?? "artifacts/product-shell-ui-audit";
 
 await mkdir(outputDir, { recursive: true });
@@ -68,7 +71,7 @@ const mockCourse = {
   title: "Tư duy Toán học TSA",
   description: "Lộ trình luyện tập theo từng phần, bài học và tài liệu.",
   cover_url: null,
-  cover_color: "#007AFF",
+  cover_color: "#d25362",
   published: true,
   sort_order: 1,
   created_at: "2026-08-08T08:00:00.000Z",
@@ -124,6 +127,14 @@ async function installMockAuth() {
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "room") return route.fulfill(jsonResponse({ room: mockRooms[0], exams: mockExams, sections: mockSections, attempts: mockAttempts }));
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "history") return route.fulfill(jsonResponse({ attempts: [] }));
       if (requestUrl.pathname === "/api/admin/users") return route.fulfill(jsonResponse({ users: [{ id: "mock-student-2", email: "student@example.com" }] }));
+      if (requestUrl.pathname === "/api/admin/course-covers" && route.request().method() === "POST") {
+        mockCourse.cover_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+        return route.fulfill(jsonResponse({ assetName: "mock-cover.png", url: mockCourse.cover_url, contentType: "image/png" }, 201));
+      }
+      if (requestUrl.pathname === "/api/admin/course-covers" && route.request().method() === "DELETE") {
+        mockCourse.cover_url = null;
+        return route.fulfill(jsonResponse({ deleted: true, assetName: "mock-cover.png" }));
+      }
       if (requestUrl.pathname === "/api/admin/security" && !requestUrl.searchParams.has("userId")) {
         return route.fulfill(jsonResponse({
           items: [mockSecurityUser],
@@ -333,14 +344,14 @@ async function inspectCourseResourceModal() {
 
     const sourceOptions = page.locator('input[name="resourceSource"]');
     const optionCount = await sourceOptions.count();
-    await sourceOptions.nth(3).check();
+    await sourceOptions.nth(4).check();
     const uploadVisible = await page.getByText("File PDF (tối đa 50 MB)", { exact: true }).isVisible();
-    await sourceOptions.nth(2).check();
+    await sourceOptions.nth(3).check();
     const linkVisible = await page.getByText("Link PDF", { exact: true }).last().isVisible();
     await sourceOptions.nth(0).check();
     const youtubeVisible = await page.getByText("Link YouTube", { exact: true }).isVisible();
     await sourceOptions.nth(1).check();
-    const microsoftVisible = await page.getByText("Video URL", { exact: true }).isVisible();
+    const microsoftVisible = await page.getByText("Link chia sẻ OneDrive / SharePoint", { exact: true }).isVisible();
     const state = await page.evaluate(() => {
       const root = document.documentElement;
       const modal = document.querySelector(".resource-source-modal");
@@ -355,9 +366,38 @@ async function inspectCourseResourceModal() {
     const result = { name: "admin-course-resource-modal", path: "/admin/content", width, optionCount, uploadVisible, linkVisible, youtubeVisible, microsoftVisible, ...state };
     report.push(result);
     await page.screenshot({ path: join(outputDir, `admin-course-resource-modal-${width}.png`), fullPage: true });
-    if (optionCount !== 4 || !uploadVisible || !linkVisible || !youtubeVisible || !microsoftVisible || result.horizontalOverflow || !result.modalInsideViewport || result.unnamedControls) {
+    if (optionCount !== 5 || !uploadVisible || !linkVisible || !youtubeVisible || !microsoftVisible || result.horizontalOverflow || !result.modalInsideViewport || result.unnamedControls) {
       throw new Error(`Course resource modal failed at ${width}px: ${JSON.stringify(result)}`);
     }
+  }
+}
+
+async function inspectCourseCoverEditor() {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}/admin/content/courses/mock-course`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(1_200);
+  const preview = page.locator(".course-cover-editor-preview");
+  await preview.waitFor({ state: "visible" });
+  const emptyState = await page.getByText("Chưa có ảnh bìa", { exact: true }).isVisible();
+  const initialRatio = await preview.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return rect.height ? Number((rect.width / rect.height).toFixed(3)) : 0;
+  });
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
+  await page.locator(".course-cover-picker").setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
+  await page.getByText("Đã tải ảnh bìa lên. Tỉ lệ hiển thị được tối ưu theo khung 16:9.", { exact: true }).waitFor({ state: "visible" });
+  const uploaded = await page.locator(".course-cover-editor-preview img").isVisible();
+  const deleteButton = page.getByRole("button", { name: "Xóa ảnh" });
+  let dialogOpened = false;
+  page.once("dialog", async dialog => { dialogOpened = true; await dialog.accept(); });
+  await deleteButton.click();
+  await page.getByText("Đã xóa ảnh bìa. Khóa học sẽ dùng nền màu đã chọn.", { exact: true }).waitFor({ state: "visible" });
+  const deleted = await page.getByText("Chưa có ảnh bìa", { exact: true }).isVisible();
+  const result = { name: "admin-course-cover-editor", path: "/admin/content/courses/mock-course", width: 390, emptyState, initialRatio, uploaded, deleted, dialogOpened };
+  report.push(result);
+  await page.screenshot({ path: join(outputDir, "admin-course-cover-editor-390.png"), fullPage: true });
+  if (!emptyState || initialRatio < 1.7 || initialRatio > 1.79 || !uploaded || !deleted || !dialogOpened) {
+    throw new Error(`Course cover editor failed: ${JSON.stringify(result)}`);
   }
 }
 
@@ -453,6 +493,7 @@ if (authenticated) {
     }
   }
   if (resourceModalEnabled && mockRole === "admin") await inspectCourseResourceModal();
+  if (courseCoverEnabled && mockRole === "admin") await inspectCourseCoverEditor();
 }
 
 console.log(JSON.stringify({ baseUrl, mockAuth, mockRole, authenticated, report }, null, 2));
