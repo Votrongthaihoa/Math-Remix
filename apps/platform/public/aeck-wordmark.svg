@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 278 64" role="img" aria-labelledby="title">
+  <title id="title">AECK</title>
+  <g fill="#e51b2b">
+    <path d="M22 9h17l25 45H48l-4-8H18l-4 8H-2L22 9Zm2 25h14l-7-14-7 14Z"/>
+    <path d="M70 9h51v11H84v6h35v10H84v7h38v11H70V9Z"/>
+    <path d="M144 9h43v11h-37c-2 0-3 1-3 3v17c0 2 1 3 3 3h38v11h-44c-7 0-11-4-11-11V20c0-7 4-11 11-11Z"/>
+    <path d="M199 9h14v17h12l17-17h19l-23 22 24 23h-19l-18-17h-12v17h-14V9Z"/>
+  </g>
+  <path fill="#111827" d="m269 17 9 14-9 14V17ZM0 14l7 13H0V14Z"/>
+</svg>

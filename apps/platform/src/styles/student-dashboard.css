@@ -1,0 +1,160 @@
+.ui-shell.student-app.product-shell .student-dashboard {
+  width: min(100%, 1280px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-inline: auto;
+}
+.ui-shell.student-app.product-shell .student-mobile-current { display: none; }
+
+.ui-shell.student-app.product-shell .student-welcome-panel {
+  min-width: 0;
+  min-height: 158px;
+  display: grid;
+  grid-template-columns: minmax(340px, 0.35fr) minmax(0, 0.65fr);
+  align-items: center;
+  border: 1px solid var(--aeck-line);
+  border-radius: var(--aeck-radius-md);
+  background: #fff;
+  box-shadow: var(--aeck-shadow-sm);
+}
+.ui-shell.student-app.product-shell .student-profile-summary {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  padding: 28px;
+}
+.ui-shell.student-app.product-shell .student-avatar {
+  width: 88px;
+  height: 88px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #ffd7da;
+  border-radius: 50%;
+  background: #fff5f6;
+  color: var(--aeck-red-bright);
+}
+.ui-shell.student-app.product-shell .student-avatar svg { width: 44px; height: 44px; stroke-width: 1.8; }
+.ui-shell.student-app.product-shell .student-profile-copy { min-width: 0; }
+.ui-shell.student-app.product-shell .student-profile-copy > span { color: var(--aeck-muted); font-size: 13px; }
+.ui-shell.student-app.product-shell .student-profile-copy h1 { margin: 5px 0 0; font-size: clamp(1.35rem, 2.2vw, 1.75rem); line-height: 1.15; letter-spacing: -0.025em; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .student-profile-copy p { margin: 6px 0 0; color: var(--aeck-muted); font-size: 14px; overflow-wrap: anywhere; }
+
+.ui-shell.student-app.product-shell .student-attempt-summary {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  padding: 22px 18px 22px 0;
+}
+.ui-shell.student-app.product-shell .student-attempt-summary > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 98px;
+  padding-inline: 28px;
+  border-inline-start: 1px solid var(--aeck-line);
+}
+.ui-shell.student-app.product-shell .student-attempt-summary span { color: var(--aeck-muted); font-size: 13px; line-height: 1.4; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .student-attempt-summary strong { color: var(--aeck-red-bright); font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .student-attempt-summary small { color: var(--aeck-muted); font-size: 13px; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .student-role-summary strong { font-size: 17px; }
+
+.ui-shell.student-app.product-shell .student-overview-grid { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ui-shell.student-app.product-shell .student-history-grid { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ui-shell.student-app.product-shell .student-overview-grid .aeck-dashboard-panel { min-height: 150px; }
+.ui-shell.student-app.product-shell .student-history-grid .aeck-dashboard-panel { min-height: 164px; }
+.ui-shell.student-app.product-shell .student-overview-grid .aeck-panel-body,
+.ui-shell.student-app.product-shell .student-history-grid .aeck-panel-body { min-height: 96px; display: flex; align-items: center; }
+.ui-shell.student-app.product-shell .student-empty-message { width: 100%; margin: 0; color: var(--aeck-muted); font-size: 13px; text-align: center; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .student-simple-list,
+.ui-shell.student-app.product-shell .student-score-list { width: 100%; min-width: 0; display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.ui-shell.student-app.product-shell .student-simple-list li { min-width: 0; display: flex; align-items: center; gap: 9px; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .student-simple-list i { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #7bbcff; }
+.ui-shell.student-app.product-shell .student-simple-list i.dot-pink { background: #ff9ea7; }
+.ui-shell.student-app.product-shell .student-score-list li { min-width: 0; display: flex; justify-content: space-between; gap: 12px; }
+.ui-shell.student-app.product-shell .student-score-list span { min-width: 0; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .student-score-list strong { color: var(--aeck-red); font-variant-numeric: tabular-nums; }
+
+.ui-shell.student-app.product-shell .student-activity-panel {
+  min-width: 0;
+  padding: 22px 26px 20px;
+  border: 1px solid var(--aeck-line);
+  border-radius: var(--aeck-radius-md);
+  background: #fff;
+  box-shadow: var(--aeck-shadow-sm);
+}
+.ui-shell.student-app.product-shell .student-activity-panel > header { min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding-bottom: 15px; border-bottom: 1px solid var(--aeck-line); }
+.ui-shell.student-app.product-shell .student-activity-panel h2 { margin: 0; font-size: 18px; line-height: 1.3; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .student-activity-panel > header span { flex: 0 0 auto; color: var(--aeck-muted); font-size: 12px; }
+.ui-shell.student-app.product-shell .student-year-chip { display: inline-flex; align-items: center; min-height: 34px; margin-top: 14px; padding-inline: 15px; border-radius: 7px; background: var(--aeck-red-bright); color: #fff; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .student-activity-scroll { min-width: 0; margin-top: 14px; padding-bottom: 4px; overflow-x: auto; scrollbar-width: thin; }
+.ui-shell.student-app.product-shell .student-activity-months { width: 100%; min-width: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; }
+.ui-shell.student-app.product-shell .student-activity-month { min-width: 0; }
+.ui-shell.student-app.product-shell .student-activity-month > span { display: block; margin-bottom: 8px; color: #333b49; font-size: 11px; text-align: center; white-space: nowrap; }
+.ui-shell.student-app.product-shell .student-activity-month > div { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.ui-shell.student-app.product-shell .student-activity-month i,
+.ui-shell.student-app.product-shell .student-activity-legend i { aspect-ratio: 1; display: block; border: 1px solid #f5d6d9; border-radius: 2px; background: #fff3f4; }
+.ui-shell.student-app.product-shell [data-level="1"] { background: #ffc7cc !important; }
+.ui-shell.student-app.product-shell [data-level="2"] { background: #ff8a95 !important; }
+.ui-shell.student-app.product-shell [data-level="3"] { background: #ef4555 !important; }
+.ui-shell.student-app.product-shell [data-level="4"] { background: #d91528 !important; }
+.ui-shell.student-app.product-shell .student-activity-panel > footer { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; color: #333b49; font-size: 11px; }
+.ui-shell.student-app.product-shell .student-activity-legend { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.ui-shell.student-app.product-shell .student-activity-legend i { width: 17px; flex: 0 0 auto; }
+
+@media (max-width: 1120px) {
+  .ui-shell.student-app.product-shell .student-welcome-panel { grid-template-columns: minmax(300px, 0.4fr) minmax(0, 0.6fr); }
+  .ui-shell.student-app.product-shell .student-profile-summary { gap: 16px; padding-inline: 22px; }
+  .ui-shell.student-app.product-shell .student-avatar { width: 74px; height: 74px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary > div { padding-inline: 18px; }
+}
+
+@media (max-width: 900px) {
+  .ui-shell.student-app.product-shell .student-dashboard { gap: 22px; }
+  .ui-shell.student-app.product-shell .student-mobile-current { min-height: 58px; display: flex; align-items: center; gap: 14px; color: var(--aeck-red-bright); font-size: 17px; }
+  .ui-shell.student-app.product-shell .student-current-icon { width: 24px; font-size: 25px; font-weight: 300; line-height: 1; }
+  .ui-shell.student-app.product-shell .student-welcome-panel { display: contents; border: 0; box-shadow: none; }
+  .ui-shell.student-app.product-shell .student-profile-summary,
+  .ui-shell.student-app.product-shell .student-attempt-summary { border: 1px solid var(--aeck-line); border-radius: 18px; background: #fff; box-shadow: var(--aeck-shadow-sm); }
+  .ui-shell.student-app.product-shell .student-profile-summary { min-height: 166px; padding: 22px 28px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 20px 22px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary > div { min-height: 104px; padding: 8px 22px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary > div:nth-child(odd) { border-inline-start: 0; }
+  .ui-shell.student-app.product-shell .student-role-summary { grid-column: 1; border-top: 1px solid var(--aeck-line); }
+  .ui-shell.student-app.product-shell .student-overview-grid,
+  .ui-shell.student-app.product-shell .student-history-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .ui-shell.student-app.product-shell .student-overview-grid .aeck-dashboard-panel,
+  .ui-shell.student-app.product-shell .student-history-grid .aeck-dashboard-panel { min-height: 140px; border-radius: 18px; }
+  .ui-shell.student-app.product-shell .student-activity-panel { border-radius: 18px; }
+}
+
+@media (max-width: 620px) {
+  .ui-shell.student-app.product-shell .student-mobile-current { min-height: 46px; }
+  .ui-shell.student-app.product-shell .student-profile-summary { grid-template-columns: auto minmax(0, 1fr); min-height: 0; gap: 16px; padding: 22px 20px; text-align: start; }
+  .ui-shell.student-app.product-shell .student-avatar { width: 72px; height: 72px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary { padding: 14px 12px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary > div { min-height: 94px; padding-inline: 12px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary span,
+  .ui-shell.student-app.product-shell .student-attempt-summary small { font-size: 12px; }
+  .ui-shell.student-app.product-shell .student-attempt-summary strong { font-size: 25px; }
+  .ui-shell.student-app.product-shell .student-role-summary strong { font-size: 14px; overflow-wrap: anywhere; }
+  .ui-shell.student-app.product-shell .student-activity-panel { padding: 18px 16px; }
+  .ui-shell.student-app.product-shell .student-activity-panel > header { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .ui-shell.student-app.product-shell .student-activity-panel > header span { flex: 1; }
+  .ui-shell.student-app.product-shell .student-activity-panel > footer { align-items: flex-start; flex-direction: column; }
+  .ui-shell.student-app.product-shell .student-activity-months { gap: 2px; }
+  .ui-shell.student-app.product-shell .student-activity-month > span { margin-bottom: 5px; font-size: 8px; }
+  .ui-shell.student-app.product-shell .student-activity-month > div { gap: 1px; }
+  .ui-shell.student-app.product-shell .student-activity-month i { border-radius: 1px; }
+}
+
+@media (max-width: 350px) {
+  .ui-shell.student-app.product-shell .student-profile-summary { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+}

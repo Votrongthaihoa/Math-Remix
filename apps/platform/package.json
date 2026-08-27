@@ -1,0 +1,45 @@
+{
+  "name": "@aeck/platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev:student",
+    "dev:student": "cross-env CLOUDFLARE_ENV=preview VITE_USE_MOCK_SESSION=true VITE_PREVIEW_ROLE=student vite --host 127.0.0.1",
+    "dev:admin": "cross-env CLOUDFLARE_ENV=preview VITE_USE_MOCK_SESSION=true VITE_PREVIEW_ROLE=admin vite --host 127.0.0.1",
+    "build": "vite build",
+    "build:preview": "cross-env CLOUDFLARE_ENV=preview VITE_USE_MOCK_SESSION=true VITE_PREVIEW_ROLE=student vite build",
+    "build:production": "cross-env CLOUDFLARE_ENV=production vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --experimental-strip-types --test worker/*.test.ts src/**/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "cf:typegen": "wrangler types worker-configuration.d.ts"
+  },
+  "dependencies": {
+    "@aeck/contracts": "0.1.0",
+    "@tanstack/react-query": "5.102.6",
+    "dompurify": "3.4.14",
+    "hono": "4.13.5",
+    "katex": "0.18.1",
+    "lucide-react": "1.26.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-router-dom": "7.18.2",
+    "zod": "4.4.3",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.54.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/katex": "0.16.8",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "cross-env": "10.1.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vite": "8.0.13",
+    "wrangler": "4.126.0"
+  }
+}

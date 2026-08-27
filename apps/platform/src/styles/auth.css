@@ -1,0 +1,79 @@
+.aeck-login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+  background: #fff;
+}
+
+.aeck-login-brand {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  padding: clamp(48px, 8vw, 120px);
+  background: linear-gradient(145deg, #fff 25%, #fff4f5 100%);
+}
+.aeck-login-brand img { width: min(260px, 70%); height: auto; }
+.aeck-login-brand h1 { max-width: 620px; margin: 20px 0 0; font-size: clamp(2.2rem, 4.6vw, 4.8rem); line-height: 1.04; letter-spacing: -0.05em; text-wrap: balance; }
+.aeck-login-brand p { max-width: 600px; margin: 0; color: var(--aeck-muted); font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.65; text-wrap: pretty; }
+
+.aeck-login-panel {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  border-inline-start: 1px solid var(--aeck-line);
+  background: #fff;
+}
+.aeck-login-panel form { width: min(100%, 440px); display: flex; flex-direction: column; }
+.aeck-login-heading { min-width: 0; display: flex; align-items: center; gap: 14px; margin-bottom: 36px; }
+.aeck-login-heading img { flex: 0 0 auto; }
+.aeck-login-heading div { min-width: 0; }
+.aeck-login-heading h2 { margin: 0; font-size: 1.75rem; line-height: 1.15; letter-spacing: -0.025em; }
+.aeck-login-heading p { margin: 7px 0 0; color: var(--aeck-muted); font-size: 14px; line-height: 1.5; overflow-wrap: break-word; }
+.aeck-login-panel form > label { margin: 18px 0 8px; font-size: 14px; font-weight: 650; }
+.aeck-input-wrap {
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 13px;
+  border: 1px solid var(--aeck-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--aeck-muted);
+  transition: border-color 120ms ease-out, box-shadow 120ms ease-out;
+}
+.aeck-input-wrap:focus-within { border-color: var(--aeck-red); box-shadow: 0 0 0 3px rgb(205 22 39 / 0.1); }
+.aeck-input-wrap > svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.aeck-input-wrap input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--aeck-ink); font: inherit; font-size: 16px; }
+.aeck-input-wrap input::placeholder { color: #a0a7b3; }
+.aeck-password-toggle { width: 40px; height: 40px; display: grid; flex: 0 0 auto; place-items: center; margin-inline-end: -9px; border: 0; border-radius: 8px; background: transparent; color: var(--aeck-muted); cursor: pointer; }
+.aeck-password-toggle:hover { background: #f5f6f8; color: var(--aeck-ink); }
+.aeck-password-toggle svg { width: 18px; height: 18px; }
+.aeck-login-error { margin: 16px 0 0; padding: 11px 13px; border: 1px solid #fecdd3; border-radius: 9px; background: #fff4f5; color: #9f1239; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.aeck-login-submit { min-height: 48px; margin-top: 24px; padding-inline: 20px; border: 0; border-radius: 999px; background: var(--aeck-red); color: #fff; font: inherit; font-size: 15px; font-weight: 750; cursor: pointer; transition: background-color 120ms ease-out, scale 120ms ease-out, opacity 120ms ease-out; }
+.aeck-login-submit:hover { background: #b91323; }
+.aeck-login-submit:active { scale: 0.96; }
+.aeck-login-submit:disabled { opacity: 0.62; cursor: wait; }
+.aeck-login-switch { min-width: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin-top: 24px; color: var(--aeck-muted); font-size: 13px; text-align: center; }
+.aeck-login-switch a { color: var(--aeck-red); font-weight: 700; text-underline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .aeck-login-page { grid-template-columns: minmax(0, 1fr); }
+  .aeck-login-brand { min-height: 280px; padding: 48px clamp(24px, 8vw, 64px); }
+  .aeck-login-brand h1 { margin-top: 4px; font-size: clamp(2rem, 8vw, 3.6rem); }
+  .aeck-login-panel { padding: 48px 24px; border-inline-start: 0; border-top: 1px solid var(--aeck-line); }
+}
+
+@media (max-width: 520px) {
+  .aeck-login-brand { min-height: 225px; gap: 12px; padding: 36px 22px; }
+  .aeck-login-brand img { width: 160px; }
+  .aeck-login-brand h1 { font-size: 2rem; }
+  .aeck-login-brand p { font-size: 14px; }
+  .aeck-login-panel { padding: 38px 20px; }
+  .aeck-login-heading { margin-bottom: 24px; }
+}

@@ -1,0 +1,343 @@
+.ui-shell.product-shell {
+  --shell-sidebar: 264px;
+  --shell-topbar: 72px;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--shell-sidebar) minmax(0, 1fr);
+  grid-template-rows: var(--shell-topbar) minmax(calc(100vh - var(--shell-topbar)), auto);
+  background: var(--aeck-canvas);
+  color: var(--aeck-ink);
+  transition: grid-template-columns 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.ui-shell.product-shell.is-collapsed { --shell-sidebar: 80px; }
+
+.ui-shell.product-shell .aeck-skip-link {
+  position: fixed;
+  inset-block-start: 8px;
+  inset-inline-start: 12px;
+  z-index: 100;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  text-decoration: none;
+  transform: translateY(-160%);
+}
+.ui-shell.product-shell .aeck-skip-link:focus { transform: translateY(0); }
+
+.ui-shell.product-shell .aeck-topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 30;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--shell-sidebar) auto minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: var(--shell-topbar);
+  border-bottom: 1px solid var(--aeck-line);
+  background: rgb(255 255 255 / 0.94);
+  backdrop-filter: blur(14px);
+  transition: grid-template-columns 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.ui-shell.product-shell .aeck-brand {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 28px;
+  border-inline-end: 1px solid var(--aeck-line);
+  color: var(--aeck-red-bright);
+  text-decoration: none;
+  overflow: hidden;
+}
+.ui-shell.product-shell .aeck-brand img { display: block; flex: 0 0 auto; object-fit: contain; }
+.ui-shell.product-shell .aeck-brand span { font-size: 27px; font-weight: 800; letter-spacing: -0.04em; white-space: nowrap; }
+.ui-shell.product-shell .aeck-brand img.aeck-brand-compact { display: none; }
+.ui-shell.product-shell.is-collapsed .aeck-brand { justify-content: center; padding-inline: 12px; }
+.ui-shell.product-shell.is-collapsed .aeck-brand-full,
+.ui-shell.product-shell.is-collapsed .aeck-brand span { display: none; }
+.ui-shell.product-shell.is-collapsed .aeck-brand img.aeck-brand-compact { display: block; }
+
+.ui-shell.product-shell .aeck-menu-button {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  margin-inline-start: 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--aeck-ink);
+  cursor: pointer;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out, scale 120ms ease-out;
+}
+.ui-shell.product-shell .aeck-menu-button:hover { border-color: var(--aeck-line); background: #fafafa; }
+.ui-shell.product-shell .aeck-menu-button:active { scale: 0.96; }
+.ui-shell.product-shell .aeck-menu-button svg { width: 21px; height: 21px; stroke-width: 2; }
+.ui-shell.product-shell .aeck-mobile-menu { display: none; }
+
+.ui-shell.product-shell .aeck-account { position: relative; grid-column: 4; margin-inline-end: 24px; }
+.ui-shell.product-shell .aeck-account-trigger {
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(330px, 38vw);
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--aeck-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out, scale 120ms ease-out;
+}
+.ui-shell.student-app.product-shell .aeck-account-trigger { color: var(--aeck-red-bright); }
+.ui-shell.product-shell .aeck-account-trigger:hover { border-color: var(--aeck-line); background: #fafafa; }
+.ui-shell.product-shell .aeck-account-trigger:active { scale: 0.96; }
+.ui-shell.product-shell .aeck-account-trigger > svg { width: 16px; flex: 0 0 auto; }
+.ui-shell.product-shell .aeck-account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-shell.product-shell .aeck-account-avatar {
+  width: 36px;
+  height: 36px;
+  display: none;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #ffd9dc;
+  border-radius: 50%;
+  background: #fff6f7;
+  color: var(--aeck-red-bright);
+}
+.ui-shell.product-shell .aeck-account-avatar svg { width: 21px; height: 21px; }
+
+.ui-shell.product-shell .aeck-account-menu {
+  position: absolute;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 60;
+  width: min(220px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--aeck-line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--aeck-shadow-md);
+}
+.ui-shell.product-shell .aeck-account-menu a,
+.ui-shell.product-shell .aeck-account-menu button {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--aeck-ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ui-shell.product-shell .aeck-account-menu a:hover,
+.ui-shell.product-shell .aeck-account-menu button:hover { background: #f6f7f9; }
+.ui-shell.product-shell .aeck-account-menu svg { width: 18px; height: 18px; }
+
+.ui-shell.product-shell .aeck-sidebar {
+  position: sticky;
+  inset-block-start: var(--shell-topbar);
+  z-index: 20;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  height: calc(100vh - var(--shell-topbar));
+  display: flex;
+  flex-direction: column;
+  border-inline-end: 1px solid var(--aeck-line);
+  background: #fff;
+  overflow: hidden;
+}
+.ui-shell.product-shell .aeck-navigation {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 18px 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.ui-shell.product-shell .aeck-navigation a {
+  position: relative;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #30394a;
+  font-size: 14px;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color 120ms ease-out, background-color 120ms ease-out;
+}
+.ui-shell.product-shell .aeck-navigation a:hover { background: #f7f8fa; color: var(--aeck-ink); }
+.ui-shell.product-shell .aeck-navigation a.active { background: linear-gradient(90deg, #fff1f2, #fff8f8); color: var(--aeck-red-bright); }
+.ui-shell.product-shell .aeck-navigation a.active::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -8px;
+  width: 4px;
+  background: var(--aeck-red-bright);
+}
+.ui-shell.product-shell .aeck-navigation a svg { width: 21px; height: 21px; flex: 0 0 auto; stroke-width: 1.7; }
+.ui-shell.product-shell .aeck-navigation a.active svg { stroke-width: 2; }
+.ui-shell.product-shell .aeck-navigation a span { min-width: 0; overflow-wrap: break-word; }
+.ui-shell.product-shell.is-collapsed .aeck-navigation a { justify-content: center; padding-inline: 8px; }
+.ui-shell.product-shell.is-collapsed .aeck-navigation a span { display: none; }
+
+.ui-shell.product-shell .aeck-sidebar-collapse {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 20px 12px;
+  border: 0;
+  border-top: 1px solid var(--aeck-line);
+  background: #fff;
+  color: #4c5668;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ui-shell.product-shell .aeck-sidebar-collapse:hover { background: #fafafa; }
+.ui-shell.product-shell .aeck-sidebar-collapse svg { width: 18px; flex: 0 0 auto; }
+.ui-shell.product-shell .aeck-sidebar-collapse svg:last-child { margin-inline-start: auto; }
+.ui-shell.product-shell.is-collapsed .aeck-sidebar-collapse { justify-content: center; padding-inline: 8px; }
+.ui-shell.product-shell.is-collapsed .aeck-sidebar-collapse span { display: none; }
+.ui-shell.product-shell .aeck-sidebar-mobile-head,
+.ui-shell.product-shell .aeck-sidebar-scrim { display: none; }
+
+.ui-shell.product-shell .aeck-main {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  padding: 32px 28px 20px;
+  background: #fff;
+}
+
+.ui-shell.product-shell :where(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid rgb(205 22 39 / 0.26);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .ui-shell.product-shell,
+  .ui-shell.product-shell.is-collapsed {
+    --shell-topbar: 72px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--shell-topbar) auto;
+  }
+  .ui-shell.product-shell .aeck-topbar {
+    grid-template-columns: minmax(150px, auto) auto minmax(0, 1fr) auto;
+  }
+  .ui-shell.product-shell .aeck-brand {
+    width: auto;
+    justify-content: flex-start;
+    padding-inline: 18px;
+    border-inline-end: 0;
+  }
+  .ui-shell.product-shell.is-collapsed .aeck-brand-full { display: block; }
+  .ui-shell.product-shell.is-collapsed .aeck-brand img.aeck-brand-compact { display: none; }
+  .ui-shell.product-shell .aeck-desktop-menu { display: none; }
+  .ui-shell.product-shell .aeck-mobile-menu { display: inline-grid; margin-inline-start: 0; }
+  .ui-shell.product-shell .aeck-account { margin-inline-end: 16px; }
+  .ui-shell.product-shell .aeck-account-avatar { display: grid; }
+  .ui-shell.product-shell .aeck-account-trigger { max-width: min(320px, 46vw); }
+  .ui-shell.product-shell .aeck-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 80;
+    width: min(310px, calc(100vw - 48px));
+    height: 100dvh;
+    border-inline-end: 1px solid var(--aeck-line);
+    box-shadow: var(--aeck-shadow-md);
+    transform: translateX(-105%);
+    transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  [dir="rtl"] .ui-shell.product-shell .aeck-sidebar { transform: translateX(105%); }
+  .ui-shell.product-shell .aeck-sidebar.is-mobile-open { transform: translateX(0); }
+  .ui-shell.product-shell .aeck-sidebar-mobile-head {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 18px 10px;
+    border-bottom: 1px solid var(--aeck-line);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .ui-shell.product-shell .aeck-sidebar-mobile-head button {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--aeck-ink);
+  }
+  .ui-shell.product-shell .aeck-sidebar-mobile-head svg { width: 21px; }
+  .ui-shell.product-shell.is-collapsed .aeck-navigation a { justify-content: flex-start; padding-inline: 15px; }
+  .ui-shell.product-shell.is-collapsed .aeck-navigation a span { display: block; }
+  .ui-shell.product-shell .aeck-sidebar-collapse { display: none; }
+  .ui-shell.product-shell .aeck-sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: block;
+    border: 0;
+    background: rgb(15 23 42 / 0.42);
+  }
+  .ui-shell.product-shell .aeck-main { grid-column: 1; grid-row: 2; padding: 24px 28px 28px; }
+}
+
+@media (max-width: 620px) {
+  .ui-shell.product-shell { --shell-topbar: 64px; }
+  .ui-shell.product-shell .aeck-topbar { grid-template-columns: minmax(116px, 1fr) auto auto; }
+  .ui-shell.product-shell .aeck-brand { padding-inline: 15px 6px; }
+  .ui-shell.product-shell .aeck-brand img.aeck-brand-full { width: 132px; height: auto; }
+  .ui-shell.admin-app.product-shell .aeck-brand span { font-size: 24px; }
+  .ui-shell.admin-app.product-shell .aeck-brand img { width: 31px; height: 34px; }
+  .ui-shell.product-shell .aeck-mobile-menu { grid-column: 2; width: 42px; height: 42px; }
+  .ui-shell.product-shell .aeck-account { grid-column: 3; margin-inline-end: 8px; }
+  .ui-shell.product-shell .aeck-account-trigger { max-width: 44px; padding: 3px; }
+  .ui-shell.product-shell .aeck-account-name,
+  .ui-shell.product-shell .aeck-account-trigger > svg { display: none; }
+  .ui-shell.product-shell .aeck-account-avatar { width: 38px; height: 38px; }
+  .ui-shell.product-shell .aeck-main { padding: 20px 16px 28px; }
+}
+
+@media (min-width: 400px) and (max-width: 620px) {
+  .ui-shell.product-shell .aeck-topbar { grid-template-columns: minmax(120px, 1fr) auto minmax(0, auto); }
+  .ui-shell.product-shell .aeck-account { margin-inline-end: 10px; }
+  .ui-shell.product-shell .aeck-account-trigger { max-width: 170px; padding-inline: 4px 6px; }
+  .ui-shell.product-shell .aeck-account-name { display: block; font-size: 12px; }
+  .ui-shell.product-shell .aeck-account-trigger > svg { width: 14px; display: block; }
+  .ui-shell.admin-app.product-shell .aeck-account-name { order: 1; }
+  .ui-shell.admin-app.product-shell .aeck-account-avatar { order: 2; }
+  .ui-shell.admin-app.product-shell .aeck-account-trigger > svg { order: 3; }
+}

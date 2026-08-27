@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/apps/*/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -42,6 +43,8 @@ dev-server*.err.log
 next-env.d.ts
 tsconfig.tsbuildinfo
 /dist/
+/apps/*/dist/
+/apps/*/.vite/
 **/.wrangler/
 /outputs/
 /work/
