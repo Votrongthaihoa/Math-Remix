@@ -24,13 +24,15 @@ const redesignRoutes = [
   ["student-lesson", "/lessons/mock-lesson"],
   ["student-profile", "/profile"],
   ["student-history", "/exam-history"],
+  ["student-search", "/search"],
+  ["student-schedule", "/tkb"],
 ];
 const chromeOnlyRoutes = [
   ["student-exam-catalog", "/exam-room"],
   ["student-exam-list", "/exam-room/mock-room"],
 ];
 const protectedRegressionRoutes = [
-  ["protected-exam-runner", "/exam/mock-exam?mode=practice"],
+  ["protected-exam-runner", "/exam/00000000-0000-4000-8000-000000000001?mode=practice"],
   ["protected-exam-result", "/exam/result/mock-attempt-latest"],
   ["protected-admin-exam-catalog", "/admin/exams"],
   ["protected-admin-authoring", "/admin/exams/mock-exam"],
@@ -52,6 +54,11 @@ await mkdir(outputDir, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const report = [];
+const runtimeIssues = [];
+page.on("pageerror", error => runtimeIssues.push({ type: "pageerror", text: error.message }));
+page.on("console", message => {
+  if (message.type() === "error") runtimeIssues.push({ type: "console", text: message.text() });
+});
 
 const mockUser = {
   id: mockRole === "admin" ? "mock-admin" : "mock-student",
@@ -77,7 +84,14 @@ const mockCourse = {
   sort_order: 1,
   created_at: "2026-08-08T08:00:00.000Z",
 };
-const mockRooms = [{ id: "mock-room", title: "Kỳ thi thử tháng 8", description: "", exam_type: "HSA", registration_start: null, registration_end: null, exam_start: null, exam_end: null, published: true, access_mode: "open", sort_order: 1 }];
+const mockScheduleStart = new Date();
+mockScheduleStart.setHours(10, 0, 0, 0);
+const mockScheduleEnd = new Date(mockScheduleStart);
+mockScheduleEnd.setHours(12, 0, 0, 0);
+const mockRooms = [
+  { id: "mock-room", title: "Kỳ thi thử tháng 8", description: "Lịch thi tổng hợp dành cho học viên đang ôn TSA và HSA.", exam_type: "HSA", registration_start: null, registration_end: null, exam_start: mockScheduleStart.toISOString(), exam_end: mockScheduleEnd.toISOString(), published: true, access_mode: "open", sort_order: 1 },
+  { id: "mock-open-room", title: "Phòng luyện tự do", description: "Phòng luyện không giới hạn thời gian.", exam_type: "TSA", registration_start: null, registration_end: null, exam_start: null, exam_end: null, published: true, access_mode: "open", sort_order: 2 },
+];
 const mockExams = [
   { id: "mock-exam", room_id: "mock-room", title: "Đề TSA tổng hợp", description: "", dashboard_title: null, exam_type: "HSA", mode: "free", duration_minutes: 90, published: true, sort_order: 1, created_at: "2026-08-04T08:00:00.000Z" },
   { id: "mock-exam-2", room_id: "mock-room", title: "Đề TSA luyện tập số 2", description: "", dashboard_title: null, exam_type: "HSA", mode: "free", duration_minutes: 90, published: true, sort_order: 2, created_at: "2026-08-05T08:00:00.000Z" },
@@ -87,8 +101,8 @@ const mockSections = [
   { id: "mock-section-2", exam_id: "mock-exam-2", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
 ];
 const mockAttempts = [
-  { id: "mock-attempt-latest", exam_id: "mock-exam", status: "graded", score: 87.5, correct_answers: 42, total_questions: 50, started_at: "2026-08-09T07:00:00.000Z", submitted_at: "2026-08-09T08:12:00.000Z", duration_seconds: 4320 },
-  { id: "mock-attempt-first", exam_id: "mock-exam", status: "completed", score: 72, correct_answers: 36, total_questions: 50, started_at: "2026-08-06T07:00:00.000Z", submitted_at: "2026-08-06T08:18:00.000Z", duration_seconds: 4680 },
+  { id: "mock-attempt-latest", exam_id: "mock-exam", title: "Đề TSA tổng hợp", status: "graded", score: 87.5, correct_answers: 42, total_questions: 50, started_at: "2026-08-09T07:00:00.000Z", submitted_at: "2026-08-09T08:12:00.000Z", duration_seconds: 4320 },
+  { id: "mock-attempt-first", exam_id: "mock-exam", title: "Đề TSA luyện tập số 2", status: "completed", score: 72, correct_answers: 36, total_questions: 50, started_at: "2026-08-06T07:00:00.000Z", submitted_at: "2026-08-06T08:18:00.000Z", duration_seconds: 4680 },
 ];
 const mockSecurityUser = { id: "11111111-1111-4111-8111-111111111111", full_name: "Nguyễn Minh Anh với tên tiếng Việt đủ dài để kiểm tra giao diện", student_code: "REMIX000128", email: "student.with.a.long.address@example.com", status: "active", account_status: "active", violation_count: 0, banned_at: null, banned_until: null, ban_reason: null, ban_event_id: null };
 const mockSession = { id: "22222222-2222-4222-8222-222222222222", kind: "both", exam_id: "mock-exam", room_id: "mock-room", name: "Kíp thi thử có tên tiếng Việt dài để kiểm tra khả năng xuống dòng an toàn", exam_title: "Đề đánh giá năng lực tổng hợp", exam_type: "HSA", room_title: "Phòng luyện đánh giá năng lực", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, token_hint: "ABCD", attempt_count: 18, submitted_count: 12 };
@@ -130,9 +144,9 @@ async function installMockAuth() {
       }
     }
     if (requestUrl.origin === new URL(baseUrl).origin && requestUrl.pathname.startsWith("/api/")) {
-      if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "rooms") return route.fulfill(jsonResponse({ rooms: mockRooms, exams: mockExams, attempts: [] }));
+      if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "rooms") return route.fulfill(jsonResponse({ rooms: mockRooms, exams: mockExams, attempts: mockAttempts }));
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "room") return route.fulfill(jsonResponse({ room: mockRooms[0], exams: mockExams, sections: mockSections, attempts: mockAttempts }));
-      if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "history") return route.fulfill(jsonResponse({ attempts: [] }));
+      if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "history") return route.fulfill(jsonResponse({ attempts: mockAttempts }));
       if (requestUrl.pathname === "/api/admin/users") return route.fulfill(jsonResponse({ users: [{ id: "mock-student-2", email: "student@example.com" }] }));
       if (requestUrl.pathname === "/api/admin/course-covers" && route.request().method() === "POST") {
         mockCourse.cover_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -365,6 +379,117 @@ async function inspectDashboardDotAlignment() {
   report.push({ name: "student-dashboard-dot-alignment", path: "/dashboard", width: 1440, ...state });
 }
 
+async function inspectStudentSearch() {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/search?q=TSA&type=courses`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(mockAuth ? 1_200 : 350);
+    const input = page.getByRole("searchbox", { name: "Từ khóa tra cứu" });
+    await input.fill("TSA");
+    await page.waitForTimeout(250);
+    const courseFilter = page.getByRole("button", { name: "Khóa học", exact: true });
+    await courseFilter.click();
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const resultGroups = [...document.querySelectorAll(".reference-result-group")];
+      const controls = [...document.querySelectorAll(".reference-search-page button, .reference-search-page a, .reference-search-page input")];
+      return {
+        url: `${location.pathname}${location.search}`,
+        resultGroups: resultGroups.length,
+        courseGroupVisible: Boolean(document.querySelector("#course-result-title")),
+        roomGroupVisible: Boolean(document.querySelector("#room-result-title")),
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+        outsideControls: controls.filter(control => {
+          const rect = control.getBoundingClientRect();
+          return rect.width > 0 && (rect.left < -1 || rect.right > innerWidth + 1);
+        }).length,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `student-search-${width}.png`), fullPage: true });
+    report.push({ name: "student-search-interaction", path: "/search", width, ...state });
+    if (!state.url.includes("q=TSA") || !state.courseGroupVisible || state.roomGroupVisible || state.horizontalOverflow || state.outsideControls) {
+      throw new Error(`Student search failed at ${width}px: ${JSON.stringify(state)}`);
+    }
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(mockAuth ? 1_200 : 350);
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K");
+  await page.waitForURL(url => url.pathname === "/search", { timeout: 5_000 });
+  report.push({ name: "student-search-shortcut", path: "/dashboard", width: 1440, destination: new URL(page.url()).pathname });
+}
+
+async function inspectStudentSchedule() {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/tkb`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(mockAuth ? 1_200 : 350);
+    const initialLabel = await page.locator(".reference-week-controls strong").textContent();
+    await page.getByRole("button", { name: "Xem tuần sau" }).click();
+    const nextLabel = await page.locator(".reference-week-controls strong").textContent();
+    await page.getByRole("button", { name: "Tuần này" }).click();
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const panel = document.querySelector(".reference-week-panel")?.getBoundingClientRect();
+      const events = [...document.querySelectorAll(".reference-schedule-event")];
+      return {
+        weekDays: document.querySelectorAll(".reference-week-grid > li").length,
+        scheduledEvents: events.length,
+        openRooms: document.querySelectorAll(".reference-open-room-grid > a").length,
+        panelInsideViewport: Boolean(panel && panel.left >= -1 && panel.right <= innerWidth + 1),
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `student-schedule-${width}.png`), fullPage: true });
+    report.push({ name: "student-schedule-interaction", path: "/tkb", width, initialLabel, nextLabel, ...state });
+    if (!initialLabel || initialLabel === nextLabel || state.weekDays !== 7 || state.scheduledEvents < 1 || state.openRooms < 1 || !state.panelInsideViewport || state.horizontalOverflow) {
+      throw new Error(`Student schedule failed at ${width}px: ${JSON.stringify({ initialLabel, nextLabel, ...state })}`);
+    }
+  }
+}
+
+async function inspectAdminQuickFinder() {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(1_200);
+    const input = page.locator(".admin-reference-search-field input");
+    await input.fill("Gia Bao");
+    await page.waitForTimeout(150);
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const finder = document.querySelector(".admin-reference-finder")?.getBoundingClientRect();
+      const controls = [...document.querySelectorAll(".admin-reference-finder button, .admin-reference-finder input")];
+      return {
+        visibleResults: document.querySelectorAll(".admin-reference-results > button").length,
+        learnerResult: [...document.querySelectorAll(".admin-reference-results > button")].some(element => element.textContent?.includes("Lê Gia Bảo")),
+        finderInsideViewport: Boolean(finder && finder.left >= -1 && finder.right <= innerWidth + 1),
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+        outsideControls: controls.filter(control => {
+          const rect = control.getBoundingClientRect();
+          return rect.width > 0 && (rect.left < -1 || rect.right > innerWidth + 1);
+        }).length,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `admin-quick-finder-${width}.png`), fullPage: true });
+    report.push({ name: "admin-quick-finder", path: "/admin", width, ...state });
+    if (!state.learnerResult || state.visibleResults < 1 || !state.finderInsideViewport || state.horizontalOverflow || state.outsideControls) {
+      throw new Error(`Admin quick finder failed at ${width}px: ${JSON.stringify(state)}`);
+    }
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(1_200);
+  await page.locator(".admin-reference-search-field input").fill("Gia Bao");
+  await page.getByRole("button", { name: /Lê Gia Bảo/ }).click();
+  await page.waitForURL(url => url.pathname === "/admin/students", { timeout: 5_000 });
+  const learnerFiltered = await page.locator(".student-table .table-row").filter({ hasText: "Lê Gia Bảo" }).count();
+  report.push({ name: "admin-quick-finder-navigation", path: "/admin", width: 1440, destination: new URL(page.url()).pathname, learnerFiltered });
+  if (!learnerFiltered) throw new Error("Admin quick finder did not preserve the selected learner filter.");
+}
+
 async function inspectCourseResourceModal() {
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
@@ -503,6 +628,9 @@ if (authenticated) {
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("student-dashboard"))) {
       await inspectDashboardDotAlignment();
     }
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
+    if (!focusedAudit || requestedRoutes.has("student-search")) await inspectStudentSearch();
+    if (!focusedAudit || requestedRoutes.has("student-schedule")) await inspectStudentSchedule();
     if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
     if (!focusedAudit || requestedRoutes.has("student-exam-list")) await inspectExamHistoryDialog();
     if (!focusedAudit || requestedRoutes.has("student-exam-catalog") || requestedRoutes.has("student-exam-list")) {
@@ -529,5 +657,6 @@ if (authenticated) {
   if (courseCoverEnabled && mockRole === "admin") await inspectCourseCoverEditor();
 }
 
-console.log(JSON.stringify({ baseUrl, mockAuth, mockRole, authenticated, report }, null, 2));
+console.log(JSON.stringify({ baseUrl, mockAuth, mockRole, authenticated, runtimeIssues, report }, null, 2));
 await browser.close();
+if (runtimeIssues.length) throw new Error(`Browser runtime issues: ${JSON.stringify(runtimeIssues)}`);

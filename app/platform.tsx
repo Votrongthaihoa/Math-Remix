@@ -25,7 +25,9 @@ import "./aeck-ui.css";
 import "./product-ui-v2.css";
 import "./aeck-reference-ui.css";
 import "./auth-ui-v2.css";
+import "./reference-integration.css";
 import AdminSessionList from "./admin-sessions";
+import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
@@ -41,16 +43,35 @@ const AdminUploadManager = lazy(() => import("./admin-upload"));
 const AdminHlsVault = lazy(() => import("./admin-hls-vault"));
 const GuestExamModule = lazy(() => import("./guest-exam"));
 
-type View = "overview" | "exams" | "courses" | "history" | "profile" | "admin" | "course" | "lesson";
+type View = "overview" | "exams" | "courses" | "history" | "search" | "schedule" | "profile" | "admin" | "course" | "lesson";
 type AuthMode = "login" | "forgot" | "reset";
 type ProfileData = { full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
 type CourseData = { id: string | number; title: string; description: string; lessons: number; color: string; cover_url?: string | null; published?: boolean };
 type CourseRow = { id: string; title: string; description: string | null; cover_url: string | null; cover_color: string | null; published: boolean };
 type EnrollmentCourseRow = { courses: CourseRow | CourseRow[] | null };
 type AttemptData = { id: string; exam_id?: string; exam_type?: string | null; title: string; score: number; correct_answers: number; total_questions: number; submitted_at: string; status: string };
-type PracticeRoomData = { id: string; title: string; description?: string | null; exam_type?: string | null; examCount: number };
+type PracticeRoomData = {
+  id: string;
+  title: string;
+  description?: string | null;
+  exam_type?: string | null;
+  examCount: number;
+  registration_start?: string | null;
+  registration_end?: string | null;
+  exam_start?: string | null;
+  exam_end?: string | null;
+};
 type ExamRoomsPayload = {
-  rooms?: Array<{ id: string; title: string; description?: string | null; exam_type?: string | null }>;
+  rooms?: Array<{
+    id: string;
+    title: string;
+    description?: string | null;
+    exam_type?: string | null;
+    registration_start?: string | null;
+    registration_end?: string | null;
+    exam_start?: string | null;
+    exam_end?: string | null;
+  }>;
   exams?: Array<{ id: string; room_id: string; published?: boolean; exam_type?: string | null }>;
   attempts?: AttemptData[];
 };
@@ -135,6 +156,8 @@ const pathsByView: Record<View, string> = {
   exams: "/exam-room",
   courses: "/courses",
   history: "/exam-history",
+  search: "/search",
+  schedule: "/tkb",
   profile: "/profile",
   admin: "/admin",
   course: "/courses",
@@ -150,6 +173,8 @@ function optimizedDocumentTitle(pathname: string, authenticationRequired = false
   if (pathname.startsWith("/courses/")) return "Chi tiết khóa học | Remix Education";
   if (pathname.startsWith("/lessons/")) return "Bài học | Remix Education";
   if (pathname === "/exam-history") return "Lịch sử làm bài | Remix Education";
+  if (pathname === "/search") return "Tra cứu học tập | Remix Education";
+  if (pathname === "/tkb") return "Thời khóa biểu | Remix Education";
   if (pathname === "/profile") return "Hồ sơ cá nhân | Remix Education";
   if (pathname === "/admin/security") return "Bảo mật | Remix Education";
   if (pathname.startsWith("/admin/content")) return "Quản lý nội dung | Remix Education";
@@ -167,6 +192,8 @@ function viewFromPath(pathname: string): View {
   if (pathname === "/courses") return "courses";
   if (pathname === "/exam-room" || pathname.startsWith("/exam-room/") || pathname.startsWith("/exam/")) return "exams";
   if (pathname === "/exam-history") return "history";
+  if (pathname === "/search") return "search";
+  if (pathname === "/tkb") return "schedule";
   if (pathname === "/profile") return "profile";
   if (pathname.startsWith("/admin")) return "admin";
   return "overview";
@@ -431,6 +458,20 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   }, [accountMenuOpen]);
 
   useEffect(() => {
+    if (!signedIn || adminRouteRequested || uiRouteMode === "protected") return;
+    const openSearch = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLocaleLowerCase("en-US") !== "k") return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      if (!requestProductNavigation("/search")) return;
+      router.push("/search");
+    };
+    window.addEventListener("keydown", openSearch);
+    return () => window.removeEventListener("keydown", openSearch);
+  }, [adminRouteRequested, router, signedIn, uiRouteMode]);
+
+  useEffect(() => {
     if (!signedIn || currentView !== "overview") return;
     // loadUserData already receives the rooms payload during session bootstrap.
     // Avoid fetching the same rooms/history data again in the same render cycle.
@@ -458,6 +499,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           title: room.title,
           description: room.description ?? null,
           exam_type: room.exam_type ?? null,
+          registration_start: room.registration_start ?? null,
+          registration_end: room.registration_end ?? null,
+          exam_start: room.exam_start ?? null,
+          exam_end: room.exam_end ?? null,
           examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
         })));
       }
@@ -492,6 +537,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       title: room.title,
       description: room.description ?? null,
       exam_type: room.exam_type ?? null,
+      registration_start: room.registration_start ?? null,
+      registration_end: room.registration_end ?? null,
+      exam_start: room.exam_start ?? null,
+      exam_end: room.exam_end ?? null,
       examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
     }));
     setPracticeRooms(accessibleRooms);
@@ -731,6 +780,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
                 </div>
               </details>}
               <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><History aria-hidden="true" /><span>Lịch sử thi</span></Link>
+              {!protectedProductSurface && <>
+                <Link key="search" href="/search" className={`student-nav-primary ${currentView === "search" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "search", "/search")} title="Tra cứu" aria-label="Tra cứu" aria-current={currentView === "search" ? "page" : undefined}><Search aria-hidden="true" /><span>Tra cứu</span></Link>
+                <Link key="schedule" href="/tkb" className={`student-nav-primary ${currentView === "schedule" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "schedule", "/tkb")} title="Thời khóa biểu" aria-label="Thời khóa biểu" aria-current={currentView === "schedule" ? "page" : undefined}><CalendarClock aria-hidden="true" /><span>Thời khóa biểu</span></Link>
+              </>}
               {isAdmin && <Link href="/admin" className="student-nav-primary" onClick={event => handleNavigationLink(event, "admin", "/admin")} title="Quản trị" aria-label="Quản trị"><ShieldCheck aria-hidden="true" /><span>Quản trị</span></Link>}
             </>}
           </nav>
@@ -744,6 +797,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
           <div className="top-actions">
+            {!adminRouteRequested && !protectedProductSurface && <Link className="reference-topbar-search" href="/search" onClick={event => handleNavigationLink(event, "search", "/search")} aria-label="Mở trang tra cứu"><Search aria-hidden="true" /><span>Tra cứu</span></Link>}
             <div className={`account-menu-wrap ${accountMenuOpen ? "open" : ""}`}>
               <button type="button" ref={accountTriggerRef} className="account-trigger" aria-label={`Mở menu tài khoản ${accountLabel}`} aria-haspopup="menu" aria-controls="account-menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(value => !value)}><span className="account-avatar" aria-hidden="true">{accountInitials}</span><span className="account-name">{accountLabel}</span><ChevronDown aria-hidden="true" /></button>
               <div id="account-menu" ref={accountMenuRef} className="account-dropdown" role="menu" aria-label="Menu tài khoản" hidden={!accountMenuOpen} onKeyDown={handleAccountMenuKeyDown}>
@@ -761,6 +815,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
+        {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
+        {currentView === "schedule" && <StudentSchedulePage rooms={practiceRooms} />}
         {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} />}
         {currentView === "admin" && isAdmin && <RealAdminDashboard />}
       </main>
@@ -1554,6 +1610,16 @@ function RealAdminDashboard() {
     ...profiles.map(profile => ({ id: `profile-${profile.id}`, text: `Tài khoản ${profile.student_code} được tạo`, date: profile.created_at })),
     ...adminCourses.map(course => ({ id: `course-${course.id}`, text: `Khóa học "${course.title}" được tạo`, date: course.created_at })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5), [profiles, adminCourses]);
+  const adminFinderItems = useMemo<AdminFinderItem[]>(() => [
+    { id: "action-create-exam", title: "Tạo đề thi", description: "Mở quy trình tạo phòng và đề thi mới.", category: "Thao tác", path: "/admin/exams/rooms/new", kind: "action" },
+    { id: "action-create-session", title: "Tạo kíp thi", description: "Cấu hình thời gian, đối tượng và quyền truy cập.", category: "Thao tác", path: "/admin/sessions/new", kind: "action" },
+    { id: "action-question-bank", title: "Ngân hàng câu hỏi", description: "Mở công cụ quản lý và rà soát câu hỏi.", category: "Thao tác", path: "/admin/question-bank", kind: "action" },
+    { id: "action-permissions", title: "Phân quyền học viên", description: "Cấp khóa học và phòng khảo thí cho học viên.", category: "Thao tác", path: "/admin/enrollments", kind: "action" },
+    ...adminNav.map(item => ({ id: `navigation-${item.id}`, title: item.label, description: `Mở phân hệ ${item.label.toLocaleLowerCase("vi-VN")}.`, category: item.section, path: item.path, kind: "navigation" as const })),
+    ...students.map(student => ({ id: `student-${student.id}`, title: student.full_name, description: `${student.student_code}${student.email ? ` - ${student.email}` : ""}`, category: "Học viên", path: "/admin/students", searchValue: `${student.full_name} ${student.student_code} ${student.email}`, kind: "student" as const })),
+    ...adminCourses.map(course => ({ id: `course-${course.id}`, title: course.title, description: course.published ? "Khóa học đã xuất bản" : "Khóa học bản nháp", category: "Khóa học", path: `/admin/content/courses/${encodeURIComponent(course.id)}`, searchValue: course.description, kind: "course" as const })),
+    ...adminExamRooms.map(room => ({ id: `room-${room.id}`, title: room.title, description: room.published ? "Phòng thi đã xuất bản" : "Phòng thi bản nháp", category: "Phòng thi", path: `/admin/exams/rooms/${encodeURIComponent(room.id)}/edit`, kind: "room" as const })),
+  ], [adminCourses, adminExamRooms, students]);
 
   async function createStudent(event: React.FormEvent) {
     event.preventDefault();
@@ -1708,6 +1774,15 @@ function RealAdminDashboard() {
     navigateAdmin(path);
   }
 
+  function handleAdminFinderSelect(item: AdminFinderItem) {
+    if (item.kind === "student") setSearchTerm(item.searchValue ?? item.title);
+    navigateAdmin(item.path);
+    if (item.kind === "course") {
+      const match = item.path.match(/^\/admin\/content\/courses\/([^/]+)/);
+      setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
+    }
+  }
+
   const publishedCourseCount = adminCourses.filter(course => course.published).length;
   const draftCourseCount = adminCourses.length - publishedCourseCount;
   const publishedRoomCount = adminExamRooms.filter(room => room.published).length;
@@ -1728,6 +1803,8 @@ function RealAdminDashboard() {
           <Link className="primary-btn small" href="/admin/exams/rooms/new" onClick={event => navigateAdminLink(event, "/admin/exams/rooms/new")}><Plus aria-hidden="true"/> Tạo đề thi</Link>
         </div>
       </header>
+
+      <AdminQuickFinder items={adminFinderItems} loading={loadingAdmin} onSelect={handleAdminFinderSelect} />
 
       {/* KPI row */}
       <nav className="admin-kpi-row admin-dash-status-rail" aria-label="Đi tới dữ liệu tổng quan">

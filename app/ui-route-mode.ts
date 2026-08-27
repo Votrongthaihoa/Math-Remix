@@ -8,6 +8,8 @@ const OPTIMIZED_CONTENT_ROUTES = new Set([
   "/dashboard",
   "/courses",
   "/exam-history",
+  "/search",
+  "/tkb",
   "/profile",
   "/forgot-password",
   "/reset-password",

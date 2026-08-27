@@ -353,7 +353,7 @@ export async function GET(request: Request) {
     const roomIds = rooms.map(room => room.id);
     const exams = roomIds.length ? (await admin.from("exams").select("id,room_id,title,exam_type,mode,duration_minutes,published,results_released_at,sort_order,settings").in("room_id", roomIds).order("sort_order")).data ?? [] : [];
     const examIds = exams.map(exam => exam.id);
-    const attempts = examIds.length ? (await admin.from("exam_attempts").select("id,exam_id,section_id,status,score,correct_answers,total_questions,submitted_at,started_at,duration_seconds,mode,policy_snapshot").eq("student_id", user.id).in("exam_id", examIds).order("started_at", { ascending: false })).data ?? [] : [];
+    const attempts = examIds.length ? (await admin.from("exam_attempts").select("id,exam_id,section_id,title,status,score,correct_answers,total_questions,submitted_at,started_at,duration_seconds,mode,policy_snapshot").eq("student_id", user.id).in("exam_id", examIds).order("started_at", { ascending: false })).data ?? [] : [];
     const examById = new Map(exams.map(exam => [exam.id, exam]));
     const safeAttempts = attempts.map(attempt => {
       const exam = examById.get(attempt.exam_id);

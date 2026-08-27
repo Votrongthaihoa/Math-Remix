@@ -1,0 +1,1211 @@
+/*
+ * Product-shell integration distilled from the supplied newdata/admin builds.
+ * This layer is deliberately isolated from exam, question, answer and result UI.
+ */
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) {
+  --reference-accent: #b5122b;
+  --reference-accent-strong: #951127;
+  --reference-accent-soft: #fff2f4;
+  --reference-ink: #202124;
+  --reference-muted: #667085;
+  --reference-line: rgba(60, 60, 67, 0.14);
+  --reference-surface: rgba(255, 255, 255, 0.94);
+  --reference-shadow: 0 14px 36px rgba(74, 23, 32, 0.08), 0 2px 8px rgba(74, 23, 32, 0.04);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) {
+  --admin-reference-accent: #b5122b;
+  --admin-reference-accent-soft: #fff2f4;
+  --admin-reference-ink: #202124;
+  --admin-reference-muted: #667085;
+  --admin-reference-line: rgba(60, 60, 67, 0.14);
+  --admin-reference-surface: rgba(255, 255, 255, 0.96);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid var(--reference-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition-property: color, border-color, background-color, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search:hover {
+  border-color: rgba(181, 18, 43, 0.3);
+  background: #fff;
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search:active {
+  transform: scale(0.96);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-search-page, .reference-schedule-page) {
+  display: grid;
+  gap: 22px;
+  width: min(100%, 1380px);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block-end: 36px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.7fr);
+  align-items: end;
+  gap: 28px;
+  min-width: 0;
+  padding: 30px;
+  border: 1px solid rgba(181, 18, 43, 0.11);
+  border-radius: 18px;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 248, 0.96)),
+    var(--reference-surface);
+  box-shadow: var(--reference-shadow);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading > * {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-kicker {
+  display: block;
+  margin-block-end: 8px;
+  color: var(--reference-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading h1 {
+  margin: 0;
+  color: var(--reference-ink);
+  font-size: clamp(26px, 2.8vw, 38px);
+  font-weight: 760;
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading p {
+  max-width: 64ch;
+  margin: 10px 0 0;
+  color: var(--reference-muted);
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(60, 60, 67, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary > span {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 11px 6px;
+  color: var(--reference-muted);
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary > span + span {
+  border-inline-start: 1px solid rgba(60, 60, 67, 0.1);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary b {
+  color: var(--reference-ink);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-console {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  align-items: center;
+  gap: 14px 18px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--reference-line);
+  border-radius: 16px;
+  background: var(--reference-surface);
+  box-shadow: 0 8px 28px rgba(31, 35, 48, 0.05);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 48px;
+  padding-inline: 15px 8px;
+  border: 1px solid rgba(60, 60, 67, 0.17);
+  border-radius: 12px;
+  background: #f8f9fb;
+  color: #8b94a3;
+  cursor: text;
+  transition-property: border-color, background-color, box-shadow;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field:focus-within {
+  border-color: rgba(181, 18, 43, 0.56);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, 0.1);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field > svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--reference-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field input::placeholder {
+  color: #9299a5;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field input:focus-visible,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field input::-webkit-search-cancel-button,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field input::-webkit-search-cancel-button {
+  appearance: none;
+  width: 0;
+  height: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #727b89;
+  cursor: pointer;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field button:hover {
+  background: #eceef2;
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f1f2f5;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters button {
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #646d7b;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: color, background-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters button[aria-pressed="true"] {
+  background: #fff;
+  color: var(--reference-accent);
+  box-shadow: 0 2px 7px rgba(31, 35, 48, 0.1);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters button:active {
+  transform: scale(0.96);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-count {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--reference-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-groups {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-group,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-rooms,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-panel {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--reference-line);
+  border-radius: 16px;
+  background: var(--reference-surface);
+  box-shadow: 0 8px 28px rgba(31, 35, 48, 0.05);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-head,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin-block-end: 14px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-result-head, .reference-week-panel-head) > span {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--reference-accent-soft);
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-result-head, .reference-week-panel-head) > span svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-result-head, .reference-week-panel-head) > div {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-result-head, .reference-week-panel-head) h2 {
+  margin: 0;
+  color: var(--reference-ink);
+  font-size: 15px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-result-head, .reference-week-panel-head) p {
+  margin: 2px 0 0;
+  color: var(--reference-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-list {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-list > :where(a, button) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #f8f9fb;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition-property: background-color, border-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-list > :where(a, button):hover {
+  border-color: rgba(181, 18, 43, 0.18);
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(84, 25, 36, 0.07);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-list > :where(a, button):active {
+  transform: scale(0.99);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-list > :where(a, button) > svg {
+  width: 17px;
+  height: 17px;
+  color: #9aa1ac;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--reference-accent);
+  box-shadow: inset 0 0 0 1px rgba(60, 60, 67, 0.1);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-copy b {
+  color: #30343b;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-copy small {
+  display: -webkit-box;
+  min-width: 0;
+  color: #7a8391;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-meta,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-score {
+  color: #6d7683;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-score {
+  min-width: 42px;
+  color: var(--reference-accent);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 48px 24px;
+  border: 1px dashed rgba(181, 18, 43, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-empty-state > span {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--reference-accent-soft);
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-empty-state h2 {
+  margin: 8px 0 0;
+  color: var(--reference-ink);
+  font-size: 17px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-empty-state p {
+  max-width: 48ch;
+  margin: 0;
+  color: var(--reference-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-empty-state button {
+  min-height: 40px;
+  margin-block-start: 6px;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--reference-accent);
+  color: #fff;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-heading {
+  align-items: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls {
+  display: grid;
+  grid-template-columns: auto minmax(150px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--reference-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls strong {
+  min-width: 0;
+  color: #505966;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid rgba(60, 60, 67, 0.12);
+  border-radius: 10px;
+  background: #fff;
+  color: #626b78;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition-property: color, border-color, background-color, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls button:hover {
+  border-color: rgba(181, 18, 43, 0.3);
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls button:active {
+  transform: scale(0.96);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls .reference-current-week {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 32px;
+  border-color: transparent;
+  background: var(--reference-accent-soft);
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(130px, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 5px;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 130px;
+  padding: 8px;
+  border: 1px solid rgba(60, 60, 67, 0.1);
+  border-radius: 13px;
+  background: #f8f9fb;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li.is-today {
+  border-color: rgba(181, 18, 43, 0.28);
+  background: #fff8f9;
+  box-shadow: inset 0 3px 0 var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li > header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 6px;
+  min-width: 0;
+  padding: 4px 3px 7px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li > header span {
+  min-width: 0;
+  color: #697280;
+  font-size: 11px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li > header b {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: #2f343b;
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li > header small {
+  color: #939aa5;
+  font-size: 10px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-day-events {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border-inline-start: 3px solid #98a2b3;
+  border-radius: 9px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 3px 12px rgba(31, 35, 48, 0.05);
+  transition-property: box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event:hover {
+  box-shadow: 0 8px 20px rgba(61, 20, 29, 0.1);
+  transform: translateY(-1px);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event.tone-upcoming {
+  border-inline-start-color: #b98119;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event.tone-open {
+  border-inline-start-color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event.tone-ended {
+  border-inline-start-color: #87909d;
+  opacity: 0.78;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-event-status {
+  color: var(--reference-accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event > b {
+  color: #30343b;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event > span:not(.reference-event-status) {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  color: #68717f;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event > span svg {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  margin-block-start: 1px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-schedule-event > small {
+  color: #8a929e;
+  font-size: 9px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-day-empty {
+  padding: 15px 7px;
+  color: #a0a6af;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid > a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  min-height: 66px;
+  padding: 11px 13px;
+  border: 1px solid rgba(60, 60, 67, 0.1);
+  border-radius: 12px;
+  background: #f8f9fb;
+  color: inherit;
+  text-decoration: none;
+  transition-property: border-color, background-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid > a:hover {
+  border-color: rgba(181, 18, 43, 0.2);
+  background: #fff;
+  box-shadow: 0 7px 20px rgba(61, 20, 29, 0.07);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid > a:active {
+  transform: scale(0.99);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid > a > span:first-child {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--reference-accent-soft);
+  color: var(--reference-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid > a > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid b {
+  color: #30343b;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid small {
+  color: #7a8390;
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid > a > svg {
+  width: 16px;
+  height: 16px;
+  color: #9aa1ab;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-inline-empty {
+  margin: 0;
+  padding: 18px;
+  border-radius: 11px;
+  background: #f8f9fb;
+  color: #848c98;
+  font-size: 12px;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-topbar-search, .reference-search-field button, .reference-search-filters button, .reference-result-list > a, .reference-result-list > button, .reference-empty-state button, .reference-week-controls button, .reference-schedule-event, .reference-open-room-grid > a):focus-visible {
+  outline: 2px solid var(--reference-accent);
+  outline-offset: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder {
+  display: grid;
+  order: 2;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(280px, 1fr);
+  gap: 16px 22px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--admin-reference-line);
+  border-radius: 16px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 248, 0.95)),
+    var(--admin-reference-surface);
+  box-shadow: 0 10px 30px rgba(74, 23, 32, 0.06);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder-intro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder-intro > span {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--admin-reference-accent-soft);
+  color: var(--admin-reference-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder-intro > span svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder-intro > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder-intro h2 {
+  margin: 0;
+  color: var(--admin-reference-ink);
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder-intro p {
+  margin: 3px 0 0;
+  color: var(--admin-reference-muted);
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-wrap {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-wrap > label {
+  color: #66707e;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 43px;
+  padding-inline: 13px 7px;
+  border: 1px solid rgba(60, 60, 67, 0.16);
+  border-radius: 11px;
+  background: #fff;
+  color: #8a929e;
+  transition-property: border-color, box-shadow;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field:focus-within {
+  border-color: rgba(181, 18, 43, 0.52);
+  box-shadow: 0 0 0 3px rgba(181, 18, 43, 0.09);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field > svg {
+  width: 17px;
+  height: 17px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--admin-reference-ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field button {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #78818e;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field button:hover {
+  background: var(--admin-reference-accent-soft);
+  color: var(--admin-reference-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  gap: 5px 8px;
+  min-width: 0;
+  min-height: 84px;
+  padding: 11px;
+  border: 1px solid rgba(60, 60, 67, 0.1);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.86);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition-property: border-color, background-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results > button:hover {
+  border-color: rgba(181, 18, 43, 0.22);
+  background: #fff;
+  box-shadow: 0 7px 18px rgba(74, 23, 32, 0.07);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results > button:active {
+  transform: scale(0.98);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results > button > svg {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 15px;
+  height: 15px;
+  color: #9aa1ab;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-result-category {
+  grid-column: 1;
+  color: var(--admin-reference-accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-result-copy {
+  display: grid;
+  grid-column: 1;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-result-copy b {
+  color: #333840;
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-result-copy small {
+  display: -webkit-box;
+  color: #7b8491;
+  font-size: 9px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-loading {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #7c8490;
+  font-size: 11px;
+  text-align: center;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-result-count {
+  grid-column: 1 / -1;
+  margin: -5px 0 0;
+  color: #8a929d;
+  font-size: 9px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-reference-search-field button, .admin-reference-results > button):focus-visible {
+  outline: 2px solid var(--admin-reference-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary {
+    width: min(100%, 480px);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-console {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters {
+    justify-self: start;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li {
+    min-width: 0;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search {
+    width: 38px;
+    padding: 8px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search span {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-search-page, .reference-schedule-page) {
+    gap: 14px;
+    padding-block-end: 24px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading {
+    gap: 20px;
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading h1 {
+    font-size: clamp(24px, 8vw, 32px);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-page-heading p {
+    font-size: 13px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-console,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-group,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-rooms,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-panel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    border-radius: 14px;
+    overflow: visible;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-filters button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-list > :where(a, button) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-meta,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-result-score {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-open-room-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li {
+    grid-template-columns: minmax(72px, 0.28fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li > header {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 5px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-grid > li > header b {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-day-events {
+    align-self: stretch;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-result-count {
+    grid-column: 1;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-results {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-summary > span + span {
+    border-block-start: 1px solid rgba(60, 60, 67, 0.1);
+    border-inline-start: 0;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-week-controls {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-topbar-search, .reference-search-field, .reference-search-filters button, .reference-result-list > a, .reference-result-list > button, .reference-week-controls button, .reference-schedule-event, .reference-open-room-grid > a),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-reference-search-field, .admin-reference-results > button) {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-topbar-search, .reference-page-heading, .reference-search-console, .reference-result-group, .reference-open-rooms, .reference-week-panel),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-finder {
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-search-field input:focus-visible,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-search-field input:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 1px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.reference-topbar-search, .reference-search-field button, .reference-search-filters button, .reference-result-list > a, .reference-result-list > button, .reference-empty-state button, .reference-week-controls button, .reference-schedule-event, .reference-open-room-grid > a):focus-visible,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-reference-search-field button, .admin-reference-results > button):focus-visible {
+    outline: 2px solid CanvasText;
+    box-shadow: none;
+  }
+}

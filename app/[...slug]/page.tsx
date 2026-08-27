@@ -3,7 +3,7 @@ import PlatformApp from "../platform";
 import LoadingIndicator from "../loading-indicator";
 import { notFound } from "next/navigation";
 
-const staticRoutes = new Set(["dashboard", "exam-room", "courses", "exam-history", "profile", "admin", "forgot-password", "reset-password"]);
+const staticRoutes = new Set(["dashboard", "exam-room", "courses", "exam-history", "search", "tkb", "profile", "admin", "forgot-password", "reset-password"]);
 const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const guestTokenSegment = /^[A-Za-z0-9_-]{10,100}$/;
 
