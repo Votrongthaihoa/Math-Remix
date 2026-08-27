@@ -7,7 +7,14 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.13.0"
+    "node": "22.x"
+  },
+  "allowScripts": {
+    "core-js": false,
+    "esbuild@0.18.20 || 0.25.12 || 0.27.3 || 0.28.0 || 0.28.1": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.11.1": true,
+    "workerd@1.20260515.1 || 1.20260825.1": true
   },
   "scripts": {
     "dev": "cross-env VINEXT_CLOUDFLARE_DEV=0 WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
