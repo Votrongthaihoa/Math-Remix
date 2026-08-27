@@ -19,6 +19,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const signupEnabled = import.meta.env.VITE_PUBLIC_SIGNUP_ENABLED === "true";
 
   if (isAuthenticated && user) {
     return <Navigate to={homePathForRole(user.role)} replace />;
@@ -29,7 +30,11 @@ export function LoginPage() {
     setSubmitting(true);
     setError("");
     try {
-      const session = await signInWithPassword(email.trim(), password);
+      const session = await signInWithPassword(
+        email.trim(),
+        password,
+        adminLogin ? "admin" : "student",
+      );
       if (adminLogin && session.user.role === "student") {
         throw new Error("Tài khoản này không có quyền truy cập trang quản trị.");
       }
@@ -112,6 +117,12 @@ export function LoginPage() {
               {adminLogin ? "Đăng nhập học tập" : "Đăng nhập quản trị"}
             </Link>
           </div>
+          {!adminLogin && signupEnabled ? (
+            <div className="aeck-login-switch aeck-signup-switch">
+              <span>Chưa có tài khoản?</span>
+              <Link to="/signup">Tạo tài khoản học viên</Link>
+            </div>
+          ) : null}
         </form>
       </section>
     </main>

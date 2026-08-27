@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import { getPreviewSession } from "../../api/auth-api.ts";
+import { shouldAutoStartPreviewSession } from "../../api/preview-session.ts";
 import { authStore } from "../../store/auth-store.ts";
 
 export function SessionBootstrap({ children }: { children: ReactNode }) {
@@ -8,7 +9,10 @@ export function SessionBootstrap({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const finish = () => {
-      if (!authStore.getState().isAuthenticated) {
+      if (
+        !authStore.getState().isAuthenticated &&
+        shouldAutoStartPreviewSession(import.meta.env.VITE_PREVIEW_AUTO_SESSION)
+      ) {
         const preview = getPreviewSession();
         if (preview) authStore.getState().login(preview.token, preview.user);
       }

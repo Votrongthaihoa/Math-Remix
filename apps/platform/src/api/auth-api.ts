@@ -7,6 +7,7 @@ import {
 import { z } from "zod";
 
 import { isCompiledPreviewSessionEnabled } from "./preview-session.ts";
+import { resolvePreviewRole } from "./preview-session.ts";
 
 const SupabasePasswordResponseSchema = z.object({
   access_token: z.string().min(1),
@@ -39,14 +40,19 @@ export function isPreviewSessionEnabled() {
   );
 }
 
-export function getPreviewSession() {
+export function getPreviewSession(requestedRole?: "student" | "admin" | "ctv") {
   if (!isPreviewSessionEnabled()) return null;
-  const role = RoleSchema.catch("student").parse(import.meta.env.VITE_PREVIEW_ROLE);
+  const configuredRole = RoleSchema.catch("student").parse(import.meta.env.VITE_PREVIEW_ROLE);
+  const role = resolvePreviewRole(configuredRole, requestedRole);
   return { token: `preview-${role}-token`, user: previewUser(role) };
 }
 
-export async function signInWithPassword(email: string, password: string) {
-  const preview = getPreviewSession();
+export async function signInWithPassword(
+  email: string,
+  password: string,
+  previewRole?: "student" | "admin" | "ctv",
+) {
+  const preview = getPreviewSession(previewRole);
   if (preview) return preview;
 
   const supabaseUrl = import.meta.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");

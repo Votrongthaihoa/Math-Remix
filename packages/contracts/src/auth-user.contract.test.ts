@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { AuthUserSchema } from "./auth.ts";
+import {
+  AuthUserSchema,
+  SignupRequestSchema,
+  SignupResultSchema,
+} from "./auth.ts";
 
 test("authenticated users carry a role and explicit module/action grants", () => {
   const user = AuthUserSchema.parse({
@@ -18,4 +22,26 @@ test("authenticated users carry a role and explicit module/action grants", () =>
     AuthUserSchema.safeParse({ ...user, email: "not-an-email" }).success,
     false,
   );
+});
+
+test("public signup contract validates the user fields and verification result", () => {
+  const request = SignupRequestSchema.parse({
+    email: "  STUDENT@example.vn ",
+    password: "Password123!",
+    fullName: "  Nguyễn Minh Anh  ",
+    turnstileToken: "preview-turnstile-token",
+  });
+  const result = SignupResultSchema.parse({
+    email: "student@example.vn",
+    verificationRequired: true,
+  });
+
+  assert.deepEqual(request, {
+    email: "student@example.vn",
+    password: "Password123!",
+    fullName: "Nguyễn Minh Anh",
+    turnstileToken: "preview-turnstile-token",
+  });
+  assert.equal(result.verificationRequired, true);
+  assert.throws(() => SignupRequestSchema.parse({ ...request, password: "short" }));
 });

@@ -30,12 +30,27 @@ export const AuthUserSchema = z.object({
 });
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 
+export const SignupRequestSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email()),
+  password: z.string().min(8).max(128),
+  fullName: z.string().trim().min(1).max(120),
+  turnstileToken: z.string().trim().min(1).max(2048),
+});
+export type SignupRequest = z.infer<typeof SignupRequestSchema>;
+
+export const SignupResultSchema = z.object({
+  email: z.email(),
+  verificationRequired: z.literal(true),
+});
+export type SignupResult = z.infer<typeof SignupResultSchema>;
+
 export const ApiErrorCodeSchema = z.enum([
   "AUTH_REQUIRED",
   "FORBIDDEN",
   "INVALID_REQUEST",
   "NOT_FOUND",
   "CONFLICT",
+  "EDIT_CONFLICT",
   "RATE_LIMITED",
   "UPSTREAM_UNAVAILABLE",
   "INTERNAL_ERROR",

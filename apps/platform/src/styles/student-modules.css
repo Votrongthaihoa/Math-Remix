@@ -1,0 +1,280 @@
+.ui-shell.student-app.product-shell .aeck-student-module { width: min(100%, 1280px); min-width: 0; display: grid; gap: 22px; margin-inline: auto; }
+.ui-shell.student-app.product-shell .aeck-student-page-heading { min-width: 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 8px 0 2px; }
+.ui-shell.student-app.product-shell .aeck-student-page-heading > div { min-width: 0; }
+.ui-shell.student-app.product-shell .aeck-student-page-heading h1 { margin: 0; color: #232b39; font-size: clamp(1.6rem, 2.4vw, 2rem); line-height: 1.12; letter-spacing: -0.035em; text-wrap: balance; }
+.ui-shell.student-app.product-shell .aeck-student-page-heading p { max-width: 66ch; margin: 8px 0 0; color: #727b8b; font-size: 14px; line-height: 1.55; text-wrap: pretty; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-student-back { display: inline-flex; margin-bottom: 8px; color: var(--aeck-red); font-size: 12px; font-weight: 700; text-decoration: none; }
+.ui-shell.student-app.product-shell .aeck-student-search { width: min(340px, 36vw); min-width: 220px; min-height: 42px; display: flex; align-items: center; gap: 9px; padding-inline: 13px; border: 1px solid #d9dde4; border-radius: 999px; background: rgb(255 255 255 / 0.92); box-shadow: 0 3px 12px rgb(15 23 42 / 0.04); }
+.ui-shell.student-app.product-shell .aeck-student-search:focus-within { border-color: var(--aeck-red); box-shadow: 0 0 0 3px rgb(205 22 39 / 0.1); }
+.ui-shell.student-app.product-shell .aeck-student-search svg { width: 18px; height: 18px; flex: 0 0 auto; color: #818a99; }
+.ui-shell.student-app.product-shell .aeck-student-search input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: #252d3a; font: inherit; font-size: 14px; }
+
+.ui-shell.student-app.product-shell .aeck-course-grid { min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 20px; }
+.ui-shell.student-app.product-shell .aeck-course-card { min-width: 0; overflow: clip; border: 1px solid #e2e5e9; border-radius: 15px; background: #fff; box-shadow: 0 8px 26px rgb(20 27 41 / 0.06); transition-property: transform, box-shadow; transition-duration: 180ms; }
+.ui-shell.student-app.product-shell .aeck-course-card:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgb(20 27 41 / 0.1); }
+.ui-shell.student-app.product-shell .aeck-course-cover { position: relative; min-height: 190px; display: grid; place-content: center; justify-items: center; gap: 10px; overflow: clip; background: linear-gradient(145deg, color-mix(in srgb, var(--course-accent) 9%, white), #fff 58%); isolation: isolate; }
+.ui-shell.student-app.product-shell .aeck-course-cover::before,
+.ui-shell.student-app.product-shell .aeck-course-cover::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--course-accent) 17%, transparent); }
+.ui-shell.student-app.product-shell .aeck-course-cover::before { width: 280px; height: 280px; inset-block-start: -170px; inset-inline-end: -80px; }
+.ui-shell.student-app.product-shell .aeck-course-cover::after { width: 190px; height: 190px; inset-block-end: -130px; inset-inline-start: -35px; }
+.ui-shell.student-app.product-shell .aeck-course-cover img { width: min(132px, 36%); height: 48px; object-fit: contain; }
+.ui-shell.student-app.product-shell .aeck-course-cover > div { display: grid; justify-items: center; gap: 3px; }
+.ui-shell.student-app.product-shell .aeck-course-cover small { color: #717a89; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.ui-shell.student-app.product-shell .aeck-course-cover strong { color: var(--course-accent); font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1; letter-spacing: -0.035em; }
+.ui-shell.student-app.product-shell .aeck-course-cover > i { position: absolute; inset-block-end: 15px; inset-inline-end: 17px; color: color-mix(in srgb, var(--course-accent) 28%, white); font-size: 34px; font-style: normal; font-weight: 800; line-height: 1; }
+.ui-shell.student-app.product-shell .aeck-course-seal { position: absolute; inset-block-start: 16px; inset-inline-start: 17px; color: #252d3a; font-size: 12px; font-weight: 850; letter-spacing: 0.08em; }
+.ui-shell.student-app.product-shell .aeck-course-card-content { min-width: 0; min-height: 172px; padding: 17px 19px 15px; }
+.ui-shell.student-app.product-shell .aeck-course-card-content > span { color: var(--course-accent); font-size: 10px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; }
+.ui-shell.student-app.product-shell .aeck-course-card-content h2 { margin: 7px 0 0; color: #242c39; font-size: 17px; line-height: 1.35; text-wrap: balance; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-course-card-content p { display: -webkit-box; margin: 8px 0 0; overflow: hidden; color: #697384; font-size: 12px; line-height: 1.5; overflow-wrap: break-word; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.ui-shell.student-app.product-shell .aeck-course-progress { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 17px; }
+.ui-shell.student-app.product-shell .aeck-course-progress > div { height: 5px; overflow: clip; border-radius: 999px; background: #eef0f3; }
+.ui-shell.student-app.product-shell .aeck-course-progress > div span { height: 100%; display: block; border-radius: inherit; background: var(--course-accent); }
+.ui-shell.student-app.product-shell .aeck-course-progress small { color: #798292; font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-course-card > footer { min-width: 0; min-height: 55px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 19px; border-top: 1px solid #eceef1; }
+.ui-shell.student-app.product-shell .aeck-course-card > footer span { min-width: 0; display: flex; align-items: center; gap: 6px; color: #7a8392; font-size: 11px; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-course-card > footer span svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--course-accent); }
+.ui-shell.student-app.product-shell .aeck-course-card > footer a { flex: 0 0 auto; color: var(--aeck-red); font-size: 12px; font-weight: 750; text-decoration: none; }
+
+.ui-shell.student-app.product-shell .aeck-study-heading { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 22px 24px; border-radius: 16px; background: linear-gradient(125deg, color-mix(in srgb, var(--course-accent) 10%, white), #fff 60%); box-shadow: 0 8px 28px rgb(15 23 42 / 0.05); }
+.ui-shell.student-app.product-shell .aeck-study-heading > a,
+.ui-shell.student-app.product-shell .aeck-study-heading > span,
+.ui-shell.student-app.product-shell .aeck-study-heading > strong { color: #6d7685; font-size: 11px; line-height: 1.4; text-decoration: none; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .aeck-study-heading > a { color: var(--course-accent); font-weight: 700; }
+.ui-shell.student-app.product-shell .aeck-study-heading > div { width: 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 7px 16px; margin-top: 9px; }
+.ui-shell.student-app.product-shell .aeck-study-heading h1 { margin: 0; color: #212936; font-size: clamp(1.35rem, 2.2vw, 1.85rem); line-height: 1.15; letter-spacing: -0.03em; text-wrap: balance; }
+.ui-shell.student-app.product-shell .aeck-study-heading p { max-width: 70ch; margin: 0; color: #697384; font-size: 13px; line-height: 1.5; text-wrap: pretty; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-study-heading div > span { grid-column: 2; grid-row: 1 / span 2; align-self: center; padding: 7px 11px; border-radius: 999px; background: #fff; color: var(--course-accent); font-size: 11px; font-weight: 750; box-shadow: 0 2px 8px rgb(15 23 42 / 0.06); white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-study-layout { min-width: 0; display: grid; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside { position: sticky; inset-block-start: calc(var(--shell-topbar) + 18px); min-width: 0; max-height: calc(100vh - var(--shell-topbar) - 40px); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--aeck-line); border-radius: 14px; background: #fff; box-shadow: var(--aeck-shadow-sm); }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside > header { min-width: 0; display: flex; align-items: center; gap: 10px; padding: 16px; border-bottom: 1px solid var(--aeck-line); }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside > header svg { width: 20px; height: 20px; flex: 0 0 auto; color: var(--aeck-red); }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside > header div { min-width: 0; display: grid; gap: 2px; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside > header strong { font-size: 13px; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside > header span { color: #7a8392; font-size: 10px; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside section { min-width: 0; border-bottom: 1px solid #eceef1; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside section:last-child { border-bottom: 0; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside section > button { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border: 0; background: #fafbfc; color: #313947; font: inherit; font-size: 12px; font-weight: 700; text-align: start; cursor: pointer; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside section > button span { min-width: 0; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside section > button svg { width: 16px; height: 16px; flex: 0 0 auto; transition: rotate 150ms ease-out; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside section > button[aria-expanded="true"] svg { rotate: 180deg; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside ol { margin: 0; padding: 7px; list-style: none; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside li button { width: 100%; min-height: 42px; display: flex; align-items: flex-start; gap: 9px; padding: 9px 10px; border: 0; border-radius: 9px; background: transparent; color: #5f6978; font: inherit; font-size: 11px; line-height: 1.45; text-align: start; cursor: pointer; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside li button:hover { background: #f5f6f8; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside li button[aria-current="true"] { background: #fff0f1; color: #9e1728; font-weight: 700; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside li button svg { width: 15px; height: 15px; flex: 0 0 auto; margin-top: 1px; }
+.ui-shell.student-app.product-shell .aeck-study-layout > aside li button span { min-width: 0; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-lesson-viewer { min-width: 0; display: grid; gap: 16px; }
+.ui-shell.student-app.product-shell .aeck-lesson-stage { min-width: 0; min-height: 360px; display: grid; place-content: center; justify-items: center; padding: 36px; border: 1px solid var(--aeck-line); border-radius: 16px; background: linear-gradient(145deg, #f7f8fa, #fff); text-align: center; box-shadow: var(--aeck-shadow-sm); }
+.ui-shell.student-app.product-shell .aeck-lesson-stage > span { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 18px; background: #fce9eb; color: var(--aeck-red); }
+.ui-shell.student-app.product-shell .aeck-lesson-stage svg { width: 29px; height: 29px; }
+.ui-shell.student-app.product-shell .aeck-lesson-stage h2 { max-width: 28ch; margin: 18px 0 0; font-size: clamp(1.35rem, 2.4vw, 1.85rem); line-height: 1.2; text-wrap: balance; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-lesson-stage p { max-width: 60ch; margin: 9px 0 0; color: #697384; font-size: 13px; line-height: 1.55; text-wrap: pretty; }
+.ui-shell.student-app.product-shell .aeck-lesson-stage a { min-height: 42px; display: inline-flex; align-items: center; margin-top: 20px; padding: 9px 16px; border-radius: 10px; background: var(--aeck-red); color: #fff; font-size: 12px; font-weight: 750; text-decoration: none; box-shadow: 0 6px 16px rgb(205 22 39 / 0.18); }
+.ui-shell.student-app.product-shell .aeck-lesson-resources { min-width: 0; border: 1px solid var(--aeck-line); border-radius: 14px; background: #fff; box-shadow: var(--aeck-shadow-sm); }
+.ui-shell.student-app.product-shell .aeck-lesson-resources > header { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 17px; border-bottom: 1px solid var(--aeck-line); }
+.ui-shell.student-app.product-shell .aeck-lesson-resources h3 { margin: 0; font-size: 14px; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources header span { color: #7a8392; font-size: 10px; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources > div { display: grid; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article { min-width: 0; min-height: 62px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 11px 16px; border-bottom: 1px solid #eceef1; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article:last-child { border-bottom: 0; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article > svg { width: 19px; height: 19px; color: var(--aeck-red); }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article div { min-width: 0; display: grid; gap: 3px; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article span { color: #7a8392; font-size: 10px; }
+.ui-shell.student-app.product-shell .aeck-lesson-resources article a { color: var(--aeck-red); font-size: 11px; font-weight: 750; text-decoration: none; }
+
+.ui-shell.student-app.product-shell .aeck-segmented-filter { display: flex; flex-wrap: wrap; gap: 5px; padding: 4px; border: 1px solid #dfe2e7; border-radius: 12px; background: #f5f6f8; }
+.ui-shell.student-app.product-shell .aeck-segmented-filter button { min-height: 34px; padding: 6px 11px; border: 0; border-radius: 8px; background: transparent; color: #697384; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.ui-shell.student-app.product-shell .aeck-segmented-filter button[aria-pressed="true"] { background: #fff; color: var(--aeck-red); box-shadow: 0 1px 4px rgb(15 23 42 / 0.12); }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid > article { min-width: 0; min-height: 250px; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: clip; border: 1px solid #e1e4e9; border-radius: 15px; background: #fff; box-shadow: 0 8px 24px rgb(15 23 42 / 0.055); }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid > article > header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #eceef1; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid > article > header span { color: var(--aeck-red); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid > article > header i { color: #e2e5e9; font-size: 26px; font-style: normal; font-weight: 800; line-height: 1; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid > article > div { min-width: 0; padding: 20px 17px; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid > article > div svg { width: 28px; height: 28px; color: var(--aeck-red); }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid h2 { margin: 15px 0 0; font-size: 17px; line-height: 1.3; text-wrap: balance; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid p { margin: 8px 0 0; color: #697384; font-size: 12px; line-height: 1.5; text-wrap: pretty; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid footer { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; border-top: 1px solid #eceef1; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid footer span { color: #788191; font-size: 10px; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid footer a { display: inline-flex; align-items: center; gap: 6px; color: var(--aeck-red); font-size: 11px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-exam-room-grid footer svg { width: 14px; height: 14px; }
+.ui-shell.student-app.product-shell .aeck-assessment-list { min-width: 0; display: grid; gap: 10px; }
+.ui-shell.student-app.product-shell .aeck-assessment-list article { min-width: 0; min-height: 92px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 15px; padding: 13px 16px; border: 1px solid #e0e3e8; border-radius: 13px; background: #fff; box-shadow: 0 4px 14px rgb(15 23 42 / 0.04); }
+.ui-shell.student-app.product-shell .aeck-assessment-index { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: #fff0f1; color: var(--aeck-red); font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-assessment-list article > div { min-width: 0; }
+.ui-shell.student-app.product-shell .aeck-assessment-list article > div > span { color: var(--aeck-red); font-size: 9px; font-weight: 750; letter-spacing: 0.06em; }
+.ui-shell.student-app.product-shell .aeck-assessment-list h2 { margin: 4px 0 0; font-size: 14px; line-height: 1.35; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-assessment-list p { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin: 7px 0 0; color: #7b8493; font-size: 10px; }
+.ui-shell.student-app.product-shell .aeck-assessment-list p svg { width: 13px; height: 13px; }
+.ui-shell.student-app.product-shell .aeck-assessment-list p b { color: #c8cdd5; }
+.ui-shell.student-app.product-shell .aeck-assessment-list article > a { min-height: 38px; display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 9px; background: var(--aeck-red); color: #fff; font-size: 11px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-assessment-list article > a svg { width: 14px; height: 14px; }
+
+.ui-shell.student-app.product-shell .aeck-history-summary { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px; }
+.ui-shell.student-app.product-shell .aeck-history-summary article { min-height: 80px; display: grid; align-content: center; gap: 5px; padding: 15px 17px; border: 1px solid #e1e4e8; border-radius: 13px; background: #fff; }
+.ui-shell.student-app.product-shell .aeck-history-summary span { color: #737c8b; font-size: 11px; }
+.ui-shell.student-app.product-shell .aeck-history-summary strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-history-list { min-width: 0; display: grid; gap: 9px; }
+.ui-shell.student-app.product-shell .aeck-history-list article { min-width: 0; min-height: 88px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 13px; padding: 12px 15px; border: 1px solid #e1e4e8; border-radius: 13px; background: #fff; }
+.ui-shell.student-app.product-shell .aeck-history-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: #eaf7f2; color: #137653; }
+.ui-shell.student-app.product-shell .aeck-history-icon svg { width: 19px; height: 19px; }
+.ui-shell.student-app.product-shell .aeck-history-list article > div { min-width: 0; }
+.ui-shell.student-app.product-shell .aeck-history-list article > div > span { color: var(--aeck-red); font-size: 9px; font-weight: 750; letter-spacing: 0.05em; }
+.ui-shell.student-app.product-shell .aeck-history-list h2 { margin: 4px 0 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-history-list time { display: block; margin-top: 5px; color: #7b8493; font-size: 10px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-history-score { display: grid; justify-items: end; gap: 1px; }
+.ui-shell.student-app.product-shell .aeck-history-score span,
+.ui-shell.student-app.product-shell .aeck-history-score small { color: #7b8493; font-size: 9px; }
+.ui-shell.student-app.product-shell .aeck-history-score strong { color: var(--aeck-red); font-size: 20px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-history-list article > a { min-height: 34px; display: inline-flex; align-items: center; padding: 7px 10px; border: 1px solid #d9dde3; border-radius: 9px; color: #3d4655; font-size: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+
+.ui-shell.student-app.product-shell .aeck-progress-grid { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; }
+.ui-shell.student-app.product-shell .aeck-progress-grid article { min-width: 0; display: grid; justify-items: center; gap: 14px; padding: 20px; border: 1px solid #e1e4e8; border-radius: 15px; background: #fff; box-shadow: 0 8px 24px rgb(15 23 42 / 0.05); text-align: center; }
+.ui-shell.student-app.product-shell .aeck-progress-grid article > header { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; color: var(--aeck-red); font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: 0.05em; }
+.ui-shell.student-app.product-shell .aeck-progress-grid header svg { width: 16px; height: 16px; }
+.ui-shell.student-app.product-shell .aeck-progress-grid h2 { margin: 0; font-size: 16px; line-height: 1.35; text-wrap: balance; }
+.ui-shell.student-app.product-shell .aeck-progress-ring { --progress: 0; width: 118px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(var(--aeck-red) calc(var(--progress) * 1%), #eceff2 0); }
+.ui-shell.student-app.product-shell .aeck-progress-ring::before { content: ""; grid-area: 1 / 1; width: 86%; aspect-ratio: 1; border-radius: 50%; background: #fff; }
+.ui-shell.student-app.product-shell .aeck-progress-ring strong { grid-area: 1 / 1; z-index: 1; font-size: 21px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-progress-grid dl { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.ui-shell.student-app.product-shell .aeck-progress-grid dl div { min-width: 0; padding: 9px; border-radius: 9px; background: #f7f8fa; }
+.ui-shell.student-app.product-shell .aeck-progress-grid dt { color: #7b8493; font-size: 9px; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-progress-grid dd { margin: 4px 0 0; font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .aeck-progress-grid article > a { display: inline-flex; align-items: center; gap: 7px; color: var(--aeck-red); font-size: 11px; font-weight: 750; text-decoration: none; }
+.ui-shell.student-app.product-shell .aeck-progress-grid article > a svg { width: 14px; height: 14px; }
+
+.ui-shell.student-app.product-shell .aeck-recap-page > header { display: grid; justify-items: center; padding: 30px 20px 24px; text-align: center; }
+.ui-shell.student-app.product-shell .aeck-recap-page > header > span { width: 62px; height: 62px; display: grid; place-items: center; border-radius: 18px; background: #fff1dc; color: #a96500; }
+.ui-shell.student-app.product-shell .aeck-recap-page > header svg { width: 29px; height: 29px; }
+.ui-shell.student-app.product-shell .aeck-recap-page > header h1 { margin: 16px 0 0; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.035em; }
+.ui-shell.student-app.product-shell .aeck-recap-page > header p { margin: 7px 0 0; color: #727b8b; font-size: 13px; }
+.ui-shell.student-app.product-shell .aeck-recap-page > section { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ui-shell.student-app.product-shell .aeck-recap-page > section article { min-width: 0; display: grid; justify-items: center; gap: 6px; padding: 19px; border: 1px solid #e1e4e8; border-radius: 14px; background: #fff; }
+.ui-shell.student-app.product-shell .aeck-recap-page > section svg { width: 21px; height: 21px; color: var(--aeck-red); }
+.ui-shell.student-app.product-shell .aeck-recap-page > section span { color: #727b8b; font-size: 10px; overflow-wrap: break-word; text-align: center; }
+.ui-shell.student-app.product-shell .aeck-recap-page > section strong { font-size: 25px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-recap-page > div { display: grid; justify-items: start; padding: 22px; border-radius: 15px; background: #222b39; color: #fff; }
+.ui-shell.student-app.product-shell .aeck-recap-page > div h2 { margin: 0; font-size: 17px; }
+.ui-shell.student-app.product-shell .aeck-recap-page > div p { max-width: 70ch; margin: 8px 0 0; color: #c7ced8; font-size: 12px; line-height: 1.55; }
+.ui-shell.student-app.product-shell .aeck-recap-page > div a { display: inline-flex; align-items: center; gap: 7px; margin-top: 15px; color: #fff; font-size: 11px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.ui-shell.student-app.product-shell .aeck-recap-page > div svg { width: 14px; height: 14px; }
+.ui-shell.student-app.product-shell .aeck-student-empty { min-height: 280px; display: grid; place-content: center; justify-items: center; padding: 32px; border: 1px dashed #d6dae1; border-radius: 14px; background: #fff; text-align: center; }
+.ui-shell.student-app.product-shell .aeck-student-empty > svg { width: 31px; height: 31px; color: #a5adba; }
+.ui-shell.student-app.product-shell .aeck-student-empty h2 { margin: 13px 0 0; font-size: 15px; }
+.ui-shell.student-app.product-shell .aeck-student-empty p { margin: 6px 0 0; color: #7b8493; font-size: 12px; }
+
+.ui-shell.student-app.product-shell .aeck-irt-grid { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr)); gap: 16px; }
+.ui-shell.student-app.product-shell .aeck-irt-grid article { min-width: 0; display: grid; gap: 14px; padding: 19px; border: 1px solid #e0e3e8; border-radius: 15px; background: #fff; box-shadow: 0 7px 22px rgb(15 23 42 / 0.05); }
+.ui-shell.student-app.product-shell .aeck-irt-grid article > header { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ui-shell.student-app.product-shell .aeck-irt-grid article > header > span:first-child { display: inline-flex; align-items: center; gap: 6px; color: var(--aeck-red); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; }
+.ui-shell.student-app.product-shell .aeck-irt-grid article > header svg { width: 15px; height: 15px; }
+.ui-shell.student-app.product-shell .aeck-irt-grid h2 { margin: 0; font-size: 16px; line-height: 1.35; text-wrap: balance; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-grid p { min-height: 38px; margin: 0; color: #6d7685; font-size: 12px; line-height: 1.5; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-grid dl { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.ui-shell.student-app.product-shell .aeck-irt-grid dl div { min-width: 0; padding: 10px; border-radius: 9px; background: #f7f8fa; }
+.ui-shell.student-app.product-shell .aeck-irt-grid dt { display: flex; align-items: center; gap: 5px; color: #7b8493; font-size: 9px; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-grid dt svg { width: 13px; height: 13px; flex: 0 0 auto; }
+.ui-shell.student-app.product-shell .aeck-irt-grid dd { margin: 5px 0 0; font-size: 13px; font-weight: 750; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ui-shell.student-app.product-shell .aeck-irt-grid article > a { display: inline-flex; align-items: center; gap: 7px; color: var(--aeck-red); font-size: 11px; font-weight: 750; text-decoration: none; }
+.ui-shell.student-app.product-shell .aeck-irt-grid article > a svg { width: 14px; height: 14px; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list { min-width: 0; display: grid; gap: 10px; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list article { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 13px 16px; border: 1px solid #e0e3e8; border-radius: 13px; background: #fff; }
+.ui-shell.student-app.product-shell .aeck-irt-result-rank { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px; background: #f1f4ff; color: #315bb3; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list article > div { min-width: 0; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list article > div > span { color: #315bb3; font-size: 9px; font-weight: 750; text-transform: uppercase; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list h2 { margin: 4px 0 0; font-size: 13px; line-height: 1.35; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list p { display: flex; align-items: center; gap: 5px; margin: 5px 0 0; color: #7b8493; font-size: 10px; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list p svg { width: 13px; height: 13px; color: #16805d; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list article > a { display: inline-flex; align-items: center; gap: 6px; color: var(--aeck-red); font-size: 11px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-irt-results-list article > a svg { width: 14px; height: 14px; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > .aeck-student-back { margin-bottom: -8px; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header { min-width: 0; display: flex; align-items: flex-start; gap: 15px; padding: 24px; border: 1px solid #e0e3e8; border-radius: 16px; background: linear-gradient(135deg, #fff3f4, #fff 65%); }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header > span { width: 54px; height: 54px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 16px; background: #fff; color: var(--aeck-red); box-shadow: 0 4px 12px rgb(205 22 39 / 0.1); }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header svg { width: 25px; height: 25px; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header div { min-width: 0; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header div > span { color: var(--aeck-red); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header h1 { margin: 7px 0 0; font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.18; letter-spacing: -0.03em; text-wrap: balance; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > header p { max-width: 68ch; margin: 8px 0 0; color: #697384; font-size: 13px; line-height: 1.55; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > section { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > section article { min-width: 0; display: grid; justify-items: center; gap: 5px; padding: 17px; border: 1px solid #e0e3e8; border-radius: 13px; background: #fff; text-align: center; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > section svg { width: 20px; height: 20px; color: var(--aeck-red); }
+.ui-shell.student-app.product-shell .aeck-irt-registration > section strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+.ui-shell.student-app.product-shell .aeck-irt-registration > section span { color: #7b8493; font-size: 10px; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-registration-action { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; border-radius: 14px; background: #222b39; color: #fff; }
+.ui-shell.student-app.product-shell .aeck-irt-registration-action p { max-width: 68ch; margin: 0; color: #c7ced8; font-size: 12px; line-height: 1.5; overflow-wrap: break-word; }
+.ui-shell.student-app.product-shell .aeck-irt-registration-action a { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; color: #fff; font-size: 11px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.ui-shell.student-app.product-shell .aeck-irt-registration-action a svg { width: 14px; height: 14px; }
+
+@media (max-width: 620px) {
+  .ui-shell.student-app.product-shell .aeck-irt-results-list article { grid-template-columns: auto minmax(0, 1fr); }
+  .ui-shell.student-app.product-shell .aeck-irt-results-list article > a { grid-column: 1 / -1; justify-content: center; }
+  .ui-shell.student-app.product-shell .aeck-irt-registration > header { padding: 19px; }
+  .ui-shell.student-app.product-shell .aeck-irt-registration > section { grid-template-columns: minmax(0, 1fr); }
+  .ui-shell.student-app.product-shell .aeck-irt-registration-action { align-items: flex-start; flex-direction: column; padding: 17px; }
+}
+
+body.aeck-platform-document .aeck-enter-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 15% 10%, rgb(205 22 39 / 0.08), transparent 35%), #f5f6f8; }
+body.aeck-platform-document .aeck-enter-page form { width: min(440px, 100%); min-width: 0; display: grid; justify-items: stretch; padding: 30px; border: 1px solid #e0e3e8; border-radius: 18px; background: #fff; box-shadow: 0 24px 60px rgb(15 23 42 / 0.13); }
+body.aeck-platform-document .aeck-enter-page form > span { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: #fce8ea; color: #cd1627; }
+body.aeck-platform-document .aeck-enter-page form > span svg { width: 26px; height: 26px; }
+body.aeck-platform-document .aeck-enter-page h1 { margin: 20px 0 0; font-size: 24px; line-height: 1.2; letter-spacing: -0.03em; text-wrap: balance; }
+body.aeck-platform-document .aeck-enter-page > form > p { margin: 8px 0 0; color: #6d7685; font-size: 13px; line-height: 1.5; }
+body.aeck-platform-document .aeck-enter-page label { margin-top: 23px; color: #3d4654; font-size: 12px; font-weight: 700; }
+body.aeck-platform-document .aeck-enter-page input { min-width: 0; width: 100%; min-height: 48px; margin-top: 7px; padding: 10px 13px; border: 1px solid #d4d8df; border-radius: 11px; color: #202735; font: inherit; font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; }
+body.aeck-platform-document .aeck-enter-page input[aria-invalid="true"] { border-color: #c91f37; }
+body.aeck-platform-document .aeck-enter-page input + p { margin: 7px 0 0; color: #b51d32; font-size: 11px; }
+body.aeck-platform-document .aeck-enter-page button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 17px; border: 1px solid #cd1627; border-radius: 11px; background: #cd1627; color: #fff; font: inherit; font-size: 13px; font-weight: 750; cursor: pointer; }
+body.aeck-platform-document .aeck-enter-page button svg { width: 16px; height: 16px; }
+body.aeck-platform-document .aeck-enter-page form > a { margin-top: 16px; color: #6d7685; font-size: 11px; text-align: center; text-underline-offset: 3px; }
+
+.ui-shell.product-shell .aeck-legacy-bridge,
+body.aeck-platform-document .aeck-legacy-bridge { min-height: min(500px, calc(100vh - 110px)); display: grid; place-content: center; justify-items: center; gap: 14px; padding: 30px; background: #f7f8fa; text-align: center; }
+.ui-shell.product-shell .aeck-legacy-bridge > svg,
+body.aeck-platform-document .aeck-legacy-bridge > svg { width: 30px; height: 30px; color: #cd1627; animation: aeck-spin 800ms linear infinite; }
+.ui-shell.product-shell .aeck-legacy-bridge div,
+body.aeck-platform-document .aeck-legacy-bridge div { min-width: 0; }
+.ui-shell.product-shell .aeck-legacy-bridge h1,
+body.aeck-platform-document .aeck-legacy-bridge h1 { margin: 0; font-size: 20px; text-wrap: balance; }
+.ui-shell.product-shell .aeck-legacy-bridge p,
+body.aeck-platform-document .aeck-legacy-bridge p { max-width: 60ch; margin: 7px 0 0; color: #6d7685; font-size: 13px; line-height: 1.5; }
+.ui-shell.product-shell .aeck-legacy-bridge a,
+body.aeck-platform-document .aeck-legacy-bridge a { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 10px; background: #cd1627; color: #fff; font-size: 12px; font-weight: 750; text-decoration: none; }
+.ui-shell.product-shell .aeck-legacy-bridge a svg,
+body.aeck-platform-document .aeck-legacy-bridge a svg { width: 15px; height: 15px; }
+
+@media (max-width: 880px) {
+  .ui-shell.student-app.product-shell .aeck-student-page-heading { align-items: flex-start; flex-direction: column; }
+  .ui-shell.student-app.product-shell .aeck-student-search { width: min(100%, 480px); }
+  .ui-shell.student-app.product-shell .aeck-study-layout { grid-template-columns: minmax(0, 1fr); }
+  .ui-shell.student-app.product-shell .aeck-study-layout > aside { position: static; max-height: 420px; }
+}
+
+@media (max-width: 620px) {
+  .ui-shell.student-app.product-shell .aeck-student-module { gap: 16px; }
+  .ui-shell.student-app.product-shell .aeck-student-page-heading h1 { font-size: 1.5rem; }
+  .ui-shell.student-app.product-shell .aeck-student-search { min-width: 0; }
+  .ui-shell.student-app.product-shell .aeck-student-search input { font-size: 16px; }
+  .ui-shell.student-app.product-shell .aeck-course-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .ui-shell.student-app.product-shell .aeck-course-cover { min-height: 166px; }
+  .ui-shell.student-app.product-shell .aeck-course-card-content { min-height: 0; }
+  .ui-shell.student-app.product-shell .aeck-study-heading { padding: 18px; }
+  .ui-shell.student-app.product-shell .aeck-study-heading > div { grid-template-columns: minmax(0, 1fr); }
+  .ui-shell.student-app.product-shell .aeck-study-heading div > span { grid-column: 1; grid-row: auto; justify-self: start; }
+  .ui-shell.student-app.product-shell .aeck-lesson-stage { min-height: 300px; padding: 28px 18px; }
+  .ui-shell.student-app.product-shell .aeck-segmented-filter { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+  .ui-shell.student-app.product-shell .aeck-segmented-filter button { flex: 0 0 auto; }
+  .ui-shell.student-app.product-shell .aeck-assessment-list article { grid-template-columns: auto minmax(0, 1fr); }
+  .ui-shell.student-app.product-shell .aeck-assessment-list article > a { grid-column: 1 / -1; justify-content: center; }
+  .ui-shell.student-app.product-shell .aeck-history-list article { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ui-shell.student-app.product-shell .aeck-history-list article > a { grid-column: 1 / -1; justify-content: center; }
+  .ui-shell.student-app.product-shell .aeck-recap-page > section { grid-template-columns: minmax(0, 1fr); }
+  body.aeck-platform-document .aeck-enter-page { padding: 14px; }
+  body.aeck-platform-document .aeck-enter-page form { padding: 24px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell .aeck-course-card { transition-duration: 0.01ms; }
+  .ui-shell.student-app.product-shell .aeck-course-card:hover { transform: none; }
+}

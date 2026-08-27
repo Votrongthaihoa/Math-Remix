@@ -61,6 +61,27 @@
 .aeck-login-submit:disabled { opacity: 0.62; cursor: wait; }
 .aeck-login-switch { min-width: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin-top: 24px; color: var(--aeck-muted); font-size: 13px; text-align: center; }
 .aeck-login-switch a { color: var(--aeck-red); font-weight: 700; text-underline-offset: 3px; }
+.aeck-signup-switch { margin-top: 10px; }
+
+.aeck-signup-page .aeck-login-panel { padding-block: 48px; }
+.aeck-signup-page .aeck-login-heading { margin-bottom: 22px; }
+.aeck-signup-benefits { display: grid; gap: 12px; margin: 12px 0 0; padding: 0; list-style: none; }
+.aeck-signup-benefits li { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 650; line-height: 1.45; }
+.aeck-signup-benefits svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--aeck-red); }
+.aeck-field-hint { margin: 7px 0 0; color: var(--aeck-muted); font-size: 12px; line-height: 1.45; overflow-wrap: break-word; }
+.aeck-verification-area { min-width: 0; margin-top: 22px; }
+.aeck-turnstile-widget { width: 100%; min-width: 0; min-height: 65px; }
+.aeck-preview-verification { min-width: 0; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid #bbddce; border-radius: 10px; background: #f1faf6; color: #166343; font-size: 13px; font-weight: 650; }
+.aeck-preview-verification svg { width: 19px; height: 19px; flex: 0 0 auto; }
+.aeck-verification-status { min-height: 18px; margin: 7px 0 0; color: #9f1239; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.aeck-signup-success { width: min(100%, 440px); min-width: 0; display: grid; justify-items: start; }
+.aeck-signup-success > span { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 16px; background: #f1faf6; color: #166343; }
+.aeck-signup-success > span svg { width: 26px; height: 26px; }
+.aeck-signup-success h2 { margin: 22px 0 0; font-size: 1.75rem; line-height: 1.15; letter-spacing: -0.025em; text-wrap: balance; }
+.aeck-signup-success p { max-width: 62ch; margin: 12px 0 0; color: var(--aeck-muted); font-size: 15px; line-height: 1.6; text-wrap: pretty; overflow-wrap: anywhere; }
+.aeck-signup-success .aeck-login-submit { display: inline-flex; align-items: center; justify-content: center; margin-top: 26px; padding-block: 12px; text-decoration: none; }
+.aeck-login-page :is(a, button, input):focus-visible,
+.aeck-turnstile-widget:focus-visible { outline: 2px solid var(--aeck-red); outline-offset: 3px; }
 
 @media (max-width: 900px) {
   .aeck-login-page { grid-template-columns: minmax(0, 1fr); }
@@ -76,4 +97,18 @@
   .aeck-login-brand p { font-size: 14px; }
   .aeck-login-panel { padding: 38px 20px; }
   .aeck-login-heading { margin-bottom: 24px; }
+  .aeck-signup-page .aeck-login-brand { min-height: 0; }
+  .aeck-signup-page .aeck-login-panel { padding-block: 34px; }
+  .aeck-signup-page .aeck-turnstile-widget { max-width: 100%; }
+}
+
+@media (max-width: 340px) {
+  .aeck-login-panel { padding-inline: 10px; }
+  .aeck-login-brand { padding-inline: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aeck-login-submit,
+  .aeck-input-wrap { transition-duration: 0.01ms; }
+  .aeck-login-submit:active { scale: 1; }
 }

@@ -5,6 +5,10 @@ import {
 import { z } from "zod";
 
 import { authStore } from "../store/auth-store.ts";
+import {
+  CryptoSessionMissingError,
+  decryptCryptoEnvelope,
+} from "./crypto-envelope.ts";
 
 const ApiEnvelopeSchema = z.discriminatedUnion("ok", [
   z.object({ ok: z.literal(true), data: z.unknown() }),
@@ -52,6 +56,26 @@ export async function parseApiResponse<TSchema extends z.ZodType>(
     });
   }
 
+  try {
+    payload = await decryptCryptoEnvelope(payload);
+  } catch (cause) {
+    if (cause instanceof CryptoSessionMissingError) {
+      authStore.getState().logout();
+      throw new ApiClientError(cause.message, {
+        code: "AUTH_REQUIRED",
+        recoverable: false,
+        status: 401,
+        cause,
+      });
+    }
+    throw new ApiClientError("Không thể mở response bảo mật từ máy chủ.", {
+      code: "INTERNAL_ERROR",
+      recoverable: true,
+      status: response.status,
+      cause,
+    });
+  }
+
   const envelope = ApiEnvelopeSchema.safeParse(payload);
   if (!envelope.success) {
     const legacyError = ApiErrorSchema.safeParse(
@@ -92,9 +116,9 @@ export async function parseApiResponse<TSchema extends z.ZodType>(
   return data.data;
 }
 
-type RequestApiOptions = Omit<RequestInit, "headers"> & {
+type RequestApiOptions = Omit<RequestInit, "headers" | "fetcher"> & {
   headers?: HeadersInit;
-  fetcher?: typeof fetch;
+  fetcher?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 };
 
 export async function requestApi<TSchema extends z.ZodType>(
@@ -105,6 +129,11 @@ export async function requestApi<TSchema extends z.ZodType>(
   const { fetcher = fetch, headers: headerInit, ...requestInit } = options;
   const headers = new Headers(headerInit);
   headers.set("accept", "application/json");
+  headers.set("version", "3.0");
+  headers.set("x-crypto-version", "3");
+  if (typeof DecompressionStream === "function") {
+    headers.set("x-encrypted-compression", "gzip");
+  }
   const token = authStore.getState().accessToken;
   if (token) headers.set("authorization", `Bearer ${token}`);
   if (requestInit.body && !(requestInit.body instanceof FormData)) {
