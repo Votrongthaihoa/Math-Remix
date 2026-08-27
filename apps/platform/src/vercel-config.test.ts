@@ -31,17 +31,10 @@ test("the platform declares the PostCSS plugin used by the monorepo config", asy
 
 test("the Vercel function includes its worker and shared contract sources", async () => {
   const config = await readJson("../vercel.json");
-  const functions = config.functions as Record<string, { includeFiles: string[] }>;
+  const functions = config.functions as Record<string, { includeFiles: string }>;
 
-  assert.deepEqual(functions["api/platform.ts"].includeFiles, [
-    "worker/app.ts",
-    "worker/turnstile.ts",
-    "worker/reference-data.ts",
-    "worker/reference-platform-data.ts",
-    "../../packages/contracts/package.json",
-    "../../packages/contracts/src/auth.ts",
-    "../../packages/contracts/src/dashboard.ts",
-    "../../packages/contracts/src/index.ts",
-    "../../packages/contracts/src/platform.ts",
-  ]);
+  assert.equal(
+    functions["api/platform.ts"].includeFiles,
+    "{worker/**,../../packages/contracts/**}",
+  );
 });

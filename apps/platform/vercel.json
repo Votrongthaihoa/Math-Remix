@@ -5,17 +5,7 @@
   "outputDirectory": "dist/client",
   "functions": {
     "api/platform.ts": {
-      "includeFiles": [
-        "worker/app.ts",
-        "worker/turnstile.ts",
-        "worker/reference-data.ts",
-        "worker/reference-platform-data.ts",
-        "../../packages/contracts/package.json",
-        "../../packages/contracts/src/auth.ts",
-        "../../packages/contracts/src/dashboard.ts",
-        "../../packages/contracts/src/index.ts",
-        "../../packages/contracts/src/platform.ts"
-      ]
+      "includeFiles": "{worker/**,../../packages/contracts/**}"
     }
   },
   "rewrites": [
