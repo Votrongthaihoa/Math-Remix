@@ -6,6 +6,8 @@ import {
 } from "@aeck/contracts";
 import { z } from "zod";
 
+import { isCompiledPreviewSessionEnabled } from "./preview-session.ts";
+
 const SupabasePasswordResponseSchema = z.object({
   access_token: z.string().min(1),
   user: z.object({
@@ -31,7 +33,10 @@ function previewUser(role: "student" | "admin" | "ctv"): AuthUser {
 }
 
 export function isPreviewSessionEnabled() {
-  return import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_SESSION === "true";
+  return isCompiledPreviewSessionEnabled(
+    __AECK_PREVIEW_DATA__,
+    import.meta.env.VITE_USE_MOCK_SESSION,
+  );
 }
 
 export function getPreviewSession() {
