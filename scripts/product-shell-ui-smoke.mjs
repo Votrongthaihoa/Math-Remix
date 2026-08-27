@@ -11,6 +11,8 @@ const requestedWidths = (process.env.SMOKE_WIDTHS ?? "").split(",").map(value =>
 const auditWidths = requestedWidths.length ? requestedWidths : widths;
 const redesignRoutes = [
   ["admin-dashboard", "/admin"],
+  ["admin-timetable", "/admin/timetable"],
+  ["admin-audit", "/admin/audit"],
   ["admin-sessions", "/admin/sessions"],
   ["admin-security", "/admin/security"],
   ["admin-content", "/admin/content"],
@@ -24,6 +26,7 @@ const redesignRoutes = [
   ["student-lesson", "/lessons/mock-lesson"],
   ["student-profile", "/profile"],
   ["student-history", "/exam-history"],
+  ["student-progress", "/progress"],
   ["student-search", "/search"],
   ["student-schedule", "/tkb"],
 ];
@@ -100,12 +103,18 @@ const mockSections = [
   { id: "mock-section", exam_id: "mock-exam", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
   { id: "mock-section-2", exam_id: "mock-exam-2", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
 ];
+const mockAttemptYear = new Date().getFullYear();
 const mockAttempts = [
-  { id: "mock-attempt-latest", exam_id: "mock-exam", title: "Đề TSA tổng hợp", status: "graded", score: 87.5, correct_answers: 42, total_questions: 50, started_at: "2026-08-09T07:00:00.000Z", submitted_at: "2026-08-09T08:12:00.000Z", duration_seconds: 4320 },
-  { id: "mock-attempt-first", exam_id: "mock-exam", title: "Đề TSA luyện tập số 2", status: "completed", score: 72, correct_answers: 36, total_questions: 50, started_at: "2026-08-06T07:00:00.000Z", submitted_at: "2026-08-06T08:18:00.000Z", duration_seconds: 4680 },
+  { id: "mock-attempt-latest", exam_id: "mock-exam", exam_type: "HSA", title: "Đề TSA tổng hợp", status: "graded", score: 87.5, correct_answers: 42, total_questions: 50, started_at: `${mockAttemptYear}-08-09T07:00:00.000Z`, submitted_at: `${mockAttemptYear}-08-09T08:12:00.000Z`, duration_seconds: 4320 },
+  { id: "mock-attempt-first", exam_id: "mock-exam", exam_type: "TSA", title: "Đề TSA luyện tập số 2", status: "completed", score: 72, correct_answers: 36, total_questions: 50, started_at: `${mockAttemptYear}-08-06T07:00:00.000Z`, submitted_at: `${mockAttemptYear}-08-06T08:18:00.000Z`, duration_seconds: 4680 },
 ];
 const mockSecurityUser = { id: "11111111-1111-4111-8111-111111111111", full_name: "Nguyễn Minh Anh với tên tiếng Việt đủ dài để kiểm tra giao diện", student_code: "REMIX000128", email: "student.with.a.long.address@example.com", status: "active", account_status: "active", violation_count: 0, banned_at: null, banned_until: null, ban_reason: null, ban_event_id: null };
 const mockSession = { id: "22222222-2222-4222-8222-222222222222", kind: "both", exam_id: "mock-exam", room_id: "mock-room", name: "Kíp thi thử có tên tiếng Việt dài để kiểm tra khả năng xuống dòng an toàn", exam_title: "Đề đánh giá năng lực tổng hợp", exam_type: "HSA", room_title: "Phòng luyện đánh giá năng lực", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, token_hint: "ABCD", attempt_count: 18, submitted_count: 12 };
+const mockAuditItems = [
+  { id: "exam:1", source: "exam", action: "create_exam_access_slot", status: "succeeded", admin_id: "mock-admin", admin_name: "Nguyễn Minh Anh", target_id: "mock-room", target_name: "Phòng thi", target_code: "mock-room", context: "Kíp thi", reason: "", created_at: "2026-08-09T08:20:00.000Z", completed_at: "2026-08-09T08:20:04.000Z" },
+  { id: "account:2", source: "account", action: "trust_device", status: "recorded", admin_id: "mock-admin", admin_name: "Nguyễn Minh Anh", target_id: "mock-student-2", target_name: "Lê Gia Bảo", target_code: "REMIX000129", context: "Bảo mật tài khoản", reason: "Thiết bị học tập đã được xác minh.", created_at: "2026-08-09T08:10:00.000Z", completed_at: "2026-08-09T08:10:00.000Z" },
+  { id: "exam:3", source: "exam", action: "extend_exam_attempt_time", status: "failed", admin_id: "mock-admin", admin_name: "Nguyễn Minh Anh", target_id: "mock-exam", target_name: "Đề thi", target_code: "mock-exam", context: "Đề thi", reason: "", created_at: "2026-08-09T08:00:00.000Z", completed_at: "2026-08-09T08:00:02.000Z" },
+];
 let mockAuthStorage = null;
 
 function jsonResponse(body, status = 200) {
@@ -168,6 +177,27 @@ async function installMockAuth() {
       }
       if (requestUrl.pathname === "/api/admin/security" && requestUrl.searchParams.has("userId")) return route.fulfill(jsonResponse({ profile: mockSecurityUser, devices: [{ id: "33333333-3333-4333-8333-333333333333", device_name: "Máy tính xách tay Windows", browser: "Chrome", operating_system: "Windows 11", trusted_by_admin: false, verified_at: null, last_used_at: "2026-08-09T08:00:00.000Z", revoked_at: null }], sessions: [], events: [], violations: [], actions: [], serverTime: "2026-08-09T08:01:00.000Z" }));
       if (requestUrl.pathname === "/api/admin/sessions") return route.fulfill(jsonResponse({ items: [mockSession], summary: { upcoming: 1, open: 0, ended: 0, disabled: 0 }, total: 1, hasNextPage: false, page: 1, limit: 20 }));
+      if (requestUrl.pathname === "/api/admin/timetable" && route.request().method() === "GET") {
+        return route.fulfill(jsonResponse({
+          rooms: mockRooms.map(room => ({ ...room, created_at: "2026-08-08T08:00:00.000Z", exam_count: mockExams.filter(exam => exam.room_id === room.id).length, published_exam_count: mockExams.filter(exam => exam.room_id === room.id && exam.published).length })),
+          serverTime: new Date().toISOString(),
+        }));
+      }
+      if (requestUrl.pathname === "/api/admin/timetable" && route.request().method() === "PATCH") {
+        const body = JSON.parse(route.request().postData() || "{}");
+        const room = mockRooms.find(item => item.id === body.roomId);
+        if (!room) return route.fulfill(jsonResponse({ error: "Không tìm thấy phòng thi." }, 404));
+        room.exam_start = body.startAt;
+        room.exam_end = body.endAt;
+        return route.fulfill(jsonResponse({ room: { ...room, created_at: "2026-08-08T08:00:00.000Z" } }));
+      }
+      if (requestUrl.pathname === "/api/admin/audit") {
+        const source = requestUrl.searchParams.get("source");
+        const status = requestUrl.searchParams.get("status");
+        const query = (requestUrl.searchParams.get("q") || "").toLocaleLowerCase("vi-VN");
+        const items = mockAuditItems.filter(item => (!source || item.source === source) && (!status || item.status === status) && (!query || JSON.stringify(item).toLocaleLowerCase("vi-VN").includes(query)));
+        return route.fulfill(jsonResponse({ items, summary: { total: mockAuditItems.length, exam: 2, account: 1, failed: 1, pending: 0 }, total: items.length, page: 1, limit: 20, hasNextPage: false, serverTime: "2026-08-09T08:21:00.000Z" }));
+      }
       if (requestUrl.pathname === "/api/admin/exam-access") return route.fulfill(jsonResponse({ slots: [{ id: "mock-slot", exam_id: "mock-exam", name: "Kíp thi sáng", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, export_open_at: null, export_close_at: null, grace_period_minutes: 30, token_hint: "ABCD", created_at: "2026-08-08T08:00:00.000Z" }], attempts: [] }));
       if (requestUrl.pathname === "/api/admin/images" || requestUrl.pathname === "/api/admin/exam-images") return route.fulfill(jsonResponse({ images: [] }));
       return route.fulfill(jsonResponse({}));
@@ -203,6 +233,21 @@ async function inspect(name, path, width, screenshot = false) {
       const labelled = control.labels?.length || control.getAttribute("aria-labelledby");
       return !text && !label && !labelled && control.getAttribute("type") !== "hidden";
     });
+    const outsideViewportControls = controls.filter(control => {
+      if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
+      const rect = control.getBoundingClientRect();
+      return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
+    }).map(control => {
+      const rect = control.getBoundingClientRect();
+      return {
+        tag: control.tagName.toLowerCase(),
+        className: control.className,
+        text: control.textContent?.trim().slice(0, 40) ?? "",
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        scrollRegion: control.closest(".admin-timetable-week-grid") ? "admin-timetable-week-grid" : null,
+      };
+    });
     return {
       url: window.location.pathname,
       viewport: window.innerWidth,
@@ -216,11 +261,9 @@ async function inspect(name, path, width, screenshot = false) {
       adminNavItemsWithVisibleIcons: adminNavItemGeometry.filter(item => item.iconVisible).length,
       adminNavItemsWithLabels: adminNavItemGeometry.filter(item => item.labelPresent).length,
       unnamedControls: unnamed.length,
-      controlsOutsideViewport: controls.filter(control => {
-        if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
-        const rect = control.getBoundingClientRect();
-        return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
-      }).length,
+      controlsOutsideViewport: outsideViewportControls.filter(control => !control.scrollRegion).length,
+      scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.scrollRegion).length,
+      outsideViewportControls,
       undersizedControls: controls.filter(control => {
         const rect = control.getBoundingClientRect();
         const style = getComputedStyle(control);
@@ -254,15 +297,17 @@ async function inspectStress(name, path, width) {
     document.documentElement.style.fontSize = "200%";
     const root = document.documentElement;
     const controls = [...document.querySelectorAll("button, a, input, select, textarea")];
+    const outsideViewportControls = controls.filter(control => {
+      if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
+      const rect = control.getBoundingClientRect();
+      return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
+    });
     return {
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       scrollWidth: root.scrollWidth,
       clientWidth: root.clientWidth,
-      controlsOutsideViewport: controls.filter(control => {
-        if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
-        const rect = control.getBoundingClientRect();
-        return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
-      }).length,
+      controlsOutsideViewport: outsideViewportControls.filter(control => !control.closest(".admin-timetable-week-grid")).length,
+      scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.closest(".admin-timetable-week-grid")).length,
     };
   });
   report.push({ name: `${name}-text-stress-200pct`, path, width, ...result });
@@ -449,6 +494,131 @@ async function inspectStudentSchedule() {
   }
 }
 
+async function inspectStudentProgress() {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/progress`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(mockAuth ? 1_200 : 350);
+    const typeSelect = page.locator(".student-progress-filters select").nth(1);
+    await typeSelect.selectOption("TSA");
+    await page.waitForTimeout(180);
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const pageRect = document.querySelector(".student-progress-page")?.getBoundingClientRect();
+      const monthItems = [...document.querySelectorAll(".student-progress-month-chart > li")];
+      return {
+        url: `${location.pathname}${location.search}`,
+        kpis: document.querySelectorAll(".student-progress-kpis article").length,
+        monthItems: monthItems.length,
+        visibleMonthLabels: monthItems.filter(item => item.textContent?.includes("Tháng")).length,
+        pageInsideViewport: Boolean(pageRect && pageRect.left >= -1 && pageRect.right <= innerWidth + 1),
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `student-progress-filtered-${width}.png`), fullPage: false });
+    report.push({ name: "student-progress", path: "/progress", width, ...state });
+    if (!state.url.includes("type=TSA") || state.kpis !== 4 || state.monthItems !== 12 || state.visibleMonthLabels !== 12 || !state.pageInsideViewport || state.horizontalOverflow) {
+      throw new Error(`Student progress failed at ${width}px: ${JSON.stringify(state)}`);
+    }
+  }
+}
+
+async function inspectAdminTimetable() {
+  for (const width of [1440, 390, 320]) {
+    const editableRoom = mockRooms.find(room => room.id === "mock-open-room");
+    if (editableRoom) {
+      editableRoom.exam_start = null;
+      editableRoom.exam_end = null;
+    }
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/admin/timetable`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(1_200);
+    await page.getByRole("button", { name: /Thiết lập/ }).first().click();
+    await page.getByLabel("Bắt đầu").fill("2026-08-28T09:00");
+    await page.getByLabel("Kết thúc").fill("2026-08-28T11:00");
+    const timetableResponsePromise = page.waitForResponse(response => {
+      const request = response.request();
+      return new URL(response.url()).pathname === "/api/admin/timetable" && request.method() === "PATCH";
+    });
+    await page.getByRole("button", { name: "Lưu lịch" }).click();
+    const timetableResponse = await timetableResponsePromise;
+    const timetableResponseBody = await timetableResponse.text();
+    if (!timetableResponse.ok()) {
+      const formError = await page.locator(".admin-timetable-form-error").textContent().catch(() => null);
+      throw new Error(`Timetable PATCH failed (${timetableResponse.status()}): ${timetableResponseBody}; form error: ${formError ?? "none"}`);
+    }
+    const timetableNotice = page.locator(".admin-timetable-notice").filter({ hasText: "Đã lưu lịch vận hành." });
+    const timetableFormError = page.locator(".admin-timetable-form-error");
+    await timetableNotice.or(timetableFormError).waitFor({ state: "visible", timeout: 5_000 }).catch(() => null);
+    if (!(await timetableNotice.isVisible())) {
+      const formError = await timetableFormError.textContent().catch(() => null);
+      throw new Error(`Timetable UI did not confirm save. PATCH ${timetableResponse.status()}: ${timetableResponseBody}; form error: ${formError ?? "none"}`);
+    }
+    await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const pageRect = document.querySelector(".admin-timetable-page")?.getBoundingClientRect();
+      const skipLink = document.querySelector(".skip-link");
+      const skipLinkRect = skipLink?.getBoundingClientRect();
+      return {
+        weekDays: document.querySelectorAll(".admin-timetable-week-grid > li").length,
+        summaryItems: document.querySelectorAll(".admin-timetable-summary > div").length,
+        editorVisible: Boolean(document.querySelector(".admin-timetable-editor input")),
+        noticeVisible: Boolean(document.querySelector(".admin-timetable-notice")),
+        activeElement: document.activeElement instanceof HTMLElement ? `${document.activeElement.tagName.toLowerCase()}.${document.activeElement.className}` : null,
+        skipLinkFocused: document.activeElement === skipLink,
+        skipLinkVisible: Boolean(skipLinkRect && skipLinkRect.bottom > 0 && skipLinkRect.top < innerHeight),
+        skipLinkTransform: skipLink ? getComputedStyle(skipLink).transform : null,
+        pageInsideViewport: Boolean(pageRect && pageRect.left >= -1 && pageRect.right <= innerWidth + 1),
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `admin-timetable-saved-${width}.png`), fullPage: false });
+    report.push({ name: "admin-timetable", path: "/admin/timetable", width, ...state });
+    if (state.weekDays !== 7 || state.summaryItems !== 4 || !state.editorVisible || !state.noticeVisible || state.skipLinkFocused || state.skipLinkVisible || !state.pageInsideViewport || state.horizontalOverflow) {
+      throw new Error(`Admin timetable failed at ${width}px: ${JSON.stringify(state)}`);
+    }
+  }
+}
+
+async function inspectAdminAudit() {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/admin/audit`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(1_200);
+    await page.getByLabel("Nguồn").selectOption("account");
+    const auditResponsePromise = page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === "/api/admin/audit"
+        && url.searchParams.get("source") === "account"
+        && url.searchParams.get("q") === "Lê Gia Bảo";
+    });
+    await page.getByRole("searchbox", { name: "Từ khóa nhật ký" }).fill("Lê Gia Bảo");
+    const auditResponse = await auditResponsePromise;
+    if (!auditResponse.ok()) throw new Error(`Admin audit request failed (${auditResponse.status()}): ${await auditResponse.text()}`);
+    const auditRow = page.locator(".admin-audit-row:not(.admin-audit-row-head)").first();
+    await auditRow.waitFor({ state: "visible" });
+    await auditRow.scrollIntoViewIfNeeded();
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const pageRect = document.querySelector(".admin-audit-page")?.getBoundingClientRect();
+      return {
+        url: `${location.pathname}${location.search}`,
+        summaryItems: document.querySelectorAll(".admin-audit-summary > div").length,
+        auditRows: document.querySelectorAll(".admin-audit-row:not(.admin-audit-row-head)").length,
+        accountResult: document.querySelector(".admin-audit-row:not(.admin-audit-row-head)")?.textContent?.includes("Lê Gia Bảo") ?? false,
+        pageInsideViewport: Boolean(pageRect && pageRect.left >= -1 && pageRect.right <= innerWidth + 1),
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `admin-audit-filtered-${width}.png`), fullPage: false });
+    report.push({ name: "admin-audit", path: "/admin/audit", width, ...state });
+    if (!state.url.includes("source=account") || state.summaryItems !== 4 || state.auditRows !== 1 || !state.accountResult || !state.pageInsideViewport || state.horizontalOverflow) {
+      throw new Error(`Admin audit failed at ${width}px: ${JSON.stringify(state)}`);
+    }
+  }
+}
+
 async function inspectAdminQuickFinder() {
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
@@ -631,6 +801,9 @@ if (authenticated) {
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
     if (!focusedAudit || requestedRoutes.has("student-search")) await inspectStudentSearch();
     if (!focusedAudit || requestedRoutes.has("student-schedule")) await inspectStudentSchedule();
+    if (!focusedAudit || requestedRoutes.has("student-progress")) await inspectStudentProgress();
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-timetable"))) await inspectAdminTimetable();
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-audit"))) await inspectAdminAudit();
     if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
     if (!focusedAudit || requestedRoutes.has("student-exam-list")) await inspectExamHistoryDialog();
     if (!focusedAudit || requestedRoutes.has("student-exam-catalog") || requestedRoutes.has("student-exam-list")) {

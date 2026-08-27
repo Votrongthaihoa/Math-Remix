@@ -3,7 +3,7 @@ import PlatformApp from "../platform";
 import LoadingIndicator from "../loading-indicator";
 import { notFound } from "next/navigation";
 
-const staticRoutes = new Set(["dashboard", "exam-room", "courses", "exam-history", "search", "tkb", "profile", "admin", "forgot-password", "reset-password"]);
+const staticRoutes = new Set(["dashboard", "exam-room", "courses", "exam-history", "progress", "search", "tkb", "profile", "admin", "forgot-password", "reset-password"]);
 const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const guestTokenSegment = /^[A-Za-z0-9_-]{10,100}$/;
 
@@ -18,7 +18,7 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
     || slug.length >= 4 && slug[0] === "exam" && Boolean(slug[1]) && slug[2] === "section" && Boolean(slug[3]) && (slug.length === 4 || slug.length === 5 && slug[4] === "confirm");
   const validLegacyGuestExamRoute = slug.length === 3 && slug[0] === "guest" && slug[1] === "exam" && guestTokenSegment.test(slug[2]);
   const validGuestExamRoute = validDirectGuestExamRoute || validLegacyGuestExamRoute;
-  const adminTabs = new Set(["students", "content", "hls-vault", "exams", "question-bank", "sessions", "upload", "enrollments", "security"]);
+  const adminTabs = new Set(["students", "content", "hls-vault", "exams", "question-bank", "sessions", "timetable", "upload", "enrollments", "security", "audit"]);
   const validAdminRoute = slug[0] === "admin" && (
     slug.length === 1
     || slug.length === 2 && adminTabs.has(slug[1])

@@ -828,6 +828,11 @@
   -webkit-line-clamp: 2;
 }
 
+.app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list-link {
+  min-height: 40px;
+  padding-block: 9px;
+}
+
 .app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list > li > small,
 .app-shell.ui-shell.student-app.product-shell .dashboard-page .attempt-list > li > b {
   flex: 0 0 auto;

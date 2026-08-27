@@ -26,12 +26,13 @@ import "./product-ui-v2.css";
 import "./aeck-reference-ui.css";
 import "./auth-ui-v2.css";
 import "./reference-integration.css";
+import "./admin-reference-suite.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
-  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo
+  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3
 } from "lucide-react";
 
 const ExamRoomModule = lazy(() => import("./exam-room"));
@@ -41,9 +42,12 @@ const AdminSessionResults = lazy(() => import("./admin-session-results"));
 const AdminQuestionBank = lazy(() => import("./admin-question-bank"));
 const AdminUploadManager = lazy(() => import("./admin-upload"));
 const AdminHlsVault = lazy(() => import("./admin-hls-vault"));
+const AdminTimetable = lazy(() => import("./admin-timetable"));
+const AdminAuditLog = lazy(() => import("./admin-audit-log"));
+const StudentProgress = lazy(() => import("./student-progress"));
 const GuestExamModule = lazy(() => import("./guest-exam"));
 
-type View = "overview" | "exams" | "courses" | "history" | "search" | "schedule" | "profile" | "admin" | "course" | "lesson";
+type View = "overview" | "exams" | "courses" | "history" | "progress" | "search" | "schedule" | "profile" | "admin" | "course" | "lesson";
 type AuthMode = "login" | "forgot" | "reset";
 type ProfileData = { full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
 type CourseData = { id: string | number; title: string; description: string; lessons: number; color: string; cover_url?: string | null; published?: boolean };
@@ -156,6 +160,7 @@ const pathsByView: Record<View, string> = {
   exams: "/exam-room",
   courses: "/courses",
   history: "/exam-history",
+  progress: "/progress",
   search: "/search",
   schedule: "/tkb",
   profile: "/profile",
@@ -173,6 +178,7 @@ function optimizedDocumentTitle(pathname: string, authenticationRequired = false
   if (pathname.startsWith("/courses/")) return "Chi tiết khóa học | Remix Education";
   if (pathname.startsWith("/lessons/")) return "Bài học | Remix Education";
   if (pathname === "/exam-history") return "Lịch sử làm bài | Remix Education";
+  if (pathname === "/progress") return "Tiến độ học tập | Remix Education";
   if (pathname === "/search") return "Tra cứu học tập | Remix Education";
   if (pathname === "/tkb") return "Thời khóa biểu | Remix Education";
   if (pathname === "/profile") return "Hồ sơ cá nhân | Remix Education";
@@ -183,6 +189,8 @@ function optimizedDocumentTitle(pathname: string, authenticationRequired = false
   if (pathname.startsWith("/admin/enrollments")) return "Phân quyền | Remix Education";
   if (pathname.startsWith("/admin/upload")) return "Kho ảnh | Remix Education";
   if (pathname.startsWith("/admin/hls-vault")) return "HLS Vault | Remix Education";
+  if (pathname.startsWith("/admin/timetable")) return "Lịch vận hành | Remix Education";
+  if (pathname.startsWith("/admin/audit")) return "Nhật ký quản trị | Remix Education";
   return "Quản trị | Remix Education";
 }
 
@@ -192,6 +200,7 @@ function viewFromPath(pathname: string): View {
   if (pathname === "/courses") return "courses";
   if (pathname === "/exam-room" || pathname.startsWith("/exam-room/") || pathname.startsWith("/exam/")) return "exams";
   if (pathname === "/exam-history") return "history";
+  if (pathname === "/progress") return "progress";
   if (pathname === "/search") return "search";
   if (pathname === "/tkb") return "schedule";
   if (pathname === "/profile") return "profile";
@@ -217,10 +226,12 @@ const adminNav = [
   { id: "question-bank" as const, section: "Nội dung", label: "Ngân hàng câu hỏi", path: "/admin/question-bank", icon: ListChecks },
   { id: "exams" as const, section: "Kỳ thi", label: "Đề thi", path: "/admin/exams", icon: ClipboardCheck },
   { id: "sessions" as const, section: "Kỳ thi", label: "Kíp thi", path: "/admin/sessions", icon: CalendarClock },
+  { id: "timetable" as const, section: "Kỳ thi", label: "Lịch vận hành", path: "/admin/timetable", icon: CalendarClock },
   { id: "students" as const, section: "Quản lý", label: "Học viên", path: "/admin/students", icon: Users },
   { id: "enrollments" as const, section: "Quản lý", label: "Phân quyền", path: "/admin/enrollments", icon: ShieldCheck },
   { id: "upload" as const, section: "Quản lý", label: "Kho ảnh", path: "/admin/upload", icon: ImagePlus },
   { id: "settings" as const, section: "Quản lý", label: "Bảo mật", path: "/admin/security", icon: LockKeyhole },
+  { id: "audit" as const, section: "Quản lý", label: "Nhật ký", path: "/admin/audit", icon: Activity },
 ];
 type AdminTab = typeof adminNav[number]["id"] | "students" | "upload" | "enrollments" | "security";
 
@@ -780,6 +791,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
                 </div>
               </details>}
               <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><History aria-hidden="true" /><span>Lịch sử thi</span></Link>
+              <Link key="progress" href="/progress" className={`student-nav-primary ${currentView === "progress" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "progress", "/progress")} title="Tiến độ học tập" aria-label="Tiến độ học tập" aria-current={currentView === "progress" ? "page" : undefined}><BarChart3 aria-hidden="true" /><span>Tiến độ</span></Link>
               {!protectedProductSurface && <>
                 <Link key="search" href="/search" className={`student-nav-primary ${currentView === "search" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "search", "/search")} title="Tra cứu" aria-label="Tra cứu" aria-current={currentView === "search" ? "page" : undefined}><Search aria-hidden="true" /><span>Tra cứu</span></Link>
                 <Link key="schedule" href="/tkb" className={`student-nav-primary ${currentView === "schedule" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "schedule", "/tkb")} title="Thời khóa biểu" aria-label="Thời khóa biểu" aria-current={currentView === "schedule" ? "page" : undefined}><CalendarClock aria-hidden="true" /><span>Thời khóa biểu</span></Link>
@@ -815,6 +827,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
+        {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
         {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "schedule" && <StudentSchedulePage rooms={practiceRooms} />}
         {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} />}
@@ -1468,6 +1481,8 @@ type AdminExamRoomRow = { id: string; title: string; published: boolean; access_
 type AdminExamEnrollmentRow = { student_id: string; room_id: string };
 
 function adminTabFromPath(pathname: string): AdminTab {
+  if (pathname.startsWith("/admin/audit")) return "audit";
+  if (pathname.startsWith("/admin/timetable")) return "timetable";
   if (pathname.startsWith("/admin/sessions")) return "sessions";
   if (pathname.startsWith("/admin/students")) return "students";
   if (pathname.startsWith("/admin/content")) return "content";
@@ -1890,6 +1905,8 @@ function RealAdminDashboard() {
       : typeof window !== "undefined" && /^\/admin\/sessions\/[^/]+\/results$/.test(window.location.pathname)
         ? <Suspense fallback={<LoadingIndicator label="Đang mở kết quả kíp thi…" />}><AdminSessionResults key={`${window.location.pathname}${window.location.search}`} navigate={navigateAdmin} /></Suspense>
       : <AdminSessionList navigate={navigateAdmin} />)}
+    {tab === "timetable" && <Suspense fallback={<LoadingIndicator label="Đang mở lịch vận hành…" />}><AdminTimetable /></Suspense>}
+    {tab === "audit" && <Suspense fallback={<LoadingIndicator label="Đang mở nhật ký quản trị…" />}><AdminAuditLog /></Suspense>}
     {tab === "upload" && <Suspense fallback={<LoadingIndicator label="Đang mở kho ảnh…" />}><AdminUploadManager /></Suspense>}
     {(tab === "enrollments" || tab === "settings") && tab === "enrollments" && <div className="assignment-page">
       <header className="assignment-page-head"><div><span className="eyebrow">PHÂN QUYỀN HỌC VIÊN</span><h2>Khóa học và phòng thi</h2><p>Quản lý toàn bộ nội dung được cấp cho từng học viên tại một nơi.</p></div></header>

@@ -1,0 +1,2350 @@
+/*
+ * Admin modules adapted from the supplied newdata/admin bundles.
+ * The complete layer is isolated from exam, question, answer and review UI.
+ */
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page {
+  --admin-suite-accent: #c51230;
+  --admin-suite-accent-strong: #a60f28;
+  --admin-suite-accent-soft: #fff1f3;
+  --admin-suite-ink: #242126;
+  --admin-suite-muted: #6f727b;
+  --admin-suite-line: rgba(42, 44, 53, 0.13);
+  --admin-suite-surface: #fff;
+  --admin-suite-canvas: #f7f8fa;
+  display: grid;
+  gap: 22px;
+  width: min(100%, 1500px);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block-end: 44px;
+  color: var(--admin-suite-ink);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page :where(h1, h2, p) {
+  overflow-wrap: break-word;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page :where(button, input) {
+  font: inherit;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page :where(button, input):focus-visible {
+  outline: 2px solid var(--admin-suite-accent);
+  outline-offset: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+  padding-block-end: 20px;
+  border-block-end: 1px solid var(--admin-suite-line);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-header > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-header p {
+  max-width: 65ch;
+  margin: 8px 0 0;
+  color: var(--admin-suite-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-refresh,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls button,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-secondary-action,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid var(--admin-suite-line);
+  border-radius: 10px;
+  background: #fff;
+  color: #3e4048;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+  cursor: pointer;
+  transition-property: color, border-color, background-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-refresh:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls button:hover:not(:disabled),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-secondary-action:hover:not(:disabled) {
+  border-color: rgba(197, 18, 48, 0.32);
+  color: var(--admin-suite-accent);
+  box-shadow: 0 6px 16px rgba(48, 26, 32, 0.06);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  stroke-width: 2;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: clip;
+  border: 1px solid var(--admin-suite-line);
+  border-radius: 16px;
+  background: var(--admin-suite-surface);
+  box-shadow: 0 10px 28px rgba(35, 37, 44, 0.05);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary > div {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 20px 24px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary > div + div {
+  border-inline-start: 1px solid var(--admin-suite-line);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary span {
+  color: var(--admin-suite-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary strong {
+  font-size: 30px;
+  font-weight: 670;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary small {
+  color: var(--admin-suite-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 370px);
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-calendar,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-unscheduled {
+  min-width: 0;
+  border: 1px solid var(--admin-suite-line);
+  border-radius: 16px;
+  background: var(--admin-suite-surface);
+  box-shadow: 0 10px 28px rgba(35, 37, 44, 0.045);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-calendar {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-calendar-toolbar,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-unscheduled-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-panel-heading > span {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: var(--admin-suite-accent-soft);
+  color: var(--admin-suite-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-panel-heading > span svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-panel-heading > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-panel-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 680;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-panel-heading p {
+  margin: 3px 0 0;
+  color: var(--admin-suite-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls button {
+  min-width: 42px;
+  padding-inline: 11px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls .admin-timetable-current-week {
+  min-width: 88px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(128px, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 8px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  list-style: none;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  min-height: 300px;
+  border: 1px solid rgba(42, 44, 53, 0.1);
+  border-radius: 12px;
+  background: var(--admin-suite-canvas);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li.is-today {
+  border-color: rgba(197, 18, 48, 0.48);
+  box-shadow: inset 0 3px 0 var(--admin-suite-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li > header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 8px;
+  min-width: 0;
+  padding: 14px 12px 12px;
+  border-block-end: 1px solid rgba(42, 44, 53, 0.08);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li > header span {
+  min-width: 0;
+  color: #656873;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li > header b {
+  grid-row: span 2;
+  font-size: 25px;
+  font-weight: 620;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li > header small {
+  color: var(--admin-suite-muted);
+  font-size: 10px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-day-events {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(42, 44, 53, 0.1);
+  border-inline-start: 3px solid var(--admin-suite-accent);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--admin-suite-ink);
+  text-align: start;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(35, 37, 44, 0.04);
+  transition-property: border-color, background-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event.is-selected {
+  border-color: rgba(197, 18, 48, 0.45);
+  background: #fffafb;
+  box-shadow: 0 7px 18px rgba(83, 26, 39, 0.08);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event > span {
+  color: var(--admin-suite-accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event.tone-live {
+  border-inline-start-color: #16a56b;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event.tone-live > span {
+  color: #117a52;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event.tone-ended {
+  border-inline-start-color: #9ca3af;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event.tone-ended > span {
+  color: #747985;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event strong {
+  display: block;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event small {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  color: #686c75;
+  font-size: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event small svg {
+  width: 12px;
+  height: 12px;
+  margin-block-start: 1px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-day-empty {
+  display: grid;
+  place-items: center;
+  min-height: 110px;
+  padding: 10px;
+  color: var(--admin-suite-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-identity {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 15px;
+  border-radius: 12px;
+  background: #f8f9fb;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-identity strong {
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-identity small {
+  color: var(--admin-suite-muted);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-publish-state {
+  justify-self: start;
+  color: #8a5f1a;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-publish-state.is-published {
+  color: #117a52;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: #4f525b;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor input,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgba(42, 44, 53, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--admin-suite-ink);
+  font-size: 14px;
+  line-height: 1.35;
+  transition-property: border-color, box-shadow;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor input:focus,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search:focus-within {
+  border-color: rgba(197, 18, 48, 0.52);
+  box-shadow: 0 0 0 3px rgba(197, 18, 48, 0.09);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-primary-action {
+  border-color: var(--admin-suite-accent);
+  background: var(--admin-suite-accent);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(197, 18, 48, 0.18);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-primary-action:hover:not(:disabled) {
+  border-color: var(--admin-suite-accent-strong);
+  background: var(--admin-suite-accent-strong);
+  box-shadow: 0 10px 22px rgba(197, 18, 48, 0.24);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-form-error,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page-error,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(197, 18, 48, 0.17);
+  border-radius: 10px;
+  background: var(--admin-suite-accent-soft);
+  color: #8f1026;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-form-error svg,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page-error > svg,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-notice > svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page-error,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-notice {
+  align-items: center;
+  padding: 13px 15px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page-error button,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-notice button {
+  min-width: 36px;
+  min-height: 36px;
+  margin-inline-start: auto;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-notice {
+  border-color: rgba(17, 122, 82, 0.18);
+  background: #eefbf5;
+  color: #116c4a;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-unscheduled {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 310px);
+  min-width: 0;
+  padding-inline-start: 12px;
+  border: 1px solid rgba(42, 44, 53, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--admin-suite-muted);
+  transition-property: border-color, box-shadow;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search > svg {
+  width: 17px;
+  height: 17px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search input {
+  min-height: 42px;
+  padding-inline-start: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  font-size: 13px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-table {
+  display: grid;
+  min-width: 0;
+  border: 1px solid rgba(42, 44, 53, 0.1);
+  border-radius: 11px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.8fr) minmax(90px, 0.6fr) minmax(80px, 0.45fr) minmax(130px, 0.75fr) minmax(110px, 0.55fr);
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 13px 15px;
+  color: #50535d;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row + .admin-timetable-room-row {
+  border-block-start: 1px solid rgba(42, 44, 53, 0.09);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row.is-selected {
+  background: #fff8f9;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row-head {
+  min-height: 44px;
+  background: #f8f9fb;
+  color: #686c75;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row strong {
+  color: #2f3138;
+  font-size: 13px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row small {
+  color: var(--admin-suite-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(4) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #d49a29;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row i.is-published {
+  background: #17a66a;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:last-child button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--admin-suite-line);
+  border-radius: 8px;
+  background: #fff;
+  color: #4c4f58;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: color, border-color, background-color, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:last-child button:hover {
+  border-color: rgba(197, 18, 48, 0.34);
+  color: var(--admin-suite-accent);
+  background: #fffafb;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-loading,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-inline-empty,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 180px;
+  padding: 24px;
+  color: var(--admin-suite-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-empty {
+  position: static;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-empty > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--admin-suite-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-empty h2,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-empty p {
+  margin: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-inline-empty {
+  min-height: 110px;
+  border: 1px dashed rgba(42, 44, 53, 0.16);
+  border-radius: 10px;
+  background: #fafbfc;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page .is-spinning {
+  animation: admin-timetable-spin 0.8s linear infinite;
+}
+
+@keyframes admin-timetable-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1180px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor {
+    position: static;
+    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(180px, 0.8fr));
+    align-items: end;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor .admin-timetable-panel-heading,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor .admin-timetable-room-identity,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor .admin-timetable-form-error,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor .admin-timetable-editor-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 840px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary > div:nth-child(3) {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--admin-suite-line);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary > div:nth-child(4) {
+    border-block-start: 1px solid var(--admin-suite-line);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px 14px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row-head {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:first-child {
+    grid-row: span 2;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(2),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(3),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page {
+    gap: 16px;
+    padding-block-end: 28px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-header,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-calendar-toolbar,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-unscheduled-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-header h1 {
+    font-size: 28px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-refresh {
+    width: 100%;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary > div {
+    min-height: 98px;
+    padding: 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-summary strong {
+    font-size: 25px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-calendar,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-unscheduled {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search {
+    width: 100%;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-controls .admin-timetable-current-week {
+    flex: 1 1 auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid {
+    grid-template-columns: repeat(7, minmax(152px, 72vw));
+    margin-inline-end: -16px;
+    padding-inline-end: 28px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li {
+    min-height: 260px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor > * {
+    grid-column: auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-search input,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-editor input {
+    font-size: 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row {
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page .is-spinning {
+    animation: none;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-page :where(button, input) {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+  }
+}
+
+/* Student progress, derived only from non-review attempt summaries. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-page {
+  --student-progress-accent: #c51230;
+  --student-progress-accent-strong: #a60f28;
+  --student-progress-accent-soft: #fff1f3;
+  --student-progress-ink: #2a2327;
+  --student-progress-muted: #756a70;
+  --student-progress-line: rgba(60, 45, 52, 0.13);
+  display: grid;
+  gap: 22px;
+  width: min(100%, 1400px);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block-end: 44px;
+  color: var(--student-progress-ink);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-page :where(h1, h2, p) {
+  overflow-wrap: break-word;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-page :where(a, button, select):focus-visible {
+  outline: 2px solid var(--student-progress-accent);
+  outline-offset: 2px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.65fr);
+  align-items: end;
+  gap: 28px;
+  min-width: 0;
+  padding: 30px;
+  border: 1px solid rgba(197, 18, 48, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(115deg, #fff 0%, #fff8f9 100%);
+  box-shadow: 0 14px 36px rgba(74, 23, 32, 0.075), 0 2px 8px rgba(74, 23, 32, 0.035);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header > div {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header > div:first-child > span {
+  display: block;
+  margin-block-end: 8px;
+  color: var(--student-progress-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 680;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header p {
+  max-width: 65ch;
+  margin: 10px 0 0;
+  color: var(--student-progress-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-filters {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.7fr) minmax(180px, 1fr);
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(60, 45, 52, 0.11);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-filters label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--student-progress-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 32px 9px 11px;
+  border: 1px solid rgba(60, 45, 52, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--student-progress-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 560;
+  text-transform: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: clip;
+  border: 1px solid var(--student-progress-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(61, 33, 42, 0.05);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 124px;
+  padding: 22px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article + article {
+  border-inline-start: 1px solid var(--student-progress-line);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article > span {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  background: var(--student-progress-accent-soft);
+  color: var(--student-progress-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article > span svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis small {
+  color: var(--student-progress-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis strong {
+  font-size: 29px;
+  font-weight: 690;
+  line-height: 1.08;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis p {
+  margin: 0;
+  color: var(--student-progress-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 19px 22px;
+  border: 1px solid rgba(197, 18, 48, 0.13);
+  border-radius: 16px;
+  background: linear-gradient(105deg, #fff 0%, #fff8f9 100%);
+  box-shadow: 0 9px 26px rgba(70, 27, 38, 0.045);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-trend {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #f2f4f7;
+  color: #68707c;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-trend.is-up {
+  background: #eaf9f2;
+  color: #0e8154;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-trend.is-down {
+  background: var(--student-progress-accent-soft);
+  color: var(--student-progress-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-trend svg {
+  width: 23px;
+  height: 23px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > div:nth-child(2) {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > div:nth-child(2) > span {
+  display: block;
+  color: var(--student-progress-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight h2 {
+  margin: 3px 0 0;
+  font-size: 18px;
+  font-weight: 680;
+  line-height: 1.25;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight p {
+  max-width: 72ch;
+  margin: 4px 0 0;
+  color: var(--student-progress-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > a,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: var(--student-progress-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(197, 18, 48, 0.18);
+  transition-property: background-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > a:hover,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty > a:hover {
+  background: var(--student-progress-accent-strong);
+  box-shadow: 0 10px 22px rgba(197, 18, 48, 0.23);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > a:active,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty > a:active {
+  transform: scale(0.96);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > a svg,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty > a svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 16px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--student-progress-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(61, 33, 42, 0.045);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > div > span {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: var(--student-progress-accent-soft);
+  color: var(--student-progress-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > div > span svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > div > div {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 680;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading p {
+  margin: 3px 0 0;
+  color: var(--student-progress-muted);
+  font-size: 11px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > small {
+  flex: 0 0 auto;
+  color: var(--student-progress-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding-inline: 8px;
+  flex: 0 0 auto;
+  color: var(--student-progress-accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading > a:hover {
+  text-decoration: underline;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(50px, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  list-style: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 50px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 150px;
+  padding-inline: 6px;
+  border-block-end: 1px solid rgba(60, 45, 52, 0.12);
+  background: repeating-linear-gradient(to top, transparent 0, transparent 36px, rgba(60, 45, 52, 0.055) 37px);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-bar i {
+  display: block;
+  width: min(100%, 24px);
+  min-height: 2px;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--student-progress-accent);
+  box-shadow: 0 5px 10px rgba(197, 18, 48, 0.14);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart strong {
+  color: #565059;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart span,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart small {
+  color: var(--student-progress-muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart small {
+  color: var(--student-progress-muted);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution > ol,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types > ol,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent > ol {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution > ol > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution > ol > li > div:first-child,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types > ol > li > div:first-child,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent > ol > li > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution strong,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types strong,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent strong {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 660;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution small,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types small,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent small {
+  color: var(--student-progress-muted);
+  font-size: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution > ol > li > span {
+  color: #5f5860;
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution-bar {
+  grid-column: 1 / -1;
+  height: 7px;
+  overflow: clip;
+  border-radius: 999px;
+  background: #f1f2f4;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--student-progress-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution-bar.tone-good i {
+  background: #e15f73;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution-bar.tone-steady i {
+  background: #d09242;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-distribution-bar.tone-foundation i {
+  background: #8e929c;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types > ol > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  min-width: 0;
+  padding-block-end: 12px;
+  border-block-end: 1px solid rgba(60, 45, 52, 0.09);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types > ol > li > span,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent > ol > li > span {
+  color: var(--student-progress-accent);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types > ol > li > div:last-child {
+  grid-column: 1 / -1;
+  height: 6px;
+  overflow: clip;
+  border-radius: 999px;
+  background: #f1f2f4;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-types > ol > li > div:last-child i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--student-progress-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent > ol {
+  gap: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent > ol > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-recent > ol > li + li {
+  border-block-start: 1px solid rgba(60, 45, 52, 0.09);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-inline-empty {
+  margin: 0;
+  padding: 20px;
+  border: 1px dashed rgba(60, 45, 52, 0.15);
+  border-radius: 10px;
+  color: var(--student-progress-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 330px;
+  padding: 42px 24px;
+  border: 1px dashed rgba(60, 45, 52, 0.17);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty > span {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--student-progress-accent-soft);
+  color: var(--student-progress-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty > span svg {
+  width: 25px;
+  height: 25px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty h2,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty p {
+  margin: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty h2 {
+  font-size: 18px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-empty p {
+  max-width: 58ch;
+  color: var(--student-progress-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1080px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-filters {
+    width: min(100%, 470px);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article:nth-child(3) {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--student-progress-line);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article:nth-child(4) {
+    border-block-start: 1px solid var(--student-progress-line);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-page {
+    gap: 16px;
+    padding-block-end: 28px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header {
+    gap: 20px;
+    padding: 22px 18px;
+    border-radius: 15px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-header h1 {
+    font-size: 29px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-filters {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-filters select {
+    font-size: 16px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 142px;
+    padding: 16px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis article > span {
+    width: 38px;
+    height: 38px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-kpis strong {
+    font-size: 25px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 17px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-insight > a {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-panel-heading {
+    align-items: flex-start;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-chart {
+    grid-template-columns: repeat(12, minmax(62px, 18vw));
+    margin-inline-end: -18px;
+    padding-inline-end: 28px;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-month-bar {
+    height: 130px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-progress-page :where(a, button, select) {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-event,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-week-grid > li.is-today {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* Admin audit explorer */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page {
+  --admin-audit-accent: #c51230;
+  --admin-audit-accent-soft: #fff1f3;
+  --admin-audit-ink: #242126;
+  --admin-audit-muted: #6f727b;
+  --admin-audit-line: rgba(42, 44, 53, 0.13);
+  display: grid;
+  gap: 22px;
+  width: min(100%, 1500px);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block-end: 44px;
+  color: var(--admin-audit-ink);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page :where(h1, h2, p) {
+  overflow-wrap: break-word;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page :where(button, input, select) {
+  font: inherit;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page :where(button, input, select):focus-visible {
+  outline: 2px solid var(--admin-audit-accent);
+  outline-offset: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+  padding-block-end: 20px;
+  border-block-end: 1px solid var(--admin-audit-line);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-header > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-header p {
+  max-width: 66ch;
+  margin: 8px 0 0;
+  color: var(--admin-audit-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid var(--admin-audit-line);
+  border-radius: 10px;
+  background: #fff;
+  color: #3e4048;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition-property: color, border-color, box-shadow, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-refresh:hover:not(:disabled) {
+  border-color: rgba(197, 18, 48, 0.32);
+  color: var(--admin-audit-accent);
+  box-shadow: 0 6px 16px rgba(48, 26, 32, 0.06);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: clip;
+  border: 1px solid var(--admin-audit-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(35, 37, 44, 0.05);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  min-height: 110px;
+  padding: 20px 22px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div + div {
+  border-inline-start: 1px solid var(--admin-audit-line);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div > span {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: var(--admin-audit-accent-soft);
+  color: var(--admin-audit-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div > span svg {
+  width: 19px;
+  height: 19px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary p {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  color: var(--admin-audit-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary strong {
+  color: var(--admin-audit-ink);
+  font-size: 28px;
+  font-weight: 670;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-panel,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error {
+  min-width: 0;
+  border: 1px solid var(--admin-audit-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(35, 37, 44, 0.045);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.75fr) minmax(280px, 1.5fr) minmax(160px, 0.65fr) minmax(170px, 0.7fr);
+  align-items: end;
+  gap: 14px;
+  padding: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console-heading {
+  align-self: center;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console-heading h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 680;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console-heading p {
+  margin: 4px 0 0;
+  color: var(--admin-audit-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: 12px 7px;
+  border: 1px solid rgba(42, 44, 53, 0.16);
+  border-radius: 10px;
+  background: #f8f9fb;
+  color: var(--admin-audit-muted);
+  transition-property: border-color, background-color, box-shadow;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search:focus-within {
+  border-color: rgba(197, 18, 48, 0.52);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(197, 18, 48, 0.09);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--admin-audit-ink);
+  font-size: 13px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #686c75;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: #666a73;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 32px 9px 11px;
+  border: 1px solid rgba(42, 44, 53, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--admin-audit-ink);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-result-status {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--admin-audit-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-panel {
+  display: grid;
+  min-width: 0;
+  padding: 20px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding-block-end: 16px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 680;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading p {
+  margin: 3px 0 0;
+  color: var(--admin-audit-muted);
+  font-size: 11px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading > span {
+  flex: 0 0 auto;
+  color: var(--admin-audit-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-table {
+  display: grid;
+  min-width: 0;
+  border: 1px solid rgba(42, 44, 53, 0.1);
+  border-radius: 11px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.5fr) minmax(90px, 0.55fr) minmax(145px, 0.8fr) minmax(150px, 0.85fr) minmax(165px, 0.9fr) minmax(120px, 0.65fr);
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 13px 14px;
+  color: #555862;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row + .admin-audit-row {
+  border-block-start: 1px solid rgba(42, 44, 53, 0.09);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head {
+  min-height: 44px;
+  background: #f8f9fb;
+  color: #686c75;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > i {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: #eef5ff;
+  color: #416a9d;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > i.tone-failed {
+  background: #fff0f2;
+  color: #bd1732;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > i.tone-started {
+  background: #fff8e8;
+  color: #9b6d12;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > i svg {
+  width: 17px;
+  height: 17px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > span,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action strong,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person strong {
+  min-width: 0;
+  color: #30323a;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action small,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person small {
+  min-width: 0;
+  color: #8a8e97;
+  font-size: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-source,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #416a9d;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-source.source-account {
+  background: #f3f0ff;
+  color: #6450a0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-status {
+  background: #eefbf5;
+  color: #117a52;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-status.status-started {
+  background: #fff8e8;
+  color: #8d650f;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-status.status-failed {
+  background: #fff0f2;
+  color: #aa1530;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-status svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-time {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-time svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding-block-start: 16px;
+  color: var(--admin-audit-muted);
+  font-size: 11px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-pagination > div {
+  display: flex;
+  gap: 7px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-pagination button {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--admin-audit-line);
+  border-radius: 9px;
+  background: #fff;
+  color: #555862;
+  cursor: pointer;
+  transition-property: color, border-color, transform;
+  transition-duration: 150ms;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-loading,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 230px;
+  padding: 24px;
+  color: var(--admin-audit-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty {
+  flex-direction: column;
+  border: 1px dashed rgba(42, 44, 53, 0.16);
+  border-radius: 11px;
+  background: #fafbfc;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--admin-audit-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty h2,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty p {
+  margin: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty h2 {
+  font-size: 16px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-empty button,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error button {
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid var(--admin-audit-line);
+  border-radius: 9px;
+  background: #fff;
+  color: #4c4f58;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 150px;
+  padding: 22px;
+  border-color: rgba(197, 18, 48, 0.2);
+  background: #fffafb;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error > svg {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  color: var(--admin-audit-accent);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error h2,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error p {
+  margin: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error h2 {
+  font-size: 16px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error p {
+  margin-block-start: 4px;
+  color: var(--admin-audit-muted);
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error button {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page .is-spinning {
+  animation: admin-timetable-spin 0.8s linear infinite;
+}
+
+@media (max-width: 1180px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console {
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(155px, 0.45fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console-heading {
+    grid-column: 1 / -1;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-result-status {
+    grid-column: 1 / -1;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row {
+    grid-template-columns: minmax(210px, 1.4fr) minmax(90px, 0.5fr) minmax(140px, 0.8fr) minmax(150px, 0.8fr) minmax(120px, 0.65fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span:nth-child(4),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head > span:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 840px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div:nth-child(3) {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--admin-audit-line);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div:nth-child(4) {
+    border-block-start: 1px solid var(--admin-audit-line);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 9px 14px;
+    padding: 15px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > .admin-audit-action,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span:nth-child(2),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span:nth-child(6) {
+    display: flex;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > .admin-audit-action {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page {
+    gap: 16px;
+    padding-block-end: 28px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-header h1 {
+    font-size: 28px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-refresh {
+    width: 100%;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div {
+    min-height: 96px;
+    padding: 14px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary > div > span {
+    width: 34px;
+    height: 34px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-summary strong {
+    font-size: 23px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-console-heading,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-result-status {
+    grid-column: auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search input,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select select {
+    font-size: 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-panel {
+    padding: 16px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-error button {
+    width: 100%;
+    margin-inline-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page .is-spinning {
+    animation: none;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page :where(button, input, select) {
+    transition-duration: 0.01ms;
+  }
+}
