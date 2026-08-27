@@ -21,3 +21,10 @@ test("the deployable platform pins the supported Node major", async () => {
 
   assert.deepEqual(packageJson.engines, { node: "22.x" });
 });
+
+test("the platform declares the PostCSS plugin used by the monorepo config", async () => {
+  const packageJson = await readJson("../package.json");
+  const devDependencies = packageJson.devDependencies as Record<string, string>;
+
+  assert.equal(devDependencies["@tailwindcss/postcss"], "4.2.1");
+});
