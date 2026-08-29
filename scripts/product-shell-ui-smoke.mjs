@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
-const baseUrl = process.env.E2E_BASE_URL ?? "http://localhost:5175";
+const baseUrl = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 const mockAuth = process.env.MOCK_AUTH === "1";
 const mockRole = process.env.MOCK_ROLE === "student" ? "student" : "admin";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -660,6 +660,78 @@ async function inspectAdminQuickFinder() {
   if (!learnerFiltered) throw new Error("Admin quick finder did not preserve the selected learner filter.");
 }
 
+async function inspectNewWorkflowActions() {
+  if (mockRole === "student") {
+    for (const width of [1440, 390, 360]) {
+      await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+      await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      await page.waitForTimeout(1_200);
+      const shortcutState = await page.evaluate(() => {
+        const root = document.documentElement;
+        const shortcuts = [...document.querySelectorAll(".dashboard-shortcuts-grid > a")];
+        return {
+          shortcutCount: shortcuts.length,
+          shortcutHrefs: shortcuts.map(item => item.getAttribute("href")),
+          hasHeading: document.querySelector("#dashboard-shortcuts-title")?.textContent?.trim() === "Lối tắt học tập",
+          horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+        };
+      });
+      if (shortcutState.shortcutCount !== 4 || !shortcutState.hasHeading || shortcutState.horizontalOverflow
+        || JSON.stringify(shortcutState.shortcutHrefs) !== JSON.stringify(["/courses", "/exam-room", "/progress", "/tkb"])) {
+        throw new Error(`Student dashboard shortcuts failed at ${width}px: ${JSON.stringify(shortcutState)}`);
+      }
+
+      await page.goto(`${baseUrl}/courses`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      await page.waitForTimeout(1_200);
+      await page.getByRole("button", { name: "Danh sách" }).click();
+      await page.waitForURL(url => url.pathname === "/courses" && url.searchParams.get("view") === "list", { timeout: 5_000 });
+      const listMode = await page.locator(".course-list-view").count();
+      await page.goBack();
+      await page.waitForURL(url => url.pathname === "/courses" && !url.searchParams.has("view"), { timeout: 5_000 });
+      await page.waitForTimeout(1_200);
+      const gridModeAfterBack = await page.locator(".course-grid-view").count();
+      const afterBackUrl = page.url();
+      const afterBackClasses = await page.locator(".reference-course-grid").getAttribute("class").catch(() => null);
+      await page.goForward();
+      await page.waitForURL(url => url.pathname === "/courses" && url.searchParams.get("view") === "list", { timeout: 5_000 });
+      await page.waitForTimeout(1_200);
+      const gridModeAfterForward = await page.locator(".course-grid-view").count();
+      const afterForwardUrl = page.url();
+      const afterForwardClasses = await page.locator(".reference-course-grid").getAttribute("class").catch(() => null);
+      const result = { name: "student-new-workflow-actions", path: "/dashboard", width, ...shortcutState, listMode, gridModeAfterBack, afterBackUrl, afterBackClasses, gridModeAfterForward, afterForwardUrl, afterForwardClasses };
+      report.push(result);
+      if (listMode !== 1 || gridModeAfterBack !== 1 || gridModeAfterForward !== 0) {
+        throw new Error(`Student course view history failed at ${width}px: ${JSON.stringify(result)}`);
+      }
+    }
+    return;
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(1_200);
+  const quickActionCount = await page.locator(".admin-quick-actions-grid > *").count();
+  await page.getByRole("button", { name: /Thêm học viên/ }).first().click();
+  await page.getByRole("heading", { name: "Thêm học viên" }).waitFor({ state: "visible" });
+  await page.getByRole("button", { name: "Đóng hộp thoại thêm học viên" }).click();
+  await page.getByRole("button", { name: /Tạo khóa học/ }).first().click();
+  await page.getByRole("heading", { name: "Tạo khóa học" }).waitFor({ state: "visible" });
+  await page.getByRole("button", { name: "Đóng hộp thoại tạo khóa học" }).click();
+  await page.getByRole("link", { name: /Tạo kíp thi/ }).first().click();
+  await page.waitForURL(url => url.pathname === "/admin/sessions/new", { timeout: 5_000 });
+  await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(1_200);
+  await page.getByRole("link", { name: /Mở kho ảnh/ }).first().click();
+  await page.waitForURL(url => url.pathname === "/admin/upload", { timeout: 5_000 });
+  const state = await page.evaluate(() => ({
+    quickActionCount: document.querySelectorAll(".admin-quick-actions-grid > *").length,
+    horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+  }));
+  const result = { name: "admin-new-workflow-actions", path: "/admin", width: 390, quickActionCount, finalPageQuickActionCount: state.quickActionCount, horizontalOverflow: state.horizontalOverflow };
+  report.push(result);
+  if (quickActionCount !== 4 || state.horizontalOverflow) throw new Error(`Admin quick actions failed: ${JSON.stringify(result)}`);
+}
+
 async function inspectCourseResourceModal() {
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
@@ -799,6 +871,7 @@ if (authenticated) {
       await inspectDashboardDotAlignment();
     }
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
+    if (!focusedAudit || requestedRoutes.has(mockRole === "admin" ? "admin-dashboard" : "student-dashboard")) await inspectNewWorkflowActions();
     if (!focusedAudit || requestedRoutes.has("student-search")) await inspectStudentSearch();
     if (!focusedAudit || requestedRoutes.has("student-schedule")) await inspectStudentSchedule();
     if (!focusedAudit || requestedRoutes.has("student-progress")) await inspectStudentProgress();

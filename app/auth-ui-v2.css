@@ -217,6 +217,32 @@
     outline-offset: 2px;
   }
 }
+
+.login-page.auth-public-refresh.ui-auth-surface .login-portal-switch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e6e8ed;
+  color: #686d76;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.login-page.auth-public-refresh.ui-auth-surface .login-portal-switch a {
+  color: #a50f27;
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 3px;
+}
+
+.login-page.auth-public-refresh.ui-auth-surface .login-portal-switch a:hover {
+  color: #7f0b20;
+}
 /* Public auth workspace refresh. The route class keeps this visual pass
    deterministic without changing forgot/reset or protected surfaces. */
 .login-page.auth-public-refresh.ui-auth-surface {

@@ -33,7 +33,8 @@ import { formatUiActivityDate, formatUiDate, formatUiShortDateTime } from "./ui-
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
-  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3
+  ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3,
+  LayoutGrid, List as ListIcon
 } from "lucide-react";
 
 const ExamRoomModule = lazy(() => import("./exam-room"));
@@ -865,6 +866,7 @@ function LoginPage(p: AuthPageProps) {
         <button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
       </form>
+      <p className="login-portal-switch">Bạn là quản trị viên? <Link href="/admin">Đăng nhập quản trị</Link></p>
       <p className="login-foot">© 2026 REMIX Education · Học để trưởng thành</p>
       </div>
     </section>
@@ -899,6 +901,7 @@ function AdminLoginPage(p: AuthPageProps) {
         <button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang xác thực…" : "Vào trang quản trị"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
       </form>
+      <p className="login-portal-switch">Bạn là học viên? <Link href="/">Đăng nhập học viên</Link></p>
       <p className="login-foot">Không gian này chỉ dành cho giáo viên và quản trị viên.</p>
       </div>
     </section>
@@ -1079,6 +1082,34 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
       </div>
       <Link className="dashboard-next-step-action" href={nextStep.href} onClick={event => followLink(event, nextStep.onOpen)}>{nextStep.actionLabel}<ChevronRight aria-hidden="true" /></Link>
     </section>
+    <section className="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title">
+      <div className="dashboard-shortcuts-head">
+        <div><span className="eyebrow">TRUY CẬP NHANH</span><h2 id="dashboard-shortcuts-title">Lối tắt học tập</h2></div>
+        <p>Đi thẳng đến khu vực bạn đang cần.</p>
+      </div>
+      <div className="dashboard-shortcuts-grid">
+        <Link className="dashboard-shortcut" href="/courses">
+          <span className="dashboard-shortcut-icon" aria-hidden="true"><BookOpen /></span>
+          <span className="dashboard-shortcut-copy"><b>Khóa học</b><small>{userCourses.length ? `${userCourses.length} khóa học đang được phân` : "Xem các khóa học đã được phân"}</small></span>
+          <ChevronRight aria-hidden="true" />
+        </Link>
+        <Link className="dashboard-shortcut" href="/exam-room">
+          <span className="dashboard-shortcut-icon" aria-hidden="true"><ClipboardCheck /></span>
+          <span className="dashboard-shortcut-copy"><b>Phòng luyện</b><small>{practiceRooms.length ? `${practiceRooms.length} phòng đang mở` : "Xem phòng luyện và đề thi"}</small></span>
+          <ChevronRight aria-hidden="true" />
+        </Link>
+        <Link className="dashboard-shortcut" href="/progress">
+          <span className="dashboard-shortcut-icon" aria-hidden="true"><BarChart3 /></span>
+          <span className="dashboard-shortcut-copy"><b>Tiến độ</b><small>{completedAttempts.length ? `${completedAttempts.length} bài đã hoàn thành` : "Theo dõi kết quả học tập"}</small></span>
+          <ChevronRight aria-hidden="true" />
+        </Link>
+        <Link className="dashboard-shortcut" href="/tkb">
+          <span className="dashboard-shortcut-icon" aria-hidden="true"><CalendarClock /></span>
+          <span className="dashboard-shortcut-copy"><b>Thời khóa biểu</b><small>{practiceRooms.length ? `${practiceRooms.length} phòng có thể theo dõi` : "Xem lịch học và lịch thi"}</small></span>
+          <ChevronRight aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
     <section className="overview-lists">
       <article className="overview-list-card"><div className="overview-card-head"><b>Khóa học</b><Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link></div>{userCourses.length ? <ul>{userCourses.map(c=><li key={c.id}><i className="dot blue"/><Link href={`/courses/${encodeURIComponent(String(c.id))}`}>{c.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa được phân khóa học</div>}</article>
       <article className="overview-list-card"><div className="overview-card-head"><b>Phòng luyện</b><Link href="/exam-room" onClick={event => followLink(event, onExams)}>Xem tất cả</Link></div>{practiceRooms.length ? <ul>{practiceRooms.slice(0,5).map(room=><li key={room.id}><i className="dot blue"/><Link href={`/exam-room/${encodeURIComponent(room.id)}`} onClick={event => followLink(event, () => onOpenRoom(room.id))} title={`${room.title} · ${room.examCount} đề`}>{room.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa có phòng luyện nào</div>}</article>
@@ -1100,6 +1131,7 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
   const router = useRouter();
   const searchParams = useSearchParams();
   const routeCourseSearch = searchParams.get("q") ?? "";
+  const courseView = searchParams.get("view") === "list" ? "list" : "grid";
   const [courseSearch, setCourseSearch] = useState(routeCourseSearch);
   const committedCourseSearchRef = useRef(routeCourseSearch);
   useEffect(() => {
@@ -1128,7 +1160,13 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
     if (!query) return courseItems;
     return courseItems.filter(course => `${course.title} ${course.description}`.toLocaleLowerCase("vi").includes(query));
   }, [courseItems, courseSearch]);
-  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học được phân cho tài khoản của bạn.</p></div><div className="course-search-wrap"><label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span></div></div>{filteredCourses.length ? <div className="course-grid reference-course-grid">{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}</div>;
+  const updateCourseView = (nextView: "grid" | "list") => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set("view", nextView);
+    const nextQuery = nextParams.toString();
+    router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
+  };
+  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học được phân cho tài khoản của bạn.</p></div><div className="course-search-wrap"><label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label><div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div></div></div>{filteredCourses.length ? <div className={`course-grid reference-course-grid ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}</div>;
 }
 
 function CourseCoverVisual({ course, detail = false }: { course: CourseData; detail?: boolean }) {
@@ -1898,6 +1936,32 @@ function RealAdminDashboard() {
       </header>
 
       <AdminQuickFinder items={adminFinderItems} loading={loadingAdmin} onSelect={handleAdminFinderSelect} />
+
+      <section className="admin-quick-actions" aria-labelledby="admin-quick-actions-title">
+        <div className="admin-quick-actions-head"><div><span className="eyebrow">THAO TÁC NHANH</span><h2 id="admin-quick-actions-title">Bắt đầu công việc</h2></div><p>Mở đúng công cụ cho bước tiếp theo.</p></div>
+        <div className="admin-quick-actions-grid">
+          <button type="button" className="admin-quick-action" onClick={() => { setCreateError(""); setAdminNotice(""); setModal(true); }}>
+            <span className="admin-quick-action-icon" aria-hidden="true"><UserRound /></span>
+            <span className="admin-quick-action-copy"><b>Thêm học viên</b><small>Tạo tài khoản và cấp mã học viên</small></span>
+            <Plus aria-hidden="true" />
+          </button>
+          <button type="button" className="admin-quick-action" onClick={() => { setCourseError(""); setAdminNotice(""); setCourseModal(true); }}>
+            <span className="admin-quick-action-icon" aria-hidden="true"><BookOpen /></span>
+            <span className="admin-quick-action-copy"><b>Tạo khóa học</b><small>Bắt đầu cấu trúc nội dung mới</small></span>
+            <Plus aria-hidden="true" />
+          </button>
+          <Link className="admin-quick-action" href="/admin/sessions/new" onClick={event => navigateAdminLink(event, "/admin/sessions/new")}>
+            <span className="admin-quick-action-icon" aria-hidden="true"><CalendarClock /></span>
+            <span className="admin-quick-action-copy"><b>Tạo kíp thi</b><small>Thiết lập thời gian và quyền truy cập</small></span>
+            <ChevronRight aria-hidden="true" />
+          </Link>
+          <Link className="admin-quick-action" href="/admin/upload" onClick={event => navigateAdminLink(event, "/admin/upload")}>
+            <span className="admin-quick-action-icon" aria-hidden="true"><ImagePlus /></span>
+            <span className="admin-quick-action-copy"><b>Mở kho ảnh</b><small>Quản lý ảnh bìa và tài nguyên</small></span>
+            <ChevronRight aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
 
       {/* KPI row */}
       <nav className="admin-kpi-row admin-dash-status-rail" aria-label="Đi tới dữ liệu tổng quan">

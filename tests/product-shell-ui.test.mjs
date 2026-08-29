@@ -90,6 +90,52 @@ test("courses use native links and curriculum list semantics", async () => {
   assert.match(productCss, /\.course-part-lessons > li > a/);
 });
 
+test("student shell exposes URL-backed shortcuts and course view modes", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/product-shell-ux.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /className="dashboard-shortcuts"/);
+  assert.match(platform, /href="\/courses"/);
+  assert.match(platform, /href="\/progress"/);
+  assert.match(platform, /href="\/tkb"/);
+  assert.match(platform, /const courseView = searchParams\.get\("view"\) === "list"/);
+  assert.match(platform, /router\.push\(`\$\{pathname\}\$\{nextQuery/);
+  assert.match(platform, /course-list-view/);
+  assert.match(css, /\.dashboard-shortcuts-grid/);
+  assert.match(css, /\.course-view-toggle/);
+  assert.match(css, /\.course-grid\.reference-course-grid\.course-list-view/);
+});
+
+test("admin quick actions connect to real modals and routes", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/product-shell-ux.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /className="admin-quick-actions"/);
+  assert.match(platform, /setModal\(true\)/);
+  assert.match(platform, /setCourseModal\(true\)/);
+  assert.match(platform, /href="\/admin\/sessions\/new"/);
+  assert.match(platform, /href="\/admin\/upload"/);
+  assert.match(css, /\.admin-quick-actions-grid/);
+  assert.match(css, /\.admin-quick-action/);
+  assert.match(css, /\.admin-workflow-strip > a/);
+});
+
+test("public auth pages expose a clear portal switch", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/auth-ui-v2.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /className="login-portal-switch"/);
+  assert.match(platform, /href="\/admin"/);
+  assert.match(platform, /href="\/"/);
+  assert.match(css, /\.login-page\.auth-public-refresh\.ui-auth-surface \.login-portal-switch/);
+});
+
 test("course content loaders always settle and ignore superseded routes", async () => {
   const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
 
