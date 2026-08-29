@@ -850,7 +850,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
 }
 
 function LoginPage(p: AuthPageProps) {
-  return <main data-ui-mode={p.uiRouteMode} className="login-page ui-auth-surface">
+  return <main data-ui-mode={p.uiRouteMode} className="login-page ui-auth-surface auth-public-refresh">
     <div className="login-orb orb-one" /><div className="login-orb orb-two" />
     <section className="login-wrap">
       <AuthAside />
@@ -885,7 +885,7 @@ function AuthAside({ admin = false }: { admin?: boolean }) {
 }
 
 function AdminLoginPage(p: AuthPageProps) {
-  return <main data-ui-mode={p.uiRouteMode} className="login-page admin-login-page ui-auth-surface">
+  return <main data-ui-mode={p.uiRouteMode} className="login-page admin-login-page ui-auth-surface auth-public-refresh">
     <section className="login-wrap">
       <AuthAside admin />
       <div className="login-main">

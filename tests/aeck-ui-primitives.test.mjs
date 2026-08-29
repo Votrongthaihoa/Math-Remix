@@ -35,8 +35,8 @@ test("authentication polish is opt-in and cannot style exam content", async () =
     readFile(new URL("../app/auth-ui-v2.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(platform, /className="login-page ui-auth-surface"/);
-  assert.match(platform, /className="login-page admin-login-page ui-auth-surface"/);
+  assert.match(platform, /className="login-page ui-auth-surface auth-public-refresh"/);
+  assert.match(platform, /className="login-page admin-login-page ui-auth-surface auth-public-refresh"/);
   assert.match(css, /\.login-page\.ui-auth-surface/);
   assert.doesNotMatch(css, /\.(?:exam|question|answer|result|review|solution|admin-exam)[\w-]*/i);
   assert.doesNotMatch(css, /(^|\n)\s*(?:button|input|textarea|select|svg|body|h1)\s*[{,]/m);
