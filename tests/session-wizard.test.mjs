@@ -11,7 +11,7 @@ test("the session wizard is reachable as a first-class admin route", async () =>
 
   assert.match(page, /slug\.length === 3 && slug\[1\] === "sessions" && slug\[2\] === "new"/);
   assert.match(platform, /lazy\(\(\) => import\("\.\/admin-session-wizard"\)\)/);
-  assert.match(platform, /window\.location\.pathname === "\/admin\/sessions\/new"/);
+  assert.match(platform, /adminLocationPath === "\/admin\/sessions\/new"/);
   assert.match(wizard, /\/api\/admin\/session-catalog/);
   assert.match(wizard, /\/api\/admin\/exam-policy/);
   assert.match(wizard, /action: "save_policy"/);

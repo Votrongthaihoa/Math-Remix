@@ -29,6 +29,7 @@ import "./reference-integration.css";
 import "./admin-reference-suite.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
+import { formatUiActivityDate, formatUiDate, formatUiShortDateTime } from "./ui-format";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
@@ -149,11 +150,6 @@ function formatLessonTitle(title: string, index: number) {
 function resourceTypeLabel(type: ResourceData["resource_type"]) {
   return type === "youtube" ? "Video YouTube" : type === "onedrive_video" ? "Video Microsoft" : type === "hls_vault" ? "Video HLS Vault" : type === "storage_pdf" ? "PDF trên R2 private" : "PDF / Google Drive";
 }
-
-const vietnameseDateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  dateStyle: "short",
-  timeZone: "Asia/Ho_Chi_Minh",
-});
 
 const pathsByView: Record<View, string> = {
   overview: "/dashboard",
@@ -278,6 +274,21 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
   const lastAllowedRouteRef = useRef(pathname);
+  const handleHistoryLoaded = useCallback((nextAttempts: AttemptData[]) => {
+    setAttempts(current => {
+      const same = current.length === nextAttempts.length && current.every((attempt, index) => {
+        const next = nextAttempts[index];
+        return next
+          && attempt.id === next.id
+          && attempt.submitted_at === next.submitted_at
+          && attempt.score === next.score
+          && attempt.status === next.status
+          && attempt.correct_answers === next.correct_answers
+          && attempt.total_questions === next.total_questions;
+      });
+      return same ? current : nextAttempts;
+    });
+  }, []);
   const availableExamTypes = useMemo(() => {
     const types = new Set<string>();
     for (const room of practiceRooms) {
@@ -491,19 +502,20 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       return;
     }
     let active = true;
+    const controller = new AbortController();
     const refreshOverviewData = async () => {
       const [historyResponse, roomsResponse] = await Promise.all([
-        authenticatedFetch("/api/exams?scope=history", { cache: "no-store" }).catch(() => null),
-        authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store" }).catch(() => null),
+        authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal }).catch(() => null),
+        authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store", signal: controller.signal }).catch(() => null),
       ]);
-      if (!active) return;
+      if (!active || controller.signal.aborted) return;
       if (historyResponse?.ok) {
         const payload = await historyResponse.json().catch(() => null) as { attempts?: AttemptData[] } | null;
-        if (active && payload?.attempts) setAttempts(payload.attempts);
+        if (active && !controller.signal.aborted && payload?.attempts) setAttempts(payload.attempts);
       }
       if (roomsResponse?.ok) {
         const payload = await roomsResponse.json().catch(() => null) as ExamRoomsPayload | null;
-        if (!active || !payload) return;
+        if (!active || controller.signal.aborted || !payload) return;
         const examRows = payload.exams ?? [];
         setPracticeRooms((payload.rooms ?? []).map(room => ({
           id: room.id,
@@ -519,7 +531,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       }
     };
     void refreshOverviewData();
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [currentView, signedIn]);
 
   async function loadUserData(user: { id: string; email?: string | null }) {
@@ -826,7 +838,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
-        {currentView === "history" && <ExamHistory attempts={attempts} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
+        {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
         {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "schedule" && <StudentSchedulePage rooms={practiceRooms} />}
@@ -850,7 +862,7 @@ function LoginPage(p: AuthPageProps) {
         <div className="login-field-group"><label htmlFor="login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true" /><input id="login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required /><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></div></div>
         <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
         {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
-        <button className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button>
+        <button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
       </form>
       <p className="login-foot">© 2026 REMIX Education · Học để trưởng thành</p>
@@ -884,7 +896,7 @@ function AdminLoginPage(p: AuthPageProps) {
         <div className="login-field-group"><label htmlFor="admin-login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true"/><input id="admin-login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div></div>
         <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
         {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
-        <button className="primary-btn" disabled={p.loading}>{p.loading ? "Đang xác thực…" : "Vào trang quản trị"}</button>
+        <button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang xác thực…" : "Vào trang quản trị"}</button>
         <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
       </form>
       <p className="login-foot">Không gian này chỉ dành cho giáo viên và quản trị viên.</p>
@@ -939,7 +951,7 @@ function ForgotPasswordPage({ initialEmail, returnToAdmin, onBack }: { initialEm
         <TurnstileChallenge action="password_reset" onTokenChange={setTurnstileToken} resetSignal={turnstileResetNonce} />
         {error && <p className="form-error" role="alert">{error}</p>}
         {message && <p className="form-success" role="status" aria-live="polite">{message}</p>}
-        <button className="primary-btn" disabled={sending}>{sending ? "Đang gửi…" : "Gửi liên kết đặt lại"}</button>
+        <button type="submit" className="primary-btn" disabled={sending}>{sending ? "Đang gửi…" : "Gửi liên kết đặt lại"}</button>
         <button className="forgot" type="button" onClick={onBack}>Quay lại đăng nhập</button>
       </form>
     </section>
@@ -981,7 +993,7 @@ function ResetPasswordPage({ onComplete }: { onComplete: () => void }) {
         <label htmlFor="new-password">Mật khẩu mới<div className="field"><LockKeyhole aria-hidden="true" /><input id="new-password" name="newPassword" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" required /></div></label>
         <label htmlFor="confirm-password">Xác nhận mật khẩu<div className="field"><LockKeyhole aria-hidden="true" /><input id="confirm-password" name="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required /></div></label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="primary-btn" disabled={saving}>{saving ? "Đang cập nhật…" : "Đặt mật khẩu mới"}</button>
+        <button type="submit" className="primary-btn" disabled={saving}>{saving ? "Đang cập nhật…" : "Đặt mật khẩu mới"}</button>
         <button className="forgot" type="button" onClick={onComplete}>Quay lại đăng nhập</button>
       </form>
     </section>
@@ -1016,7 +1028,6 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
     months[new Date(item.submitted_at).getMonth()] += 1;
     return months;
   }, Array.from({ length: 12 }, () => 0));
-  const activityDateFormat = new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const recent = completedAttempts.slice(0, 5);
   const top = [...completedAttempts].sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)).slice(0, 5);
   const nextRoom = practiceRooms[0];
@@ -1072,12 +1083,12 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
       <article className="overview-list-card"><div className="overview-card-head"><b>Khóa học</b><Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link></div>{userCourses.length ? <ul>{userCourses.map(c=><li key={c.id}><i className="dot blue"/><Link href={`/courses/${encodeURIComponent(String(c.id))}`}>{c.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa được phân khóa học</div>}</article>
       <article className="overview-list-card"><div className="overview-card-head"><b>Phòng luyện</b><Link href="/exam-room" onClick={event => followLink(event, onExams)}>Xem tất cả</Link></div>{practiceRooms.length ? <ul>{practiceRooms.slice(0,5).map(room=><li key={room.id}><i className="dot blue"/><Link href={`/exam-room/${encodeURIComponent(room.id)}`} onClick={event => followLink(event, () => onOpenRoom(room.id))} title={`${room.title} · ${room.examCount} đề`}>{room.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa có phòng luyện nào</div>}</article>
     </section>
-    <section className="two-col"><div className="section-card"><div className="section-head"><h2>Bài thi gần đây</h2></div>{recent.length ? <ul className="attempt-list">{recent.map(item=><li key={item.id}><button className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><small>{new Date(item.submitted_at).toLocaleDateString("vi-VN")}</small></li>)}</ul> : <MiniEmpty text="Chưa có bài thi nào được thực hiện." />}</div><div className="section-card"><div className="section-head"><h2>Top 5 điểm cao nhất</h2></div>{top.length ? <ul className="attempt-list">{top.map(item=><li key={item.id}><button className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><b>{item.score}</b></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu xếp hạng." />}</div></section>
+    <section className="two-col"><div className="section-card"><div className="section-head"><h2>Bài thi gần đây</h2></div>{recent.length ? <ul className="attempt-list">{recent.map(item=><li key={item.id}><button type="button" className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><small>{formatUiDate(item.submitted_at)}</small></li>)}</ul> : <MiniEmpty text="Chưa có bài thi nào được thực hiện." />}</div><div className="section-card"><div className="section-head"><h2>Top 5 điểm cao nhất</h2></div>{top.length ? <ul className="attempt-list">{top.map(item=><li key={item.id}><button type="button" className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><b>{item.score}</b></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu xếp hạng." />}</div></section>
     <section className="section-card activity-card">
       <div className="section-head"><h2>Thống kê làm bài ({year})</h2><small className="muted">{yearAttempts.length} bài thi trong năm {year}</small></div>
       <span className="activity-year" aria-label={`Năm ${year}`}>{year}</span>
       <div className="heatmap-months">{Array.from({ length: 12 }, (_, index) => <span key={index} aria-label={`Tháng ${index + 1}`}><span className="heatmap-month-full">Th.{index + 1}</span><span className="heatmap-month-short">{index + 1}</span></span>)}</div>
-      <div className="heatmap dashboard-heatmap" role="img" aria-label={`Biểu đồ hoạt động năm ${year}: ${yearAttempts.length} bài thi đã hoàn thành`}>{activityDays.map(({ date, count, inYear }, index) => { const detail = `${activityDateFormat.format(date)}: ${count} bài thi`; return <i key={`${date.toISOString()}-${index}`} className={inYear ? `level-${Math.min(count,4)}` : "outside-year"} title={inYear ? detail : undefined} aria-hidden="true" />; })}</div>
+      <div className="heatmap dashboard-heatmap" role="img" aria-label={`Biểu đồ hoạt động năm ${year}: ${yearAttempts.length} bài thi đã hoàn thành`}>{activityDays.map(({ date, count, inYear }, index) => { const detail = `${formatUiActivityDate(date)}: ${count} bài thi`; return <i key={`${date.toISOString()}-${index}`} className={inYear ? `level-${Math.min(count,4)}` : "outside-year"} title={inYear ? detail : undefined} aria-hidden="true" />; })}</div>
       <ol className="activity-mobile-summary" aria-label={`Hoạt động theo tháng năm ${year}`}>{monthlyActivity.map((count, index) => <li key={index}><span>Tháng {index + 1}</span><strong>{count} bài</strong></li>)}</ol>
       <div className="activity-footer"><span>{yearAttempts.length} bài thi trong năm</span><div className="heatmap-legend"><span>Ít</span><i/><i/><i/><i/><i/><span>Nhiều</span></div></div>
     </section>
@@ -1291,12 +1302,15 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
   </div>;
 }
 
-function ExamHistory({ attempts, onOpen }: { attempts: AttemptData[]; onOpen: (attemptId: string) => void }) {
+function ExamHistory({ attempts, onAttemptsLoaded, onOpen }: { attempts: AttemptData[]; onAttemptsLoaded: (attempts: AttemptData[]) => void; onOpen: (attemptId: string) => void }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleAttempts, setVisibleAttempts] = useState(attempts);
   const [isLoading, setIsLoading] = useState(attempts.length === 0);
   const [loadError, setLoadError] = useState("");
   const [reloadVersion, setReloadVersion] = useState(0);
+  const hasAttemptsRef = useRef(attempts.length > 0);
+  useEffect(() => {
+    hasAttemptsRef.current = attempts.length > 0;
+  }, [attempts.length]);
 
   useEffect(() => {
     const readQuery = () => setSearchTerm(new URLSearchParams(window.location.search).get("q") ?? "");
@@ -1313,35 +1327,38 @@ function ExamHistory({ attempts, onOpen }: { attempts: AttemptData[]; onOpen: (a
   }, [searchTerm]);
 
   useEffect(() => {
+    const controller = new AbortController();
     let active = true;
-    // The list is a client-side cache that must follow the parent snapshot.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisibleAttempts(attempts);
-    setLoadError("");
-    setIsLoading(attempts.length === 0);
+    // The parent snapshot is the immediate cache. The request only refreshes
+    // the list and is ignored when the route or request is no longer current.
     const refresh = async () => {
+      setLoadError("");
+      setIsLoading(!hasAttemptsRef.current);
       try {
-        const response = await authenticatedFetch("/api/exams?scope=history", { cache: "no-store" });
+        const response = await authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal });
         const payload = await response.json().catch(() => null) as { attempts?: AttemptData[] } | null;
-        if (!active) return;
-        if (response.ok) setVisibleAttempts(payload?.attempts ?? []);
-        else if (!attempts.length) setLoadError("Không thể tải lịch sử làm bài lúc này.");
+        if (!active || controller.signal.aborted) return;
+        if (response.ok) {
+          onAttemptsLoaded(payload?.attempts ?? []);
+          setIsLoading(false);
+        }
+        else if (!hasAttemptsRef.current) setLoadError("Không thể tải lịch sử làm bài lúc này.");
         setIsLoading(false);
       } catch {
-        if (!active) return;
-        if (!attempts.length) setLoadError("Không thể tải lịch sử làm bài lúc này.");
+        if (!active || controller.signal.aborted) return;
+        if (!hasAttemptsRef.current) setLoadError("Không thể tải lịch sử làm bài lúc này.");
         setIsLoading(false);
       }
     };
     void refresh();
-    return () => { active = false; };
-  }, [attempts, reloadVersion]);
+    return () => { active = false; controller.abort(); };
+  }, [onAttemptsLoaded, reloadVersion]);
 
+  const visibleAttempts = attempts;
   const completedAttempts = visibleAttempts.filter(attempt => attempt.status !== "in_progress" && Boolean(attempt.submitted_at));
   const filteredAttempts = completedAttempts.filter(attempt => (attempt.title || "Bài thi").toLocaleLowerCase("vi").includes(searchTerm.trim().toLocaleLowerCase("vi")));
   const thptqgHistory = completedAttempts.length > 0 && completedAttempts.every(attempt => normalizeExamType(attempt.exam_type) === "THPTQG");
   const statusLabel = (status: string) => status === "graded" ? "Đã chấm" : status === "completed" ? "Đã hoàn thành" : "Đã nộp";
-  const formatSubmittedAt = (value: string | null) => value ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : "Chưa nộp";
   const openHistoryItem = (event: React.MouseEvent<HTMLAnchorElement>, attemptId: string) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -1354,7 +1371,7 @@ function ExamHistory({ attempts, onOpen }: { attempts: AttemptData[]; onOpen: (a
       : filteredAttempts.length
         ? <section className="history-list">{filteredAttempts.map(attempt => <article className={`history-row ${normalizeExamType(attempt.exam_type) === "THPTQG" ? "history-row-thptqg" : ""}`} key={attempt.id}>
             <div className="history-exam"><b>{attempt.title || "Bài thi"}</b><small>{Number(attempt.score ?? 0)} điểm</small></div>
-            <time dateTime={attempt.submitted_at ?? undefined}>{formatSubmittedAt(attempt.submitted_at)}</time>
+            <time dateTime={attempt.submitted_at ?? undefined}>{formatUiShortDateTime(attempt.submitted_at, "Chưa nộp")}</time>
             <strong>{attempt.correct_answers}/{attempt.total_questions}</strong>
             <div className="history-status"><span>{statusLabel(attempt.status)}</span><Link href={`/exam/result/${encodeURIComponent(attempt.id)}`} onClick={event => openHistoryItem(event, attempt.id)}>Xem chi tiết<ChevronRight aria-hidden="true" /></Link></div>
           </article>)}</section>
@@ -1459,14 +1476,14 @@ function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData
   const completedYearAttempts = attempts.filter(attempt => attempt.status !== "in_progress" && Boolean(attempt.submitted_at) && new Date(attempt.submitted_at).getFullYear() === currentYear);
   const averageScore = completedYearAttempts.length ? Math.round(completedYearAttempts.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0) / completedYearAttempts.length) : 0;
   const profileHandle = `@${profile.email.split("@")[0] || profile.student_code.toLocaleLowerCase("vi")}`;
-  const profileFeedbackId = profileError || profileMessage ? "profile-name-feedback" : undefined;
+  const profileFeedbackId = profileError ? "profile-name-error" : undefined;
 
   return <div className="profile-grid">
     <header className="profile-page-heading"><span className="eyebrow">TÀI KHOẢN</span><h1>Hồ sơ cá nhân</h1><p>Quản lý thông tin hiển thị và bảo mật tài khoản.</p></header>
     <section className="profile-card identity"><span className="profile-label">HỒ SƠ HỌC VIÊN</span><span className="big-avatar" aria-hidden="true"><UserRound/></span><h2 className="profile-verified-name"><span>{profileHandle}</span><BadgeCheck aria-label="Tài khoản đã xác minh"/></h2><p className="profile-real-name">{profile.full_name}</p><span className={`status ${profile.status === "locked" ? "locked" : ""}`}><i/> {profile.status === "active" ? "Tài khoản đang hoạt động" : "Tài khoản đã bị khóa"}</span></section>
-    <form className="profile-card details profile-details-form" onSubmit={saveProfile} aria-busy={savingProfile}><div className="section-head"><div><span className="eyebrow">THÔNG TIN</span><h2>Thông tin chi tiết</h2></div><button type="button" className="outline-btn" onClick={()=>{setEditing(!editing);setDraftName(profile.full_name);setProfileError("");setProfileMessage("")}}>{editing?"Hủy":"Chỉnh sửa"}</button></div><div className="detail-list"><Detail icon={UserRound} label="Họ và tên" labelFor={editing ? "profile-full-name" : undefined} value={editing?<input ref={profileNameInputRef} id="profile-full-name" name="fullName" autoComplete="name" value={draftName} onChange={event=>setDraftName(event.target.value)} aria-invalid={Boolean(profileError)} aria-describedby={profileFeedbackId} maxLength={120} required/>:profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={BadgeCheck} label="Mã học viên" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "Quản trị viên" : "Học sinh"}/></div>{profileError&&<p id="profile-name-feedback" className="form-error" role="alert">{profileError}</p>}{profileMessage&&<p id="profile-name-feedback" className="form-success" role="status" aria-live="polite">{profileMessage}</p>}{editing&&<button type="submit" className="primary-btn small" disabled={savingProfile}>{savingProfile?"Đang lưu…":"Lưu thay đổi"}</button>}<hr/><div className="password-row"><div><LockKeyhole aria-hidden="true"/><span><b>Đổi mật khẩu</b><small>Nên sử dụng mật khẩu mạnh và riêng biệt.</small></span></div><button type="button" className="outline-btn" onClick={()=>setPasswordModal(true)}>Cập nhật mật khẩu</button></div></form>
-    <section className="profile-card exam-profile"><div className="profile-stat-heading"><div><span className="eyebrow">THỐNG KÊ</span><h2>Hoạt động thi năm {currentYear}</h2></div><span className="profile-score"><small>Điểm trung bình</small><b>{averageScore}</b></span></div>{completedYearAttempts.length ? <ul className="attempt-list">{completedYearAttempts.slice(0,5).map(attempt=><li key={attempt.id}><span><b>{attempt.title}</b><small>{vietnameseDateFormatter.format(new Date(attempt.submitted_at))}</small></span><strong>{attempt.score}</strong></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu bài thi trong năm nay." />}</section>
-    {passwordModal && <div className="modal-shade"><form className="modal password-modal" role="dialog" aria-modal="true" aria-labelledby="profile-password-title" aria-busy={savingPassword} onSubmit={changePassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT</span><h2 id="profile-password-title">Đổi mật khẩu</h2></div><button type="button" className="icon-btn" onClick={closePasswordModal} aria-label="Đóng hộp thoại đổi mật khẩu" disabled={savingPassword}><X aria-hidden="true"/></button></div><label htmlFor="profile-new-password">Mật khẩu mới<input id="profile-new-password" name="newPassword" type="password" autoComplete="new-password" value={newPassword} onChange={event=>setNewPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label><label htmlFor="profile-confirm-password">Xác nhận mật khẩu<input id="profile-confirm-password" name="passwordConfirmation" type="password" autoComplete="new-password" value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{passwordError&&<p className="form-error" role="alert">{passwordError}</p>}{passwordMessage&&<p className="form-success" role="status" aria-live="polite">{passwordMessage}</p>}<button className="primary-btn" disabled={savingPassword||Boolean(passwordMessage)}>{savingPassword?"Đang cập nhật…":passwordMessage?"Đã cập nhật":"Đổi mật khẩu"}</button></form></div>}
+    <form className="profile-card details profile-details-form" onSubmit={saveProfile} aria-busy={savingProfile}><div className="section-head"><div><span className="eyebrow">THÔNG TIN</span><h2>Thông tin chi tiết</h2></div><button type="button" className="outline-btn" onClick={()=>{setEditing(!editing);setDraftName(profile.full_name);setProfileError("");setProfileMessage("")}}>{editing?"Hủy":"Chỉnh sửa"}</button></div><div className="detail-list"><Detail icon={UserRound} label="Họ và tên" labelFor={editing ? "profile-full-name" : undefined} value={editing?<input ref={profileNameInputRef} id="profile-full-name" name="fullName" autoComplete="name" value={draftName} onChange={event=>setDraftName(event.target.value)} aria-invalid={Boolean(profileError && !draftName.trim())} aria-describedby={profileFeedbackId} maxLength={120} required/>:profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={BadgeCheck} label="Mã học viên" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "Quản trị viên" : "Học sinh"}/></div>{profileError&&<p id="profile-name-error" className="form-error" role="alert">{profileError}</p>}{profileMessage&&<p id="profile-name-success" className="form-success" role="status" aria-live="polite">{profileMessage}</p>}{editing&&<button type="submit" className="primary-btn small" disabled={savingProfile}>{savingProfile?"Đang lưu…":"Lưu thay đổi"}</button>}<hr/><div className="password-row"><div><LockKeyhole aria-hidden="true"/><span><b>Đổi mật khẩu</b><small>Nên sử dụng mật khẩu mạnh và riêng biệt.</small></span></div><button type="button" className="outline-btn" onClick={()=>setPasswordModal(true)}>Cập nhật mật khẩu</button></div></form>
+    <section className="profile-card exam-profile"><div className="profile-stat-heading"><div><span className="eyebrow">THỐNG KÊ</span><h2>Hoạt động thi năm {currentYear}</h2></div><span className="profile-score"><small>Điểm trung bình</small><b>{averageScore}</b></span></div>{completedYearAttempts.length ? <ul className="attempt-list">{completedYearAttempts.slice(0,5).map(attempt=><li key={attempt.id}><span><b>{attempt.title}</b><small>{formatUiDate(attempt.submitted_at)}</small></span><strong>{attempt.score}</strong></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu bài thi trong năm nay." />}</section>
+    {passwordModal && <div className="modal-shade"><form className="modal password-modal" role="dialog" aria-modal="true" aria-labelledby="profile-password-title" aria-busy={savingPassword} onSubmit={changePassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT</span><h2 id="profile-password-title">Đổi mật khẩu</h2></div><button type="button" className="icon-btn" onClick={closePasswordModal} aria-label="Đóng hộp thoại đổi mật khẩu" disabled={savingPassword}><X aria-hidden="true"/></button></div><label htmlFor="profile-new-password">Mật khẩu mới<input id="profile-new-password" name="newPassword" type="password" autoComplete="new-password" value={newPassword} onChange={event=>setNewPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label><label htmlFor="profile-confirm-password">Xác nhận mật khẩu<input id="profile-confirm-password" name="passwordConfirmation" type="password" autoComplete="new-password" value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{passwordError&&<p className="form-error" role="alert">{passwordError}</p>}{passwordMessage&&<p className="form-success" role="status" aria-live="polite">{passwordMessage}</p>}<button type="submit" className="primary-btn" disabled={savingPassword||Boolean(passwordMessage)}>{savingPassword?"Đang cập nhật…":passwordMessage?"Đã cập nhật":"Đổi mật khẩu"}</button></form></div>}
   </div>;
 }
 
@@ -1495,8 +1512,26 @@ function adminTabFromPath(pathname: string): AdminTab {
   return "dashboard";
 }
 
+function CourseColorField({ color, colorId, hexId, onColorChange, onHexChange }: {
+  color: string;
+  colorId: string;
+  hexId: string;
+  onColorChange: (value: string) => void;
+  onHexChange: (value: string) => void;
+}) {
+  return <div className="course-color-field-group">
+    <span className="field-label">Màu khóa học</span>
+    <div className="course-color-field">
+      <input id={colorId} name={colorId} type="color" value={courseColor(color)} onChange={event => onColorChange(event.target.value)} aria-label="Màu khóa học" />
+      <input id={hexId} name={hexId} autoComplete="off" value={color} onChange={event => onHexChange(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học" />
+    </div>
+  </div>;
+}
+
 function RealAdminDashboard() {
-  const [tab, setTab] = useState<AdminTab>(() => typeof window !== "undefined" ? adminTabFromPath(window.location.pathname) : "dashboard");
+  const adminPathname = usePathname();
+  const [tab, setTab] = useState<AdminTab>(() => adminTabFromPath(adminPathname));
+  const [adminLocation, setAdminLocation] = useState(adminPathname);
   const [modal, setModal] = useState(false);
   const [loadingAdmin, setLoadingAdmin] = useState(true);
   const [adminError, setAdminError] = useState("");
@@ -1538,6 +1573,10 @@ function RealAdminDashboard() {
   const [assignExamRoomId, setAssignExamRoomId] = useState("");
   const [assignExamStudentId, setAssignExamStudentId] = useState("");
   const [assigningExamRoom, setAssigningExamRoom] = useState(false);
+  const [removingEnrollmentKey, setRemovingEnrollmentKey] = useState("");
+  const adminLocationPath = (adminLocation || adminPathname).split(/[?#]/, 1)[0] || "/admin";
+  const adminRequestId = useRef(0);
+  const adminAbortController = useRef<AbortController | null>(null);
   const adminDialogOpen = modal || Boolean(passwordStudent) || courseModal;
   const closeAdminDialog = useCallback(() => {
     if (passwordStudent) {
@@ -1557,6 +1596,10 @@ function RealAdminDashboard() {
   useAdminDialogFocus(adminDialogOpen, closeAdminDialog);
 
   async function loadAdminData() {
+    const requestId = ++adminRequestId.current;
+    adminAbortController.current?.abort();
+    const controller = new AbortController();
+    adminAbortController.current = controller;
     setLoadingAdmin(true); setAdminError("");
     try {
       if (!supabase) { setAdminError("Chưa cấu hình Supabase."); return; }
@@ -1566,18 +1609,20 @@ function RealAdminDashboard() {
       supabase.from("lessons").select("id,title,published,chapters(course_id)"),
       supabase.from("course_enrollments").select("student_id,course_id"),
       supabase.from("exam_rooms").select("id,title,published,access_mode").order("sort_order"),
-      supabase.from("exam_room_enrollments").select("student_id,room_id"),
+        supabase.from("exam_room_enrollments").select("student_id,room_id"),
       ]);
+      if (requestId !== adminRequestId.current || controller.signal.aborted) return;
       const firstError = profileResult.error ?? courseResult.error ?? lessonResult.error ?? enrollmentResult.error ?? examRoomResult.error ?? examEnrollmentResult.error;
       if (firstError) setAdminError(firstError.message);
       let emailMap: Record<string, string> = {};
       try {
-        const response = await authenticatedFetch("/api/admin/users", { cache: "no-store" });
+        const response = await authenticatedFetch("/api/admin/users", { cache: "no-store", signal: controller.signal });
         const payload = await response.json().catch(() => null) as { users?: Array<{ id: string; email: string }>; error?: string } | null;
+        if (requestId !== adminRequestId.current || controller.signal.aborted) return;
         if (response.ok) emailMap = Object.fromEntries((payload?.users ?? []).map(user => [user.id, user.email]));
         else if (response.status !== 401 && !firstError) setAdminError(payload?.error ?? "Không thể tải email học viên.");
       } catch (value) {
-        if (!firstError) setAdminError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn.");
+        if (!controller.signal.aborted && !firstError) setAdminError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn.");
       }
       setProfiles(((profileResult.data ?? []) as Omit<AdminProfileRow, "email">[]).map(profile => ({ ...profile, email: emailMap[profile.id] ?? "" })));
       setAdminCourses((courseResult.data ?? []) as AdminCourseRow[]);
@@ -1586,25 +1631,32 @@ function RealAdminDashboard() {
       setAdminExamRooms((examRoomResult.data ?? []) as AdminExamRoomRow[]);
       setExamRoomEnrollments((examEnrollmentResult.data ?? []) as AdminExamEnrollmentRow[]);
     } catch (value) {
+      if (controller.signal.aborted) return;
       setAdminError(value instanceof Error ? value.message : "Không thể tải dữ liệu quản trị. Hãy thử lại.");
     } finally {
-      setLoadingAdmin(false);
+      if (requestId === adminRequestId.current && !controller.signal.aborted) setLoadingAdmin(false);
     }
   }
 
   // Admin data is fetched after the authenticated dashboard mounts.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { void loadAdminData(); }, []);
+  useEffect(() => {
+    // This effect starts an async request; its state updates are guarded by
+    // the request id and abort controller in loadAdminData.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadAdminData();
+    return () => adminAbortController.current?.abort();
+  }, []);
 
   useEffect(() => {
     const syncAdminRoute = () => {
-      setTab(adminTabFromPath(window.location.pathname));
-      const match = window.location.pathname.match(/^\/admin\/content\/courses\/([^/]+)/);
+      setTab(adminTabFromPath(adminPathname));
+      setAdminLocation(`${adminPathname}${window.location.search}`);
+      const match = adminPathname.match(/^\/admin\/content\/courses\/([^/]+)/);
       setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
     };
     window.addEventListener("popstate", syncAdminRoute);
     return () => window.removeEventListener("popstate", syncAdminRoute);
-  }, []);
+  }, [adminPathname]);
 
   const students = useMemo(() => profiles.filter(profile => profile.role === "student"), [profiles]);
   const filteredStudents = useMemo(() => {
@@ -1748,9 +1800,21 @@ function RealAdminDashboard() {
   }
 
   async function removeEnrollment(studentId: string, courseId: string) {
-    if (!supabase || !window.confirm("Bỏ khóa học khỏi học viên này?")) return;
-    const { error } = await supabase.from("course_enrollments").delete().eq("student_id", studentId).eq("course_id", courseId);
-    if (error) setAssignError(error.message); else await loadAdminData();
+    const actionKey = `course:${studentId}:${courseId}`;
+    if (!supabase || removingEnrollmentKey || !window.confirm("Bỏ khóa học khỏi học viên này?")) return;
+    setRemovingEnrollmentKey(actionKey);
+    setAssignError("");
+    setAdminNotice("");
+    try {
+      const { error } = await supabase.from("course_enrollments").delete().eq("student_id", studentId).eq("course_id", courseId);
+      if (error) throw error;
+      setAdminNotice("Đã bỏ phân khóa học.");
+      await loadAdminData();
+    } catch (value) {
+      setAssignError(value instanceof Error ? value.message : "Không thể bỏ phân khóa học. Hãy thử lại.");
+    } finally {
+      setRemovingEnrollmentKey("");
+    }
   }
 
   async function assignExamRoom(event: React.FormEvent) {
@@ -1770,16 +1834,30 @@ function RealAdminDashboard() {
   }
 
   async function removeExamRoomEnrollment(studentId: string, roomId: string) {
-    if (!supabase || !window.confirm("Bỏ quyền phòng thi của học viên này?")) return;
-    const { error } = await supabase.from("exam_room_enrollments").delete().eq("student_id", studentId).eq("room_id", roomId);
-    if (error) setAssignError(error.message); else await loadAdminData();
+    const actionKey = `room:${studentId}:${roomId}`;
+    if (!supabase || removingEnrollmentKey || !window.confirm("Bỏ quyền phòng thi của học viên này?")) return;
+    setRemovingEnrollmentKey(actionKey);
+    setAssignError("");
+    setAdminNotice("");
+    try {
+      const { error } = await supabase.from("exam_room_enrollments").delete().eq("student_id", studentId).eq("room_id", roomId);
+      if (error) throw error;
+      setAdminNotice("Đã bỏ quyền phòng thi.");
+      await loadAdminData();
+    } catch (value) {
+      setAssignError(value instanceof Error ? value.message : "Không thể bỏ quyền phòng thi. Hãy thử lại.");
+    } finally {
+      setRemovingEnrollmentKey("");
+    }
   }
 
   function navigateAdmin(path: string) {
     if (!requestProductNavigation(path)) return;
     window.history.pushState({}, "", path);
     setTab(adminTabFromPath(path));
-    setManagedCourseId("");
+    setAdminLocation(path);
+    const match = path.match(/^\/admin\/content\/courses\/([^/?#]+)/);
+    setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1887,7 +1965,7 @@ function RealAdminDashboard() {
             ? <div>{recentActivity.map(item => <div className="admin-log-item" key={item.id}>
                 <span className="admin-log-dot" aria-hidden="true" />
                 <span className="admin-log-text">{item.text}</span>
-                <span className="admin-log-date">{new Date(item.date).toLocaleDateString("vi-VN")}</span>
+                <span className="admin-log-date">{formatUiDate(item.date, "—")}</span>
               </div>)}
             </div>
             : <div className="admin-empty-panel">Chưa có hoạt động nào.</div>
@@ -1895,15 +1973,15 @@ function RealAdminDashboard() {
         </section>
       </div>
     </div>}
-    {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div><label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button className="student-password-btn" onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
-    {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>{setManagedCourseId("");window.history.pushState({},"","/admin/content");}} onChanged={loadAdminData} onDeleted={async()=>{setManagedCourseId("");window.history.pushState({},"","/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt=""/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button className="outline-btn" onClick={()=>{setManagedCourseId(course.id);window.history.pushState({},"",`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
+    {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div><label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button type="button" className="student-password-btn" onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
+    {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>navigateAdmin("/admin/content")} onChanged={loadAdminData} onDeleted={async()=>{navigateAdmin("/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt=""/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button type="button" className="outline-btn" onClick={()=>{setManagedCourseId(course.id);navigateAdmin(`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight aria-hidden="true"/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
     {tab === "hls-vault" && <Suspense fallback={<LoadingIndicator label="Đang mở công cụ HLS…" />}><AdminHlsVault /></Suspense>}
     {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị đề thi…" />}><AdminExamManager /></Suspense>}
     {tab === "question-bank" && <Suspense fallback={<LoadingIndicator label="Đang mở ngân hàng câu hỏi…" />}><AdminQuestionBank navigate={navigateAdmin} /></Suspense>}
-    {tab === "sessions" && (typeof window !== "undefined" && window.location.pathname === "/admin/sessions/new"
+    {tab === "sessions" && (adminLocationPath === "/admin/sessions/new"
       ? <Suspense fallback={<LoadingIndicator label="Đang mở trình tạo kíp thi…" />}><AdminSessionWizard navigate={navigateAdmin} /></Suspense>
-      : typeof window !== "undefined" && /^\/admin\/sessions\/[^/]+\/results$/.test(window.location.pathname)
-        ? <Suspense fallback={<LoadingIndicator label="Đang mở kết quả kíp thi…" />}><AdminSessionResults key={`${window.location.pathname}${window.location.search}`} navigate={navigateAdmin} /></Suspense>
+      : /^\/admin\/sessions\/[^/]+\/results$/.test(adminLocationPath)
+        ? <Suspense fallback={<LoadingIndicator label="Đang mở kết quả kíp thi…" />}><AdminSessionResults key={adminLocation} navigate={navigateAdmin} /></Suspense>
       : <AdminSessionList navigate={navigateAdmin} />)}
     {tab === "timetable" && <Suspense fallback={<LoadingIndicator label="Đang mở lịch vận hành…" />}><AdminTimetable /></Suspense>}
     {tab === "audit" && <Suspense fallback={<LoadingIndicator label="Đang mở nhật ký quản trị…" />}><AdminAuditLog /></Suspense>}
@@ -1911,13 +1989,13 @@ function RealAdminDashboard() {
     {(tab === "enrollments" || tab === "settings") && tab === "enrollments" && <div className="assignment-page">
       <header className="assignment-page-head"><div><span className="eyebrow">PHÂN QUYỀN HỌC VIÊN</span><h2>Khóa học và phòng thi</h2><p>Quản lý toàn bộ nội dung được cấp cho từng học viên tại một nơi.</p></div></header>
       {assignError && <p className="form-error">{assignError}</p>}
-      <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân khóa học</h2><p className="muted">Học viên chỉ thấy khóa đã được phân và xuất bản.</p></div></div><form className="enrollment-form" onSubmit={assignCourse}><label>Học viên<select value={assignStudentId} onChange={event=>setAssignStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}{student.email ? ` — ${student.email}` : ""}</option>)}</select></label><label>Khóa học<select value={assignCourseId} onChange={event=>setAssignCourseId(event.target.value)} required><option value="">Chọn khóa học</option>{adminCourses.map(course=><option key={course.id} value={course.id}>{course.title}{course.published?"":" (bản nháp)"}</option>)}</select></label><button className="primary-btn small" disabled={assigningCourse}>{assigningCourse?"Đang phân…":"Phân khóa học"}</button></form><div className="enrollment-list">{enrollments.length?enrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const course=adminCourses.find(item=>item.id===row.course_id);return <article key={`${row.student_id}-${row.course_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}{student?.email ? ` · ${student.email}` : ""}</small></div><ChevronRight/><div><b>{course?.title??"Khóa học không tồn tại"}</b><small>{course?.published?"Đã xuất bản":"Bản nháp"}</small></div><button className="outline-btn danger" onClick={()=>removeEnrollment(row.student_id,row.course_id)}><Trash2/> Bỏ phân</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân khóa."/>}</div></section>
-      <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân phòng thi</h2><p className="muted">Áp dụng cho phòng có quyền truy cập “Chỉ học viên được phân”.</p></div></div><form className="enrollment-form" onSubmit={assignExamRoom}><label>Học viên<select value={assignExamStudentId} onChange={event=>setAssignExamStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}{student.email ? ` — ${student.email}` : ""}</option>)}</select></label><label>Phòng thi<select value={assignExamRoomId} onChange={event=>setAssignExamRoomId(event.target.value)} required><option value="">Chọn phòng thi</option>{adminExamRooms.map(room=><option key={room.id} value={room.id}>{room.title}{room.access_mode === "open" ? " (đang mở cho mọi học viên)" : ""}{room.published ? "" : " (bản nháp)"}</option>)}</select></label><button className="primary-btn small" disabled={assigningExamRoom}>{assigningExamRoom?"Đang phân…":"Cấp phòng thi"}</button></form><div className="enrollment-list">{examRoomEnrollments.length?examRoomEnrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const room=adminExamRooms.find(item=>item.id===row.room_id);return <article key={`${row.student_id}-${row.room_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}{student?.email ? ` · ${student.email}` : ""}</small></div><ChevronRight/><div><b>{room?.title??"Phòng thi không tồn tại"}</b><small>{room?.published?"Đã xuất bản":"Bản nháp"}</small></div><button className="outline-btn danger" onClick={()=>removeExamRoomEnrollment(row.student_id,row.room_id)}><Trash2/> Bỏ quyền</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân phòng thi."/>}</div></section>
+      <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân khóa học</h2><p className="muted">Học viên chỉ thấy khóa đã được phân và xuất bản.</p></div></div><form className="enrollment-form" onSubmit={assignCourse}><label htmlFor="assign-student">Học viên<select id="assign-student" name="studentId" value={assignStudentId} onChange={event=>setAssignStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}{student.email ? ` — ${student.email}` : ""}</option>)}</select></label><label htmlFor="assign-course">Khóa học<select id="assign-course" name="courseId" value={assignCourseId} onChange={event=>setAssignCourseId(event.target.value)} required><option value="">Chọn khóa học</option>{adminCourses.map(course=><option key={course.id} value={course.id}>{course.title}{course.published?"":" (bản nháp)"}</option>)}</select></label><button type="submit" className="primary-btn small" disabled={assigningCourse}>{assigningCourse?"Đang phân…":"Phân khóa học"}</button></form><div className="enrollment-list">{enrollments.length?enrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const course=adminCourses.find(item=>item.id===row.course_id);const actionKey=`course:${row.student_id}:${row.course_id}`;return <article key={`${row.student_id}-${row.course_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}{student?.email ? ` · ${student.email}` : ""}</small></div><ChevronRight/><div><b>{course?.title??"Khóa học không tồn tại"}</b><small>{course?.published?"Đã xuất bản":"Bản nháp"}</small></div><button type="button" className="outline-btn danger" disabled={Boolean(removingEnrollmentKey)} onClick={()=>removeEnrollment(row.student_id,row.course_id)}><Trash2/> {removingEnrollmentKey===actionKey?"Đang bỏ…":"Bỏ phân"}</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân khóa."/>}</div></section>
+      <section className="section-card enrollment-manager"><div className="section-head"><div><h2>Phân phòng thi</h2><p className="muted">Áp dụng cho phòng có quyền truy cập “Chỉ học viên được phân”.</p></div></div><form className="enrollment-form" onSubmit={assignExamRoom}><label htmlFor="assign-exam-student">Học viên<select id="assign-exam-student" name="studentId" value={assignExamStudentId} onChange={event=>setAssignExamStudentId(event.target.value)} required><option value="">Chọn học viên</option>{students.map(student=><option key={student.id} value={student.id}>{student.student_code} — {student.full_name}{student.email ? ` — ${student.email}` : ""}</option>)}</select></label><label htmlFor="assign-exam-room">Phòng thi<select id="assign-exam-room" name="roomId" value={assignExamRoomId} onChange={event=>setAssignExamRoomId(event.target.value)} required><option value="">Chọn phòng thi</option>{adminExamRooms.map(room=><option key={room.id} value={room.id}>{room.title}{room.access_mode === "open" ? " (đang mở cho mọi học viên)" : ""}{room.published ? "" : " (bản nháp)"}</option>)}</select></label><button type="submit" className="primary-btn small" disabled={assigningExamRoom}>{assigningExamRoom?"Đang phân…":"Cấp phòng thi"}</button></form><div className="enrollment-list">{examRoomEnrollments.length?examRoomEnrollments.map(row=>{const student=students.find(item=>item.id===row.student_id);const room=adminExamRooms.find(item=>item.id===row.room_id);const actionKey=`room:${row.student_id}:${row.room_id}`;return <article key={`${row.student_id}-${row.room_id}`}><div><b>{student?.full_name??"Học viên không tồn tại"}</b><small>{student?.student_code}{student?.email ? ` · ${student.email}` : ""}</small></div><ChevronRight/><div><b>{room?.title??"Phòng thi không tồn tại"}</b><small>{room?.published?"Đã xuất bản":"Bản nháp"}</small></div><button type="button" className="outline-btn danger" disabled={Boolean(removingEnrollmentKey)} onClick={()=>removeExamRoomEnrollment(row.student_id,row.room_id)}><Trash2/> {removingEnrollmentKey===actionKey?"Đang bỏ…":"Bỏ quyền"}</button></article>}):<MiniEmpty text="Chưa có học viên nào được phân phòng thi."/>}</div></section>
     </div>}
     {tab === "settings" && <AdminSecurity />}
-    {modal && <div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="create-student-title" onSubmit={createStudent}><div className="section-head"><div><span className="eyebrow">TÀI KHOẢN MỚI</span><h2 id="create-student-title">Thêm học viên</h2></div><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm học viên" onClick={()=>setModal(false)}><X aria-hidden="true"/></button></div><label htmlFor="new-student-name">Họ và tên<input id="new-student-name" name="fullName" autoComplete="name" value={newFullName} onChange={event=>setNewFullName(event.target.value)} placeholder="Nguyễn Văn A" required/></label><label htmlFor="new-student-email">Email<input id="new-student-email" name="email" type="email" autoComplete="email" spellCheck={false} value={newEmail} onChange={event=>setNewEmail(event.target.value)} placeholder="hocvien@example.com" required/></label><label htmlFor="new-student-password">Mật khẩu ban đầu<input id="new-student-password" name="password" type="password" autoComplete="new-password" value={newStudentPassword} onChange={event=>setNewStudentPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label>{createError && <p className="form-error" role="alert">{createError}</p>}<p className="info-note">Mã học viên tiếp theo được Supabase tạo tự động theo dạng REMIX000001.</p><button className="primary-btn" disabled={creatingStudent}>{creatingStudent ? "Đang tạo…" : "Tạo tài khoản"}</button></form></div>}
-    {passwordStudent && <div className="modal-shade"><form className="modal password-modal" role="dialog" aria-modal="true" aria-labelledby="student-password-title" onSubmit={changeStudentPassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT HỌC VIÊN</span><h2 id="student-password-title">Đổi mật khẩu</h2></div><button type="button" className="icon-btn" aria-label="Đóng hộp thoại đổi mật khẩu" onClick={closeStudentPassword} disabled={savingStudentPassword}><X aria-hidden="true"/></button></div><div className="student-password-identity"><span className="mini-avatar">{passwordStudent.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><div><b>{passwordStudent.full_name}</b><small>{passwordStudent.student_code}</small></div></div><label htmlFor="admin-student-password">Mật khẩu mới<input id="admin-student-password" name="password" type="password" autoComplete="new-password" value={adminStudentPassword} onChange={event=>setAdminStudentPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required autoFocus/></label><label htmlFor="admin-student-password-confirm">Xác nhận mật khẩu<input id="admin-student-password-confirm" name="passwordConfirmation" type="password" autoComplete="new-password" value={adminStudentPasswordConfirm} onChange={event=>setAdminStudentPasswordConfirm(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{studentPasswordError && <p className="form-error" role="alert">{studentPasswordError}</p>}<p className="info-note">Học viên có thể đăng nhập ngay bằng mật khẩu mới sau khi cập nhật.</p><button className="primary-btn" disabled={savingStudentPassword}>{savingStudentPassword ? "Đang cập nhật…" : "Cập nhật mật khẩu"}</button></form></div>}
-    {courseModal && <div className="modal-shade"><form className="modal" onSubmit={createCourse}><div className="section-head"><div><span className="eyebrow">NỘI DUNG MỚI</span><h2>Tạo khóa học</h2></div><button type="button" className="icon-btn" aria-label="Đóng hộp thoại tạo khóa học" onClick={()=>setCourseModal(false)}><X aria-hidden="true"/></button></div><label>Tên khóa học<input value={newCourseTitle} onChange={event=>setNewCourseTitle(event.target.value)} placeholder="Nhập tên khóa học" required/></label><label>Mô tả<textarea value={newCourseDescription} onChange={event=>setNewCourseDescription(event.target.value)} placeholder="Mô tả ngắn về khóa học" rows={4}/></label><label>Ảnh bìa (URL)<input type="url" value={newCourseCoverUrl} onChange={event=>setNewCourseCoverUrl(event.target.value)} placeholder="https://..."/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(newCourseColor)} onChange={event=>setNewCourseColor(event.target.value)}/><input value={newCourseColor} onChange={event=>setNewCourseColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={newCoursePublished} onChange={event=>setNewCoursePublished(event.target.checked)}/><span>Xuất bản ngay</span></label>{courseError && <p className="form-error" role="alert">{courseError}</p>}<p className="info-note">Màu chỉ áp dụng cho bìa của khóa học này khi chưa có ảnh. Học viên chỉ nhìn thấy sau khi được phân khóa học.</p><button className="primary-btn" disabled={creatingCourse}>{creatingCourse ? "Đang tạo…" : "Tạo khóa học"}</button></form></div>}
+    {modal && <div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="create-student-title" onSubmit={createStudent}><div className="section-head"><div><span className="eyebrow">TÀI KHOẢN MỚI</span><h2 id="create-student-title">Thêm học viên</h2></div><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm học viên" onClick={()=>setModal(false)}><X aria-hidden="true"/></button></div><label htmlFor="new-student-name">Họ và tên<input id="new-student-name" name="fullName" autoComplete="name" value={newFullName} onChange={event=>setNewFullName(event.target.value)} placeholder="Nguyễn Văn A" required/></label><label htmlFor="new-student-email">Email<input id="new-student-email" name="email" type="email" autoComplete="email" spellCheck={false} value={newEmail} onChange={event=>setNewEmail(event.target.value)} placeholder="hocvien@example.com" required/></label><label htmlFor="new-student-password">Mật khẩu ban đầu<input id="new-student-password" name="password" type="password" autoComplete="new-password" value={newStudentPassword} onChange={event=>setNewStudentPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label>{createError && <p className="form-error" role="alert">{createError}</p>}<p className="info-note">Mã học viên tiếp theo được Supabase tạo tự động theo dạng REMIX000001.</p><button type="submit" className="primary-btn" disabled={creatingStudent}>{creatingStudent ? "Đang tạo…" : "Tạo tài khoản"}</button></form></div>}
+    {passwordStudent && <div className="modal-shade"><form className="modal password-modal" role="dialog" aria-modal="true" aria-labelledby="student-password-title" onSubmit={changeStudentPassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT HỌC VIÊN</span><h2 id="student-password-title">Đổi mật khẩu</h2></div><button type="button" className="icon-btn" aria-label="Đóng hộp thoại đổi mật khẩu" onClick={closeStudentPassword} disabled={savingStudentPassword}><X aria-hidden="true"/></button></div><div className="student-password-identity"><span className="mini-avatar">{passwordStudent.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><div><b>{passwordStudent.full_name}</b><small>{passwordStudent.student_code}</small></div></div><label htmlFor="admin-student-password">Mật khẩu mới<input id="admin-student-password" name="password" type="password" autoComplete="new-password" value={adminStudentPassword} onChange={event=>setAdminStudentPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required autoFocus/></label><label htmlFor="admin-student-password-confirm">Xác nhận mật khẩu<input id="admin-student-password-confirm" name="passwordConfirmation" type="password" autoComplete="new-password" value={adminStudentPasswordConfirm} onChange={event=>setAdminStudentPasswordConfirm(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{studentPasswordError && <p className="form-error" role="alert">{studentPasswordError}</p>}<p className="info-note">Học viên có thể đăng nhập ngay bằng mật khẩu mới sau khi cập nhật.</p><button type="submit" className="primary-btn" disabled={savingStudentPassword}>{savingStudentPassword ? "Đang cập nhật…" : "Cập nhật mật khẩu"}</button></form></div>}
+    {courseModal && <div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="create-course-title" onSubmit={createCourse}><div className="section-head"><div><span className="eyebrow">NỘI DUNG MỚI</span><h2 id="create-course-title">Tạo khóa học</h2></div><button type="button" className="icon-btn" aria-label="Đóng hộp thoại tạo khóa học" onClick={()=>setCourseModal(false)}><X aria-hidden="true"/></button></div><label htmlFor="new-course-title">Tên khóa học<input id="new-course-title" name="title" autoComplete="off" value={newCourseTitle} onChange={event=>setNewCourseTitle(event.target.value)} placeholder="Nhập tên khóa học" required/></label><label htmlFor="new-course-description">Mô tả<textarea id="new-course-description" name="description" autoComplete="off" value={newCourseDescription} onChange={event=>setNewCourseDescription(event.target.value)} placeholder="Mô tả ngắn về khóa học" rows={4}/></label><label htmlFor="new-course-cover-url">Ảnh bìa (URL)<input id="new-course-cover-url" name="coverUrl" type="url" autoComplete="url" value={newCourseCoverUrl} onChange={event=>setNewCourseCoverUrl(event.target.value)} placeholder="https://…"/></label><CourseColorField color={newCourseColor} colorId="new-course-color" hexId="new-course-color-hex" onColorChange={setNewCourseColor} onHexChange={setNewCourseColor}/><label className="checkbox-row" htmlFor="new-course-published"><input id="new-course-published" name="published" type="checkbox" checked={newCoursePublished} onChange={event=>setNewCoursePublished(event.target.checked)}/><span>Xuất bản ngay</span></label>{courseError && <p id="create-course-error" className="form-error" role="alert">{courseError}</p>}<p className="info-note">Màu chỉ áp dụng cho bìa của khóa học này khi chưa có ảnh. Học viên chỉ nhìn thấy sau khi được phân khóa học.</p><button type="submit" className="primary-btn" disabled={creatingCourse}>{creatingCourse ? "Đang tạo…" : "Tạo khóa học"}</button></form></div>}
   </div>;
 }
 
@@ -1956,6 +2034,8 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   const [renameTarget, setRenameTarget] = useState<{ table: "chapters" | "lessons"; id: string; title: string } | null>(null);
   const [renameTitle, setRenameTitle] = useState("");
   const [savingBuilder, setSavingBuilder] = useState(false);
+  const [builderAction, setBuilderAction] = useState<"publish" | "download" | "">("");
+  const builderRequestId = useRef(0);
   const coverPreviewFailed = Boolean(coverUrl && coverPreviewErrorUrl === coverUrl);
   const coverUrlErrorId = "course-cover-url-error";
   const closeBuilderDialog = useCallback(() => {
@@ -1982,19 +2062,28 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }, []);
 
   const loadBuilderData = useCallback(async () => {
+    const requestId = ++builderRequestId.current;
     if (!supabase) { setBuilderError("Chưa cấu hình Supabase."); setBuilderLoading(false); return; }
     setBuilderLoading(true); setBuilderError("");
-    const chapterResult = await supabase.from("chapters").select("id,course_id,title,sort_order").eq("course_id", course.id).order("sort_order");
-    const chapterIds = (chapterResult.data ?? []).map(chapter => chapter.id);
-    const lessonResult = chapterIds.length ? await supabase.from("lessons").select("id,chapter_id,title,description,published,sort_order").in("chapter_id", chapterIds).order("sort_order") : { data: [], error: null };
-    const lessonIds = (lessonResult.data ?? []).map(lesson => lesson.id);
-    const resourceResult = lessonIds.length ? await supabase.from("lesson_resources").select("id,lesson_id,title,resource_type,resource_url,allow_download,sort_order,provider_metadata").in("lesson_id", lessonIds).order("sort_order") : { data: [], error: null };
-    const error = chapterResult.error ?? lessonResult.error ?? resourceResult.error;
-    if (error) setBuilderError(error.message);
-    setChapters((chapterResult.data ?? []) as ChapterData[]);
-    setLessons((lessonResult.data ?? []) as LessonData[]);
-    setResources((resourceResult.data ?? []) as ResourceData[]);
-    setBuilderLoading(false);
+    try {
+      const chapterResult = await supabase.from("chapters").select("id,course_id,title,sort_order").eq("course_id", course.id).order("sort_order");
+      if (requestId !== builderRequestId.current) return;
+      const chapterIds = (chapterResult.data ?? []).map(chapter => chapter.id);
+      const lessonResult = chapterIds.length ? await supabase.from("lessons").select("id,chapter_id,title,description,published,sort_order").in("chapter_id", chapterIds).order("sort_order") : { data: [], error: null };
+      if (requestId !== builderRequestId.current) return;
+      const lessonIds = (lessonResult.data ?? []).map(lesson => lesson.id);
+      const resourceResult = lessonIds.length ? await supabase.from("lesson_resources").select("id,lesson_id,title,resource_type,resource_url,allow_download,sort_order,provider_metadata").in("lesson_id", lessonIds).order("sort_order") : { data: [], error: null };
+      if (requestId !== builderRequestId.current) return;
+      const error = chapterResult.error ?? lessonResult.error ?? resourceResult.error;
+      if (error) setBuilderError(error.message);
+      setChapters((chapterResult.data ?? []) as ChapterData[]);
+      setLessons((lessonResult.data ?? []) as LessonData[]);
+      setResources((resourceResult.data ?? []) as ResourceData[]);
+    } catch (value) {
+      if (requestId === builderRequestId.current) setBuilderError(value instanceof Error ? value.message : "Không thể tải cấu trúc khóa học. Hãy thử lại.");
+    } finally {
+      if (requestId === builderRequestId.current) setBuilderLoading(false);
+    }
   }, [course.id]);
 
   // Load the selected course hierarchy after the builder mounts.
@@ -2031,13 +2120,32 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }, [newResourceType, newResourceUrl]);
 
   async function saveCourse() {
-    if (!supabase) return;
+    if (!supabase || savingBuilder) return;
     setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
-    const { error } = await supabase.from("courses").update({ title: title.trim(), description: description.trim(), cover_url: coverUrl.trim() || null, cover_color: courseColor(coverColor), published }).eq("id", course.id);
-    setSavingBuilder(false);
-    if (error) { setBuilderError(error.message); return; }
-    setBuilderNotice("Đã lưu thông tin khóa học.");
-    await onChanged();
+    try {
+      const nextTitle = title.trim();
+      if (!nextTitle) throw new Error("Tên khóa học không được để trống.");
+      const nextCoverUrl = coverUrl.trim();
+      if (nextCoverUrl) {
+        let parsedCoverUrl: URL;
+        try {
+          parsedCoverUrl = new URL(nextCoverUrl);
+        } catch {
+          throw new Error("Đường dẫn ảnh bìa không hợp lệ. Hãy dùng một URL bắt đầu bằng https://.");
+        }
+        if (!["http:", "https:"].includes(parsedCoverUrl.protocol)) throw new Error("Đường dẫn ảnh bìa phải bắt đầu bằng https://.");
+      }
+      const nextCoverColor = coverColor.trim();
+      if (!/^#[0-9a-f]{6}$/i.test(nextCoverColor)) throw new Error("Mã màu khóa học cần có dạng #RRGGBB.");
+      const { error } = await supabase.from("courses").update({ title: nextTitle, description: description.trim(), cover_url: nextCoverUrl || null, cover_color: nextCoverColor, published }).eq("id", course.id);
+      if (error) throw error;
+      setBuilderNotice("Đã lưu thông tin khóa học.");
+      await onChanged();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể lưu khóa học. Hãy thử lại.");
+    } finally {
+      setSavingBuilder(false);
+    }
   }
 
   async function uploadCourseCover(event: React.ChangeEvent<HTMLInputElement>) {
@@ -2091,29 +2199,48 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }
 
   async function deleteCourse() {
-    if (!supabase || !window.confirm(`Xóa khóa học “${course.title}” cùng toàn bộ phần, bài học và nội dung?`)) return;
-    const { error } = await supabase.from("courses").delete().eq("id", course.id);
-    if (error) { setBuilderError(error.message); return; }
-    await onDeleted();
+    if (!supabase || savingBuilder || !window.confirm(`Xóa khóa học “${course.title}” cùng toàn bộ phần, bài học và nội dung?`)) return;
+    setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
+    try {
+      const { error } = await supabase.from("courses").delete().eq("id", course.id);
+      if (error) throw error;
+      await onDeleted();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể xóa khóa học. Hãy thử lại.");
+    } finally {
+      setSavingBuilder(false);
+    }
   }
 
   async function createChapter(event: React.FormEvent) {
-    event.preventDefault(); if (!supabase) return;
+    event.preventDefault(); if (!supabase || savingBuilder) return;
     const name = cleanPartTitle(newChapterTitle); if (!name) return;
     setSavingBuilder(true);
-    const { error } = await supabase.from("chapters").insert({ course_id: course.id, title: name, sort_order: chapters.length });
-    setSavingBuilder(false); if (error) { setBuilderError(error.message); return; }
-    setBuilderModal(null); setNewChapterTitle(""); await loadBuilderData();
+    try {
+      const { error } = await supabase.from("chapters").insert({ course_id: course.id, title: name, sort_order: chapters.length });
+      if (error) throw error;
+      setBuilderModal(null); setNewChapterTitle(""); await loadBuilderData();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể tạo phần. Hãy thử lại.");
+    } finally {
+      setSavingBuilder(false);
+    }
   }
 
   async function createLesson(event: React.FormEvent) {
-    event.preventDefault(); if (!supabase || !targetChapterId) return;
+    event.preventDefault(); if (!supabase || !targetChapterId || savingBuilder) return;
     const name = cleanLessonTitle(newLessonTitle); if (!name) return;
     const order = lessons.filter(lesson=>lesson.chapter_id===targetChapterId).length;
     setSavingBuilder(true);
-    const { error } = await supabase.from("lessons").insert({ chapter_id: targetChapterId, title: name, description: newLessonDescription.trim(), published: newLessonPublished, sort_order: order });
-    setSavingBuilder(false); if (error) { setBuilderError(error.message); return; }
-    setBuilderModal(null); setNewLessonTitle(""); setNewLessonDescription(""); setNewLessonPublished(false); await loadBuilderData(); await onChanged();
+    try {
+      const { error } = await supabase.from("lessons").insert({ chapter_id: targetChapterId, title: name, description: newLessonDescription.trim(), published: newLessonPublished, sort_order: order });
+      if (error) throw error;
+      setBuilderModal(null); setNewLessonTitle(""); setNewLessonDescription(""); setNewLessonPublished(false); await loadBuilderData(); await onChanged();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể tạo bài học. Hãy thử lại.");
+    } finally {
+      setSavingBuilder(false);
+    }
   }
 
   function selectResourceType(nextType: ResourceData["resource_type"]) {
@@ -2128,6 +2255,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }
 
   async function connectMicrosoft() {
+    if (savingBuilder) return;
     setSavingBuilder(true);
     setVideoInspectionError("");
     try {
@@ -2142,12 +2270,13 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     } catch (value) {
       setVideoInspectionState("error");
       setVideoInspectionError(value instanceof Error ? value.message : "Không thể bắt đầu kết nối Microsoft.");
+    } finally {
       setSavingBuilder(false);
     }
   }
 
   async function createResource(event: React.FormEvent) {
-    event.preventDefault(); if (!supabase || !targetLessonId) return;
+    event.preventDefault(); if (!supabase || !targetLessonId || savingBuilder) return;
     const name = newResourceTitle.trim(); let url = newResourceUrl.trim(); let uploadedPath = ""; if (!name) return;
     setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
     try {
@@ -2209,23 +2338,30 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   }
 
   async function saveRename(event: React.FormEvent) {
-    event.preventDefault(); if (!supabase || !renameTarget) return;
+    event.preventDefault(); if (!supabase || !renameTarget || savingBuilder) return;
     const nextTitle = renameTarget.table === "chapters" ? cleanPartTitle(renameTitle) : cleanLessonTitle(renameTitle);
     if (!nextTitle) return;
     setSavingBuilder(true); setBuilderError("");
-    const { error } = await supabase.from(renameTarget.table).update({ title: nextTitle }).eq("id", renameTarget.id);
-    setSavingBuilder(false);
-    if (error) { setBuilderError(error.message); return; }
-    setRenameTarget(null); setRenameTitle(""); await loadBuilderData();
+    try {
+      const { error } = await supabase.from(renameTarget.table).update({ title: nextTitle }).eq("id", renameTarget.id);
+      if (error) throw error;
+      setRenameTarget(null); setRenameTitle(""); await loadBuilderData();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể đổi tên. Hãy thử lại.");
+    } finally {
+      setSavingBuilder(false);
+    }
   }
 
   async function removeRecord(table: "chapters" | "lessons" | "lesson_resources", id: string, label: string) {
-    if (!supabase || !window.confirm(`Xóa ${label}?`)) return;
+    if (!supabase || savingBuilder || !window.confirm(`Xóa ${label}?`)) return;
     const storedResource = table === "lesson_resources" ? resources.find(resource=>resource.id===id && resource.resource_type==="storage_pdf") : undefined;
     setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
-    const { error } = await supabase.from(table).delete().eq("id", id);
-    if (error) { setSavingBuilder(false); setBuilderError(error.message); return; }
+    let deleted = false;
     try {
+      const { error } = await supabase.from(table).delete().eq("id", id);
+      if (error) throw error;
+      deleted = true;
       if (storedResource) {
         if (storedResource.resource_url.startsWith("r2://")) await deleteStoredLessonFile(storedResource.resource_url);
         else {
@@ -2236,46 +2372,83 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
       }
       setBuilderNotice(storedResource ? "Đã xóa tài liệu và file PDF khỏi kho." : "Đã xóa nội dung.");
     } catch (value) {
-      setBuilderError(value instanceof Error ? `${value.message} Bản ghi nội dung đã được xóa; file cần được dọn lại.` : "Đã xóa nội dung nhưng chưa thể dọn file PDF.");
+      const message = value instanceof Error ? value.message : "Không thể xóa nội dung.";
+      setBuilderError(deleted ? `${message} Bản ghi nội dung đã được xóa; file cần được dọn lại.` : message);
     } finally {
       setSavingBuilder(false);
     }
-    await loadBuilderData(); await onChanged();
+    if (deleted) {
+      try {
+        await loadBuilderData();
+        await onChanged();
+      } catch (value) {
+        setBuilderError(value instanceof Error ? value.message : "Đã xóa nội dung nhưng chưa thể làm mới dữ liệu.");
+      }
+    }
   }
 
   async function toggleLesson(lesson: LessonData) {
-    if (!supabase) return; const { error } = await supabase.from("lessons").update({ published: !lesson.published }).eq("id", lesson.id); if (error) setBuilderError(error.message); else { await loadBuilderData(); await onChanged(); }
+    if (!supabase || savingBuilder) return;
+    setSavingBuilder(true);
+    setBuilderAction("publish");
+    setBuilderError("");
+    setBuilderNotice("");
+    try {
+      const { error } = await supabase.from("lessons").update({ published: !lesson.published }).eq("id", lesson.id);
+      if (error) throw error;
+      setBuilderNotice(lesson.published ? "Đã chuyển bài học về bản nháp." : "Đã xuất bản bài học.");
+      await loadBuilderData();
+      await onChanged();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể cập nhật trạng thái bài học. Hãy thử lại.");
+    } finally {
+      setBuilderAction("");
+      setSavingBuilder(false);
+    }
   }
 
   async function toggleResourceDownload(resource: ResourceData) {
-    if (!supabase || ["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type)) return;
-    const { error } = await supabase.from("lesson_resources").update({ allow_download: !resource.allow_download }).eq("id", resource.id);
-    if (error) setBuilderError(error.message); else await loadBuilderData();
+    if (!supabase || savingBuilder || ["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type)) return;
+    setSavingBuilder(true);
+    setBuilderAction("download");
+    setBuilderError("");
+    setBuilderNotice("");
+    try {
+      const { error } = await supabase.from("lesson_resources").update({ allow_download: !resource.allow_download }).eq("id", resource.id);
+      if (error) throw error;
+      setBuilderNotice(resource.allow_download ? "Đã chặn tải tài liệu." : "Đã cho phép tải tài liệu.");
+      await loadBuilderData();
+    } catch (value) {
+      setBuilderError(value instanceof Error ? value.message : "Không thể cập nhật quyền tải tài liệu. Hãy thử lại.");
+    } finally {
+      setBuilderAction("");
+      setSavingBuilder(false);
+    }
   }
 
   return <section className="admin-course-builder">
-    <button className="back-btn" onClick={onBack}><ArrowLeft/> Danh sách khóa học</button>
-    <div className="builder-header"><div><span className="eyebrow">TRÌNH SOẠN NỘI DUNG</span><h2>{course.title}</h2><p>Khóa học → Phần → Bài → Bài giảng / tài liệu</p></div><div className="builder-actions"><button className="outline-btn danger" onClick={deleteCourse}><Trash2/> Xóa khóa</button><button className="primary-btn small" onClick={saveCourse} disabled={savingBuilder}><Save/> {savingBuilder?"Đang lưu…":"Lưu khóa học"}</button></div></div>
-    {builderError&&<p className="form-error" role="alert">{builderError}</p>}{builderNotice&&<p className="form-success" role="status">{builderNotice}</p>}
+    <button type="button" className="back-btn" onClick={onBack}><ArrowLeft/> Danh sách khóa học</button>
+    <div className="builder-header"><div><span className="eyebrow">TRÌNH SOẠN NỘI DUNG</span><h2>{course.title}</h2><p>Khóa học → Phần → Bài → Bài giảng / tài liệu</p></div><div className="builder-actions"><button type="button" className="outline-btn danger" onClick={deleteCourse} disabled={savingBuilder}><Trash2/> Xóa khóa</button><button type="button" className="primary-btn small" onClick={saveCourse} disabled={savingBuilder}><Save/> {savingBuilder?"Đang lưu…":"Lưu khóa học"}</button></div></div>
+    {builderError&&<p id="course-builder-error" className="form-error" role="alert">{builderError}</p>}{builderNotice&&<p className="form-success" role="status" aria-live="polite">{builderNotice}</p>}
      <div className="builder-layout">
-      <div className="section-card builder-settings"><h3>Thông tin khóa học</h3><label>Tên khóa học<input value={title} onChange={event=>setTitle(event.target.value)}/></label><label>Mô tả<textarea rows={5} value={description} onChange={event=>setDescription(event.target.value)}/></label><div className="course-cover-editor"><span className="field-label">Ảnh bìa khóa học</span><div className="course-cover-editor-preview">{coverUrl && !coverPreviewFailed ? <img src={coverUrl} alt={`Ảnh bìa ${title}`} width={640} height={360} decoding="async" onError={() => setCoverPreviewErrorUrl(coverUrl)}/> : <div className="course-cover-editor-empty" style={courseColorStyle(coverColor)}><BookOpen aria-hidden="true"/><span>{coverPreviewFailed ? "Không thể tải ảnh từ URL này" : "Chưa có ảnh bìa"}</span></div>}</div>{coverPreviewFailed && <p id={coverUrlErrorId} className="course-cover-editor-error" role="alert">Kiểm tra lại đường dẫn ảnh hoặc tải file ảnh lên từ máy tính.</p>}<div className="course-cover-editor-actions"><input ref={courseCoverPicker} className="course-cover-picker" type="file" accept="image/*" onChange={uploadCourseCover} aria-label="Chọn ảnh bìa khóa học"/><button type="button" className="outline-btn" onClick={()=>courseCoverPicker.current?.click()} disabled={coverUploading||coverDeleting}><ImagePlus aria-hidden="true"/> {coverUploading ? "Đang tải…" : coverUrl && !coverPreviewFailed ? "Thay ảnh" : "Tải ảnh lên"}</button>{coverUrl&&<button type="button" className="outline-btn danger" onClick={()=>void deleteCourseCover()} disabled={coverUploading||coverDeleting}><Trash2 aria-hidden="true"/> {coverDeleting ? "Đang xóa…" : "Xóa ảnh"}</button>}</div><small className="course-cover-editor-help">Khung hiển thị 16:9 · khuyến nghị 1280 × 720 px · tối đa 12 MB.</small></div><label>Ảnh bìa từ URL (tùy chọn)<input type="url" value={coverUrl} onChange={event=>{setCoverUrl(event.target.value);setCoverPreviewErrorUrl("")}} placeholder="https://…" aria-invalid={coverPreviewFailed} aria-describedby={coverPreviewFailed ? coverUrlErrorId : undefined}/></label><label>Màu khóa học<div className="course-color-field"><input type="color" value={courseColor(coverColor)} onChange={event=>setCoverColor(event.target.value)}/><input value={coverColor} onChange={event=>setCoverColor(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Mã màu khóa học"/></div></label><label className="checkbox-row"><input type="checkbox" checked={published} onChange={event=>setPublished(event.target.checked)}/><span>Đã xuất bản</span></label></div>
+       <div className="section-card builder-settings"><h3>Thông tin khóa học</h3><label htmlFor="builder-title">Tên khóa học<input id="builder-title" name="title" autoComplete="off" value={title} onChange={event=>setTitle(event.target.value)} aria-invalid={Boolean(builderError && !title.trim())} aria-describedby={builderError && !title.trim() ? "course-builder-error" : undefined}/></label><label htmlFor="builder-description">Mô tả<textarea id="builder-description" name="description" autoComplete="off" rows={5} value={description} onChange={event=>setDescription(event.target.value)}/></label><div className="course-cover-editor"><span className="field-label">Ảnh bìa khóa học</span><div className="course-cover-editor-preview">{coverUrl && !coverPreviewFailed ? <img src={coverUrl} alt={`Ảnh bìa ${title}`} width={640} height={360} decoding="async" onError={() => setCoverPreviewErrorUrl(coverUrl)}/> : <div className="course-cover-editor-empty" style={courseColorStyle(coverColor)}><BookOpen aria-hidden="true"/><span>{coverPreviewFailed ? "Không thể tải ảnh từ URL này" : "Chưa có ảnh bìa"}</span></div>}</div>{coverPreviewFailed && <p id={coverUrlErrorId} className="course-cover-editor-error" role="alert">Kiểm tra lại đường dẫn ảnh hoặc tải file ảnh lên từ máy tính.</p>}<div className="course-cover-editor-actions"><input ref={courseCoverPicker} className="course-cover-picker" type="file" accept="image/*" onChange={uploadCourseCover} aria-label="Chọn ảnh bìa khóa học"/><button type="button" className="outline-btn" onClick={()=>courseCoverPicker.current?.click()} disabled={coverUploading||coverDeleting}><ImagePlus aria-hidden="true"/> {coverUploading ? "Đang tải…" : coverUrl && !coverPreviewFailed ? "Thay ảnh" : "Tải ảnh lên"}</button>{coverUrl&&<button type="button" className="outline-btn danger" onClick={()=>void deleteCourseCover()} disabled={coverUploading||coverDeleting}><Trash2 aria-hidden="true"/> {coverDeleting ? "Đang xóa…" : "Xóa ảnh"}</button>}</div><small className="course-cover-editor-help">Khung hiển thị 16:9 · khuyến nghị 1280 × 720 px · tối đa 12 MB.</small></div><label htmlFor="builder-cover-url">Ảnh bìa từ URL (tùy chọn)<input id="builder-cover-url" name="coverUrl" type="url" autoComplete="url" value={coverUrl} onChange={event=>{setCoverUrl(event.target.value);setCoverPreviewErrorUrl("")}} placeholder="https://…" aria-invalid={coverPreviewFailed} aria-describedby={coverPreviewFailed ? coverUrlErrorId : undefined}/></label><CourseColorField color={coverColor} colorId="builder-cover-color" hexId="builder-cover-color-hex" onColorChange={setCoverColor} onHexChange={setCoverColor}/><label className="checkbox-row" htmlFor="builder-published"><input id="builder-published" name="published" type="checkbox" checked={published} onChange={event=>setPublished(event.target.checked)}/><span>Đã xuất bản</span></label></div>
       <div className="section-card builder-tree">
-        <div className="section-head builder-tree-head"><div><span className="eyebrow">NỘI DUNG KHÓA HỌC</span><h3>Cấu trúc giáo trình</h3><p>{chapters.length} phần · {lessons.length} bài học · {resources.length} nội dung</p></div><button className="primary-btn small" onClick={()=>{setNewChapterTitle("");setBuilderModal("chapter")}}><FolderPlus/> Thêm phần</button></div>
+         <div className="section-head builder-tree-head"><div><span className="eyebrow">NỘI DUNG KHÓA HỌC</span><h3>Cấu trúc giáo trình</h3><p>{chapters.length} phần · {lessons.length} bài học · {resources.length} nội dung</p></div><button type="button" className="primary-btn small" onClick={()=>{setNewChapterTitle("");setBuilderModal("chapter")}} disabled={savingBuilder}><FolderPlus/> Thêm phần</button></div>
         <div className="hierarchy-guide"><span><b>1</b> Phần</span><ChevronRight/><span><b>2</b> Bài</span><ChevronRight/><span><b>3</b> Bài giảng / tài liệu</span></div>
         {builderLoading?<LoadingIndicator label="Đang tải nội dung…" />:chapters.length?<div className="admin-chapter-list">{chapters.map((chapter,partIndex)=>{const chapterLessons=lessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="admin-part-card" key={chapter.id} open={partIndex===0}>
-          <summary><ChevronRight/><span className="hierarchy-index part-index">Phần {partIndex+1}</span><span className="part-copy"><strong>{cleanPartTitle(chapter.title)}</strong><small>{chapterLessons.length} bài học</small></span><span className="tree-actions chapter-actions"><button onClick={event=>{event.preventDefault();openRenameModal("chapters",chapter.id,chapter.title)}}>Đổi tên</button><button className="danger-text" onClick={event=>{event.preventDefault();void removeRecord("chapters",chapter.id,`phần “${cleanPartTitle(chapter.title)}”`)}}>Xóa</button></span></summary>
-          <div className="admin-lesson-list"><button className="add-child" onClick={()=>{setTargetChapterId(chapter.id);setBuilderModal("lesson")}}><FilePlus/> Thêm bài vào phần này</button>{chapterLessons.map((lesson,lessonIndex)=>{const lessonResources=resources.filter(resource=>resource.lesson_id===lesson.id);return <article className="admin-lesson-card" key={lesson.id}>
+           <summary><ChevronRight/><span className="hierarchy-index part-index">Phần {partIndex+1}</span><span className="part-copy"><strong>{cleanPartTitle(chapter.title)}</strong><small>{chapterLessons.length} bài học</small></span><span className="tree-actions chapter-actions"><button type="button" onClick={event=>{event.preventDefault();openRenameModal("chapters",chapter.id,chapter.title)}} disabled={savingBuilder}>Đổi tên</button><button type="button" className="danger-text" onClick={event=>{event.preventDefault();void removeRecord("chapters",chapter.id,`phần “${cleanPartTitle(chapter.title)}”`)}} disabled={savingBuilder}>Xóa</button></span></summary>
+           <div className="admin-lesson-list"><button type="button" className="add-child" onClick={()=>{setTargetChapterId(chapter.id);setBuilderModal("lesson")}} disabled={savingBuilder}><FilePlus/> Thêm bài vào phần này</button>{chapterLessons.map((lesson,lessonIndex)=>{const lessonResources=resources.filter(resource=>resource.lesson_id===lesson.id);return <article className="admin-lesson-card" key={lesson.id}>
             <div className="lesson-card-head"><span className="hierarchy-index lesson-index">Bài {lessonIndex+1}</span><div className="lesson-card-copy"><b>{cleanLessonTitle(lesson.title)}</b><small><i className={lesson.published?"published":"draft"}/>{lesson.published?"Đã xuất bản":"Bản nháp"} · {lessonResources.length} nội dung</small></div>
-            <div className="tree-actions lesson-actions"><button onClick={()=>toggleLesson(lesson)}>{lesson.published?"Ẩn bài":"Xuất bản"}</button><button onClick={()=>openRenameModal("lessons",lesson.id,lesson.title)}>Đổi tên</button><button className="add-resource-action" onClick={()=>{setTargetLessonId(lesson.id);setBuilderModal("resource")}}><Plus/> Thêm nội dung</button><button className="danger-text" onClick={()=>removeRecord("lessons",lesson.id,`bài “${cleanLessonTitle(lesson.title)}”`)}>Xóa</button></div></div>
-            {lessonResources.length?<div className="lesson-resource-list">{lessonResources.map(resource=><div className="resource-row" key={resource.id}><span className={`resource-kind ${resource.resource_type}`}>{["youtube","onedrive_video","hls_vault"].includes(resource.resource_type)?<CirclePlay/>:<Link2/>}</span><span className="resource-copy"><b>{resource.title}</b><small>{resourceTypeLabel(resource.resource_type)}{!["youtube","onedrive_video","hls_vault"].includes(resource.resource_type)?` · ${resource.allow_download?"Được phép tải":"Không được tải"}`:""}</small></span><span className="resource-actions">{!["youtube","onedrive_video","hls_vault"].includes(resource.resource_type)&&<button onClick={()=>toggleResourceDownload(resource)}>{resource.allow_download?"Chặn tải":"Cho tải"}</button>}<button className="danger-text" onClick={()=>removeRecord("lesson_resources",resource.id,`nội dung “${resource.title}”`)}>Xóa</button></span></div>)}</div>:<div className="lesson-resource-empty">Chưa có bài giảng hoặc tài liệu.</div>}
+             <div className="tree-actions lesson-actions"><button type="button" onClick={()=>toggleLesson(lesson)} disabled={savingBuilder}>{savingBuilder&&builderAction==="publish"?"Đang cập nhật…":lesson.published?"Ẩn bài":"Xuất bản"}</button><button type="button" onClick={()=>openRenameModal("lessons",lesson.id,lesson.title)} disabled={savingBuilder}>Đổi tên</button><button type="button" className="add-resource-action" onClick={()=>{setTargetLessonId(lesson.id);setBuilderModal("resource")}} disabled={savingBuilder}><Plus/> Thêm nội dung</button><button type="button" className="danger-text" onClick={()=>void removeRecord("lessons",lesson.id,`bài “${cleanLessonTitle(lesson.title)}”`)} disabled={savingBuilder}>Xóa</button></div></div>
+             {lessonResources.length?<div className="lesson-resource-list">{lessonResources.map(resource=><div className="resource-row" key={resource.id}><span className={`resource-kind ${resource.resource_type}`}>{["youtube","onedrive_video","hls_vault"].includes(resource.resource_type)?<CirclePlay/>:<Link2/>}</span><span className="resource-copy"><b>{resource.title}</b><small>{resourceTypeLabel(resource.resource_type)}{!["youtube","onedrive_video","hls_vault"].includes(resource.resource_type)?` · ${resource.allow_download?"Được phép tải":"Không được tải"}`:""}</small></span><span className="resource-actions">{!["youtube","onedrive_video","hls_vault"].includes(resource.resource_type)&&<button type="button" onClick={()=>toggleResourceDownload(resource)} disabled={savingBuilder}>{savingBuilder&&builderAction==="download"?"Đang cập nhật…":resource.allow_download?"Chặn tải":"Cho tải"}</button>}<button type="button" className="danger-text" onClick={()=>void removeRecord("lesson_resources",resource.id,`nội dung “${resource.title}”`)} disabled={savingBuilder}>Xóa</button></span></div>)}</div>:<div className="lesson-resource-empty">Chưa có bài giảng hoặc tài liệu.</div>}
           </article>})}</div>
         </details>})}</div>:<MiniEmpty text="Chưa có phần nào. Hãy tạo phần đầu tiên, sau đó thêm bài và nội dung bài."/>}
      </div>
     </div>
-    {builderModal==="chapter"&&<div className="modal-shade"><form className="modal" onSubmit={createChapter}><div className="section-head"><h2>Thêm phần</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">Số thứ tự “Phần {chapters.length+1}” được thêm tự động.</p><label>Tên phần<input value={newChapterTitle} onChange={event=>setNewChapterTitle(event.target.value)} placeholder="Ví dụ: Hàm số" required/></label><button className="primary-btn" disabled={savingBuilder}>Tạo phần</button></form></div>}
-    {builderModal==="lesson"&&<div className="modal-shade"><form className="modal" onSubmit={createLesson}><div className="section-head"><h2>Thêm bài</h2><button type="button" className="icon-btn" onClick={()=>setBuilderModal(null)}><X/></button></div><p className="info-note">Bài được đặt đúng cấp bên trong phần đang chọn; số thứ tự được thêm tự động.</p><label>Tên bài<input value={newLessonTitle} onChange={event=>setNewLessonTitle(event.target.value)} placeholder="Ví dụ: Mệnh đề và tập hợp" required/></label><label>Mô tả<textarea rows={4} value={newLessonDescription} onChange={event=>setNewLessonDescription(event.target.value)}/></label><label className="checkbox-row"><input type="checkbox" checked={newLessonPublished} onChange={event=>setNewLessonPublished(event.target.checked)}/><span>Xuất bản ngay</span></label><button className="primary-btn" disabled={savingBuilder}>Tạo bài</button></form></div>}
-     {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2>Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">PDF tải lên được giữ riêng tư. Video OneDrive hoặc SharePoint được phát trong Math Remix qua tài khoản Microsoft đã kết nối; HLS Vault dùng mã video đã encode trong OneDrive.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['onedrive_video','Video Microsoft','Dán link OneDrive hoặc SharePoint'],['hls_vault','OneDrive HLS Vault','Nhập mã video đã encode'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label>Tên nội dung<input value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label>File PDF (tối đa 50 MB)<input type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label>{newResourceType==="youtube"?'Link YouTube':newResourceType==="onedrive_video"?'Link chia sẻ OneDrive / SharePoint':newResourceType==="hls_vault"?'Mã video HLS Vault':'Link PDF'}<input type={newResourceType==="hls_vault"?"text":"url"} value={newResourceUrl} onChange={event=>{setNewResourceUrl(event.target.value);if(newResourceType==="onedrive_video"){setVideoInspection(null);setVideoInspectionState(event.target.value.trim()?"checking":"idle");setVideoInspectionError("");setMicrosoftConnectionRequired(false)}}} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":newResourceType==="onedrive_video"?"https://1drv.ms/v/... hoặc link SharePoint":newResourceType==="hls_vault"?"lesson01":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType==="onedrive_video"&&<div className={`microsoft-video-check ${videoInspectionState}`} aria-live="polite">{videoInspectionState==="idle"&&<p>Dán link để hệ thống xác thực qua Microsoft Graph và kiểm tra định dạng video.</p>}{videoInspectionState==="checking"&&<p>Đang kiểm tra liên kết qua Microsoft Graph…</p>}{videoInspectionState==="error"&&<><p>{videoInspectionError}</p>{microsoftConnectionRequired&&<button type="button" className="outline-btn" onClick={()=>void connectMicrosoft()} disabled={savingBuilder}>{savingBuilder?"Đang chuẩn bị…":"Kết nối Microsoft"}</button>}</>}{videoInspectionState==="ready"&&videoInspection&&<><strong>✓ Đã nhận diện {videoInspection.providerLabel}</strong><span>✓ Đã xác thực quyền đọc video</span><span>✓ Sẵn sàng phát trong trình phát Math Remix</span><small>{videoInspection.name}{videoInspection.durationMs?` · ${Math.ceil(videoInspection.durationMs/60000)} phút`:""}</small></>}</div>}{!["youtube","onedrive_video","hls_vault"].includes(newResourceType)&&<label className="checkbox-row"><input type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button className="primary-btn" disabled={savingBuilder||newResourceType==="onedrive_video"&&videoInspectionState!=="ready"}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":newResourceType==="hls_vault"?"Thêm video HLS":newResourceType==="onedrive_video"?"Thêm video":"Thêm nội dung")}</button></form></div>}
-    {renameTarget&&<div className="modal-shade"><form className="modal" onSubmit={saveRename}><div className="section-head"><h2>Đổi tên {renameTarget.table==="chapters"?"phần":"bài"}</h2><button type="button" className="icon-btn" onClick={()=>{setRenameTarget(null);setRenameTitle("")}}><X/></button></div><p className="info-note">Không cần nhập “{renameTarget.table==="chapters"?"Phần":"Bài"}” và số thứ tự; hệ thống sẽ hiển thị tự động.</p><label>Tên mới<input value={renameTitle} onChange={event=>setRenameTitle(event.target.value)} required autoFocus/></label><button className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang lưu…":"Lưu tên mới"}</button></form></div>}
+    {builderModal==="chapter"&&<div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="add-chapter-title" onSubmit={createChapter}><div className="section-head"><h2 id="add-chapter-title">Thêm phần</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm phần" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p className="info-note">Số thứ tự “Phần {chapters.length+1}” được thêm tự động.</p><label htmlFor="new-chapter-title">Tên phần<input id="new-chapter-title" name="title" autoComplete="off" value={newChapterTitle} onChange={event=>setNewChapterTitle(event.target.value)} placeholder="Ví dụ: Hàm số" required/></label><button type="submit" className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang tạo…":"Tạo phần"}</button></form></div>}
+    {builderModal==="lesson"&&<div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="add-lesson-title" onSubmit={createLesson}><div className="section-head"><h2 id="add-lesson-title">Thêm bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm bài" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p className="info-note">Bài được đặt đúng cấp bên trong phần đang chọn; số thứ tự được thêm tự động.</p><label htmlFor="new-lesson-title">Tên bài<input id="new-lesson-title" name="title" autoComplete="off" value={newLessonTitle} onChange={event=>setNewLessonTitle(event.target.value)} placeholder="Ví dụ: Mệnh đề và tập hợp" required/></label><label htmlFor="new-lesson-description">Mô tả<textarea id="new-lesson-description" name="description" autoComplete="off" rows={4} value={newLessonDescription} onChange={event=>setNewLessonDescription(event.target.value)}/></label><label className="checkbox-row" htmlFor="new-lesson-published"><input id="new-lesson-published" name="published" type="checkbox" checked={newLessonPublished} onChange={event=>setNewLessonPublished(event.target.checked)}/><span>Xuất bản ngay</span></label><button type="submit" className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang tạo…":"Tạo bài"}</button></form></div>}
+      {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" role="dialog" aria-modal="true" aria-labelledby="add-resource-title" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2 id="add-resource-title">Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">PDF tải lên được giữ riêng tư. Video OneDrive hoặc SharePoint được phát trong Math Remix qua tài khoản Microsoft đã kết nối; HLS Vault dùng mã video đã encode trong OneDrive.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['onedrive_video','Video Microsoft','Dán link OneDrive hoặc SharePoint'],['hls_vault','OneDrive HLS Vault','Nhập mã video đã encode'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label htmlFor="new-resource-title">Tên nội dung<input id="new-resource-title" name="title" autoComplete="off" value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label htmlFor="new-resource-file">File PDF (tối đa 50 MB)<input id="new-resource-file" name="file" type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label htmlFor="new-resource-url">{newResourceType==="youtube"?'Link YouTube':newResourceType==="onedrive_video"?'Link chia sẻ OneDrive / SharePoint':newResourceType==="hls_vault"?'Mã video HLS Vault':'Link PDF'}<input id="new-resource-url" name="url" autoComplete="url" type={newResourceType==="hls_vault"?"text":"url"} value={newResourceUrl} onChange={event=>{setNewResourceUrl(event.target.value);if(newResourceType==="onedrive_video"){setVideoInspection(null);setVideoInspectionState(event.target.value.trim()?"checking":"idle");setVideoInspectionError("");setMicrosoftConnectionRequired(false)}}} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":newResourceType==="onedrive_video"?"https://1drv.ms/v/... hoặc link SharePoint":newResourceType==="hls_vault"?"lesson01":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType==="onedrive_video"&&<div className={`microsoft-video-check ${videoInspectionState}`} aria-live="polite">{videoInspectionState==="idle"&&<p>Dán link để hệ thống xác thực qua Microsoft Graph và kiểm tra định dạng video.</p>}{videoInspectionState==="checking"&&<p>Đang kiểm tra liên kết qua Microsoft Graph…</p>}{videoInspectionState==="error"&&<><p>{videoInspectionError}</p>{microsoftConnectionRequired&&<button type="button" className="outline-btn" onClick={()=>void connectMicrosoft()} disabled={savingBuilder}>{savingBuilder?"Đang chuẩn bị…":"Kết nối Microsoft"}</button>}</>}{videoInspectionState==="ready"&&videoInspection&&<><strong>✓ Đã nhận diện {videoInspection.providerLabel}</strong><span>✓ Đã xác thực quyền đọc video</span><span>✓ Sẵn sàng phát trong trình phát Math Remix</span><small>{videoInspection.name}{videoInspection.durationMs?` · ${Math.ceil(videoInspection.durationMs/60000)} phút`:""}</small></>}</div>}{!["youtube","onedrive_video","hls_vault"].includes(newResourceType)&&<label className="checkbox-row" htmlFor="new-resource-download"><input id="new-resource-download" name="allowDownload" type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button type="submit" className="primary-btn" disabled={savingBuilder||newResourceType==="onedrive_video"&&videoInspectionState!=="ready"}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":newResourceType==="hls_vault"?"Thêm video HLS":newResourceType==="onedrive_video"?"Thêm video":"Thêm nội dung")}</button></form></div>}
+    {renameTarget&&<div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="rename-builder-title" onSubmit={saveRename}><div className="section-head"><h2 id="rename-builder-title">Đổi tên {renameTarget.table==="chapters"?"phần":"bài"}</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại đổi tên" onClick={()=>{setRenameTarget(null);setRenameTitle("")}}><X aria-hidden="true"/></button></div><p className="info-note">Không cần nhập “{renameTarget.table==="chapters"?"Phần":"Bài"}” và số thứ tự; hệ thống sẽ hiển thị tự động.</p><label htmlFor="rename-builder-input">Tên mới<input id="rename-builder-input" name="title" autoComplete="off" value={renameTitle} onChange={event=>setRenameTitle(event.target.value)} required autoFocus/></label><button type="submit" className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang lưu…":"Lưu tên mới"}</button></form></div>}
   </section>;
 }
 

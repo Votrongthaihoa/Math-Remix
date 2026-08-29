@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import MacAlert from "../components/macos/MacAlert";
 import { adminImageFetch, prepareImageFile } from "../lib/exam-image-client";
+import { formatUiDate, formatUiTime } from "./ui-format";
 import "./admin-upload.css";
 
 type UploadedImage = {
@@ -56,15 +57,11 @@ function formatBytes(value: number) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "Chưa rõ thời gian";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Chưa rõ thời gian";
-  return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
+  return formatUiDate(value, "Chưa rõ thời gian");
 }
 
 function formatTime(value: Date | null) {
-  if (!value) return "Chưa đồng bộ";
-  return new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit" }).format(value);
+  return formatUiTime(value, "Chưa đồng bộ");
 }
 
 function publicHref(value: string) {
@@ -142,6 +139,8 @@ export default function AdminUploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copyAnnouncementFrameRef = useRef<number | null>(null);
   const copyResetTimeoutRef = useRef<number | null>(null);
+  const libraryAbortControllerRef = useRef<AbortController | null>(null);
+  const examLibraryAbortControllerRef = useRef<AbortController | null>(null);
 
   const readUrlState = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
@@ -174,34 +173,44 @@ export default function AdminUploadPage() {
   }, [activeLibrary, examSearchTerm, privatePage, publicPage, searchTerm, urlReady]);
 
   const loadImages = useCallback(async () => {
+    libraryAbortControllerRef.current?.abort();
+    const controller = new AbortController();
+    libraryAbortControllerRef.current = controller;
     setLoading(true);
     setLibraryError("");
     try {
-      const response = await adminImageFetch("/api/admin/images", { cache: "no-store" });
+      const response = await adminImageFetch("/api/admin/images", { cache: "no-store", signal: controller.signal });
       const payload = await response.json().catch(() => null) as { images?: UploadedImage[]; error?: string } | null;
+      if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(payload?.error || "Không thể tải kho ảnh.");
       setImages(Array.isArray(payload?.images) ? payload.images : []);
       setLastLoadedAt(new Date());
     } catch (value) {
+      if (controller.signal.aborted) return;
       setLibraryError(value instanceof Error ? value.message : "Không thể tải kho ảnh.");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted && libraryAbortControllerRef.current === controller) setLoading(false);
     }
   }, []);
 
   const loadExamImages = useCallback(async () => {
+    examLibraryAbortControllerRef.current?.abort();
+    const controller = new AbortController();
+    examLibraryAbortControllerRef.current = controller;
     setExamLoading(true);
     setExamError("");
     try {
-      const response = await adminImageFetch("/api/admin/exam-images?all=1", { cache: "no-store" });
+      const response = await adminImageFetch("/api/admin/exam-images?all=1", { cache: "no-store", signal: controller.signal });
       const payload = await response.json().catch(() => null) as { images?: ExamUploadedImage[]; error?: string } | null;
+      if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(payload?.error || "Không thể tải kho ảnh đề thi.");
       setExamImages(Array.isArray(payload?.images) ? payload.images : []);
       setExamLastLoadedAt(new Date());
     } catch (value) {
+      if (controller.signal.aborted) return;
       setExamError(value instanceof Error ? value.message : "Không thể tải kho ảnh đề thi.");
     } finally {
-      setExamLoading(false);
+      if (!controller.signal.aborted && examLibraryAbortControllerRef.current === controller) setExamLoading(false);
     }
   }, []);
 
@@ -218,6 +227,8 @@ export default function AdminUploadPage() {
   }, [loadAllImages]);
 
   useEffect(() => () => {
+    libraryAbortControllerRef.current?.abort();
+    examLibraryAbortControllerRef.current?.abort();
     if (copyAnnouncementFrameRef.current !== null) {
       window.cancelAnimationFrame(copyAnnouncementFrameRef.current);
     }
@@ -476,7 +487,7 @@ export default function AdminUploadPage() {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-           <input id="admin-upload-file" ref={fileInputRef} type="file" accept="image/*" aria-label="Chọn ảnh để tải lên" onChange={chooseFile} />
+           <input id="admin-upload-file" name="imageFile" ref={fileInputRef} type="file" accept="image/*" aria-label="Chọn ảnh để tải lên" onChange={chooseFile} />
           <span className="admin-upload-drop-icon"><CloudUpload /></span>
           <span className="admin-upload-drop-copy">
             <strong>{file ? file.name : "Kéo thả ảnh vào đây"}</strong>

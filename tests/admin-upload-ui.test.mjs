@@ -34,11 +34,15 @@ test("private image deletion uses the accessible MacAlert confirmation", async (
 });
 
 test("upload controls and metadata formatting stay accessible and date-safe", async () => {
-  const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
+  const [component, formatter] = await Promise.all([
+    readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui-format.ts", import.meta.url), "utf8"),
+  ]);
 
   assert.match(component, /aria-label="Chọn ảnh để tải lên"/);
   assert.match(component, /<button type="submit" className="primary-btn admin-upload-submit"/);
-  assert.match(component, /Number\.isNaN\(date\.getTime\(\)\)/);
+  assert.match(component, /formatUiDate\(/);
+  assert.match(formatter, /Number\.isFinite\(date\.getTime\(\)\)/);
 });
 
 test("image libraries use URL-driven tabs, search, pagination, and namespaced copy state", async () => {

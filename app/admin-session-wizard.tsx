@@ -9,6 +9,7 @@ import type { ExamPolicy } from "../lib/exam-policy";
 import { normalizeExamType } from "../lib/exam-config";
 import { listenForProductNavigation } from "./product-navigation-guard";
 import LoadingIndicator from "./loading-indicator";
+import { formatUiShortDateTime } from "./ui-format";
 import "./admin-session-wizard.css";
 
 type Room = {
@@ -127,7 +128,7 @@ function isIndependentSubjectExam(exam: Exam | null) {
 
 function formatDateTime(value: string) {
   const date = parseDateTime(value);
-  return date ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(date) : "Chưa đặt";
+  return date ? formatUiShortDateTime(date, "Chưa đặt") : "Chưa đặt";
 }
 
 function formatDuration(value: number) {
@@ -183,6 +184,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
   const wizardFormRef = useRef<HTMLFormElement | null>(null);
   const pendingFocusField = useRef<WizardField | null>(null);
   const allowNextNavigationRef = useRef(false);
+  const catalogAbortController = useRef<AbortController | null>(null);
 
   const selectedRoom = useMemo(() => rooms.find(room => room.id === form.roomId) ?? null, [form.roomId, rooms]);
   const selectedExam = useMemo(() => exams.find(exam => exam.id === form.examId) ?? null, [exams, form.examId]);
@@ -252,12 +254,16 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
   }
 
   const loadCatalog = useCallback(async () => {
+    catalogAbortController.current?.abort();
+    const controller = new AbortController();
+    catalogAbortController.current = controller;
     setLoadingCatalog(true);
     setError("");
     try {
-      const response = await authenticatedFetch("/api/admin/session-catalog", { cache: "no-store" });
+      const response = await authenticatedFetch("/api/admin/session-catalog", { cache: "no-store", signal: controller.signal });
       const payload = await response.json().catch(() => ({})) as CatalogPayload;
       if (!response.ok) throw new Error(payload.error || "Không thể tải danh mục phòng và đề thi.");
+      if (controller.signal.aborted) return;
       const nextRooms = payload.rooms ?? [];
       const nextExams = payload.exams ?? [];
       setRooms(nextRooms);
@@ -269,9 +275,10 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
         return { ...current, roomId, examId };
       });
     } catch (value) {
+      if (controller.signal.aborted) return;
       setError(value instanceof Error ? value.message : "Không thể tải danh mục phòng và đề thi.");
     } finally {
-      setLoadingCatalog(false);
+      if (!controller.signal.aborted && catalogAbortController.current === controller) setLoadingCatalog(false);
     }
   }, []);
 
@@ -279,24 +286,26 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
     // Network-backed state is populated after the request resolves.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadCatalog();
+    return () => catalogAbortController.current?.abort();
   }, [loadCatalog]);
 
   useEffect(() => {
     if (!form.examId) return undefined;
     let active = true;
+    const controller = new AbortController();
     // Network-backed state is populated after the requests resolve.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingExam(true);
     setError("");
     Promise.all([
-      authenticatedFetch(`/api/admin/session-catalog?examId=${encodeURIComponent(form.examId)}`, { cache: "no-store" }),
-      authenticatedFetch(`/api/admin/exam-policy?examId=${encodeURIComponent(form.examId)}`, { cache: "no-store" }),
+      authenticatedFetch(`/api/admin/session-catalog?examId=${encodeURIComponent(form.examId)}`, { cache: "no-store", signal: controller.signal }),
+      authenticatedFetch(`/api/admin/exam-policy?examId=${encodeURIComponent(form.examId)}`, { cache: "no-store", signal: controller.signal }),
     ]).then(async ([catalogResponse, policyResponse]) => {
       const catalog = await catalogResponse.json().catch(() => ({})) as CatalogPayload;
       const policyPayload = await policyResponse.json().catch(() => ({})) as { policy?: ExamPolicy; error?: string };
       if (!catalogResponse.ok) throw new Error(catalog.error || "Không thể tải phần thi của đề.");
       if (!policyResponse.ok || !policyPayload.policy) throw new Error(policyPayload.error || "Không thể tải cấu hình đề thi.");
-      if (!active) return;
+      if (!active || controller.signal.aborted) return;
       const nextExam = exams.find(exam => exam.id === form.examId);
       const nextDuration = Math.max(1, Number(nextExam?.duration_minutes) || policyPayload.policy.timing.durationMinutes || 1);
       setSections(catalog.sections ?? []);
@@ -312,26 +321,27 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
         };
       });
     }).catch(value => {
-      if (active) setError(value instanceof Error ? value.message : "Không thể tải cấu hình đề thi.");
-    }).finally(() => { if (active) setLoadingExam(false); });
-    return () => { active = false; };
+      if (active && !controller.signal.aborted) setError(value instanceof Error ? value.message : "Không thể tải cấu hình đề thi.");
+    }).finally(() => { if (active && !controller.signal.aborted) setLoadingExam(false); });
+    return () => { active = false; controller.abort(); };
   }, [exams, form.examId]);
 
   useEffect(() => {
     if (form.mode === "account" || !form.examId) return undefined;
     let active = true;
+    const controller = new AbortController();
     // Network-backed state is populated after the request resolves.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingGuestSettings(true);
-    authenticatedFetch(`/api/admin/exam-access?examId=${encodeURIComponent(form.examId)}`, { cache: "no-store" })
+    authenticatedFetch(`/api/admin/exam-access?examId=${encodeURIComponent(form.examId)}`, { cache: "no-store", signal: controller.signal })
       .then(async response => {
         const payload = await response.json().catch(() => ({})) as { exam?: { settings?: GuestSettings }; error?: string };
         if (!response.ok) throw new Error(payload.error || "Không thể tải cấu hình link/QR của đề.");
-        if (active) setGuestSettings(payload.exam?.settings ?? null);
+        if (active && !controller.signal.aborted) setGuestSettings(payload.exam?.settings ?? null);
       })
-      .catch(value => { if (active) setError(value instanceof Error ? value.message : "Không thể tải cấu hình link/QR của đề."); })
-      .finally(() => { if (active) setLoadingGuestSettings(false); });
-    return () => { active = false; };
+      .catch(value => { if (active && !controller.signal.aborted) setError(value instanceof Error ? value.message : "Không thể tải cấu hình link/QR của đề."); })
+      .finally(() => { if (active && !controller.signal.aborted) setLoadingGuestSettings(false); });
+    return () => { active = false; controller.abort(); };
   }, [form.examId, form.mode]);
 
   useEffect(() => {
@@ -506,6 +516,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
   }
 
   async function submit() {
+    if (saving) return;
     const validation = validateCurrentStep(3);
     if (validation || !selectedExam) { setError(validation || "Chọn một đề thi trước khi tạo kíp."); setStep(3); return; }
     setSaving(true);
@@ -634,7 +645,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
 
       {step === 2 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-mode-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 2 / 4</span><h2 id="wizard-mode-title">Chọn cách người tham gia vào kíp</h2><p>Cho phép học viên có tài khoản vào nhanh; người chưa có tài khoản chỉ điền thông tin cần thiết qua link.</p></div><ShieldCheck aria-hidden="true" /></div><fieldset className="admin-session-mode-grid"><legend className="sr-only">Cách tham gia</legend><label className={form.mode === "account" ? "selected" : ""}><input type="radio" name="sessionMode" className="admin-session-card-radio" value="account" checked={form.mode === "account"} onChange={() => updateForm({ mode: "account" })} /><span className="admin-session-mode-icon"><UserRound aria-hidden="true" /></span><span><b>Tài khoản học viên</b><small>Học viên đăng nhập bằng tài khoản được cấp. Phù hợp thi nội bộ, theo lớp hoặc theo phân quyền.</small></span><i>{form.mode === "account" ? <Check aria-hidden="true" /> : null}</i></label><label className={form.mode === "link_qr" ? "selected" : ""}><input type="radio" name="sessionMode" className="admin-session-card-radio" value="link_qr" checked={form.mode === "link_qr"} onChange={() => updateForm({ mode: "link_qr" })} /><span className="admin-session-mode-icon"><Link2 aria-hidden="true" /></span><span><b>Link / QR không cần tài khoản</b><small>Người tham gia mở link rồi điền các trường thông tin được yêu cầu.</small></span><i>{form.mode === "link_qr" ? <Check aria-hidden="true" /> : null}</i></label><label className={form.mode === "both" ? "selected" : ""}><input type="radio" name="sessionMode" className="admin-session-card-radio" value="both" checked={form.mode === "both"} onChange={() => updateForm({ mode: "both" })} /><span className="admin-session-mode-icon"><ClipboardCheck aria-hidden="true" /></span><span><b>Tài khoản + Link/QR</b><small>Học viên có tài khoản đăng nhập như bình thường; người chưa có tài khoản dùng link và chỉ nhập thông tin còn thiếu.</small></span><i>{form.mode === "both" ? <Check aria-hidden="true" /> : null}</i></label></fieldset><div className="admin-session-info-callout"><CheckCircle2 aria-hidden="true" /><p><b>{selectedExam?.title}</b> · {selectedRoom?.title}. Hai cách tham gia dùng chung thời gian kíp và được theo dõi trong cùng trang kết quả.</p></div></section>}
 
-      {step === 3 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-time-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 3 / 4</span><h2 id="wizard-time-title">Thiết lập thời gian và quy tắc</h2><p>Thời lượng đề là thời gian làm bài; thời gian kíp là khoảng cho phép người tham gia bắt đầu.</p></div><CalendarClock aria-hidden="true" /></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Lịch mở kíp</b><span>Thời lượng đề: {formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</span></div><div className="admin-session-quick-actions"><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("now")}><CalendarClock aria-hidden="true" /><span><b>Mở sau 5 phút</b><small>Phù hợp khi cần chia sẻ ngay</small></span></button><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("later")}><CalendarClock aria-hidden="true" /><span><b>Đặt lịch sau 1 giờ</b><small>Có thể chỉnh lại ngày giờ bên dưới</small></span></button></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Thời điểm mở</span><input type="datetime-local" value={form.startsAt} onChange={event => updateForm({ startsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Thời điểm kết thúc nhận bài</span><input type="datetime-local" value={form.endsAt} onChange={event => updateForm({ endsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Gia hạn sau giờ kết thúc (phút)</span><input type="number" min={0} max={1440} value={form.gracePeriodMinutes} onChange={event => updateForm({ gracePeriodMinutes: Number(event.target.value) })} /><small>Khuyến nghị 30 phút để lượt đang làm có thể hoàn tất.</small></label></div></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Thông tin kíp</b><span>{form.mode === "account" ? "Tên kíp giúp nhận biết lịch tài khoản." : form.mode === "both" ? "Một kíp, hai cách tham gia; người có tài khoản không cần điền lại thông tin." : "Tên này sẽ xuất hiện trong danh sách link."}</span></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Tên kíp thi</span><input value={form.name} maxLength={120} onChange={event => updateForm({ name: event.target.value })} placeholder="Ví dụ: Kíp sáng · Lớp 12A1" required /><small>Dùng tên ngắn, dễ phân biệt khi theo dõi.</small></label><label className="admin-session-field"><span>Số lượt làm tối đa</span><input type="number" min={0} max={1000} value={form.maxAttempts} onChange={event => updateForm({ maxAttempts: Number(event.target.value) })} /><small>0 = không giới hạn.</small></label></div>{(form.mode === "account" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người có tài khoản</b><small>Đăng nhập để dùng thông tin đã có trong hồ sơ.</small></div><label><span>Phạm vi học viên</span><select value={form.rosterMode} onChange={event => updateForm({ rosterMode: event.target.value as RosterMode })}><option value="open">Tất cả học viên có quyền vào phòng</option><option value="enrolled">Chỉ học viên được phân quyền</option></select></label></div>}{(form.mode === "link_qr" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người chưa có tài khoản</b><small>Vào bằng link/QR và chỉ điền thông tin được yêu cầu.</small></div><label><span>Giám sát kỹ thuật</span><select value={form.monitorMode} onChange={event => updateForm({ monitorMode: event.target.value as MonitorMode })}><option value="off">Tắt</option><option value="exit">Ghi nhận rời tab / toàn màn hình</option><option value="advanced">Nâng cao: thêm mất focus, copy/dán</option></select></label>{independentSubjectExam && <label className="admin-session-field admin-session-subject-field"><span>Môn thi áp dụng cho link</span><select value={form.sectionId} onChange={event => updateForm({ sectionId: event.target.value })} required><option value="">Chọn môn thi</option>{sections.map(section => <option value={section.id} key={section.id}>{section.title}{section.duration_minutes ? ` · ${section.duration_minutes} phút` : ""}</option>)}</select><small>Đề {normalizeExamType(selectedExam?.exam_type)} gồm các phần độc lập; mỗi link nên gắn với một môn.</small></label>}<label className="admin-session-field admin-session-password-field"><span><LockKeyhole aria-hidden="true" /> Mật khẩu kíp (tùy chọn)</span><input type="password" autoComplete="new-password" value={form.password} maxLength={120} onChange={event => updateForm({ password: event.target.value })} placeholder="Bỏ trống nếu không dùng" /></label></div>}<div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Công bố kết quả</b><small>Chọn thời điểm công bố điểm thi cho thí sinh.</small></div><label><span>Công bố điểm</span><select value={form.releaseMode} onChange={event => updateForm({ releaseMode: event.target.value as ReleaseMode })}><option value="after_submit">Ngay sau khi nộp bài</option><option value="after_slot">Sau khi kíp kết thúc</option><option value="manual">Giáo viên công bố thủ công</option><option value="never">Không công bố điểm</option></select></label></div></div></section>}
+      {step === 3 && <section className="admin-session-wizard-panel" aria-labelledby="wizard-time-title"><div className="admin-session-panel-heading"><div><span className="admin-session-wizard-kicker">BƯỚC 3 / 4</span><h2 id="wizard-time-title">Thiết lập thời gian và quy tắc</h2><p>Thời lượng đề là thời gian làm bài; thời gian kíp là khoảng cho phép người tham gia bắt đầu.</p></div><CalendarClock aria-hidden="true" /></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Lịch mở kíp</b><span>Thời lượng đề: {formatDuration(selectedSection?.duration_minutes ?? selectedExam?.duration_minutes ?? 90)}</span></div><div className="admin-session-quick-actions"><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("now")}><CalendarClock aria-hidden="true" /><span><b>Mở sau 5 phút</b><small>Phù hợp khi cần chia sẻ ngay</small></span></button><button type="button" className="admin-session-quick-option" onClick={() => updateSchedule("later")}><CalendarClock aria-hidden="true" /><span><b>Đặt lịch sau 1 giờ</b><small>Có thể chỉnh lại ngày giờ bên dưới</small></span></button></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Thời điểm mở</span><input id="session-starts-at" name="startsAt" type="datetime-local" value={form.startsAt} onChange={event => updateForm({ startsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Thời điểm kết thúc nhận bài</span><input id="session-ends-at" name="endsAt" type="datetime-local" value={form.endsAt} onChange={event => updateForm({ endsAt: event.target.value })} required /></label><label className="admin-session-field"><span>Gia hạn sau giờ kết thúc (phút)</span><input id="session-grace-period" name="gracePeriodMinutes" type="number" min={0} max={1440} value={form.gracePeriodMinutes} onChange={event => updateNumericField("gracePeriodMinutes", event.target.value, 1440)} /><small>Khuyến nghị 30 phút để lượt đang làm có thể hoàn tất.</small></label></div></div><div className="admin-session-form-section"><div className="admin-session-section-title"><b>Thông tin kíp</b><span>{form.mode === "account" ? "Tên kíp giúp nhận biết lịch tài khoản." : form.mode === "both" ? "Một kíp, hai cách tham gia; người có tài khoản không cần điền lại thông tin." : "Tên này sẽ xuất hiện trong danh sách link."}</span></div><div className="admin-session-field-grid"><label className="admin-session-field"><span>Tên kíp thi</span><input id="session-name" name="sessionName" value={form.name} maxLength={120} onChange={event => updateForm({ name: event.target.value })} placeholder="Ví dụ: Kíp sáng · Lớp 12A1" required /><small>Dùng tên ngắn, dễ phân biệt khi theo dõi.</small></label><label className="admin-session-field"><span>Số lượt làm tối đa</span><input id="session-max-attempts" name="maxAttempts" type="number" min={0} max={1000} value={form.maxAttempts} onChange={event => updateNumericField("maxAttempts", event.target.value, 1000)} /><small>0 = không giới hạn.</small></label></div>{(form.mode === "account" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người có tài khoản</b><small>Đăng nhập để dùng thông tin đã có trong hồ sơ.</small></div><label><span>Phạm vi học viên</span><select name="rosterMode" value={form.rosterMode} onChange={event => updateForm({ rosterMode: event.target.value as RosterMode })}><option value="open">Tất cả học viên có quyền vào phòng</option><option value="enrolled">Chỉ học viên được phân quyền</option></select></label></div>}{(form.mode === "link_qr" || form.mode === "both") && <div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Người chưa có tài khoản</b><small>Vào bằng link/QR và chỉ điền thông tin được yêu cầu.</small></div><label><span>Giám sát kỹ thuật</span><select name="monitorMode" value={form.monitorMode} onChange={event => updateForm({ monitorMode: event.target.value as MonitorMode })}><option value="off">Tắt</option><option value="exit">Ghi nhận rời tab / toàn màn hình</option><option value="advanced">Nâng cao: thêm mất focus, copy/dán</option></select></label>{independentSubjectExam && <label className="admin-session-field admin-session-subject-field"><span>Môn thi áp dụng cho link</span><select name="sectionId" value={form.sectionId} onChange={event => updateForm({ sectionId: event.target.value })} required><option value="">Chọn môn thi</option>{sections.map(section => <option value={section.id} key={section.id}>{section.title}{section.duration_minutes ? ` · ${section.duration_minutes} phút` : ""}</option>)}</select><small>Đề {normalizeExamType(selectedExam?.exam_type)} gồm các phần độc lập; mỗi link nên gắn với một môn.</small></label>}<label className="admin-session-field admin-session-password-field"><span><LockKeyhole aria-hidden="true" /> Mật khẩu kíp (tùy chọn)</span><input id="session-password" name="password" type="password" autoComplete="new-password" value={form.password} maxLength={120} onChange={event => updateForm({ password: event.target.value })} placeholder="Bỏ trống nếu không dùng" /></label></div>}<div className="admin-session-rule-group"><div className="admin-session-rule-group-heading"><b>Công bố kết quả</b><small>Chọn thời điểm công bố điểm thi cho thí sinh.</small></div><label><span>Công bố điểm</span><select name="releaseMode" value={form.releaseMode} onChange={event => updateForm({ releaseMode: event.target.value as ReleaseMode })}><option value="after_submit">Ngay sau khi nộp bài</option><option value="after_slot">Sau khi kíp kết thúc</option><option value="manual">Giáo viên công bố thủ công</option><option value="never">Không công bố điểm</option></select></label></div></div></section>}
 
       {step === 3 && <RandomizationControls form={form} updateForm={updateForm} thptqg={normalizeExamType(selectedExam?.exam_type) === "THPTQG"} />}
 

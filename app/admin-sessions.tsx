@@ -7,6 +7,7 @@ import MacAlert from "../components/macos/MacAlert";
 import { authenticatedFetch } from "../lib/auth-client";
 import { sessionState, sessionStateLabel, type SessionState } from "../lib/session-catalog";
 import LoadingIndicator from "./loading-indicator";
+import { formatUiDate, formatUiDateTime, formatUiTime } from "./ui-format";
 import "./admin-sessions.css";
 
 type SessionRow = {
@@ -38,22 +39,16 @@ type SessionsPayload = {
 type SessionSort = "start_desc" | "start_asc" | "name_asc";
 
 const PAGE_SIZES = [20, 50] as const;
-const DATE_FORMAT = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-const DATE_TIME_FORMAT = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-const TIME_FORMAT = new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit" });
 
 function formatDateTime(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "Chưa xác định"
-    : DATE_TIME_FORMAT.format(date);
+  return formatUiDateTime(value, "Chưa xác định");
 }
 
 function formatRange(session: Pick<SessionRow, "starts_at" | "ends_at">) {
   const start = new Date(session.starts_at);
   const end = new Date(session.ends_at);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "Chưa xác định thời gian";
-  return `${DATE_FORMAT.format(start)} · ${TIME_FORMAT.format(start)}–${TIME_FORMAT.format(end)}`;
+  return `${formatUiDate(start, "Chưa xác định")} · ${formatUiTime(start, "--:--")}–${formatUiTime(end, "--:--")}`;
 }
 
 function modeLabel(kind: SessionRow["kind"]) {
@@ -231,8 +226,8 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
         <div><span className="admin-kicker">LỊCH TỔ CHỨC</span><h2 id="session-list-title">Các kíp thi</h2></div>
         <div className="admin-session-list-tools">
           <label className="admin-session-search"><Search aria-hidden="true" /><span className="sr-only">Tìm kíp thi</span><input name="sessionSearch" type="search" autoComplete="off" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm kíp, đề hoặc phòng…" /></label>
-          <label className="admin-session-select"><span>Sắp xếp</span><select value={sort} onChange={event => { setSort(event.target.value as SessionSort); setPage(1); }}><option value="start_desc">Mới nhất</option><option value="start_asc">Cũ nhất</option><option value="name_asc">Tên A–Z</option></select></label>
-          <label className="admin-session-select"><span>Số dòng</span><select value={pageSize} onChange={event => { setPageSize(Number(event.target.value) as (typeof PAGE_SIZES)[number]); setPage(1); }}>{PAGE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}</select></label>
+          <label className="admin-session-select"><span>Sắp xếp</span><select name="sessionSort" value={sort} onChange={event => { setSort(event.target.value as SessionSort); setPage(1); }}><option value="start_desc">Mới nhất</option><option value="start_asc">Cũ nhất</option><option value="name_asc">Tên A–Z</option></select></label>
+          <label className="admin-session-select"><span>Số dòng</span><select name="sessionPageSize" value={pageSize} onChange={event => { setPageSize(Number(event.target.value) as (typeof PAGE_SIZES)[number]); setPage(1); }}>{PAGE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}</select></label>
         </div>
         <span className="admin-session-count" role="status" aria-live="polite">{loading ? "Đang tải…" : `${resultTotal} kíp`}</span>
       </div>

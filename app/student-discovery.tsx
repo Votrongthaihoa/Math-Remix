@@ -13,6 +13,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { formatUiDate, formatUiMonthDay, formatUiTime, formatUiWeekday } from "./ui-format";
 
 type SearchCourse = {
   id: string | number;
@@ -60,10 +61,7 @@ function searchable(value: string) {
 }
 
 function formatDate(value: string) {
-  const parsed = new Date(value);
-  return Number.isFinite(parsed.getTime())
-    ? parsed.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
-    : "Chưa có ngày";
+  return formatUiDate(value, "Chưa có ngày");
 }
 
 export function StudentSearchPage({
@@ -138,6 +136,7 @@ export function StudentSearchPage({
           <Search aria-hidden="true" />
           <span className="reference-visually-hidden">Từ khóa tra cứu</span>
           <input
+            name="search"
             type="search"
             autoComplete="off"
             value={query}
@@ -274,7 +273,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
   const weekEnd = days[6];
   const todayKey = dateKey(referenceNow);
   const now = referenceNow.getTime();
-  const weekLabel = `${weekStart.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })} - ${weekEnd.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  const weekLabel = `${formatUiMonthDay(weekStart)} - ${formatUiDate(weekEnd)}`;
 
   return (
     <div className="reference-schedule-page">
@@ -304,7 +303,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
             const isToday = key === todayKey;
             return (
               <li key={key} className={isToday ? "is-today" : undefined}>
-                <header><span>{day.toLocaleDateString("vi-VN", { weekday: "short" })}</span><b>{day.getDate()}</b><small>tháng {day.getMonth() + 1}</small></header>
+                <header><span>{formatUiWeekday(day)}</span><b>{day.getDate()}</b><small>tháng {day.getMonth() + 1}</small></header>
                 <div className="reference-day-events">
                   {dayRooms.length ? dayRooms.map(room => {
                     const status = scheduleStatus(room, now);
@@ -314,7 +313,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
                       <Link href={`/exam-room/${encodeURIComponent(room.id)}`} key={room.id} className={`reference-schedule-event tone-${status.tone}`}>
                         <span className="reference-event-status">{status.label}</span>
                         <b>{room.title}</b>
-                        <span><Clock3 aria-hidden="true" />{start.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}{end && Number.isFinite(end.getTime()) ? ` - ${end.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}` : ""}</span>
+                        <span><Clock3 aria-hidden="true" />{formatUiTime(start)}{end && Number.isFinite(end.getTime()) ? ` - ${formatUiTime(end)}` : ""}</span>
                         <small>{room.exam_type || "Đánh giá năng lực"} - {room.examCount} đề</small>
                       </Link>
                     );

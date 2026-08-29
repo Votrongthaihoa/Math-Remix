@@ -19,7 +19,7 @@ test("admin security state is safe for empty, busy, and malformed date states", 
   assert.match(page, /Array\.isArray\(payload\.items\)/);
   assert.match(page, /className="security-empty"/);
   assert.match(page, /aria-busy=\{loading \|\| refreshing \|\| detailLoading \|\| busy\}/);
-  assert.match(page, /Number\.isNaN\(parsed\.getTime\(\)\)/);
+  assert.match(page, /Number\.isNaN\(until\.getTime\(\)\)/);
   assert.match(page, /setListServerTime\(typeof payload\.serverTime === "string"/);
   assert.match(page, /effectiveAccountStatus\(user, listServerTime\)/);
   assert.match(page, /statusLabel\(detail\.profile, detail\.serverTime\)/);

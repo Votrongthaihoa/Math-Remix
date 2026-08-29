@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
+import { formatUiDateTime } from "./ui-format";
 
 type AuditSource = "all" | "exam" | "account";
 type AuditStatus = "all" | "started" | "succeeded" | "failed";
@@ -88,10 +89,7 @@ function actionLabel(value: string) {
 }
 
 function dateTime(value: string) {
-  const date = new Date(value);
-  return Number.isFinite(date.getTime())
-    ? date.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })
-    : "Không rõ thời gian";
+  return formatUiDateTime(value, "Không rõ thời gian");
 }
 
 function initialFilter<T extends string>(name: string, allowed: readonly T[], fallback: T) {
@@ -197,9 +195,9 @@ export default function AdminAuditLog() {
 
       <section className="admin-audit-console" aria-labelledby="admin-audit-filter-title">
         <div className="admin-audit-console-heading"><h2 id="admin-audit-filter-title">Tra cứu nhật ký</h2><p>Lọc theo nội dung, nguồn và trạng thái xử lý.</p></div>
-        <label className="admin-audit-search"><Search aria-hidden="true" /><span className="admin-audit-visually-hidden">Từ khóa nhật ký</span><input type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm thao tác, quản trị viên, đối tượng…" autoComplete="off" />{query ? <button type="button" aria-label="Xóa từ khóa" onClick={() => { setQuery(""); setPage(1); }}><X aria-hidden="true" /></button> : null}</label>
-        <label className="admin-audit-select">Nguồn<select value={source} onChange={event => changeSource(event.target.value as AuditSource)}>{sourceFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
-        <label className="admin-audit-select">Trạng thái<select value={status} onChange={event => changeStatus(event.target.value as AuditStatus)}>{statusFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
+        <label className="admin-audit-search"><Search aria-hidden="true" /><span className="admin-audit-visually-hidden">Từ khóa nhật ký</span><input name="auditSearch" type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm thao tác, quản trị viên, đối tượng…" autoComplete="off" />{query ? <button type="button" aria-label="Xóa từ khóa" onClick={() => { setQuery(""); setPage(1); }}><X aria-hidden="true" /></button> : null}</label>
+        <label className="admin-audit-select">Nguồn<select name="source" value={source} onChange={event => changeSource(event.target.value as AuditSource)}>{sourceFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
+        <label className="admin-audit-select">Trạng thái<select name="status" value={status} onChange={event => changeStatus(event.target.value as AuditStatus)}>{statusFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
         <p className="admin-audit-result-status" role="status" aria-live="polite">{resultStatus}</p>
       </section>
 

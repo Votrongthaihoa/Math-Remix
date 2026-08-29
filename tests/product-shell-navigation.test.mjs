@@ -54,3 +54,11 @@ test("course shell removes demo copy and exposes cover management", async () => 
   assert.match(platform, /onError=\{\(\) => setCoverPreviewErrorUrl\(coverUrl\)\}/);
   assert.match(publicCoverRoute, /function decodeAsset/);
 });
+
+test("admin course builder navigation preserves the selected course deep link", async () => {
+  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+
+  assert.match(platform, /function navigateAdmin\(path: string\)/);
+  assert.ok(platform.includes("const match = path.match(/^\\/admin\\/content\\/courses\\/([^/?#]+)/);"));
+  assert.match(platform, /setManagedCourseId\(match\?\.\[1\] \? decodeURIComponent\(match\[1\]\) : ""\);/);
+});

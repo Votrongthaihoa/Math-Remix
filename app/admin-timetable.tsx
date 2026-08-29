@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarClock,
   CheckCircle2,
@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
+import { formatUiDate, formatUiTime, formatUiWeekday } from "./ui-format";
 
 type AdminTimetableRoom = {
   id: string;
@@ -76,8 +77,7 @@ function nextEditableWindow() {
 }
 
 function formatTime(value?: string | null) {
-  const date = validDate(value);
-  return date ? date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—";
+  return formatUiTime(value, "—");
 }
 
 function roomScheduleState(room: AdminTimetableRoom, now = Date.now()) {
@@ -96,14 +96,26 @@ function TimetableEditor({
   room: AdminTimetableRoom;
   onSaved: (room: AdminTimetableRoom, notice: string) => void;
 }) {
-  const fallback = nextEditableWindow();
+  const fallback = useMemo(() => nextEditableWindow(), []);
   const [startAt, setStartAt] = useState(() => localDateTimeValue(room.exam_start, fallback.start));
   const [endAt, setEndAt] = useState(() => localDateTimeValue(room.exam_end, fallback.end));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const scheduled = Boolean(validDate(room.exam_start));
+  const scheduleAbortController = useRef<AbortController | null>(null);
+  const startTimestamp = Date.parse(startAt);
+  const endTimestamp = Date.parse(endAt);
+  const invalidRange = Number.isFinite(startTimestamp) && Number.isFinite(endTimestamp) && endTimestamp <= startTimestamp;
+  const startInvalid = Boolean(error && (!startAt || !Number.isFinite(startTimestamp) || invalidRange));
+  const endInvalid = Boolean(error && (!endAt || !Number.isFinite(endTimestamp) || invalidRange));
+
+  useEffect(() => () => scheduleAbortController.current?.abort(), []);
 
   async function updateSchedule(start: string | null, end: string | null) {
+    if (saving) return;
+    scheduleAbortController.current?.abort();
+    const controller = new AbortController();
+    scheduleAbortController.current = controller;
     setSaving(true);
     setError("");
     try {
@@ -115,14 +127,17 @@ function TimetableEditor({
           startAt: start ? new Date(start).toISOString() : null,
           endAt: end ? new Date(end).toISOString() : null,
         }),
+        signal: controller.signal,
       });
       const payload = await response.json().catch(() => null) as TimetablePayload | null;
+      if (controller.signal.aborted) return;
       if (!response.ok || !payload?.room) throw new Error(payload?.error ?? "Không thể cập nhật lịch vận hành.");
       onSaved(payload.room, start ? "Đã lưu lịch vận hành." : "Đã gỡ lịch khỏi phòng thi.");
     } catch (value) {
+      if (controller.signal.aborted) return;
       setError(value instanceof Error ? value.message : "Không thể cập nhật lịch vận hành.");
     } finally {
-      setSaving(false);
+      if (scheduleAbortController.current === controller) setSaving(false);
     }
   }
 
@@ -160,16 +175,16 @@ function TimetableEditor({
       </div>
 
       <label htmlFor="admin-timetable-start">Bắt đầu
-        <input id="admin-timetable-start" type="datetime-local" value={startAt} onChange={event => setStartAt(event.target.value)} required />
+        <input id="admin-timetable-start" name="startAt" type="datetime-local" autoComplete="off" value={startAt} onChange={event => { setStartAt(event.target.value); setError(""); }} aria-invalid={startInvalid} aria-describedby={error ? "admin-timetable-editor-error" : undefined} required />
       </label>
       <label htmlFor="admin-timetable-end">Kết thúc
-        <input id="admin-timetable-end" type="datetime-local" value={endAt} min={startAt || undefined} onChange={event => setEndAt(event.target.value)} required />
+        <input id="admin-timetable-end" name="endAt" type="datetime-local" autoComplete="off" value={endAt} min={startAt || undefined} onChange={event => { setEndAt(event.target.value); setError(""); }} aria-invalid={endInvalid} aria-describedby={error ? "admin-timetable-editor-error" : undefined} required />
       </label>
 
-      {error ? <p className="admin-timetable-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</p> : null}
+      {error ? <p id="admin-timetable-editor-error" className="admin-timetable-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</p> : null}
 
       <div className="admin-timetable-editor-actions">
-        <button type="button" className="admin-timetable-secondary-action" disabled={saving || !scheduled} onClick={() => void updateSchedule(null, null)}>
+        <button type="button" className="admin-timetable-secondary-action" disabled={saving || !scheduled} onClick={() => { if (window.confirm("Gỡ lịch khỏi phòng thi này?")) void updateSchedule(null, null); }}>
           <Trash2 aria-hidden="true" />Gỡ lịch
         </button>
         <button type="submit" className="admin-timetable-primary-action" disabled={saving}>
@@ -190,14 +205,18 @@ export default function AdminTimetable() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [referenceNow, setReferenceNow] = useState(() => new Date());
+  const timetableAbortController = useRef<AbortController | null>(null);
 
-  const loadTimetable = useCallback(async (signal?: AbortSignal) => {
+  const loadTimetable = useCallback(async () => {
+    timetableAbortController.current?.abort();
+    const controller = new AbortController();
+    timetableAbortController.current = controller;
     setLoading(true);
     setError("");
     try {
-      const response = await authenticatedFetch("/api/admin/timetable", { cache: "no-store", signal });
+      const response = await authenticatedFetch("/api/admin/timetable", { cache: "no-store", signal: controller.signal });
       const payload = await response.json().catch(() => null) as TimetablePayload | null;
-      if (signal?.aborted) return;
+      if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(payload?.error ?? "Không thể tải lịch vận hành.");
       const nextRooms = payload?.rooms ?? [];
       const serverNow = validDate(payload?.serverTime);
@@ -207,20 +226,19 @@ export default function AdminTimetable() {
         ? current
         : nextRooms.find(room => !validDate(room.exam_start))?.id ?? nextRooms[0]?.id ?? "");
     } catch (value) {
-      if (signal?.aborted) return;
+      if (controller.signal.aborted) return;
       setError(value instanceof Error ? value.message : "Không thể tải lịch vận hành.");
     } finally {
-      if (!signal?.aborted) setLoading(false);
+      if (!controller.signal.aborted && timetableAbortController.current === controller) setLoading(false);
     }
   }, []);
 
+  useEffect(() => () => timetableAbortController.current?.abort(), []);
   useEffect(() => {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => { void loadTimetable(controller.signal); }, 0);
-    return () => {
-      window.clearTimeout(timeout);
-      controller.abort();
-    };
+    // This effect starts an async request; its state updates happen after the
+    // request resolves and are guarded by the controller above.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadTimetable();
   }, [loadTimetable]);
 
   const weekStart = useMemo(() => addDays(startOfWeek(referenceNow), weekOffset * 7), [referenceNow, weekOffset]);
@@ -241,7 +259,7 @@ export default function AdminTimetable() {
   const normalizedQuery = query.trim().toLocaleLowerCase("vi-VN");
   const visibleUnscheduledRooms = unscheduledRooms.filter(room => !normalizedQuery || `${room.title} ${room.exam_type} ${room.description}`.toLocaleLowerCase("vi-VN").includes(normalizedQuery));
   const weekEnd = days[6];
-  const weekLabel = `${weekStart.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })} – ${weekEnd.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  const weekLabel = `${formatUiDate(weekStart)} – ${formatUiDate(weekEnd)}`;
   const now = referenceNow.getTime();
   const activeCount = scheduledRooms.filter(room => {
     const start = validDate(room.exam_start)?.getTime();
@@ -298,7 +316,7 @@ export default function AdminTimetable() {
                 const isToday = key === dateKey(referenceNow);
                 return (
                   <li key={key} className={isToday ? "is-today" : undefined}>
-                    <header><span>{day.toLocaleDateString("vi-VN", { weekday: "short" })}</span><b>{day.getDate()}</b><small>tháng {day.getMonth() + 1}</small></header>
+                    <header><span>{formatUiWeekday(day)}</span><b>{day.getDate()}</b><small>tháng {day.getMonth() + 1}</small></header>
                     <div className="admin-timetable-day-events">
                       {dayRooms.length ? dayRooms.map(room => {
                         const state = roomScheduleState(room, now);
@@ -314,7 +332,7 @@ export default function AdminTimetable() {
           )}
         </section>
 
-        {selectedRoom ? <TimetableEditor key={selectedRoom.id} room={selectedRoom} onSaved={handleSaved} /> : (
+        {selectedRoom ? <TimetableEditor key={`${selectedRoom.id}:${selectedRoom.exam_start ?? "unscheduled"}:${selectedRoom.exam_end ?? "open"}`} room={selectedRoom} onSaved={handleSaved} /> : (
           <aside className="admin-timetable-editor admin-timetable-editor-empty">
             <CalendarClock aria-hidden="true" /><h2>Chưa có phòng thi</h2><p>Tạo phòng thi trước khi thiết lập lịch vận hành.</p>
           </aside>
@@ -324,7 +342,7 @@ export default function AdminTimetable() {
       <section className="admin-timetable-unscheduled" aria-labelledby="admin-unscheduled-title">
         <div className="admin-timetable-unscheduled-heading">
           <div className="admin-timetable-panel-heading"><span><Clock3 aria-hidden="true" /></span><div><h2 id="admin-unscheduled-title">Phòng chưa xếp lịch</h2><p>Chọn một phòng để điền thời gian ở bảng thiết lập.</p></div></div>
-          <label className="admin-timetable-search"><Search aria-hidden="true" /><span className="admin-timetable-visually-hidden">Tìm phòng chưa xếp lịch</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm phòng…" autoComplete="off" /></label>
+          <label className="admin-timetable-search"><Search aria-hidden="true" /><span className="admin-timetable-visually-hidden">Tìm phòng chưa xếp lịch</span><input name="roomSearch" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm phòng…" autoComplete="off" /></label>
         </div>
         {loading ? <div className="admin-timetable-loading" role="status">Đang tải danh sách…</div> : visibleUnscheduledRooms.length ? (
           <div className="admin-timetable-room-table" role="table" aria-label="Phòng chưa xếp lịch">

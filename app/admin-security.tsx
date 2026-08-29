@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, ChevronRight, Laptop, LoaderCircle, LockKe
 import { authenticatedFetch } from "../lib/auth-client";
 import LoadingIndicator from "./loading-indicator";
 import { useAdminDialogFocus } from "./admin-dialog";
+import { formatUiDateTime } from "./ui-format";
 import "./admin-security.css";
 
 type SecurityUser = { id: string; full_name: string; student_code: string; email: string; status: string; account_status: string; violation_count: number; banned_at: string | null; banned_until: string | null; ban_reason: string | null; ban_event_id: number | null };
@@ -75,10 +76,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function date(value: string | null | undefined) {
-  if (!value) return "—";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "Chưa rõ thời gian";
-  return parsed.toLocaleString("vi-VN");
+  return formatUiDateTime(value, "—");
 }
 
 function statusLabel(user: SecurityUser, serverTime = "") {
@@ -360,7 +358,7 @@ export default function AdminSecurity() {
         <form onSubmit={submitPendingAction}>
           <header><div><span className="security-action-kicker">XÁC NHẬN THAO TÁC</span><h2 id="security-action-title">{pendingAction.title}</h2></div><button type="button" onClick={closeActionDialog} aria-label="Đóng hộp thoại xác nhận" disabled={busy}><X aria-hidden="true" /></button></header>
           <p id="security-action-description">{pendingAction.description} Đối tượng: <b>{detail?.profile.full_name ?? selectedUser?.full_name ?? "học viên đã chọn"}</b>.</p>
-          <label htmlFor="security-action-reason">Lý do thao tác<textarea id="security-action-reason" data-dialog-autofocus value={reasonDraft} maxLength={500} rows={4} onChange={event => setReasonDraft(event.target.value)} aria-describedby="security-action-reason-help" /></label>
+    <label htmlFor="security-action-reason">Lý do thao tác<textarea id="security-action-reason" name="reason" autoComplete="off" data-dialog-autofocus value={reasonDraft} maxLength={500} rows={4} onChange={event => setReasonDraft(event.target.value)} aria-describedby="security-action-reason-help" /></label><small id="security-action-reason-help">Ghi ngắn gọn lý do để người khác có thể rà soát lại thao tác.</small>
           <small id="security-action-reason-help">Lý do được lưu trong nhật ký quản trị · {reasonDraft.length}/500 ký tự.</small>
           {actionError && <p className="security-action-error" role="alert">{actionError}</p>}
           <div className="security-action-dialog-actions"><button type="button" className="security-action-secondary" onClick={closeActionDialog} disabled={busy}>Hủy</button><button type="submit" className="security-action-primary" disabled={busy}>{busy ? <><LoaderCircle aria-hidden="true" /> Đang lưu…</> : pendingAction.submitLabel}</button></div>

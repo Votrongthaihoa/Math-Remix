@@ -394,6 +394,45 @@
   min-width: 0;
 }
 
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-color-field-group {
+  display: grid;
+  gap: 7px;
+  margin-top: 15px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-color-field-group .field-label {
+  color: var(--admin-body, #344054);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-color-field {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-color-field input {
+  width: 100%;
+  height: 42px;
+  min-width: 0;
+  margin: 0;
+  padding: 7px;
+  border: 1px solid var(--admin-border, #d0d5dd);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--admin-ink, #101828);
+  font: inherit;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .course-color-field input[type="color"] {
+  padding: 4px;
+  cursor: pointer;
+}
+
 /* Empty/error states point forward without swallowing the page hierarchy. */
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) :where(.empty-state, .mini-empty, .overview-empty),
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.admin-route-empty, .admin-session-empty, .admin-empty-panel, .mini-empty) {

@@ -76,11 +76,11 @@ test("profile name editing is a labelled form with accessible feedback", async (
 
   assert.match(platform, /<form className="profile-card details profile-details-form" onSubmit=\{saveProfile\}/);
   assert.match(platform, /id="profile-full-name" name="fullName" autoComplete="name"/);
-  assert.match(platform, /aria-invalid=\{Boolean\(profileError\)\}/);
+  assert.match(platform, /aria-invalid=\{Boolean\(profileError && !draftName\.trim\(\)\)\}/);
   assert.match(platform, /aria-describedby=\{profileFeedbackId\}/);
   assert.match(platform, /profileNameInputRef\.current\?\.focus\(\)/);
-  assert.match(platform, /id="profile-name-feedback"[^>]*role="alert"/);
-  assert.match(platform, /id="profile-name-feedback"[^>]*role="status" aria-live="polite"/);
+  assert.match(platform, /id="profile-name-error"[^>]*role="alert"/);
+  assert.match(platform, /id="profile-name-success"[^>]*role="status" aria-live="polite"/);
 });
 
 test("new student styles require both the optimized route and content surface boundaries", async () => {
