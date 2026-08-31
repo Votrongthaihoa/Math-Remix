@@ -27,7 +27,8 @@ test("admin alpha rail has a project-owned compact logo variant", async () => {
   const css = await readFile(new URL("../app/alpha-reference-portal.css", import.meta.url), "utf8");
 
   assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-full"[\s\S]*src="\/logo_aeck\.svg"/);
-  assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-compact"[\s\S]*src="\/logo_aeck\.svg"/);
+  assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-compact"[\s\S]*src="\/logo_aeck_compact\.svg"/);
+  assert.match(css, /\.ui-shell\.student-app\.product-shell\.alpha-reference-surface \.mobile-sidebar-logo-compact,[\s\S]*?\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface \.mobile-sidebar-logo-compact\s*\{[\s\S]*?display:\s*none/);
   assert.match(css, /\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface:not\(\.sidebar-expanded\)[\s\S]*?\.mobile-sidebar-logo-compact/);
 });
 

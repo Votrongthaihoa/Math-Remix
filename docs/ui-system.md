@@ -139,9 +139,12 @@ Isolated documents are `/pdf-viewer.html`, `/yt-embed-player.html` and
 - `public/logo_aeck_full.svg` is the exact full red mark served by
   `account.aeck.vn` (SHA-256 `beb17ac3…5456bb`). Use it on public account/auth
   surfaces where the wordmark and tagline have enough horizontal room.
-- `public/logo_aeck.svg` is the exact green short mark bundled by
-  `alpha.aeck.vn` (SHA-256 `07b7b110…73ddf`). Use it in the Alpha product
-  sidebar/topbar.
+- `public/logo_aeck.svg` is the exact green horizontal wordmark bundled by
+  `alpha.aeck.vn` (SHA-256 `07b7b110…73ddf`). Use it while the product rail is
+  expanded and in mobile chrome where the horizontal mark has enough room.
+- `public/logo_aeck_compact.svg` is the supplied square green AECK mark
+  (SHA-256 `f3169a6b…394d`). Use it only for the collapsed 80 px product rail;
+  never shrink the horizontal wordmark into that square slot.
 - `public/logo192.png` and `public/logo512.png` are the exact square red
   application marks served across AECK's current public/account/Alpha sites
   (SHA-256 `ebd54558…44111` and `a2223f6b…b138`). Use them only for browser,

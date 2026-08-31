@@ -129,10 +129,12 @@ Public authentication is a deliberate companion surface, not an Alpha-green prod
 
 The brand artwork itself is never reconstructed. Public auth uses the exact
 `public/logo_aeck_full.svg` asset from `account.aeck.vn`; product chrome uses
-the exact `public/logo_aeck.svg` asset bundled by `alpha.aeck.vn`. Preserve each
-asset's intrinsic ratio and original colors. Browser and install metadata use
-the official square `public/logo192.png` and `public/logo512.png` marks served
-consistently by `aeck.vn`, `account.aeck.vn`, and `alpha.aeck.vn`.
+the exact `public/logo_aeck.svg` horizontal asset bundled by `alpha.aeck.vn`
+when expanded and `public/logo_aeck_compact.svg` in the collapsed 80 px rail.
+Preserve each asset's intrinsic ratio and original colors. Browser and install
+metadata use the official square `public/logo192.png` and `public/logo512.png`
+marks served consistently by `aeck.vn`, `account.aeck.vn`, and
+`alpha.aeck.vn`.
 
 ## Colors
 

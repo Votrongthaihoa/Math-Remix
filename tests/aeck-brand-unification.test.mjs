@@ -4,11 +4,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("public auth and product chrome use the canonical AECK identity", async () => {
-  const [platform, layout, logo, compactLogo, capabilityCenter, videoPlayer, pdfRoute, pdfViewer, embeddedPlayer] = await Promise.all([
+  const [platform, layout, logo, wordmarkLogo, compactLogo, capabilityCenter, videoPlayer, pdfRoute, pdfViewer, embeddedPlayer] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../public/logo_aeck_full.svg", import.meta.url), "utf8"),
     readFile(new URL("../public/logo_aeck.svg", import.meta.url), "utf8"),
+    readFile(new URL("../public/logo_aeck_compact.svg", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-capability-center.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/lesson-pdf-download/route.ts", import.meta.url), "utf8"),
@@ -18,6 +19,9 @@ test("public auth and product chrome use the canonical AECK identity", async () 
 
   assert.match(platform, /src="\/logo_aeck_full\.svg"/);
   assert.match(platform, /src="\/logo_aeck\.svg"/);
+  assert.match(platform, /student-sidebar-logo-compact" src="\/logo_aeck_compact\.svg"/);
+  assert.match(platform, /mobile-sidebar-logo-compact" src="\/logo_aeck_compact\.svg"/);
+  assert.match(platform, /header-brand-logo-compact" src="\/logo_aeck_compact\.svg"/);
   assert.doesNotMatch(platform, /src="\/logo_tsa\.svg"/);
   assert.match(layout, /title:\s*"AECK"/);
   assert.match(layout, /icon:\s*\[/);
@@ -29,11 +33,17 @@ test("public auth and product chrome use the canonical AECK identity", async () 
   assert.match(logo, /viewBox="0 0 600 89\.999999"/);
   assert.doesNotMatch(logo, /<text\b/i);
   assert.equal(
-    createHash("sha256").update(compactLogo).digest("hex"),
+    createHash("sha256").update(wordmarkLogo).digest("hex"),
     "07b7b1102e0b7bb94cba4d5ca4894e4481a8d0a72f3590374d8cd6a8cfc73ddf",
-    "logo_aeck.svg must stay byte-identical to the official Alpha shell asset",
+    "logo_aeck.svg must stay byte-identical to the official Alpha wordmark asset",
   );
-  assert.match(compactLogo, /#158a39/);
+  assert.equal(
+    createHash("sha256").update(compactLogo).digest("hex"),
+    "f3169a6bf4b0c7a29bba4b4f7d6887a8c4dcb41dbd9b12b0654b23d7372d394d",
+    "logo_aeck_compact.svg must stay byte-identical to the supplied compact rail asset",
+  );
+  assert.match(wordmarkLogo, /#158a39/);
+  assert.match(compactLogo, /viewBox='0 0 900 899\.99999'/);
   assert.doesNotMatch(platform, /Remix Education/);
   assert.doesNotMatch(`${platform}\n${capabilityCenter}\n${videoPlayer}\n${pdfRoute}\n${pdfViewer}\n${embeddedPlayer}`, /Math Remix|Học viên REMIX|REMIX (?:PDF|Video) Viewer|REMIX Education/);
   assert.match(pdfViewer, /<title>AECK PDF Viewer<\/title>/);
@@ -87,6 +97,9 @@ test("visual smoke measures the rendered rail logo and native Alpha dashboard", 
   const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
 
   assert.match(smoke, /visibleSidebarLogo/);
+  assert.match(smoke, /visibleSidebarLogoSource/);
+  assert.match(smoke, /logo_aeck_compact\.svg/);
+  assert.match(smoke, /inspectCollapsedStudentSidebar/);
   assert.match(smoke, /sidebarLogoCenterOffset/);
   assert.match(smoke, /\[data-testid="student-dashboard"\]/);
   assert.match(smoke, /\.alpha-dashboard-resource-grid/);

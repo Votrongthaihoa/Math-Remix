@@ -366,17 +366,28 @@ async function inspectDrawer(path) {
   const opened = await page.evaluate(() => {
     const sidebar = document.querySelector("#main-sidebar");
     const main = document.querySelector("#main-content");
+    const fullLogo = sidebar?.querySelector(".mobile-sidebar-logo-full");
+    const compactLogo = sidebar?.querySelector(".mobile-sidebar-logo-compact");
+    const fullRect = fullLogo?.getBoundingClientRect();
+    const compactRect = compactLogo?.getBoundingClientRect();
     return {
       role: sidebar?.getAttribute("role"),
       modal: sidebar?.getAttribute("aria-modal"),
       mainInert: main instanceof HTMLElement ? main.inert : false,
       focusInside: Boolean(sidebar?.contains(document.activeElement)),
+      drawerFullLogoVisible: Boolean(fullLogo && getComputedStyle(fullLogo).display !== "none" && fullRect && fullRect.width > 0 && fullRect.height > 0),
+      drawerFullLogoSource: fullLogo?.getAttribute("src") ?? null,
+      drawerCompactLogoVisible: Boolean(compactLogo && getComputedStyle(compactLogo).display !== "none" && compactRect && compactRect.width > 0 && compactRect.height > 0),
     };
   });
+  await page.screenshot({ path: join(outputDir, `${mockRole}-drawer-open-390.png`), fullPage: true });
   await page.keyboard.press("Escape");
   await page.waitForTimeout(100);
   const restored = await page.evaluate(() => document.activeElement?.classList.contains("mobile-menu") ?? false);
   report.push({ name: `${mockRole}-drawer-keyboard`, path, width: 390, ...skipLink, ...opened, restoredFocus: restored });
+  if (!opened.drawerFullLogoVisible || opened.drawerFullLogoSource !== "/logo_aeck.svg" || opened.drawerCompactLogoVisible) {
+    throw new Error(`${mockRole} drawer logo variant failed: ${JSON.stringify(opened)}`);
+  }
 }
 
 async function inspectSecurityDialogs() {
@@ -436,6 +447,10 @@ async function inspectCollapsedAdminSidebar() {
       namedLinks: navLinks.filter(link => Boolean(link.getAttribute("aria-label"))).length,
       navLinks: navLinks.length,
       visibleSidebarLogo: visibleSidebarLogo?.className ?? null,
+      visibleSidebarLogoSource: visibleSidebarLogo?.getAttribute("src") ?? null,
+      visibleSidebarLogoRatio: visibleSidebarLogo instanceof HTMLImageElement && visibleSidebarLogo.naturalHeight
+        ? Number((visibleSidebarLogo.naturalWidth / visibleSidebarLogo.naturalHeight).toFixed(2))
+        : null,
       sidebarLogoCenterOffset: logoRect && sidebarRect
         ? Math.round(Math.abs((logoRect.left + logoRect.width / 2) - (sidebarRect.left + sidebarRect.width / 2)))
         : null,
@@ -443,8 +458,63 @@ async function inspectCollapsedAdminSidebar() {
   });
   await page.screenshot({ path: join(outputDir, "admin-sidebar-collapsed-1440.png"), fullPage: true });
   report.push({ name: "admin-sidebar-collapsed", path: "/admin/enrollments", width: 1440, ...state });
-  if (!state.collapsed || state.visibleSectionLabels !== 0 || state.namedLinks !== state.navLinks || state.sidebarLogoCenterOffset == null || state.sidebarLogoCenterOffset > 2) {
+  if (!state.collapsed || state.visibleSectionLabels !== 0 || state.namedLinks !== state.navLinks
+    || state.visibleSidebarLogoSource !== "/logo_aeck_compact.svg" || state.visibleSidebarLogoRatio !== 1
+    || state.sidebarLogoCenterOffset == null || state.sidebarLogoCenterOffset > 2) {
     throw new Error(`Admin collapsed sidebar alignment failed: ${JSON.stringify(state)}`);
+  }
+}
+
+async function inspectCollapsedStudentSidebar() {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await page.waitForTimeout(mockAuth ? 1_200 : 350);
+  await waitForRouteSurface();
+  await page.locator(".header-sidebar-toggle").click();
+  await page.waitForTimeout(300);
+  const collapsed = await page.evaluate(() => {
+    const shell = document.querySelector(".ui-shell.student-app.product-shell");
+    const sidebar = shell?.querySelector(":scope > .sidebar");
+    const sidebarRect = sidebar?.getBoundingClientRect();
+    const visibleSidebarLogo = [...(sidebar?.querySelectorAll(".student-sidebar-logo-compact, .student-sidebar-logo-full") ?? [])]
+      .find(candidate => {
+        const style = getComputedStyle(candidate);
+        const rect = candidate.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
+      });
+    const logoRect = visibleSidebarLogo?.getBoundingClientRect();
+    return {
+      collapsed: !shell?.classList.contains("sidebar-expanded"),
+      visibleSidebarLogo: visibleSidebarLogo?.className ?? null,
+      visibleSidebarLogoSource: visibleSidebarLogo?.getAttribute("src") ?? null,
+      visibleSidebarLogoRatio: visibleSidebarLogo instanceof HTMLImageElement && visibleSidebarLogo.naturalHeight
+        ? Number((visibleSidebarLogo.naturalWidth / visibleSidebarLogo.naturalHeight).toFixed(2))
+        : null,
+      sidebarLogoCenterOffset: logoRect && sidebarRect
+        ? Math.round(Math.abs((logoRect.left + logoRect.width / 2) - (sidebarRect.left + sidebarRect.width / 2)))
+        : null,
+    };
+  });
+  await page.screenshot({ path: join(outputDir, "student-sidebar-collapsed-1440.png"), fullPage: true });
+  await page.locator(".header-sidebar-toggle").click();
+  await page.waitForTimeout(300);
+  const expanded = await page.evaluate(() => {
+    const shell = document.querySelector(".ui-shell.student-app.product-shell");
+    const logo = shell?.querySelector(":scope > .sidebar .student-sidebar-logo-full");
+    const rect = logo?.getBoundingClientRect();
+    return {
+      expanded: Boolean(shell?.classList.contains("sidebar-expanded")),
+      fullLogoVisible: Boolean(logo && getComputedStyle(logo).display !== "none" && rect && rect.width > 0 && rect.height > 0),
+      fullLogoSource: logo?.getAttribute("src") ?? null,
+    };
+  });
+  await page.screenshot({ path: join(outputDir, "student-sidebar-expanded-1440.png"), fullPage: true });
+  const result = { name: "student-sidebar-logo-states", path: "/dashboard", width: 1440, ...collapsed, ...expanded };
+  report.push(result);
+  if (!result.collapsed || result.visibleSidebarLogoSource !== "/logo_aeck_compact.svg"
+    || result.visibleSidebarLogoRatio !== 1 || result.sidebarLogoCenterOffset == null || result.sidebarLogoCenterOffset > 2
+    || !result.expanded || !result.fullLogoVisible || result.fullLogoSource !== "/logo_aeck.svg") {
+    throw new Error(`Student sidebar logo states failed: ${JSON.stringify(result)}`);
   }
 }
 
@@ -925,6 +995,7 @@ if (authenticated) {
       await inspectCollapsedAdminSidebar();
     }
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-dashboard"))) {
+      await inspectCollapsedStudentSidebar();
       await inspectDashboardDotAlignment();
     }
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();

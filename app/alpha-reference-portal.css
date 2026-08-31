@@ -140,6 +140,7 @@
     radial-gradient(circle at 20% 76%, rgba(21, 138, 57, .025), transparent 23rem);
 }
 
+.ui-shell.student-app.product-shell.alpha-reference-surface .mobile-sidebar-logo-compact,
 .ui-shell.admin-app.product-shell.alpha-reference-surface .mobile-sidebar-logo-compact {
   display: none;
 }
