@@ -32,12 +32,12 @@ test("AECK fields connect help and errors to their native control", async () => 
 test("authentication polish is opt-in and cannot style exam content", async () => {
   const [platform, css] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/auth-ui-v2.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/account-auth-reference.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(platform, /className="login-page ui-auth-surface auth-public-refresh"/);
-  assert.match(platform, /className="login-page admin-login-page ui-auth-surface auth-public-refresh"/);
-  assert.match(css, /\.login-page\.ui-auth-surface/);
+  assert.match(platform, /className="login-page ui-auth-surface auth-public-refresh account-auth-reference"/);
+  assert.match(platform, /className="login-page admin-login-page ui-auth-surface auth-public-refresh account-auth-reference"/);
+  assert.match(css, /\.login-page\.ui-auth-surface\.account-auth-reference/);
   assert.doesNotMatch(css, /\.(?:exam|question|answer|result|review|solution|admin-exam)[\w-]*/i);
   assert.doesNotMatch(css, /(^|\n)\s*(?:button|input|textarea|select|svg|body|h1)\s*[{,]/m);
 });

@@ -47,7 +47,7 @@ test("optimized routes update the document title and loading failures stay actio
   ]);
 
   assert.match(platform, /if \(uiRouteMode !== "optimized-content"\) return;[\s\S]*?const authenticationRequired = !signedIn[\s\S]*?const appliedTitle = optimizedDocumentTitle\(pathname, authenticationRequired\);[\s\S]*?document\.title = appliedTitle/);
-  assert.match(platform, /authenticationRequired\) return pathname\.startsWith\("\/admin"\) \? "Đăng nhập quản trị \| Remix Education" : "Đăng nhập \| Remix Education"/);
+  assert.match(platform, /authenticationRequired \|\| pathname === "\/login"\) return pathname\.startsWith\("\/admin"\) \? "Đăng nhập quản trị \| AECK" : "Đăng nhập \| AECK"/);
   assert.match(platform, /if \(document\.title === appliedTitle\) document\.title = previousTitle/);
   assert.match(platform, /<CourseCurriculumSkeleton \/>/);
   assert.match(platform, /<LessonViewerSkeleton \/>/);

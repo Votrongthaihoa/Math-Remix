@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>REMIX Video Player</title>
+  <title>AECK Video Player</title>
   <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
   <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
   <style>
@@ -19,7 +19,7 @@
     const mode = ["native", "hls"].includes(query.get("mode")) ? query.get("mode") : "youtube";
     const videoId = (query.get("v") || "").trim();
     const start = Math.max(0, Number(query.get("start") || 0) || 0);
-    const watermarkOwner = (query.get("wm") || "Học viên REMIX").trim().slice(0, 120);
+    const watermarkOwner = (query.get("wm") || "Học viên AECK").trim().slice(0, 120);
     const target = document.querySelector("#player");
     const allowedMicrosoftHostSuffixes = ["files.1drv.com", "1drv.com", "sharepoint.com", "sharepointonline.com"];
     const allowedHlsApiOrigin = "https://api.mathremix.pro.vn";

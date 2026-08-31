@@ -5,6 +5,7 @@ export type UiRouteMode =
 
 const OPTIMIZED_CONTENT_ROUTES = new Set([
   "/",
+  "/login",
   "/dashboard",
   "/courses",
   "/exam-history",
@@ -22,6 +23,8 @@ const OPTIMIZED_CONTENT_ROUTES = new Set([
   "/admin/sessions/new",
   "/admin/timetable",
   "/admin/audit",
+  "/admin/capabilities",
+  "/admin/server-health",
   "/admin/upload",
   "/admin/enrollments",
   "/admin/security",

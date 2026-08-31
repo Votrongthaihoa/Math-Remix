@@ -23,20 +23,20 @@ async function render(pathname = "/") {
   );
 }
 
-test("server-renders the safe REMIX session-checking shell", async () => {
+test("server-renders the safe AECK session-checking shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>REMIX Education<\/title>/i);
+  assert.match(html, /<title>AECK<\/title>/i);
   assert.match(html, /class="remix-loading full-page" role="status"/);
   assert.match(html, /Đang xác thực tài khoản/);
   assert.doesNotMatch(html, /placeholder="hocvien@example\.com"/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
 });
 
-test("returns the animated REMIX 404 page for unknown routes", async () => {
+test("returns the animated AECK 404 page for unknown routes", async () => {
   const response = await render("/duong-dan-khong-ton-tai");
   assert.equal(response.status, 404);
   const html = await response.text();

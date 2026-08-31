@@ -124,16 +124,16 @@ test("admin quick actions connect to real modals and routes", async () => {
   assert.match(css, /\.admin-workflow-strip > a/);
 });
 
-test("public auth pages expose a clear portal switch", async () => {
+test("public auth pages expose the measured account signup path", async () => {
   const [platform, css] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/auth-ui-v2.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/account-auth-reference.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(platform, /className="login-portal-switch"/);
-  assert.match(platform, /href="\/admin"/);
-  assert.match(platform, /href="\/"/);
-  assert.match(css, /\.login-page\.auth-public-refresh\.ui-auth-surface \.login-portal-switch/);
+  assert.match(platform, /className="login-signup-link"/);
+  assert.match(platform, /href="https:\/\/account\.aeck\.vn\/signup"/);
+  assert.match(css, /\.login-page\.ui-auth-surface\.account-auth-reference \.login-signup-link/);
+  assert.doesNotMatch(platform, /className="login-portal-switch"/);
 });
 
 test("course content loaders always settle and ignore superseded routes", async () => {

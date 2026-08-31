@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120" role="img" aria-labelledby="title desc">
+  <title id="title">AECK - Anh Em Cây Khế</title>
+  <desc id="desc">Tư duy độc lập - Làm chủ cuộc chơi</desc>
+  <g transform="translate(8 15) scale(.55)" fill="#cd1627">
+    <path d="M72.038 35.875h28.485l61.765 98.235h-32.281l-11.094-18.25h-65.39l-10.954 18.25H10.288zm33.969 58.516-19.797-32.844-19.781 32.844z"/>
+    <path d="M290.83 73.203v23.438h-90.938v13.187h94.594v24.282H172.392V35.875h121.813v24.266h-94.313v13.062z"/>
+    <path d="M346.267 109.828h93.047v24.282h-98.797c-8.793 0-15.996-2.665-21.609-8-5.617-5.333-8.422-12.161-8.422-20.485V64.36c0-8.32 2.805-15.148 8.422-20.484 5.613-5.332 12.816-8 21.609-8h97.547v24.266h-91.797c-2.336 0-4.297.777-5.89 2.328-1.594 1.543-2.391 3.527-2.391 5.953v33.125c0 2.438.797 4.43 2.39 5.969 1.594 1.543 3.555 2.312 5.891 2.312z"/>
+    <path d="M455.326 35.875h27.5v38.313h26.953l40.407-38.313h38.609l-53.766 50.094 55.297 48.14h-38.594l-41.53-36.484h-27.376v36.484h-27.5z"/>
+  </g>
+  <path fill="#111827" d="m331 47 18-18v36z"/>
+  <g font-family="Lato, Arial, sans-serif">
+    <text x="365" y="51" fill="#cd1627" font-size="24" font-style="italic" font-weight="700">ANH EM CÂY KHẾ</text>
+    <text x="365" y="76" fill="#111827" font-size="16" font-weight="700" letter-spacing=".4">TƯ DUY ĐỘC LẬP - LÀM CHỦ CUỘC CHƠI</text>
+  </g>
+</svg>

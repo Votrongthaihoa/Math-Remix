@@ -24,17 +24,20 @@ import "./product-shell-ux.css";
 import "./aeck-ui.css";
 import "./product-ui-v2.css";
 import "./aeck-reference-ui.css";
-import "./auth-ui-v2.css";
 import "./reference-integration.css";
 import "./admin-reference-suite.css";
+import "./alpha-reference-portal.css";
+import "./product-design-system.css";
+import "./account-auth-reference.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
+import StudentDashboard from "./student-dashboard";
 import { formatUiActivityDate, formatUiDate, formatUiShortDateTime } from "./ui-format";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
   ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3,
-  LayoutGrid, List as ListIcon
+  LayoutGrid, List as ListIcon, Server
 } from "lucide-react";
 
 const ExamRoomModule = lazy(() => import("./exam-room"));
@@ -46,6 +49,7 @@ const AdminUploadManager = lazy(() => import("./admin-upload"));
 const AdminHlsVault = lazy(() => import("./admin-hls-vault"));
 const AdminTimetable = lazy(() => import("./admin-timetable"));
 const AdminAuditLog = lazy(() => import("./admin-audit-log"));
+const AdminCapabilityCenter = lazy(() => import("./admin-capability-center"));
 const StudentProgress = lazy(() => import("./student-progress"));
 const GuestExamModule = lazy(() => import("./guest-exam"));
 
@@ -167,28 +171,30 @@ const pathsByView: Record<View, string> = {
 };
 
 function optimizedDocumentTitle(pathname: string, authenticationRequired = false) {
-  if (pathname === "/forgot-password") return "Khôi phục mật khẩu | Remix Education";
-  if (pathname === "/reset-password") return "Đặt mật khẩu mới | Remix Education";
-  if (authenticationRequired) return pathname.startsWith("/admin") ? "Đăng nhập quản trị | Remix Education" : "Đăng nhập | Remix Education";
-  if (pathname === "/" || pathname === "/dashboard") return "Tổng quan | Remix Education";
-  if (pathname === "/courses") return "Khóa học | Remix Education";
-  if (pathname.startsWith("/courses/")) return "Chi tiết khóa học | Remix Education";
-  if (pathname.startsWith("/lessons/")) return "Bài học | Remix Education";
-  if (pathname === "/exam-history") return "Lịch sử làm bài | Remix Education";
-  if (pathname === "/progress") return "Tiến độ học tập | Remix Education";
-  if (pathname === "/search") return "Tra cứu học tập | Remix Education";
-  if (pathname === "/tkb") return "Thời khóa biểu | Remix Education";
-  if (pathname === "/profile") return "Hồ sơ cá nhân | Remix Education";
-  if (pathname === "/admin/security") return "Bảo mật | Remix Education";
-  if (pathname.startsWith("/admin/content")) return "Quản lý nội dung | Remix Education";
-  if (pathname.startsWith("/admin/sessions")) return "Quản lý kíp thi | Remix Education";
-  if (pathname.startsWith("/admin/students")) return "Quản lý học viên | Remix Education";
-  if (pathname.startsWith("/admin/enrollments")) return "Phân quyền | Remix Education";
-  if (pathname.startsWith("/admin/upload")) return "Kho ảnh | Remix Education";
-  if (pathname.startsWith("/admin/hls-vault")) return "HLS Vault | Remix Education";
-  if (pathname.startsWith("/admin/timetable")) return "Lịch vận hành | Remix Education";
-  if (pathname.startsWith("/admin/audit")) return "Nhật ký quản trị | Remix Education";
-  return "Quản trị | Remix Education";
+  if (pathname === "/forgot-password") return "Khôi phục mật khẩu | AECK";
+  if (pathname === "/reset-password") return "Đặt mật khẩu mới | AECK";
+  if (authenticationRequired || pathname === "/login") return pathname.startsWith("/admin") ? "Đăng nhập quản trị | AECK" : "Đăng nhập | AECK";
+  if (pathname === "/" || pathname === "/dashboard") return "Tổng quan | AECK";
+  if (pathname === "/courses") return "Khóa học | AECK";
+  if (pathname.startsWith("/courses/")) return "Chi tiết khóa học | AECK";
+  if (pathname.startsWith("/lessons/")) return "Bài học | AECK";
+  if (pathname === "/exam-history") return "Lịch sử làm bài | AECK";
+  if (pathname === "/progress") return "Tiến độ học tập | AECK";
+  if (pathname === "/search") return "Tra cứu học tập | AECK";
+  if (pathname === "/tkb") return "Thời khóa biểu | AECK";
+  if (pathname === "/profile") return "Hồ sơ cá nhân | AECK";
+  if (pathname === "/admin/security") return "Bảo mật | AECK";
+  if (pathname.startsWith("/admin/content")) return "Quản lý nội dung | AECK";
+  if (pathname.startsWith("/admin/sessions")) return "Quản lý kíp thi | AECK";
+  if (pathname.startsWith("/admin/students")) return "Quản lý học viên | AECK";
+  if (pathname.startsWith("/admin/enrollments")) return "Phân quyền | AECK";
+  if (pathname.startsWith("/admin/upload")) return "Kho ảnh | AECK";
+  if (pathname.startsWith("/admin/hls-vault")) return "HLS Vault | AECK";
+  if (pathname.startsWith("/admin/timetable")) return "Lịch vận hành | AECK";
+  if (pathname.startsWith("/admin/audit")) return "Nhật ký quản trị | AECK";
+  if (pathname.startsWith("/admin/capabilities")) return "Phạm vi chức năng | AECK";
+  if (pathname.startsWith("/admin/server-health")) return "Sức khỏe hệ thống | AECK";
+  return "Quản trị | AECK";
 }
 
 function viewFromPath(pathname: string): View {
@@ -229,10 +235,12 @@ const adminNav = [
   { id: "upload" as const, section: "Quản lý", label: "Kho ảnh", path: "/admin/upload", icon: ImagePlus },
   { id: "settings" as const, section: "Quản lý", label: "Bảo mật", path: "/admin/security", icon: LockKeyhole },
   { id: "audit" as const, section: "Quản lý", label: "Nhật ký", path: "/admin/audit", icon: Activity },
+  { id: "capabilities" as const, section: "Hệ thống", label: "Phạm vi chức năng", path: "/admin/capabilities", icon: LayoutGrid },
+  { id: "server-health" as const, section: "Hệ thống", label: "Sức khỏe hệ thống", path: "/admin/server-health", icon: Server },
 ];
 type AdminTab = typeof adminNav[number]["id"] | "students" | "upload" | "enrollments" | "security";
 
-const adminNavGroups = ["Tổng quan", "Nội dung", "Kỳ thi", "Quản lý"].map(section => ({
+const adminNavGroups = ["Tổng quan", "Nội dung", "Kỳ thi", "Quản lý", "Hệ thống"].map(section => ({
   section,
   items: adminNav.filter(item => item.section === section),
 }));
@@ -262,9 +270,12 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [assignedCourses, setAssignedCourses] = useState<CourseData[]>([]);
-  const [practiceRooms, setPracticeRooms] = useState<PracticeRoomData[]>([]);
-  const [attempts, setAttempts] = useState<AttemptData[]>([]);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+ const [practiceRooms, setPracticeRooms] = useState<PracticeRoomData[]>([]);
+ const [attempts, setAttempts] = useState<AttemptData[]>([]);
+ const [overviewLoading, setOverviewLoading] = useState(false);
+ const [overviewError, setOverviewError] = useState("");
+  const [overviewReloadKey, setOverviewReloadKey] = useState(0);
+ const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [loginContext, setLoginContext] = useState<"student" | "admin">(initialAdminRoute ? "admin" : "student");
   const authOperationRef = useRef(0);
@@ -310,6 +321,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     /* eslint-disable react-hooks/set-state-in-effect -- Next's pathname is the external navigation source; these legacy shell states must update together when native links change routes. */
     if (adminPath || (["/forgot-password", "/reset-password"].includes(pathname) && shellSearchParams.get("from") === "admin")) setLoginContext("admin");
     else if (!["/forgot-password", "/reset-password"].includes(pathname)) setLoginContext("student");
+    setShowPassword(false);
     setAuthMode(pathname === "/forgot-password" ? "forgot" : pathname === "/reset-password" ? "reset" : "login");
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname, shellSearchParams]);
@@ -317,6 +329,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   useEffect(() => {
     lastAllowedRouteRef.current = `${pathname}${window.location.search}${window.location.hash}`;
   }, [pathname]);
+
+  useEffect(() => {
+    if (pathname === "/login" && signedIn && profileData) router.replace("/dashboard");
+  }, [pathname, profileData, router, signedIn]);
 
   useEffect(() => {
     if (uiRouteMode !== "optimized-content") return;
@@ -498,42 +514,51 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     if (!signedIn || currentView !== "overview") return;
     // loadUserData already receives the rooms payload during session bootstrap.
     // Avoid fetching the same rooms/history data again in the same render cycle.
-    if (overviewBootstrapRef.current) {
-      overviewBootstrapRef.current = false;
-      return;
+   if (overviewBootstrapRef.current) {
+     overviewBootstrapRef.current = false;
+      setOverviewLoading(false);
+     return;
+   }
+   let active = true;
+   const controller = new AbortController();
+    setOverviewLoading(true);
+    setOverviewError("");
+   const refreshOverviewData = async () => {
+     const [historyResponse, roomsResponse] = await Promise.all([
+       authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal }).catch(() => null),
+       authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store", signal: controller.signal }).catch(() => null),
+     ]);
+     if (!active || controller.signal.aborted) return;
+      if (!historyResponse?.ok && !roomsResponse?.ok) {
+        setOverviewError("Không thể tải dữ liệu tổng quan. Hãy kiểm tra kết nối rồi thử lại.");
+      }
+     if (historyResponse?.ok) {
+       const payload = await historyResponse.json().catch(() => null) as { attempts?: AttemptData[] } | null;
+       if (active && !controller.signal.aborted && payload?.attempts) setAttempts(payload.attempts);
+     }
+    if (roomsResponse?.ok) {
+      const payload = await roomsResponse.json().catch(() => null) as ExamRoomsPayload | null;
+       if (!active || controller.signal.aborted) return;
+       if (payload) {
+       const examRows = payload.exams ?? [];
+       setPracticeRooms((payload.rooms ?? []).map(room => ({
+        id: room.id,
+        title: room.title,
+        description: room.description ?? null,
+        exam_type: room.exam_type ?? null,
+        registration_start: room.registration_start ?? null,
+        registration_end: room.registration_end ?? null,
+        exam_start: room.exam_start ?? null,
+        exam_end: room.exam_end ?? null,
+        examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
+      })));
+       }
     }
-    let active = true;
-    const controller = new AbortController();
-    const refreshOverviewData = async () => {
-      const [historyResponse, roomsResponse] = await Promise.all([
-        authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal }).catch(() => null),
-        authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store", signal: controller.signal }).catch(() => null),
-      ]);
-      if (!active || controller.signal.aborted) return;
-      if (historyResponse?.ok) {
-        const payload = await historyResponse.json().catch(() => null) as { attempts?: AttemptData[] } | null;
-        if (active && !controller.signal.aborted && payload?.attempts) setAttempts(payload.attempts);
-      }
-      if (roomsResponse?.ok) {
-        const payload = await roomsResponse.json().catch(() => null) as ExamRoomsPayload | null;
-        if (!active || controller.signal.aborted || !payload) return;
-        const examRows = payload.exams ?? [];
-        setPracticeRooms((payload.rooms ?? []).map(room => ({
-          id: room.id,
-          title: room.title,
-          description: room.description ?? null,
-          exam_type: room.exam_type ?? null,
-          registration_start: room.registration_start ?? null,
-          registration_end: room.registration_end ?? null,
-          exam_start: room.exam_start ?? null,
-          exam_end: room.exam_end ?? null,
-          examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
-        })));
-      }
-    };
-    void refreshOverviewData();
+     if (active && !controller.signal.aborted) setOverviewLoading(false);
+   };
+   void refreshOverviewData();
     return () => { active = false; controller.abort(); };
-  }, [currentView, signedIn]);
+  }, [currentView, overviewReloadKey, signedIn]);
 
   async function loadUserData(user: { id: string; email?: string | null }) {
     if (!supabase) return null;
@@ -708,7 +733,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
 
   const showLogin = () => {
     setAuthMode("login");
-    router.replace(loginContext === "admin" ? "/admin" : "/");
+    router.replace(loginContext === "admin" ? "/admin" : "/login");
   };
   if (checkingSession && !initialGuestToken) return <LoadingIndicator label="Đang xác thực tài khoản…" fullPage />;
   if (initialGuestToken && !adminRouteRequested) return <Suspense fallback={<LoadingIndicator label="Đang mở link thi…" fullPage />}><GuestExamModule token={initialGuestToken} /></Suspense>;
@@ -716,6 +741,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   if (authMode === "reset") return <ResetPasswordPage onComplete={showLogin} />;
   if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); router.push("/forgot-password?from=admin"); } }} />;
   if (!signedIn) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
+  if (pathname === "/login") return <LoadingIndicator label="Đang mở tổng quan…" fullPage />;
 
   const go = (next: View, pathOverride?: string) => {
     if (next === "admin" && !isAdmin) {
@@ -771,14 +797,14 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     items[nextIndex]?.focus();
   };
   return (
-    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
+    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
       {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
       <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={closeMobileMenu} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
       {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
       {!examRunnerSurface && (
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
-           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img src="/logo_tsa.svg" alt="TSA" width={200} height={52}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
-          {!adminRouteRequested && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_tsa.svg" alt="TSA" width={2079} height={780}/><img className="student-sidebar-logo-compact" src="/logo.svg" alt="" width={42} height={42}/></Link>}
+           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="mobile-sidebar-logo mobile-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="mobile-sidebar-logo mobile-sidebar-logo-compact" src="/logo_aeck.svg" alt="" width={60} height={17}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
+          {!adminRouteRequested && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck.svg" alt="" width={60} height={17}/></Link>}
           <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
@@ -817,7 +843,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       )}
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
-          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo.svg" alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src="/logo_tsa.svg" alt="" width={155} height={56}/></Link>
+          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo_aeck.svg" alt="" width={60} height={17}/><img className="header-brand-logo header-brand-logo-full" src="/logo_aeck.svg" alt="" width={180} height={48}/></Link>
           <button type="button" className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
@@ -834,7 +860,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         </header>
       )}
       <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
-        {currentView === "overview" && <Overview onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} />}
+        {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} />}
@@ -844,66 +870,61 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "schedule" && <StudentSchedulePage rooms={practiceRooms} />}
         {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} />}
-        {currentView === "admin" && isAdmin && <RealAdminDashboard />}
+        {currentView === "admin" && isAdmin && <RealAdminDashboard pathname={pathname} />}
       </main>
     </div>
   );
 }
 
 function LoginPage(p: AuthPageProps) {
-  return <main data-ui-mode={p.uiRouteMode} className="login-page ui-auth-surface auth-public-refresh">
-    <div className="login-orb orb-one" /><div className="login-orb orb-two" />
-    <section className="login-wrap">
-      <AuthAside />
-      <div className="login-main">
-      <div className="login-brand"><span>R</span><div><b>REMIX</b><small>EDUCATION</small></div></div>
+  return <main data-ui-mode={p.uiRouteMode} className="login-page ui-auth-surface auth-public-refresh account-auth-reference">
+    <section className="login-wrap" aria-labelledby="login-title">
+      <div className="login-brand"><img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/></div>
       <form className="login-card" onSubmit={p.login}>
-        <div className="login-heading"><span className="kicker">CHÀO MỪNG TRỞ LẠI</span><h1>Đăng nhập</h1><p>Tài khoản học tập được cấp bởi quản trị viên.</p></div>
-        <label htmlFor="login-email">Email<div className="field"><Mail aria-hidden="true" /><input id="login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(e) => p.setEmail(e.target.value)} placeholder="hocvien@example.com" required /></div></label>
-        <div className="login-field-group"><label htmlFor="login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true" /><input id="login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required /><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></div></div>
-        <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
-        {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
-        <button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button>
-        <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
+        <div className="login-heading">
+          <h1 id="login-title">Đăng nhập</h1>
+          <p>Bạn chưa có tài khoản? <a className="login-signup-link" href="https://account.aeck.vn/signup">Đăng ký ngay</a></p>
+        </div>
+        <div className="login-form-stack">
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="login-email">Email <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><UserRound aria-hidden="true" /><input id="login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(event) => p.setEmail(event.target.value)} placeholder="hocvien@example.com" required /></div>
+          </div>
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="login-password">Mật khẩu <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><LockKeyhole aria-hidden="true" /><input id="login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required /><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></div>
+          </div>
+          <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
+          {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
+          <div className="login-submit-row"><button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button></div>
+          <div className="login-link-row"><button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button></div>
+        </div>
       </form>
-      <p className="login-portal-switch">Bạn là quản trị viên? <Link href="/admin">Đăng nhập quản trị</Link></p>
-      <p className="login-foot">© 2026 REMIX Education · Học để trưởng thành</p>
-      </div>
     </section>
   </main>;
 }
 
-function AuthAside({ admin = false }: { admin?: boolean }) {
-  const titleId = admin ? "admin-login-aside-title" : "login-aside-title";
-  const features = admin
-    ? ["Quản lý nội dung học tập", "Theo dõi vận hành rõ ràng", "Bảo mật tài khoản tập trung"]
-    : ["Theo dõi lộ trình học tập", "Học theo từng khóa học", "Xem lại tiến độ và kết quả"];
-  return <aside className={`login-aside${admin ? " admin-login-aside" : ""}`} aria-labelledby={titleId}>
-    <div className="login-aside-brand"><span aria-hidden="true">{admin ? <ShieldCheck /> : "R"}</span><div><b>REMIX</b><small>{admin ? "TEACHER WORKSPACE" : "EDUCATION"}</small></div></div>
-    <div className="login-aside-copy"><span className="login-aside-kicker">{admin ? "KHU VỰC QUẢN TRỊ" : "NỀN TẢNG HỌC TẬP"}</span><h2 id={titleId}>{admin ? "Tổ chức lớp học rõ ràng." : "Học theo một lộ trình rõ ràng."}</h2><p>{admin ? "Một không gian gọn gàng để quản lý nội dung, vận hành và bảo mật tài khoản." : "Mọi nội dung cần thiết cho một buổi học đều được đặt ở nơi dễ tìm và dễ tiếp tục."}</p></div>
-    <ul className="login-aside-features">{features.map((feature, index) => <li key={feature}><i aria-hidden="true">{String(index + 1).padStart(2, "0")}</i><span>{feature}</span></li>)}</ul>
-    <p className="login-aside-foot">{admin ? "Chỉ dành cho giáo viên và quản trị viên." : "Tài khoản được cấp bởi quản trị viên."}</p>
-  </aside>;
-}
-
 function AdminLoginPage(p: AuthPageProps) {
-  return <main data-ui-mode={p.uiRouteMode} className="login-page admin-login-page ui-auth-surface auth-public-refresh">
-    <section className="login-wrap">
-      <AuthAside admin />
-      <div className="login-main">
-      <div className="login-brand admin-login-brand"><span><ShieldCheck/></span><div><b>REMIX</b><small>TEACHER WORKSPACE</small></div></div>
+  return <main data-ui-mode={p.uiRouteMode} className="login-page admin-login-page ui-auth-surface auth-public-refresh account-auth-reference">
+    <section className="login-wrap" aria-labelledby="admin-login-title">
+      <div className="login-brand admin-login-brand"><img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/></div>
       <form className="login-card" onSubmit={p.login}>
-        <div className="login-heading"><span className="kicker">KHÔNG GIAN GIÁO VIÊN</span><h1>Đăng nhập để quản lý</h1><p>Soạn nội dung, tổ chức vận hành và xem kết quả ở một nơi.</p></div>
-        <label htmlFor="admin-login-email">Email<div className="field"><Mail aria-hidden="true"/><input id="admin-login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setEmail(event.target.value)} placeholder="admin@example.com" required/></div></label>
-        <div className="login-field-group"><label htmlFor="admin-login-password">Mật khẩu</label><div className="field"><LockKeyhole aria-hidden="true"/><input id="admin-login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div></div>
-        <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
-        {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
-        <button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang xác thực…" : "Vào trang quản trị"}</button>
-        <button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button>
+        <div className="login-heading"><h1 id="admin-login-title">Đăng nhập quản trị</h1><p>Dành cho giáo viên và quản trị viên.</p></div>
+        <div className="login-form-stack">
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="admin-login-email">Email <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><UserRound aria-hidden="true"/><input id="admin-login-email" name="email" type="email" autoComplete="username" spellCheck={false} value={p.email} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setEmail(event.target.value)} placeholder="admin@example.com" required/></div>
+          </div>
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="admin-login-password">Mật khẩu <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><LockKeyhole aria-hidden="true"/><input id="admin-login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event: React.ChangeEvent<HTMLInputElement>) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div>
+          </div>
+          <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
+          {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
+          <div className="login-submit-row"><button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button></div>
+          <div className="login-link-row"><button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button></div>
+        </div>
       </form>
-      <p className="login-portal-switch">Bạn là học viên? <Link href="/">Đăng nhập học viên</Link></p>
-      <p className="login-foot">Không gian này chỉ dành cho giáo viên và quản trị viên.</p>
-      </div>
     </section>
   </main>;
 }
@@ -945,17 +966,19 @@ function ForgotPasswordPage({ initialEmail, returnToAdmin, onBack }: { initialEm
     }
   }
 
-  return <main data-ui-mode="optimized-content" className="login-page auth-flow-page ui-auth-surface">
-    <section className="login-wrap">
-      <div className="login-brand"><span>R</span><div><b>REMIX</b><small>EDUCATION</small></div></div>
+  return <main data-ui-mode="optimized-content" className="login-page auth-flow-page ui-auth-surface account-auth-reference">
+    <section className="login-wrap" aria-labelledby="forgot-password-title">
+      <div className="login-brand"><img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/></div>
       <form className="login-card" onSubmit={sendRecovery}>
-        <div className="login-heading"><span className="kicker">KHÔI PHỤC TÀI KHOẢN</span><h1>Quên mật khẩu</h1><p>Nhập email đã được cấp để nhận liên kết đặt lại mật khẩu.</p></div>
-        <label htmlFor="recovery-email">Email<div className="field"><Mail aria-hidden="true" /><input id="recovery-email" name="email" type="email" autoComplete="username" spellCheck={false} value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} placeholder="hocvien@example.com" required /></div></label>
-        <TurnstileChallenge action="password_reset" onTokenChange={setTurnstileToken} resetSignal={turnstileResetNonce} />
-        {error && <p className="form-error" role="alert">{error}</p>}
-        {message && <p className="form-success" role="status" aria-live="polite">{message}</p>}
-        <button type="submit" className="primary-btn" disabled={sending}>{sending ? "Đang gửi…" : "Gửi liên kết đặt lại"}</button>
-        <button className="forgot" type="button" onClick={onBack}>Quay lại đăng nhập</button>
+        <div className="login-heading"><h1 id="forgot-password-title">Quên mật khẩu</h1><p>Nhập email đã được cấp để nhận liên kết đặt lại mật khẩu.</p></div>
+        <div className="login-form-stack">
+          <div className="login-control-group"><label className="login-control-label" htmlFor="recovery-email">Email <span className="login-required" aria-hidden="true">*</span></label><div className="field"><Mail aria-hidden="true" /><input id="recovery-email" name="email" type="email" autoComplete="username" spellCheck={false} value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} placeholder="hocvien@example.com" required /></div></div>
+          <TurnstileChallenge action="password_reset" onTokenChange={setTurnstileToken} resetSignal={turnstileResetNonce} />
+          {error && <p className="form-error" role="alert">{error}</p>}
+          {message && <p className="form-success" role="status" aria-live="polite">{message}</p>}
+          <div className="login-submit-row"><button type="submit" className="primary-btn" disabled={sending}>{sending ? "Đang gửi…" : "Gửi liên kết đặt lại"}</button></div>
+          <div className="login-link-row"><button className="forgot" type="button" onClick={onBack}>Quay lại đăng nhập</button></div>
+        </div>
       </form>
     </section>
   </main>;
@@ -988,16 +1011,18 @@ function ResetPasswordPage({ onComplete }: { onComplete: () => void }) {
     }
   }
 
-  return <main data-ui-mode="optimized-content" className="login-page auth-flow-page ui-auth-surface">
-    <section className="login-wrap">
-      <div className="login-brand"><span>R</span><div><b>REMIX</b><small>EDUCATION</small></div></div>
+  return <main data-ui-mode="optimized-content" className="login-page auth-flow-page ui-auth-surface account-auth-reference">
+    <section className="login-wrap" aria-labelledby="reset-password-title">
+      <div className="login-brand"><img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/></div>
       <form className="login-card" onSubmit={resetPassword}>
-        <div className="login-heading"><span className="kicker">BẢO MẬT</span><h1>Đặt mật khẩu mới</h1><p>Mật khẩu mới cần có ít nhất 8 ký tự.</p></div>
-        <label htmlFor="new-password">Mật khẩu mới<div className="field"><LockKeyhole aria-hidden="true" /><input id="new-password" name="newPassword" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" required /></div></label>
-        <label htmlFor="confirm-password">Xác nhận mật khẩu<div className="field"><LockKeyhole aria-hidden="true" /><input id="confirm-password" name="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required /></div></label>
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <button type="submit" className="primary-btn" disabled={saving}>{saving ? "Đang cập nhật…" : "Đặt mật khẩu mới"}</button>
-        <button className="forgot" type="button" onClick={onComplete}>Quay lại đăng nhập</button>
+        <div className="login-heading"><h1 id="reset-password-title">Đặt mật khẩu mới</h1><p>Chọn mật khẩu có ít nhất 8 ký tự.</p></div>
+        <div className="login-form-stack">
+          <div className="login-control-group"><label className="login-control-label" htmlFor="new-password">Mật khẩu mới <span className="login-required" aria-hidden="true">*</span></label><div className="field"><LockKeyhole aria-hidden="true" /><input id="new-password" name="newPassword" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" required /></div></div>
+          <div className="login-control-group"><label className="login-control-label" htmlFor="confirm-password">Xác nhận mật khẩu <span className="login-required" aria-hidden="true">*</span></label><div className="field"><LockKeyhole aria-hidden="true" /><input id="confirm-password" name="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required /></div></div>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="login-submit-row"><button type="submit" className="primary-btn" disabled={saving}>{saving ? "Đang cập nhật…" : "Đặt mật khẩu mới"}</button></div>
+          <div className="login-link-row"><button className="forgot" type="button" onClick={onComplete}>Quay lại đăng nhập</button></div>
+        </div>
       </form>
     </section>
   </main>;
@@ -1547,6 +1572,8 @@ function adminTabFromPath(pathname: string): AdminTab {
   if (pathname.startsWith("/admin/upload")) return "upload";
   if (pathname.startsWith("/admin/enrollments")) return "enrollments";
   if (pathname.startsWith("/admin/security")) return "settings";
+  if (pathname.startsWith("/admin/capabilities")) return "capabilities";
+  if (pathname.startsWith("/admin/server-health")) return "server-health";
   return "dashboard";
 }
 
@@ -1566,8 +1593,8 @@ function CourseColorField({ color, colorId, hexId, onColorChange, onHexChange }:
   </div>;
 }
 
-function RealAdminDashboard() {
-  const adminPathname = usePathname();
+function RealAdminDashboard({ pathname }: { pathname: string }) {
+  const adminPathname = pathname;
   const [tab, setTab] = useState<AdminTab>(() => adminTabFromPath(adminPathname));
   const [adminLocation, setAdminLocation] = useState(adminPathname);
   const [modal, setModal] = useState(false);
@@ -1692,6 +1719,7 @@ function RealAdminDashboard() {
       const match = adminPathname.match(/^\/admin\/content\/courses\/([^/]+)/);
       setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
     };
+    syncAdminRoute();
     window.addEventListener("popstate", syncAdminRoute);
     return () => window.removeEventListener("popstate", syncAdminRoute);
   }, [adminPathname]);
@@ -2048,7 +2076,9 @@ function RealAdminDashboard() {
         ? <Suspense fallback={<LoadingIndicator label="Đang mở kết quả kíp thi…" />}><AdminSessionResults key={adminLocation} navigate={navigateAdmin} /></Suspense>
       : <AdminSessionList navigate={navigateAdmin} />)}
     {tab === "timetable" && <Suspense fallback={<LoadingIndicator label="Đang mở lịch vận hành…" />}><AdminTimetable /></Suspense>}
-    {tab === "audit" && <Suspense fallback={<LoadingIndicator label="Đang mở nhật ký quản trị…" />}><AdminAuditLog /></Suspense>}
+  {tab === "audit" && <Suspense fallback={<LoadingIndicator label="Đang mở nhật ký quản trị…" />}><AdminAuditLog /></Suspense>}
+  {tab === "capabilities" && <Suspense fallback={<LoadingIndicator label="Đang mở phạm vi chức năng…" />}><AdminCapabilityCenter /></Suspense>}
+  {tab === "server-health" && <Suspense fallback={<LoadingIndicator label="Đang kiểm tra sức khỏe hệ thống…" />}><AdminCapabilityCenter initialModule="server-health" /></Suspense>}
     {tab === "upload" && <Suspense fallback={<LoadingIndicator label="Đang mở kho ảnh…" />}><AdminUploadManager /></Suspense>}
     {(tab === "enrollments" || tab === "settings") && tab === "enrollments" && <div className="assignment-page">
       <header className="assignment-page-head"><div><span className="eyebrow">PHÂN QUYỀN HỌC VIÊN</span><h2>Khóa học và phòng thi</h2><p>Quản lý toàn bộ nội dung được cấp cho từng học viên tại một nơi.</p></div></header>
@@ -2511,7 +2541,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     </div>
     {builderModal==="chapter"&&<div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="add-chapter-title" onSubmit={createChapter}><div className="section-head"><h2 id="add-chapter-title">Thêm phần</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm phần" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p className="info-note">Số thứ tự “Phần {chapters.length+1}” được thêm tự động.</p><label htmlFor="new-chapter-title">Tên phần<input id="new-chapter-title" name="title" autoComplete="off" value={newChapterTitle} onChange={event=>setNewChapterTitle(event.target.value)} placeholder="Ví dụ: Hàm số" required/></label><button type="submit" className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang tạo…":"Tạo phần"}</button></form></div>}
     {builderModal==="lesson"&&<div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="add-lesson-title" onSubmit={createLesson}><div className="section-head"><h2 id="add-lesson-title">Thêm bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm bài" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p className="info-note">Bài được đặt đúng cấp bên trong phần đang chọn; số thứ tự được thêm tự động.</p><label htmlFor="new-lesson-title">Tên bài<input id="new-lesson-title" name="title" autoComplete="off" value={newLessonTitle} onChange={event=>setNewLessonTitle(event.target.value)} placeholder="Ví dụ: Mệnh đề và tập hợp" required/></label><label htmlFor="new-lesson-description">Mô tả<textarea id="new-lesson-description" name="description" autoComplete="off" rows={4} value={newLessonDescription} onChange={event=>setNewLessonDescription(event.target.value)}/></label><label className="checkbox-row" htmlFor="new-lesson-published"><input id="new-lesson-published" name="published" type="checkbox" checked={newLessonPublished} onChange={event=>setNewLessonPublished(event.target.checked)}/><span>Xuất bản ngay</span></label><button type="submit" className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang tạo…":"Tạo bài"}</button></form></div>}
-      {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" role="dialog" aria-modal="true" aria-labelledby="add-resource-title" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2 id="add-resource-title">Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">PDF tải lên được giữ riêng tư. Video OneDrive hoặc SharePoint được phát trong Math Remix qua tài khoản Microsoft đã kết nối; HLS Vault dùng mã video đã encode trong OneDrive.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['onedrive_video','Video Microsoft','Dán link OneDrive hoặc SharePoint'],['hls_vault','OneDrive HLS Vault','Nhập mã video đã encode'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label htmlFor="new-resource-title">Tên nội dung<input id="new-resource-title" name="title" autoComplete="off" value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label htmlFor="new-resource-file">File PDF (tối đa 50 MB)<input id="new-resource-file" name="file" type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label htmlFor="new-resource-url">{newResourceType==="youtube"?'Link YouTube':newResourceType==="onedrive_video"?'Link chia sẻ OneDrive / SharePoint':newResourceType==="hls_vault"?'Mã video HLS Vault':'Link PDF'}<input id="new-resource-url" name="url" autoComplete="url" type={newResourceType==="hls_vault"?"text":"url"} value={newResourceUrl} onChange={event=>{setNewResourceUrl(event.target.value);if(newResourceType==="onedrive_video"){setVideoInspection(null);setVideoInspectionState(event.target.value.trim()?"checking":"idle");setVideoInspectionError("");setMicrosoftConnectionRequired(false)}}} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":newResourceType==="onedrive_video"?"https://1drv.ms/v/... hoặc link SharePoint":newResourceType==="hls_vault"?"lesson01":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType==="onedrive_video"&&<div className={`microsoft-video-check ${videoInspectionState}`} aria-live="polite">{videoInspectionState==="idle"&&<p>Dán link để hệ thống xác thực qua Microsoft Graph và kiểm tra định dạng video.</p>}{videoInspectionState==="checking"&&<p>Đang kiểm tra liên kết qua Microsoft Graph…</p>}{videoInspectionState==="error"&&<><p>{videoInspectionError}</p>{microsoftConnectionRequired&&<button type="button" className="outline-btn" onClick={()=>void connectMicrosoft()} disabled={savingBuilder}>{savingBuilder?"Đang chuẩn bị…":"Kết nối Microsoft"}</button>}</>}{videoInspectionState==="ready"&&videoInspection&&<><strong>✓ Đã nhận diện {videoInspection.providerLabel}</strong><span>✓ Đã xác thực quyền đọc video</span><span>✓ Sẵn sàng phát trong trình phát Math Remix</span><small>{videoInspection.name}{videoInspection.durationMs?` · ${Math.ceil(videoInspection.durationMs/60000)} phút`:""}</small></>}</div>}{!["youtube","onedrive_video","hls_vault"].includes(newResourceType)&&<label className="checkbox-row" htmlFor="new-resource-download"><input id="new-resource-download" name="allowDownload" type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button type="submit" className="primary-btn" disabled={savingBuilder||newResourceType==="onedrive_video"&&videoInspectionState!=="ready"}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":newResourceType==="hls_vault"?"Thêm video HLS":newResourceType==="onedrive_video"?"Thêm video":"Thêm nội dung")}</button></form></div>}
+      {builderModal==="resource"&&<div className="modal-shade"><form className="modal resource-source-modal" role="dialog" aria-modal="true" aria-labelledby="add-resource-title" onSubmit={createResource} aria-describedby="resource-source-help"><div className="section-head"><h2 id="add-resource-title">Thêm nội dung bài</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại thêm nội dung" onClick={()=>setBuilderModal(null)}><X aria-hidden="true"/></button></div><p id="resource-source-help" className="info-note">PDF tải lên được giữ riêng tư. Video OneDrive hoặc SharePoint được phát trong AECK qua tài khoản Microsoft đã kết nối; HLS Vault dùng mã video đã encode trong OneDrive.</p><fieldset className="resource-source-options"><legend>Nguồn nội dung</legend>{([['youtube','YouTube','Dán link video YouTube'],['onedrive_video','Video Microsoft','Dán link OneDrive hoặc SharePoint'],['hls_vault','OneDrive HLS Vault','Nhập mã video đã encode'],['external_pdf','Link PDF','Dùng link PDF hoặc Google Drive'],['storage_pdf','Tải PDF lên','Chọn file PDF từ máy tính']] as const).map(([type,label,help])=><label className={newResourceType===type?'selected':''} key={type}><input type="radio" name="resourceSource" value={type} checked={newResourceType===type} onChange={()=>selectResourceType(type)}/><span><b>{label}</b><small>{help}</small></span></label>)}</fieldset><label htmlFor="new-resource-title">Tên nội dung<input id="new-resource-title" name="title" autoComplete="off" value={newResourceTitle} onChange={event=>setNewResourceTitle(event.target.value)} placeholder="Ví dụ: Bài giảng 1 hoặc File bài tập" required/></label>{newResourceType==="storage_pdf"?<label key="resource-file" htmlFor="new-resource-file">File PDF (tối đa 50 MB)<input id="new-resource-file" name="file" type="file" accept="application/pdf,.pdf" onChange={event=>setNewResourceFile(event.target.files?.[0]??null)} required/></label>:<label key="resource-url" htmlFor="new-resource-url">{newResourceType==="youtube"?'Link YouTube':newResourceType==="onedrive_video"?'Link chia sẻ OneDrive / SharePoint':newResourceType==="hls_vault"?'Mã video HLS Vault':'Link PDF'}<input id="new-resource-url" name="url" autoComplete="url" type={newResourceType==="hls_vault"?"text":"url"} value={newResourceUrl} onChange={event=>{setNewResourceUrl(event.target.value);if(newResourceType==="onedrive_video"){setVideoInspection(null);setVideoInspectionState(event.target.value.trim()?"checking":"idle");setVideoInspectionError("");setMicrosoftConnectionRequired(false)}}} placeholder={newResourceType==="youtube"?"https://youtube.com/watch?v=...":newResourceType==="onedrive_video"?"https://1drv.ms/v/... hoặc link SharePoint":newResourceType==="hls_vault"?"lesson01":"https://drive.google.com/... hoặc https://.../file.pdf"} required/></label>}{newResourceType==="onedrive_video"&&<div className={`microsoft-video-check ${videoInspectionState}`} aria-live="polite">{videoInspectionState==="idle"&&<p>Dán link để hệ thống xác thực qua Microsoft Graph và kiểm tra định dạng video.</p>}{videoInspectionState==="checking"&&<p>Đang kiểm tra liên kết qua Microsoft Graph…</p>}{videoInspectionState==="error"&&<><p>{videoInspectionError}</p>{microsoftConnectionRequired&&<button type="button" className="outline-btn" onClick={()=>void connectMicrosoft()} disabled={savingBuilder}>{savingBuilder?"Đang chuẩn bị…":"Kết nối Microsoft"}</button>}</>}{videoInspectionState==="ready"&&videoInspection&&<><strong>✓ Đã nhận diện {videoInspection.providerLabel}</strong><span>✓ Đã xác thực quyền đọc video</span><span>✓ Sẵn sàng phát trong trình phát AECK</span><small>{videoInspection.name}{videoInspection.durationMs?` · ${Math.ceil(videoInspection.durationMs/60000)} phút`:""}</small></>}</div>}{!["youtube","onedrive_video","hls_vault"].includes(newResourceType)&&<label className="checkbox-row" htmlFor="new-resource-download"><input id="new-resource-download" name="allowDownload" type="checkbox" checked={newResourceAllowDownload} onChange={event=>setNewResourceAllowDownload(event.target.checked)}/><span>Cho phép học viên tải PDF</span></label>}<button type="submit" className="primary-btn" disabled={savingBuilder||newResourceType==="onedrive_video"&&videoInspectionState!=="ready"}>{savingBuilder?(newResourceType==="storage_pdf"?"Đang tải PDF…":"Đang thêm…"):(newResourceType==="storage_pdf"?"Tải PDF lên":newResourceType==="hls_vault"?"Thêm video HLS":newResourceType==="onedrive_video"?"Thêm video":"Thêm nội dung")}</button></form></div>}
     {renameTarget&&<div className="modal-shade"><form className="modal" role="dialog" aria-modal="true" aria-labelledby="rename-builder-title" onSubmit={saveRename}><div className="section-head"><h2 id="rename-builder-title">Đổi tên {renameTarget.table==="chapters"?"phần":"bài"}</h2><button type="button" className="icon-btn" aria-label="Đóng hộp thoại đổi tên" onClick={()=>{setRenameTarget(null);setRenameTitle("")}}><X aria-hidden="true"/></button></div><p className="info-note">Không cần nhập “{renameTarget.table==="chapters"?"Phần":"Bài"}” và số thứ tự; hệ thống sẽ hiển thị tự động.</p><label htmlFor="rename-builder-input">Tên mới<input id="rename-builder-input" name="title" autoComplete="off" value={renameTitle} onChange={event=>setRenameTitle(event.target.value)} required autoFocus/></label><button type="submit" className="primary-btn" disabled={savingBuilder}>{savingBuilder?"Đang lưu…":"Lưu tên mới"}</button></form></div>}
   </section>;
 }

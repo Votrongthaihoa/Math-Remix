@@ -60,7 +60,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         const accessToken = await activeSessionToken();
         const { data: userData } = await supabase.auth.getUser(accessToken);
         if (cancelled) return;
-        setWatermarkEmail(userData.user?.email || "Học viên REMIX");
+        setWatermarkEmail(userData.user?.email || "Học viên AECK");
         const response = await authenticatedFetch("/api/video-token", {
           method: "POST",
           headers: { "content-type": "application/json" },

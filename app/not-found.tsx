@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "404 | REMIX Education" };
+export const metadata: Metadata = { title: "404 | AECK" };
 
 export default function NotFoundPage() {
   return <main className="not-found-page">

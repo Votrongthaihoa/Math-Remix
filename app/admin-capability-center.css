@@ -1,0 +1,515 @@
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-center {
+  --capability-ink: #252a33;
+  --capability-muted: #687280;
+  --capability-line: rgba(55, 63, 75, 0.12);
+  --capability-soft: #f7f8fa;
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+  padding-block-end: 32px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-layout {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.26fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-overview,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index {
+  display: grid;
+  gap: 6px;
+  position: sticky;
+  top: 84px;
+  padding: 8px;
+  border: 1px solid var(--capability-line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 8px 25px rgba(35, 42, 52, 0.05);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index > button,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group > button {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--capability-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index > button:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group > button:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index > button.is-selected,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group > button.is-selected {
+  background: #fff4f5;
+  color: #9c1425;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index > button > svg,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group > button > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index button span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index button b,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index button small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index button b {
+  color: currentColor;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index button small {
+  color: #8a929e;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group {
+  display: grid;
+  gap: 2px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid rgba(55, 63, 75, 0.08);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group h2 {
+  margin: 0;
+  padding: 4px 10px 3px;
+  color: #8b929c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  overflow: clip;
+  border: 1px solid var(--capability-line);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(35, 42, 52, 0.04);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card.state-blocked {
+  background: #fffdf8;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  min-height: 132px;
+  padding: 15px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-main:hover {
+  background: #fff8f9;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-icon,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff0f2;
+  color: #b1182a;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-icon svg,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-copy {
+  display: grid;
+  grid-column: 2;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-main > .aeck-badge {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-group {
+  color: #a01627;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-copy b {
+  color: var(--capability-ink);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-copy small {
+  color: var(--capability-muted);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 15px;
+  border-block-start: 1px solid rgba(55, 63, 75, 0.08);
+  color: #7c8591;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-card-footer span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-overview > .aeck-empty-state {
+  margin-block-start: 14px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail {
+  display: grid;
+  gap: 14px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-card {
+  display: grid;
+  gap: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-heading > div {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-heading h2 {
+  margin: 3px 0 3px;
+  color: var(--capability-ink);
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-heading p,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-copy {
+  margin: 0;
+  color: var(--capability-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-contract {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(55, 63, 75, 0.1);
+  border-radius: 12px;
+  background: var(--capability-soft);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-contract h3,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integrations h3 {
+  margin: 0;
+  color: var(--capability-ink);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-contract ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-inline-start: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-contract code {
+  color: #5e6875;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-blocked,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-inline-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #ead8a6;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #705b20;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-blocked svg,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-inline-error svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin-block-start: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-blocked b {
+  display: block;
+  color: #634e11;
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-blocked p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-panel {
+  display: grid;
+  gap: 15px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check-list,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integrations {
+  display: grid;
+  gap: 8px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(55, 63, 75, 0.09);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check > span:nth-child(2),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check b,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration b {
+  color: var(--capability-ink);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check small,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration small {
+  color: var(--capability-muted);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check-icon.status-healthy {
+  background: #e8f7ef;
+  color: #1b7b4d;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check-icon.status-degraded {
+  background: #fff4d6;
+  color: #946d10;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check-icon.status-not_configured {
+  background: #eef0f3;
+  color: #737d8a;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration > span:first-child {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #adb5c0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration > span:first-child.is-configured {
+  background: #2f9964;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration > span:last-child {
+  color: #7b8490;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-inline-error {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-center :where(button, a):focus-visible {
+  outline: 2px solid #a91427;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1180px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 560px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-summary,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-grid,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-index-group {
+    grid-column: auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-detail-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-check > .aeck-badge,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-health-integration > span:last-child {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-center * {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-capability-center :where(button, a):focus-visible {
+    outline-color: CanvasText;
+  }
+}

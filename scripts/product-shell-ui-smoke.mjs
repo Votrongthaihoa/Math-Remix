@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
@@ -19,6 +19,11 @@ const redesignRoutes = [
   ["admin-students", "/admin/students"],
   ["admin-enrollments", "/admin/enrollments"],
   ["admin-upload", "/admin/upload"],
+  ["admin-hls-vault", "/admin/hls-vault"],
+  ["admin-capabilities", "/admin/capabilities"],
+  ["admin-server-health", "/admin/server-health"],
+  ["admin-session-create", "/admin/sessions/new"],
+  ["admin-course-detail", "/admin/content/courses/mock-course"],
   ["admin-question-bank", "/admin/question-bank"],
   ["student-dashboard", "/dashboard"],
   ["student-courses", "/courses"],
@@ -44,23 +49,28 @@ const protectedRegressionRoutes = [
 ];
 const requestedRoutes = new Set((process.env.SMOKE_ROUTES ?? "").split(",").map(value => value.trim()).filter(Boolean));
 const focusedAudit = requestedRoutes.size > 0;
-const allAuditRoutes = [...redesignRoutes, ...chromeOnlyRoutes];
+const roleAuditRoutes = mockRole === "student"
+  ? [...redesignRoutes.filter(([name]) => name.startsWith("student-")), ...chromeOnlyRoutes]
+  : [...redesignRoutes, ...chromeOnlyRoutes];
+const allAuditRoutes = roleAuditRoutes;
 const auditRoutes = requestedRoutes.size ? allAuditRoutes.filter(([name]) => requestedRoutes.has(name)) : allAuditRoutes;
-const startPath = process.env.SMOKE_START_PATH ?? "/admin";
+const startPath = process.env.SMOKE_START_PATH ?? (mockRole === "student" ? "/dashboard" : "/admin");
 const stressEnabled = process.env.SMOKE_STRESS === "1";
 const extendedInteractions = process.env.SMOKE_EXTENDED_INTERACTIONS !== "0";
 const resourceModalEnabled = process.env.SMOKE_RESOURCE_MODAL === "1";
 const courseCoverEnabled = process.env.SMOKE_COURSE_COVER === "1";
 const outputDir = process.env.SMOKE_OUTPUT_DIR ?? "artifacts/product-shell-ui-audit";
+const reportFile = process.env.SMOKE_REPORT_FILE ?? "";
+const quietOutput = process.env.SMOKE_QUIET === "1";
 
 await mkdir(outputDir, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const report = [];
 const runtimeIssues = [];
-page.on("pageerror", error => runtimeIssues.push({ type: "pageerror", text: error.message }));
+page.on("pageerror", error => runtimeIssues.push({ type: "pageerror", text: error.message, url: page.url(), viewport: page.viewportSize() }));
 page.on("console", message => {
-  if (message.type() === "error") runtimeIssues.push({ type: "console", text: message.text() });
+  if (message.type() === "error") runtimeIssues.push({ type: "console", text: message.text(), url: page.url(), viewport: page.viewportSize() });
 });
 
 const mockUser = {
@@ -119,6 +129,16 @@ let mockAuthStorage = null;
 
 function jsonResponse(body, status = 200) {
   return { status, contentType: "application/json", body: JSON.stringify(body) };
+}
+
+async function waitForRouteSurface() {
+  await page.locator(".ui-shell, main.login-page, .exam-shell").first().waitFor({ state: "visible", timeout: 10_000 });
+  await page.waitForFunction(
+    () => !document.body.innerText.includes("Đang xác thực tài khoản"),
+    null,
+    { timeout: 10_000 },
+  );
+  await page.waitForTimeout(mockAuth ? 250 : 100);
 }
 
 async function installMockAuth() {
@@ -213,10 +233,13 @@ async function inspect(name, path, width, screenshot = false) {
   }
   await page.goto(`${baseUrl}${path}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
   await page.waitForTimeout(mockAuth ? 1_200 : 350);
+  await waitForRouteSurface();
   const state = await page.evaluate(() => {
     const root = document.documentElement;
     const shell = document.querySelector(".ui-shell");
     const controls = [...document.querySelectorAll("button, a, input, select, textarea")];
+    const activeStudentNav = document.querySelector(".student-sidebar-nav .student-nav-primary.active, .student-sidebar-nav .student-nav-children a.active, .student-sidebar-nav .student-nav-disclosure.active-parent > summary");
+    const activeStudentNavStyle = activeStudentNav ? getComputedStyle(activeStudentNav) : null;
     const adminNavItems = [...document.querySelectorAll(".admin-sidebar-nav-item")];
     const adminNavItemGeometry = adminNavItems.map(item => {
       const icon = [...item.children].find(child => child.tagName.toLowerCase() === "svg");
@@ -264,10 +287,20 @@ async function inspect(name, path, width, screenshot = false) {
       controlsOutsideViewport: outsideViewportControls.filter(control => !control.scrollRegion).length,
       scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.scrollRegion).length,
       outsideViewportControls,
+      activeStudentNav: activeStudentNav?.textContent?.trim().slice(0, 80) ?? null,
+      activeStudentNavColor: activeStudentNavStyle?.color ?? null,
+      activeStudentNavBackground: activeStudentNavStyle?.backgroundColor ?? null,
       undersizedControls: controls.filter(control => {
         const rect = control.getBoundingClientRect();
         const style = getComputedStyle(control);
-        return rect.width > 0 && style.display !== "inline" && (rect.width < 24 || rect.height < 24);
+        const hiddenFileInput = control instanceof HTMLInputElement
+          && control.type === "file"
+          && (style.opacity === "0" || style.visibility === "hidden" || rect.width <= 2 || rect.height <= 2);
+        const inlineTextLink = control instanceof HTMLAnchorElement
+          && !control.querySelector("svg, img")
+          && style.borderStyle === "none"
+          && (style.backgroundColor === "rgba(0, 0, 0, 0)" || style.backgroundColor === "transparent");
+        return rect.width > 0 && !hiddenFileInput && !inlineTextLink && (rect.width < 24 || rect.height < 24);
       }).map(control => {
         const rect = control.getBoundingClientRect();
         return { tag: control.tagName.toLowerCase(), className: control.className, width: Math.round(rect.width), height: Math.round(rect.height), text: control.textContent?.trim().slice(0, 40) ?? "" };
@@ -289,6 +322,7 @@ async function inspectStress(name, path, width) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(`${baseUrl}${path}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
   await page.waitForTimeout(mockAuth ? 1_200 : 350);
+  await waitForRouteSurface();
   const result = await page.evaluate(() => {
     const longVietnamese = "Nội dung tiếng Việt rất dài để kiểm tra khả năng xuống dòng, thứ bậc thông tin và việc các hành động quan trọng luôn còn nhìn thấy trên màn hình hẹp";
     const unbroken = "CHUOIKHONGCODAUCACTRONGIUPHATHIENOVERFLOW".repeat(4);
@@ -385,7 +419,15 @@ async function inspectCollapsedAdminSidebar() {
   await page.waitForTimeout(300);
   const state = await page.evaluate(() => {
     const shell = document.querySelector(".ui-shell");
-    const logo = document.querySelector(".header-brand-logo-compact")?.getBoundingClientRect();
+    const sidebar = document.querySelector(".ui-shell.admin-app.product-shell > .sidebar");
+    const sidebarRect = sidebar?.getBoundingClientRect();
+    const visibleSidebarLogo = [...(sidebar?.querySelectorAll(".mobile-sidebar-logo-compact, .mobile-sidebar-logo-full") ?? [])]
+      .find(candidate => {
+        const style = getComputedStyle(candidate);
+        const rect = candidate.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
+      });
+    const logoRect = visibleSidebarLogo?.getBoundingClientRect();
     const labels = [...document.querySelectorAll(".admin-sidebar-section-label")];
     const navLinks = [...document.querySelectorAll(".admin-sidebar-nav-item")];
     return {
@@ -393,13 +435,15 @@ async function inspectCollapsedAdminSidebar() {
       visibleSectionLabels: labels.filter(label => getComputedStyle(label).display !== "none").length,
       namedLinks: navLinks.filter(link => Boolean(link.getAttribute("aria-label"))).length,
       navLinks: navLinks.length,
-      compactLogoLeft: logo ? Math.round(logo.left) : null,
-      compactLogoCenterOffset: logo ? Math.round(Math.abs((logo.left + logo.width / 2) - 42)) : null,
+      visibleSidebarLogo: visibleSidebarLogo?.className ?? null,
+      sidebarLogoCenterOffset: logoRect && sidebarRect
+        ? Math.round(Math.abs((logoRect.left + logoRect.width / 2) - (sidebarRect.left + sidebarRect.width / 2)))
+        : null,
     };
   });
   await page.screenshot({ path: join(outputDir, "admin-sidebar-collapsed-1440.png"), fullPage: true });
   report.push({ name: "admin-sidebar-collapsed", path: "/admin/enrollments", width: 1440, ...state });
-  if (!state.collapsed || state.visibleSectionLabels !== 0 || state.namedLinks !== state.navLinks || state.compactLogoCenterOffset == null || state.compactLogoCenterOffset > 2) {
+  if (!state.collapsed || state.visibleSectionLabels !== 0 || state.namedLinks !== state.navLinks || state.sidebarLogoCenterOffset == null || state.sidebarLogoCenterOffset > 2) {
     throw new Error(`Admin collapsed sidebar alignment failed: ${JSON.stringify(state)}`);
   }
 }
@@ -408,10 +452,11 @@ async function inspectDashboardDotAlignment() {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
   await page.waitForTimeout(mockAuth ? 1_200 : 350);
+  await waitForRouteSurface();
   const state = await page.evaluate(() => {
-    const rows = [...document.querySelectorAll(".overview-list-card li")];
+    const rows = [...document.querySelectorAll(".alpha-dashboard-list-card li")];
     const offsets = rows.map(row => {
-      const dot = row.querySelector(".dot")?.getBoundingClientRect();
+      const dot = row.querySelector(".alpha-list-dot")?.getBoundingClientRect();
       const link = row.querySelector("a")?.getBoundingClientRect();
       return dot && link ? Math.abs((dot.top + dot.height / 2) - (link.top + link.height / 2)) : null;
     }).filter(value => value != null);
@@ -422,6 +467,9 @@ async function inspectDashboardDotAlignment() {
   });
   await page.screenshot({ path: join(outputDir, "student-dashboard-dots-1440.png"), fullPage: true });
   report.push({ name: "student-dashboard-dot-alignment", path: "/dashboard", width: 1440, ...state });
+  if (!state.measuredRows || state.maxCenterOffset == null || state.maxCenterOffset > 2) {
+    throw new Error(`Student dashboard dot alignment failed: ${JSON.stringify(state)}`);
+  }
 }
 
 async function inspectStudentSearch() {
@@ -666,22 +714,29 @@ async function inspectNewWorkflowActions() {
       await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
       await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
       await page.waitForTimeout(1_200);
-      const shortcutState = await page.evaluate(() => {
+      await page.locator('[data-testid="student-dashboard"]').waitFor({ state: "visible", timeout: 10_000 });
+      const dashboardState = await page.evaluate(() => {
         const root = document.documentElement;
-        const shortcuts = [...document.querySelectorAll(".dashboard-shortcuts-grid > a")];
+        const dashboard = document.querySelector('[data-testid="student-dashboard"]');
+        const resourceLinks = [...(dashboard?.querySelectorAll(".alpha-dashboard-resource-grid a") ?? [])];
         return {
-          shortcutCount: shortcuts.length,
-          shortcutHrefs: shortcuts.map(item => item.getAttribute("href")),
-          hasHeading: document.querySelector("#dashboard-shortcuts-title")?.textContent?.trim() === "Lối tắt học tập",
+          nativeDashboard: Boolean(dashboard),
+          hasHeading: Boolean(dashboard?.querySelector("#alpha-dashboard-title")),
+          resourceCards: dashboard?.querySelectorAll(".alpha-dashboard-resource-grid > article").length ?? 0,
+          attemptCards: dashboard?.querySelectorAll(".alpha-dashboard-attempt-grid > article").length ?? 0,
+          hasActivity: Boolean(dashboard?.querySelector(".alpha-dashboard-activity")),
+          resourceHrefs: resourceLinks.map(item => item.getAttribute("href")),
           horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
         };
       });
-      if (shortcutState.shortcutCount !== 4 || !shortcutState.hasHeading || shortcutState.horizontalOverflow
-        || JSON.stringify(shortcutState.shortcutHrefs) !== JSON.stringify(["/courses", "/exam-room", "/progress", "/tkb"])) {
-        throw new Error(`Student dashboard shortcuts failed at ${width}px: ${JSON.stringify(shortcutState)}`);
+      if (!dashboardState.nativeDashboard || !dashboardState.hasHeading || dashboardState.resourceCards !== 2
+        || dashboardState.attemptCards !== 2 || !dashboardState.hasActivity || dashboardState.horizontalOverflow
+        || !dashboardState.resourceHrefs.includes("/courses") || !dashboardState.resourceHrefs.includes("/exam-room")) {
+        throw new Error(`Native Alpha dashboard failed at ${width}px: ${JSON.stringify(dashboardState)}`);
       }
 
-      await page.goto(`${baseUrl}/courses`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      await page.locator('[data-testid="student-dashboard"] .alpha-dashboard-resource-grid a[href="/courses"]').first().click();
+      await page.waitForURL(url => url.pathname === "/courses", { timeout: 5_000 });
       await page.waitForTimeout(1_200);
       await page.getByRole("button", { name: "Danh sách" }).click();
       await page.waitForURL(url => url.pathname === "/courses" && url.searchParams.get("view") === "list", { timeout: 5_000 });
@@ -698,7 +753,7 @@ async function inspectNewWorkflowActions() {
       const gridModeAfterForward = await page.locator(".course-grid-view").count();
       const afterForwardUrl = page.url();
       const afterForwardClasses = await page.locator(".reference-course-grid").getAttribute("class").catch(() => null);
-      const result = { name: "student-new-workflow-actions", path: "/dashboard", width, ...shortcutState, listMode, gridModeAfterBack, afterBackUrl, afterBackClasses, gridModeAfterForward, afterForwardUrl, afterForwardClasses };
+      const result = { name: "student-new-workflow-actions", path: "/dashboard", width, ...dashboardState, listMode, gridModeAfterBack, afterBackUrl, afterBackClasses, gridModeAfterForward, afterForwardUrl, afterForwardClasses };
       report.push(result);
       if (listMode !== 1 || gridModeAfterBack !== 1 || gridModeAfterForward !== 0) {
         throw new Error(`Student course view history failed at ${width}px: ${JSON.stringify(result)}`);
@@ -709,7 +764,8 @@ async function inspectNewWorkflowActions() {
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForTimeout(1_200);
+  await waitForRouteSurface();
+  await page.locator(".admin-quick-actions-grid").waitFor({ state: "visible", timeout: 10_000 });
   const quickActionCount = await page.locator(".admin-quick-actions-grid > *").count();
   await page.getByRole("button", { name: /Thêm học viên/ }).first().click();
   await page.getByRole("heading", { name: "Thêm học viên" }).waitFor({ state: "visible" });
@@ -720,7 +776,8 @@ async function inspectNewWorkflowActions() {
   await page.getByRole("link", { name: /Tạo kíp thi/ }).first().click();
   await page.waitForURL(url => url.pathname === "/admin/sessions/new", { timeout: 5_000 });
   await page.goto(`${baseUrl}/admin`, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForTimeout(1_200);
+  await waitForRouteSurface();
+  await page.locator(".admin-quick-actions-grid").waitFor({ state: "visible", timeout: 10_000 });
   await page.getByRole("link", { name: /Mở kho ảnh/ }).first().click();
   await page.waitForURL(url => url.pathname === "/admin/upload", { timeout: 5_000 });
   const state = await page.evaluate(() => ({
@@ -867,7 +924,7 @@ if (authenticated) {
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard") || requestedRoutes.has("admin-enrollments"))) {
       await inspectCollapsedAdminSidebar();
     }
-    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("student-dashboard"))) {
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-dashboard"))) {
       await inspectDashboardDotAlignment();
     }
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
@@ -890,12 +947,14 @@ if (authenticated) {
       }
       const protectedRoutes = protectedRegressionRoutes.filter(([name]) => mockRole === "admin" || !name.startsWith("protected-admin"));
       for (const [name, path] of protectedRoutes) {
-        await inspect(name, path, 1440, true);
-        const latest = report.at(-1);
-        if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
-          throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+        for (const width of [1440, 390]) {
+          await inspect(name, path, width, true);
+          const latest = report.at(-1);
+          if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
+            throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+          }
+          if (latest?.shell?.includes("ui-optimized-surface")) throw new Error(`${name} incorrectly opted into optimized content.`);
         }
-        if (latest?.shell?.includes("ui-optimized-surface")) throw new Error(`${name} incorrectly opted into optimized content.`);
       }
     }
   }
@@ -903,6 +962,13 @@ if (authenticated) {
   if (courseCoverEnabled && mockRole === "admin") await inspectCourseCoverEditor();
 }
 
-console.log(JSON.stringify({ baseUrl, mockAuth, mockRole, authenticated, runtimeIssues, report }, null, 2));
+const result = { baseUrl, mockAuth, mockRole, authenticated, runtimeIssues, report };
+if (reportFile) await writeFile(reportFile, JSON.stringify(result, null, 2), "utf8");
+if (quietOutput) console.log(JSON.stringify({ baseUrl, mockRole, authenticated, runtimeIssues: runtimeIssues.length, checks: report.length, reportFile }));
+else console.log(JSON.stringify(result, null, 2));
 await browser.close();
 if (runtimeIssues.length) throw new Error(`Browser runtime issues: ${JSON.stringify(runtimeIssues)}`);
+const layoutIssues = report.filter(item => item.horizontalOverflow || item.controlsOutsideViewport || item.unnamedControls);
+if (layoutIssues.length) {
+  throw new Error(`Layout/accessibility issues: ${JSON.stringify(layoutIssues.map(item => ({ name: item.name, path: item.path, width: item.width, horizontalOverflow: item.horizontalOverflow, controlsOutsideViewport: item.controlsOutsideViewport, unnamedControls: item.unnamedControls })))}`);
+}

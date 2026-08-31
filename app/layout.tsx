@@ -3,10 +3,10 @@ import "./globals.css";
 import "./ui-system.css";
 
 export const metadata: Metadata = {
-  title: "REMIX Education",
-  description: "Không gian học tập trực tuyến dành cho học viên REMIX.",
+  title: "AECK",
+  description: "Không gian học tập, khảo thí và quản trị trực tuyến của AECK.",
   icons: {
-    icon: "/logo.svg",
+    icon: "/logo_aeck.svg",
   },
 };
 

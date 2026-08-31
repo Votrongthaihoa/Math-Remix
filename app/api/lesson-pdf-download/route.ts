@@ -60,7 +60,7 @@ async function addWatermark(source: Uint8Array, email: string, timestamp: string
     });
   }
 
-  pdf.setProducer("REMIX Education");
+  pdf.setProducer("AECK");
   pdf.setModificationDate(new Date());
   return pdf.save({ useObjectStreams: false });
 }

@@ -1,20 +1,20 @@
 ---
-version: "alpha"
-name: Remix Product Shell
-description: A calm macOS-inspired design system for signed-in learning, teaching, operations, and account surfaces.
+version: "alpha-portal-1"
+name: AECK Alpha Product Shell
+description: A calm Alpha-inspired design system for signed-in learning, teaching, operations, and account surfaces.
 colors:
-  primary: "#007AFF"
-  primary-strong: "#0066D6"
-  indigo: "#5856D6"
-  ink: "#1D1D1F"
-  body: "#424245"
-  muted: "#6E6E73"
-  canvas: "#F5F5F7"
+  primary: "#158A39"
+  primary-strong: "#10732F"
+  primary-soft: "#EFFBF2"
+  ink: "#1F2937"
+  body: "#374151"
+  muted: "#6B7280"
+  canvas: "#FFFFFF"
   surface: "#FFFFFF"
-  line: "rgba(60, 60, 67, 0.14)"
-  success: "#1F7A3A"
-  warning: "#8A5B13"
-  danger: "#B42318"
+  line: "#E5E7EB"
+  success: "#166534"
+  warning: "#854D0E"
+  danger: "#9F1239"
 typography:
   display:
     fontFamily: "Lato, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif"
@@ -44,8 +44,8 @@ typography:
     lineHeight: 1.35
 rounded:
   sm: 10px
-  md: 14px
-  lg: 20px
+  md: 12px
+  lg: 16px
   pill: 999px
 spacing:
   xs: 4px
@@ -54,9 +54,20 @@ spacing:
   lg: 16px
   xl: 24px
   section: 32px
+controlHeight: 40px
+fieldHeight: 44px
+card: 16px
+contentMax: 1516px
+publicAuth:
+  source: "https://account.aeck.vn/login"
+  accent: "#CD1627"
+  cardWidth: 448px
+  cardPadding: "40px 32px 32px"
+  fieldHeight: 50px
+  cardRadius: 12px
 components:
   button-primary:
-    backgroundColor: "{colors.primary-strong}"
+    backgroundColor: "{colors.primary}"
     textColor: "#FFFFFF"
     rounded: "{rounded.sm}"
     height: 40px
@@ -66,7 +77,7 @@ components:
     textColor: "#FFFFFF"
   link:
     backgroundColor: "{colors.surface}"
-    textColor: "{colors.primary-strong}"
+    textColor: "{colors.primary}"
   accent-rule:
     backgroundColor: "{colors.primary}"
   button-secondary:
@@ -78,7 +89,7 @@ components:
   product-card:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.lg}"
     padding: 20px
   field:
     backgroundColor: "{colors.surface}"
@@ -95,28 +106,30 @@ components:
   divider:
     backgroundColor: "{colors.line}"
   profile-accent:
-    backgroundColor: "{colors.indigo}"
-    textColor: "#FFFFFF"
+    backgroundColor: "{colors.primary-soft}"
+    textColor: "{colors.primary}"
   status-success:
-    backgroundColor: "#EAF7EF"
+    backgroundColor: "#EFFBF2"
     textColor: "{colors.success}"
   status-warning:
-    backgroundColor: "#FFF4E5"
+    backgroundColor: "#FFF7E8"
     textColor: "{colors.warning}"
   status-danger:
-    backgroundColor: "#FFF1F0"
+    backgroundColor: "#FFF0F2"
     textColor: "{colors.danger}"
 ---
 
 ## Overview
 
-Remix uses a quiet, macOS-inspired product shell for signed-in learning and administration. The shell should feel like a focused workspace: clear hierarchy, restrained depth, one blue action color, and enough whitespace to make each next step obvious.
+Remix uses a quiet, Alpha-inspired product shell for signed-in learning and administration. The shell should feel like a focused workspace: clear hierarchy, restrained depth, one green action color, and enough whitespace to make each next step obvious.
 
 This system applies only to the product shell. Test-taking, question presentation, answer review, results, solutions, previews, and protected authoring surfaces retain their measured visual language and are intentionally outside this contract.
 
+Public authentication is a deliberate companion surface, not an Alpha-green product route. `/login`, `/admin` while signed out, forgot-password, and reset-password use the measured `account.aeck.vn/login` composition: the project logo over a centered white card, the existing map background, Lato typography, and red `#CD1627` auth actions. The Supabase and Turnstile behavior remains unchanged; the security challenge may increase the measured card height when visible.
+
 ## Colors
 
-The canvas is a cool neutral gray with translucent white surfaces. `primary` is reserved for the next meaningful action, selected navigation, links, and focus indicators. Success, warning, and danger always include a text or icon cue; color alone never communicates status.
+The canvas is white with quiet neutral surfaces. `primary` is reserved for the next meaningful action, selected navigation, links, and focus indicators. Success, warning, and danger always include a text or icon cue; color alone never communicates status.
 
 The Figma reference is the macOS 26 community file supplied in `AGENTS.md`. Existing Figma token exports remain the source for component-specific values where this document does not define a rule.
 
@@ -126,7 +139,7 @@ Use the existing Lato/SF Pro fallback stack. Headings use sentence case and bala
 
 ## Layout
 
-Use a 12px rhythm inside a control group and at least 24px between major sections. Content columns are capped near 1240px and children use `min-width: 0` so Vietnamese labels, long names, email addresses, and identifiers wrap intentionally. On narrow screens, actions wrap in normal flow and remain inset from the viewport edge.
+Use a 12px rhythm inside a control group and at least 24px between major sections. Content columns are capped at 1516px and children use `min-width: 0` so Vietnamese labels, long names, email addresses, and identifiers wrap intentionally. On narrow screens, actions wrap in normal flow and remain inset from the viewport edge.
 
 Navigation is grouped by task: overview, content, exam operations, and account management. The sidebar may collapse on desktop and becomes a drawer on small screens; the active item keeps a text and icon cue.
 
@@ -140,7 +153,7 @@ Cards use the `md` radius, controls use `sm`, and nested surfaces follow concent
 
 ## Components
 
-Primary buttons name the action and use the primary blue. Secondary buttons are quiet but visibly bounded. Forms keep visible labels, a 44px field height, an explicit focus ring, and inline recovery text. Empty states explain what belongs in the space and offer one next action.
+Primary buttons name the action and use the primary green. Secondary buttons are quiet but visibly bounded. Forms keep visible labels, a 44px field height, an explicit focus ring, and inline recovery text. Empty states explain what belongs in the space and offer one next action.
 
 Dialogs use a scrim, contain scrolling, restore focus to the trigger, and never change protected exam or answer surfaces. Motion is limited to color, opacity, and small transforms and is disabled for reduced-motion preferences.
 
@@ -151,3 +164,5 @@ Dialogs use a scrim, contain scrolling, restore focus to the trigger, and never 
 - Do test at 1440px, 1280px, 768px, 390px, and 360px with long Vietnamese and unbroken identifiers.
 - Don't add global rules for `button`, `input`, `body`, `svg`, or shared exam classes.
 - Don't redesign question presentation, answer controls, result review, solutions, previews, or protected authoring in a general product-shell pass.
+
+Protected assignment, question, answer, result, review, and authoring surfaces remain outside this contract.

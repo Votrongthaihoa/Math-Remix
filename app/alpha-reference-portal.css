@@ -1,0 +1,1435 @@
+/*
+ * Alpha portal reference layer.
+ *
+ * The visual measurements in this file come from the authorized alpha
+ * dashboard inspection through Chrome DevTools MCP. It is deliberately
+ * isolated to optimized product surfaces. The current project logo assets
+ * remain the only logo assets used by the native app.
+ */
+
+.ui-shell.student-app.product-shell.alpha-reference-surface,
+.ui-shell.admin-app.product-shell.alpha-reference-surface {
+  /* Canonical product tokens. Every optimized student/admin route consumes
+   * these roles; legacy token names below are compatibility aliases only. */
+  --alpha-accent: #158a39;
+  --alpha-accent-hover: #10732f;
+  --alpha-accent-pressed: #0b5f28;
+  --alpha-accent-soft: #effbf2;
+  --alpha-accent-selected: #dcfce7;
+  --alpha-green: #158a39;
+  --alpha-green-dark: #10732f;
+  --alpha-green-soft: #effbf2;
+  --alpha-green-pale: #f6fcf7;
+  --alpha-ink: #1f2937;
+  --alpha-body: #374151;
+  --alpha-muted: #6b7280;
+  --alpha-subtle: #9ca3af;
+  --alpha-line: #f3f4f6;
+  --alpha-line-strong: #e5e7eb;
+  --alpha-page: #ffffff;
+  --alpha-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+  --alpha-focus: 0 0 0 3px rgba(21, 138, 57, .16);
+  --alpha-space-1: 4px;
+  --alpha-space-2: 8px;
+  --alpha-space-3: 12px;
+  --alpha-space-4: 16px;
+  --alpha-space-6: 24px;
+  --alpha-space-8: 32px;
+  --alpha-control-height: 40px;
+  --alpha-field-height: 44px;
+  --alpha-control-radius: 10px;
+  --alpha-card-radius: 16px;
+  --alpha-pill-radius: 999px;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  background: var(--alpha-page);
+  color: var(--alpha-ink);
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface {
+  /* Compatibility bridge: older route styles keep their class names while
+   * resolving color, shape and focus behavior from this single contract. */
+  --aeck-primary: var(--alpha-accent);
+  --aeck-primary-hover: var(--alpha-accent-hover);
+  --aeck-primary-pressed: var(--alpha-accent-pressed);
+  --aeck-primary-soft: var(--alpha-accent-soft);
+  --aeck-primary-selected: var(--alpha-accent-selected);
+  --aeck-focus: var(--alpha-accent);
+  --aeck-bg: var(--alpha-page);
+  --aeck-surface: #fff;
+  --aeck-surface-muted: var(--alpha-green-pale);
+  --aeck-text: var(--alpha-ink);
+  --aeck-text-body: var(--alpha-body);
+  --aeck-text-muted: var(--alpha-muted);
+  --aeck-text-subtle: var(--alpha-subtle);
+  --aeck-border: var(--alpha-line-strong);
+  --aeck-border-strong: #d1d5db;
+  --aeck-radius-sm: var(--alpha-control-radius);
+  --aeck-radius-md: 12px;
+  --aeck-radius-lg: var(--alpha-card-radius);
+  --aeck-radius-pill: var(--alpha-pill-radius);
+  --aeck-shadow-sm: var(--alpha-shadow);
+  --admin-primary: var(--alpha-accent);
+  --admin-primary-strong: var(--alpha-accent-hover);
+  --admin-primary-soft: var(--alpha-accent-soft);
+  --admin-accent: var(--alpha-accent);
+  --admin-accent-hover: var(--alpha-accent-hover);
+  --admin-info: var(--alpha-accent);
+  --admin-info-soft: var(--alpha-accent-soft);
+  --admin-focus: var(--alpha-focus);
+  --admin-radius-sm: var(--alpha-control-radius);
+  --admin-radius-md: 12px;
+  --admin-radius-lg: var(--alpha-card-radius);
+  --product-blue: var(--alpha-accent);
+  --product-blue-strong: var(--alpha-accent-hover);
+  --product-blue-soft: rgba(21, 138, 57, .1);
+  --mac-blue: var(--alpha-accent);
+  --mac-blue-strong: var(--alpha-accent-hover);
+  --mac-blue-soft: rgba(21, 138, 57, .1);
+  --reference-accent: var(--alpha-accent);
+  --reference-accent-strong: var(--alpha-accent-hover);
+  --reference-accent-soft: var(--alpha-accent-soft);
+  --admin-reference-accent: var(--alpha-accent);
+  --admin-reference-accent-soft: var(--alpha-accent-soft);
+  --admin-suite-accent: var(--alpha-accent);
+  --admin-suite-accent-strong: var(--alpha-accent-hover);
+  --admin-suite-accent-soft: var(--alpha-accent-soft);
+  --admin-audit-accent: var(--alpha-accent);
+  --admin-audit-accent-soft: var(--alpha-accent-soft);
+  --student-progress-accent: var(--alpha-accent);
+  --student-progress-accent-strong: var(--alpha-accent-hover);
+  --student-progress-accent-soft: var(--alpha-accent-soft);
+  --reference-ink: var(--alpha-ink);
+  --reference-muted: var(--alpha-muted);
+  --reference-line: var(--alpha-line-strong);
+  --reference-surface: #fff;
+  --admin-reference-ink: var(--alpha-ink);
+  --admin-reference-muted: var(--alpha-muted);
+  --admin-reference-line: var(--alpha-line-strong);
+  --admin-reference-surface: #fff;
+  --session-accent: var(--alpha-accent);
+  --session-accent-strong: var(--alpha-accent-hover);
+  --session-accent-soft: var(--alpha-accent-soft);
+  --upload-red: var(--alpha-accent);
+  --upload-red-dark: var(--alpha-accent-hover);
+  --hls-red: var(--alpha-accent);
+  --hls-red-dark: var(--alpha-accent-hover);
+  --hls-soft: var(--alpha-accent-soft);
+  --wizard-blue: var(--alpha-accent);
+  --wizard-blue-soft: var(--alpha-accent-soft);
+  --capability-ink: var(--alpha-ink);
+  --capability-muted: var(--alpha-muted);
+  --capability-line: var(--alpha-line-strong);
+  --capability-soft: var(--alpha-green-pale);
+  --ui-info: var(--alpha-accent);
+  --ui-info-soft: var(--alpha-accent-soft);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface > .student-global-bg,
+.ui-shell.admin-app.product-shell.alpha-reference-surface > .student-global-bg {
+  position: fixed;
+  z-index: 0;
+  inset: 81px 0 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 65% 20%, rgba(21, 138, 57, .045), transparent 25rem),
+    radial-gradient(circle at 20% 76%, rgba(21, 138, 57, .025), transparent 23rem);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface .mobile-sidebar-logo-compact {
+  display: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface > :where(.topbar, .main-content),
+.ui-shell.admin-app.product-shell.alpha-reference-surface > :where(.topbar, .main-content) {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar {
+    width: 288px;
+    border-inline-end: 1px solid rgba(229, 231, 235, .82);
+    background: rgba(255, 255, 255, .96);
+    box-shadow: none;
+    transition: width .24s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar {
+    width: 80px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar:not(.mobile-open),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar:not(.mobile-open) {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar .student-sidebar-brand {
+    display: flex;
+    flex: 0 0 auto;
+    height: 81px;
+    align-items: center;
+    padding: 18px 22px;
+    overflow: hidden;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar .student-sidebar-logo-full {
+    display: block;
+    width: 176px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar .student-sidebar-logo-compact {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar .mobile-sidebar-head {
+    display: flex;
+    flex: 0 0 auto;
+    height: 81px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 18px 22px;
+    border-block-end: 1px solid var(--alpha-line);
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar .mobile-sidebar-brand {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    height: 48px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar .mobile-sidebar-logo-full {
+    display: block;
+    width: 200px;
+    height: 52px;
+    object-fit: contain;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar .mobile-sidebar-logo-compact {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar .mobile-sidebar-close {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar nav.student-sidebar-nav,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar nav {
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 112px 0 24px;
+    scrollbar-width: thin;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .sidebar nav.student-sidebar-nav {
+    padding-block-start: 24px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar nav {
+    padding-inline: 12px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .sidebar nav {
+    padding-block-start: 24px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .topbar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .topbar {
+    width: 100%;
+    height: 81px;
+    margin-inline-start: 0 !important;
+    margin-left: 0 !important;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--alpha-line);
+    background: rgba(255, 255, 255, .92);
+    box-shadow: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* The optimized shell adds a more specific rail offset. The alpha reference
+   * keeps the header full-bleed while the content column honors the rail. */
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .topbar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .topbar {
+    width: 100%;
+    margin-inline-start: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    width: auto;
+    height: 56px;
+    margin: 0;
+    padding: 0;
+    border-radius: 8px;
+    background: transparent;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand-logo-full,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand-logo-full {
+    display: block;
+    width: 179px;
+    height: 48px;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand-logo-compact,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand-logo-compact {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .header-brand-logo-full,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .header-brand-logo-full {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .header-brand-logo-compact,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .header-brand-logo-compact {
+    display: block;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-sidebar-toggle,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-sidebar-toggle {
+    position: absolute;
+    inset-inline-start: 300px;
+    top: 50%;
+    display: inline-grid;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    transform: translateY(-50%);
+    place-items: center;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #4b5563;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .header-sidebar-toggle,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .header-sidebar-toggle {
+    inset-inline-start: 92px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-sidebar-toggle:hover,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-sidebar-toggle:hover {
+    background: var(--alpha-green-soft);
+    color: var(--alpha-green);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-sidebar-toggle svg,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-sidebar-toggle svg {
+    width: 20px;
+    height: 20px;
+    transform: none;
+    stroke-width: 1.7;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .top-actions,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .top-actions {
+    min-width: 0;
+    margin-inline-start: auto;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .reference-topbar-search {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-trigger,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-trigger {
+    min-height: 40px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--alpha-green);
+    font-size: 14px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-trigger:hover,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-trigger:hover,
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-menu-wrap.open .account-trigger,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-menu-wrap.open .account-trigger {
+    border-color: var(--alpha-line-strong);
+    background: var(--alpha-green-pale);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-avatar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-avatar {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-trigger > svg,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-trigger > svg {
+    width: 16px;
+    height: 16px;
+    margin-inline-start: 4px;
+    stroke-width: 1.7;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .main-content,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .main-content {
+    min-height: calc(100dvh - 81px);
+    margin-inline-start: 288px;
+    padding: 80px 56px 56px;
+    background: transparent;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .admin-topbar-context {
+    margin-inline: auto;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) {
+    min-height: 44px;
+    margin: 0;
+    padding-inline: 24px;
+    border-radius: 0;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav .student-nav-children {
+    margin-inline-start: 32px;
+    padding-inline-start: 12px;
+    border-inline-start-color: var(--alpha-line-strong);
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .sidebar nav a.admin-sidebar-nav-item {
+    min-height: 44px;
+    margin: 0;
+    padding-inline: 14px;
+    border-radius: 8px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-sidebar-section-label {
+    margin: 16px 14px 8px;
+    color: var(--alpha-subtle);
+    letter-spacing: .12em;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-sidebar-group:first-child .admin-sidebar-section-label {
+    margin-top: 0;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .topbar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .topbar {
+    margin-inline-start: 0 !important;
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .main-content,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .main-content {
+    margin-inline-start: 80px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-brand {
+    width: 80px;
+    min-width: 80px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-logo-full {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-logo-compact {
+    display: block;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) > span,
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-nav .student-nav-disclosure > summary > svg:last-child,
+  .ui-shell.student-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .student-sidebar-nav .student-nav-children,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .admin-sidebar-nav-item > span,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .admin-sidebar-section-label {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar nav {
+    padding-inline: 10px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar .mobile-sidebar-head {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar .mobile-sidebar-brand {
+    width: 42px;
+    justify-content: center;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar .mobile-sidebar-logo-full {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) > .sidebar .mobile-sidebar-logo-compact {
+    display: block;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface:not(.sidebar-expanded) .admin-sidebar-nav-item {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface > .main-content,
+.ui-shell.admin-app.product-shell.alpha-reference-surface > .main-content {
+  min-width: 0;
+}
+
+/* Student navigation is shared by optimized content and the exam catalog's
+ * chrome-only shell. Keep the rail on the Alpha semantic palette without
+ * leaking those tokens into catalog cards or any protected exam content. */
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav {
+  color: var(--alpha-muted);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) {
+  color: var(--alpha-body);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav :where(.student-nav-primary:hover, .student-nav-disclosure > summary:hover) {
+  background: var(--alpha-green-soft);
+  color: var(--alpha-green-dark);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav :where(.student-nav-primary.active, .student-nav-disclosure.active-parent > summary) {
+  background: var(--alpha-accent-selected);
+  color: var(--alpha-green-dark);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav .student-nav-children a {
+  color: var(--alpha-muted);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav .student-nav-children a > span:first-child {
+  color: var(--alpha-green);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .student-sidebar-nav .student-nav-children :where(a:hover, a.active) {
+  background: var(--alpha-green-soft);
+  color: var(--alpha-green-dark);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .dashboard-next-step,
+.ui-shell.student-app.product-shell.alpha-reference-surface .dashboard-shortcuts {
+  display: none !important;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-status,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-error {
+  margin: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--alpha-line-strong);
+  border-radius: 10px;
+  background: var(--alpha-green-pale);
+  color: var(--alpha-body);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-color: #b7e4c2;
+  background: #f4fcf5;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-error span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-error button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--alpha-green);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--alpha-green-dark);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-error button:hover:not(:disabled) {
+  background: var(--alpha-green-soft);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-summary {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) repeat(2, minmax(220px, 1.16fr)) minmax(170px, .95fr);
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--alpha-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--alpha-shadow);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 20px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-avatar {
+  display: grid;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border: 1px solid #dcfce7;
+  border-radius: 50%;
+  background: #f0fdf4;
+  color: var(--alpha-green);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-avatar svg {
+  width: 30px;
+  height: 30px;
+  stroke-width: 1.8;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile-copy,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile-copy p,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat p,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role p {
+  margin: 0 0 4px;
+  color: var(--alpha-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile-copy h1 {
+  min-width: 0;
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+  color: var(--alpha-ink);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-email {
+  max-width: 28ch;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role {
+  min-height: 72px;
+  padding-inline-start: 38px;
+  border-inline-start: 1px solid var(--alpha-line);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat strong {
+  display: block;
+  color: var(--alpha-green);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 36px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat span,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role span {
+  display: block;
+  color: var(--alpha-subtle);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role strong {
+  display: block;
+  max-width: 18ch;
+  overflow-wrap: anywhere;
+  color: var(--alpha-green);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  line-height: 20px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface :where(.alpha-dashboard-resource-grid, .alpha-dashboard-attempt-grid) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity {
+  min-width: 0;
+  border: 1px solid var(--alpha-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--alpha-shadow);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card {
+  display: flex;
+  min-height: 119px;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-card-head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block-end: 12px;
+  padding-block-end: 12px;
+  border-block-end: 1px solid var(--alpha-line);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-card-head h2 {
+  min-width: 0;
+  margin: 0;
+  color: var(--alpha-ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-card-head a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 24px;
+  align-items: center;
+  padding-block: 4px;
+  color: var(--alpha-green);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-decoration: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-card-head a:hover {
+  text-decoration: underline;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card ul {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card li {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 24px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-list-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-list-dot-course {
+  background: #93c5fd;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-list-dot-room {
+  background: #86efac;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-list-dot-neutral {
+  background: #d1d5db;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card li a {
+  display: flex;
+  min-width: 0;
+  min-height: 24px;
+  align-items: center;
+  overflow-wrap: anywhere;
+  color: var(--alpha-body);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card li a:hover {
+  color: var(--alpha-green);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card {
+  min-height: 307px;
+  padding: 24px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card li {
+  padding-block: 3px;
+  border-block-end: 1px solid #f9fafb;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card li time,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card li > strong {
+  color: var(--alpha-subtle);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card li > strong {
+  color: var(--alpha-green);
+  font-weight: 600;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-empty {
+  margin: 0;
+  padding-block: 12px;
+  color: var(--alpha-subtle);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity {
+  display: grid;
+  gap: 16px;
+  padding: 24px 32px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity-head {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block-end: 16px;
+  border-block-end: 1px solid var(--alpha-line);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity h2 {
+  margin: 0;
+  color: var(--alpha-ink);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity-head p {
+  margin: 4px 0 0;
+  color: var(--alpha-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-year {
+  flex: 0 0 auto;
+  min-width: 64px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--alpha-green);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-months {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  color: var(--alpha-muted);
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 14px;
+  grid-template-rows: repeat(7, 14px);
+  gap: 3px;
+  min-width: 0;
+  overflow-x: auto;
+  padding-block: 2px 4px;
+  scrollbar-width: thin;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap span,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend i {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: #f3f4f6;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap .level-1,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend .level-1 {
+  background: #dcfce7;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap .level-2,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend .level-2 {
+  background: #86efac;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap .level-3,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend .level-3 {
+  background: #4ade80;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap .level-4,
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend .level-4 {
+  background: var(--alpha-green);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap .outside-year {
+  visibility: hidden;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-mobile-summary {
+  display: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--alpha-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-footer > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-footer svg {
+  width: 15px;
+  height: 15px;
+  color: var(--alpha-green);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend > span {
+  margin-inline: 4px;
+  color: var(--alpha-muted);
+  font-size: 10px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface :where(.alpha-dashboard-card-head a, .alpha-dashboard-list-card li a, .header-brand, .account-trigger, .student-sidebar-nav a, .student-sidebar-nav summary, .admin-sidebar-nav-item):focus-visible {
+  outline: 2px solid var(--alpha-green);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface .main-content {
+  color: var(--alpha-ink);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface .admin-page,
+.ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dashboard-v2 {
+  min-width: 0;
+  width: 100%;
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-dash-header, .admin-action-panel, .admin-kpi-card, .section-card, .admin-workflow-strip, .admin-quick-actions, .admin-route-empty) {
+  border-color: var(--alpha-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--alpha-shadow);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dash-header {
+  padding: 0 0 8px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-dash-header h1, .assignment-page-head h2, .section-card h2, .admin-action-panel h2) {
+  color: var(--alpha-ink);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-dash-header p, .muted, .admin-action-panel-head > span, .admin-kpi-sub) {
+  color: var(--alpha-muted);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.primary-btn, .workspace-button.primary, .admin-session-primary, .admin-quick-action-icon) {
+  border-color: var(--alpha-green);
+  background: var(--alpha-green);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(21, 138, 57, .14);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled) {
+  border-color: var(--alpha-green-dark);
+  background: var(--alpha-green-dark);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.outline-btn, .workspace-button.ghost, .workspace-back, .admin-session-refresh, .admin-session-action) {
+  border-color: var(--alpha-line-strong);
+  background: #fff;
+  color: var(--alpha-body);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.outline-btn, .workspace-button.ghost, .workspace-back, .admin-session-refresh, .admin-session-action):hover:not(:disabled) {
+  border-color: rgba(21, 138, 57, .35);
+  background: var(--alpha-green-soft);
+  color: var(--alpha-green-dark);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-kpi-card, .admin-quick-action, .admin-workflow-strip > a, .admin-action-item, .admin-log-item) {
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-kpi-card, .admin-quick-action, .admin-workflow-strip > a):hover {
+  border-color: rgba(21, 138, 57, .25);
+  background: var(--alpha-green-pale);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(21, 138, 57, .72);
+  box-shadow: var(--alpha-focus);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-sidebar-nav-item.active, .admin-sidebar-nav-item:hover) {
+  color: var(--alpha-green);
+  background: var(--alpha-green-soft);
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface .admin-sidebar-nav-item.active {
+  border-color: transparent;
+}
+
+@media (max-width: 1100px) and (min-width: 768px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .main-content,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .main-content {
+    padding-inline: 32px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-summary {
+    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 1fr));
+    gap: 18px 0;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role {
+    grid-column: 2 / -1;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 768px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile,
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role {
+    grid-column: 1 / -1;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile {
+    padding-block-end: 18px;
+    border-block-end: 1px solid var(--alpha-line);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat:nth-child(2),
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-reference-finder {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface :where(.admin-reference-results, .admin-reference-result-count) {
+    grid-column: 1;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-reference-results,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dash-status-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dash-status-card:nth-child(3) {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--alpha-line);
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dash-status-card:nth-child(4) {
+    border-block-start: 1px solid var(--alpha-line);
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .student-global-bg,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .student-global-bg {
+    inset: 65px 0 0;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .topbar,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .topbar {
+    width: 100%;
+    height: 65px;
+    margin-inline-start: 0;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, .96);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .mobile-menu,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .mobile-menu {
+    position: absolute;
+    inset-inline-start: 20px;
+    display: inline-grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #4b5563;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .mobile-menu:hover,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .mobile-menu:hover {
+    background: var(--alpha-green-soft);
+    color: var(--alpha-green);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .mobile-menu svg,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .mobile-menu svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .mobile-sidebar-close,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .mobile-sidebar-close {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-sidebar-toggle,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-sidebar-toggle {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 48px;
+    margin-inline-start: 44px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand-logo-full,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand-logo-full {
+    display: block;
+    width: 145px;
+    height: 42px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand-logo-compact,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand-logo-compact {
+    display: none;
+  }
+
+  /* The optimized chrome centers a 40px compact mark on mobile. Keep the
+   * project-owned full logo readable on the alpha product shell instead. */
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .topbar .header-brand,
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-chrome > .topbar .header-brand,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .topbar .header-brand {
+    position: relative !important;
+    inset-inline-start: auto !important;
+    width: auto !important;
+    margin-inline-start: 44px !important;
+    transform: none !important;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .topbar .header-brand-logo-full,
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-chrome > .topbar .header-brand-logo-full,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .topbar .header-brand-logo-full {
+    width: 145px !important;
+    height: 42px !important;
+    object-fit: contain !important;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-trigger,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-trigger {
+    padding-inline: 4px;
+    font-size: 13px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface > .main-content,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .main-content {
+    min-height: calc(100dvh - 65px);
+    margin-inline-start: 0;
+    padding: 8px 8px 32px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface > .main-content {
+    padding: 24px 16px 40px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard {
+    gap: 16px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+ .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile,
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role,
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat {
+    min-height: 0;
+    border: 1px solid var(--alpha-line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--alpha-shadow);
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile {
+    grid-column: 1 / -1;
+    min-height: 222px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-avatar {
+    flex-basis: 80px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-avatar svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile-copy h1 {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-profile-copy p {
+    margin-bottom: 4px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-email {
+    max-width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat {
+    min-height: 118px;
+    padding: 20px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-stat strong {
+    font-size: 30px;
+    line-height: 36px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-summary-role {
+    grid-column: 1 / -1;
+    min-height: 100px;
+    padding: 20px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface :where(.alpha-dashboard-resource-grid, .alpha-dashboard-attempt-grid) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+ .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-list-card,
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card {
+    min-height: 119px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-attempt-card {
+    padding: 20px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity {
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-dashboard-activity h2 {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-months {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-heatmap {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-mobile-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-mobile-summary li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-block: 6px;
+    border-block-end: 1px solid var(--alpha-line);
+    color: var(--alpha-muted);
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-mobile-summary strong {
+    color: var(--alpha-green);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .alpha-activity-legend {
+    display: none;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dash-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .admin-dash-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 400px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface .header-brand-logo-full,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .header-brand-logo-full {
+    width: 132px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface .account-name,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface .account-name {
+    max-width: 82px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface *,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface :where(a, button, summary, input):focus-visible,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface :where(a, button, summary, input):focus-visible {
+    outline: 2px solid CanvasText;
+    box-shadow: none;
+  }
+}

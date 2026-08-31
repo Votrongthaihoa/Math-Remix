@@ -1,0 +1,1011 @@
+/*
+ * Unified Alpha product design system.
+ *
+ * This is the final cascade layer for optimized student and admin content.
+ * Older route styles keep their layout-specific class names, while visual
+ * roles resolve to the canonical tokens declared in alpha-reference-portal.
+ * Protected product surfaces never receive ui-optimized-surface, so this
+ * file cannot alter their content.
+ */
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface {
+  min-width: 0;
+  color: var(--alpha-ink);
+  background: transparent;
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: start;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(*),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(*) {
+  min-width: 0;
+}
+
+/* Keep component-local aliases from reintroducing old red, pink, or blue
+ * accents on route chunks loaded after the shell stylesheet. */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .student-progress-page,
+  .reference-search-page,
+  .reference-schedule-page
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-dashboard-v2,
+  .admin-session-page,
+  .admin-session-wizard,
+  .admin-upload-page,
+  .admin-hls-vault-page,
+  .admin-audit-page,
+  .admin-timetable-page,
+  .admin-security-page,
+  .admin-capability-center
+) {
+  --admin-primary: var(--alpha-accent);
+  --admin-primary-strong: var(--alpha-accent-hover);
+  --admin-primary-soft: var(--alpha-accent-soft);
+  --admin-info: var(--alpha-accent);
+  --aeck-info: var(--alpha-accent);
+  --ui-info: var(--alpha-accent);
+  --reference-accent: var(--alpha-accent);
+  --reference-accent-strong: var(--alpha-accent-hover);
+  --reference-accent-soft: var(--alpha-accent-soft);
+  --admin-reference-accent: var(--alpha-accent);
+  --admin-reference-accent-soft: var(--alpha-accent-soft);
+  --admin-suite-accent: var(--alpha-accent);
+  --admin-suite-accent-strong: var(--alpha-accent-hover);
+  --admin-suite-accent-soft: var(--alpha-accent-soft);
+  --admin-audit-accent: var(--alpha-accent);
+  --admin-audit-accent-soft: var(--alpha-accent-soft);
+  --student-progress-accent: var(--alpha-accent);
+  --student-progress-accent-strong: var(--alpha-accent-hover);
+  --student-progress-accent-soft: var(--alpha-accent-soft);
+  --session-accent: var(--alpha-accent);
+  --session-accent-strong: var(--alpha-accent-hover);
+  --session-accent-soft: var(--alpha-accent-soft);
+  --upload-red: var(--alpha-accent);
+  --upload-red-dark: var(--alpha-accent-hover);
+  --hls-red: var(--alpha-accent);
+  --hls-red-dark: var(--alpha-accent-hover);
+  --hls-soft: var(--alpha-accent-soft);
+  --wizard-blue: var(--alpha-accent);
+  --wizard-blue-soft: var(--alpha-accent-soft);
+  --capability-ink: var(--alpha-ink);
+  --capability-muted: var(--alpha-muted);
+  --capability-line: var(--alpha-line-strong);
+  --capability-soft: var(--alpha-green-pale);
+  color: var(--alpha-ink);
+  background: transparent;
+}
+
+/* Page rhythm */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .page-stack,
+  .profile-page,
+  .history-frame,
+  .student-progress-page,
+  .reference-search-page,
+  .reference-schedule-page
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-page,
+  .admin-dashboard-v2,
+  .assignment-page,
+  .admin-course-builder,
+  .admin-session-page,
+  .admin-session-wizard,
+  .admin-upload-page,
+  .admin-hls-vault-page,
+  .admin-audit-page,
+  .admin-timetable-page,
+  .admin-security-page,
+  .admin-capability-center
+) {
+  width: 100%;
+  max-width: 1516px;
+  margin-inline: auto;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .page-stack,
+  .profile-page,
+  .student-progress-page,
+  .reference-search-page,
+  .reference-schedule-page
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-page,
+  .admin-dashboard-v2,
+  .assignment-page,
+  .admin-course-builder,
+  .admin-session-page,
+  .admin-session-wizard,
+  .admin-upload-page,
+  .admin-hls-vault-page,
+  .admin-audit-page,
+  .admin-timetable-page,
+  .admin-security-page,
+  .admin-capability-center
+) {
+  gap: var(--alpha-space-6);
+}
+
+/* Page and section headings */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .page-intro,
+  .profile-page-heading,
+  .reference-page-heading,
+  .student-progress-header,
+  .course-study-hero
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-dash-header,
+  .assignment-page-head,
+  .builder-header,
+  .admin-session-header,
+  .admin-session-wizard-header,
+  .admin-upload-hero,
+  .admin-hls-vault-hero,
+  .admin-audit-header,
+  .admin-timetable-header,
+  .security-admin-head,
+  .aeck-page-header
+) {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--alpha-space-6);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .page-intro h1,
+  .profile-page-heading h1,
+  .reference-page-heading h1,
+  .student-progress-header h1,
+  .course-study-copy h1
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-dash-header h1,
+  .assignment-page-head h2,
+  .builder-header h2,
+  .admin-session-header h1,
+  .admin-session-wizard-header h1,
+  .admin-upload-hero h1,
+  .admin-hls-vault-hero h1,
+  .admin-audit-header h1,
+  .admin-timetable-header h1,
+  .security-admin-head h1,
+  .aeck-page-header h1
+) {
+  margin: 0;
+  color: var(--alpha-ink);
+  font-size: clamp(24px, 2.2vw, 30px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .page-intro p,
+  .profile-page-heading p,
+  .reference-page-heading p,
+  .student-progress-header p,
+  .course-study-copy > p
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-dash-header p,
+  .assignment-page-head p,
+  .builder-header p,
+  .admin-session-header p,
+  .admin-session-wizard-header p,
+  .admin-upload-hero p,
+  .admin-hls-vault-hero p,
+  .admin-audit-header p,
+  .admin-timetable-header p,
+  .security-admin-head p,
+  .aeck-page-header p
+) {
+  max-width: 65ch;
+  margin: var(--alpha-space-2) 0 0;
+  color: var(--alpha-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .kicker,
+  .eyebrow,
+  .reference-page-kicker,
+  .dashboard-next-step-eyebrow
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-kicker,
+  .eyebrow,
+  .admin-session-wizard-kicker,
+  .admin-hls-vault-eyebrow,
+  .aeck-kicker,
+  .security-admin-head > div > span
+) {
+  color: var(--alpha-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .section-head,
+  .overview-card-head,
+  .course-curriculum-head,
+  .curriculum-panel-head,
+  .reference-result-head,
+  .reference-week-panel-head,
+  .student-progress-panel-heading
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .section-head,
+  .admin-action-panel-head,
+  .admin-quick-actions-head,
+  .admin-session-list-head,
+  .admin-upload-library-head,
+  .admin-hls-vault-card-head,
+  .admin-audit-list-heading,
+  .admin-timetable-panel-heading,
+  .aeck-section-header
+) {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--alpha-space-4);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .section-head h2,
+  .overview-card-head h2,
+  .course-curriculum-head h2,
+  .curriculum-panel-head h2,
+  .reference-result-head h2,
+  .reference-week-panel-head h2,
+  .student-progress-panel-heading h2
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .section-head h2,
+  .admin-action-panel-head h2,
+  .admin-quick-actions-head h2,
+  .admin-session-list-head h2,
+  .admin-upload-library-head h2,
+  .admin-hls-vault-card-head h2,
+  .admin-audit-list-heading h2,
+  .admin-timetable-panel-heading h2,
+  .aeck-section-header h2
+) {
+  margin: 0;
+  color: var(--alpha-ink);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+/* Shared surfaces */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-card,
+  .course-study-hero,
+  .course-curriculum-panel,
+  .course-part-card,
+  .viewer-card,
+  .history-frame,
+  .profile-card,
+  .reference-search-console,
+  .reference-result-group,
+  .reference-week-panel,
+  .reference-open-rooms,
+  .student-progress-insight,
+  .student-progress-panel,
+  .student-progress-empty,
+  .empty-state,
+  .student-load-feedback,
+  .aeck-card,
+  .aeck-stat-card,
+  .aeck-state
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .section-card,
+  .admin-action-panel,
+  .admin-kpi-card,
+  .admin-workflow-strip,
+  .admin-quick-actions,
+  .admin-reference-finder,
+  .admin-session-summary,
+  .admin-session-list,
+  .admin-session-row,
+  .admin-session-wizard-panel,
+  .admin-upload-stat-card,
+  .admin-upload-upload-card,
+  .admin-upload-library,
+  .admin-upload-image-card,
+  .admin-hls-vault-card,
+  .admin-audit-console,
+  .admin-audit-list-panel,
+  .admin-timetable-summary,
+  .admin-timetable-calendar,
+  .admin-timetable-editor,
+  .admin-timetable-unscheduled,
+  .security-page-content,
+  .security-user-grid > button,
+  .security-detail-panel,
+  .security-action-dialog,
+  .admin-capability-card,
+  .admin-capability-detail-card,
+  .admin-health-panel,
+  .aeck-card,
+  .aeck-stat-card,
+  .aeck-state
+) {
+  border-color: var(--alpha-line-strong);
+  border-radius: var(--alpha-card-radius);
+  background: #fff;
+  box-shadow: var(--alpha-shadow);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-card,
+  .course-part-card,
+  .reference-result-list > a,
+  .reference-open-room-grid > a
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-quick-action,
+  .admin-action-item,
+  .admin-session-row,
+  .admin-upload-image-card,
+  .security-user-grid > button,
+  .admin-capability-card
+) {
+  transition: border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-card,
+  .course-part-card,
+  .reference-result-list > a,
+  .reference-open-room-grid > a
+):hover,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-quick-action,
+  .admin-action-item,
+  .admin-session-row,
+  .admin-upload-image-card,
+  .security-user-grid > button,
+  .admin-capability-card
+):hover {
+  border-color: #b7e4c2;
+  background: var(--alpha-green-pale);
+  box-shadow: 0 0 0 1px rgba(21, 138, 57, .04), 0 8px 20px rgba(21, 90, 44, .07);
+}
+
+/* Buttons and links that behave as controls */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .outline-btn,
+  .back-btn,
+  .dashboard-next-step-action,
+  .reference-current-week,
+  .student-progress-empty > a,
+  .aeck-button
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .outline-btn,
+  .back-btn,
+  .admin-session-primary,
+  .admin-session-refresh,
+  .admin-session-action,
+  .admin-session-pagination > button,
+  .admin-session-wizard-primary,
+  .admin-session-wizard-secondary,
+  .admin-upload-refresh,
+  .admin-upload-choose,
+  .admin-upload-clear,
+  .admin-upload-submit,
+  .admin-audit-refresh,
+  .admin-audit-pagination button,
+  .admin-timetable-refresh,
+  .admin-timetable-current-week,
+  .admin-timetable-primary-action,
+  .admin-timetable-secondary-action,
+  .security-admin-head button,
+  .security-pagination button,
+  .security-action-primary,
+  .security-action-secondary,
+  .aeck-button
+) {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  min-height: var(--alpha-control-height);
+  align-items: center;
+  justify-content: center;
+  gap: var(--alpha-space-2);
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--alpha-control-radius);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: break-word;
+  cursor: pointer;
+  transition: color 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, transform 150ms ease-out;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .dashboard-next-step-action,
+  .aeck-button-primary,
+  .student-progress-empty > a
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .admin-session-primary,
+  .admin-session-wizard-primary,
+  .admin-upload-submit,
+  .admin-timetable-primary-action,
+  .security-action-primary,
+  .aeck-button-primary
+) {
+  border-color: var(--alpha-accent);
+  background: var(--alpha-accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(11, 95, 40, .18);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .dashboard-next-step-action,
+  .aeck-button-primary,
+  .student-progress-empty > a
+):hover:not(:disabled),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .admin-session-primary,
+  .admin-session-wizard-primary,
+  .admin-upload-submit,
+  .admin-timetable-primary-action,
+  .security-action-primary,
+  .aeck-button-primary
+):hover:not(:disabled) {
+  border-color: var(--alpha-accent-hover);
+  background: var(--alpha-accent-hover);
+  color: #fff;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .outline-btn,
+  .back-btn,
+  .reference-current-week,
+  .aeck-button-secondary
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .outline-btn,
+  .back-btn,
+  .admin-session-refresh,
+  .admin-session-action,
+  .admin-session-pagination > button,
+  .admin-session-wizard-secondary,
+  .admin-upload-refresh,
+  .admin-upload-choose,
+  .admin-upload-clear,
+  .admin-audit-refresh,
+  .admin-audit-pagination button,
+  .admin-timetable-refresh,
+  .admin-timetable-current-week,
+  .admin-timetable-secondary-action,
+  .security-admin-head button,
+  .security-pagination button,
+  .security-action-secondary,
+  .aeck-button-secondary
+) {
+  border-color: #d1d5db;
+  background: #fff;
+  color: var(--alpha-body);
+  box-shadow: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .outline-btn,
+  .back-btn,
+  .reference-current-week,
+  .aeck-button-secondary
+):hover:not(:disabled),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .outline-btn,
+  .back-btn,
+  .admin-session-refresh,
+  .admin-session-action,
+  .admin-session-pagination > button,
+  .admin-session-wizard-secondary,
+  .admin-upload-refresh,
+  .admin-upload-choose,
+  .admin-upload-clear,
+  .admin-audit-refresh,
+  .admin-audit-pagination button,
+  .admin-timetable-refresh,
+  .admin-timetable-current-week,
+  .admin-timetable-secondary-action,
+  .security-admin-head button,
+  .security-pagination button,
+  .security-action-secondary,
+  .aeck-button-secondary
+):hover:not(:disabled) {
+  border-color: #b7e4c2;
+  background: var(--alpha-accent-soft);
+  color: var(--alpha-accent-hover);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .outline-btn,
+  .back-btn,
+  .dashboard-next-step-action,
+  .aeck-button
+):active:not(:disabled),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .primary-btn,
+  .outline-btn,
+  .back-btn,
+  .admin-session-primary,
+  .admin-session-refresh,
+  .admin-session-action,
+  .admin-session-wizard-primary,
+  .admin-session-wizard-secondary,
+  .admin-upload-refresh,
+  .admin-upload-submit,
+  .admin-audit-refresh,
+  .admin-timetable-refresh,
+  .admin-timetable-primary-action,
+  .admin-timetable-secondary-action,
+  .security-action-primary,
+  .security-action-secondary,
+  .aeck-button
+):active:not(:disabled) {
+  transform: scale(.96);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.small, .aeck-button-sm),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.small, .aeck-button-sm) {
+  min-height: 36px;
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.icon-btn, .aeck-icon-button),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.icon-btn, .aeck-icon-button) {
+  display: inline-grid;
+  width: var(--alpha-control-height);
+  min-width: var(--alpha-control-height);
+  height: var(--alpha-control-height);
+  min-height: var(--alpha-control-height);
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--alpha-line-strong);
+  border-radius: var(--alpha-control-radius);
+  background: #fff;
+  color: var(--alpha-body);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, a, summary, input, select, textarea):focus-visible,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, a, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--alpha-accent);
+  outline-offset: 2px;
+  box-shadow: var(--alpha-focus);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, input, select, textarea):disabled,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: .56;
+}
+
+/* Fields and search controls */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select) {
+  width: 100%;
+  min-height: var(--alpha-field-height);
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--alpha-control-radius);
+  background: #fff;
+  color: var(--alpha-ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface textarea,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 11px 12px;
+  resize: vertical;
+  border: 1px solid #d1d5db;
+  border-radius: var(--alpha-control-radius);
+  background: #fff;
+  color: var(--alpha-ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input, select, textarea):focus,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input, select, textarea):focus {
+  border-color: var(--alpha-accent);
+  box-shadow: var(--alpha-focus);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input, textarea)::placeholder,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input, textarea)::placeholder {
+  color: var(--alpha-subtle);
+  opacity: 1;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input[type="checkbox"], input[type="radio"]),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input[type="checkbox"], input[type="radio"]) {
+  accent-color: var(--alpha-accent);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-search,
+  .search,
+  .reference-search-field
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .search,
+  .admin-session-search,
+  .admin-upload-search,
+  .admin-audit-search,
+  .admin-timetable-search,
+  .admin-reference-search-field,
+  .admin-session-search-field
+) {
+  min-height: var(--alpha-field-height);
+  border: 1px solid #d1d5db;
+  border-radius: var(--alpha-control-radius);
+  background: #fff;
+  color: var(--alpha-muted);
+  box-shadow: none;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-search,
+  .search,
+  .reference-search-field
+):focus-within,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .search,
+  .admin-session-search,
+  .admin-upload-search,
+  .admin-audit-search,
+  .admin-timetable-search,
+  .admin-reference-search-field,
+  .admin-session-search-field
+):focus-within {
+  border-color: var(--alpha-accent);
+  box-shadow: var(--alpha-focus);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-search,
+  .search,
+  .reference-search-field
+) input,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .search,
+  .admin-session-search,
+  .admin-upload-search,
+  .admin-audit-search,
+  .admin-timetable-search,
+  .admin-reference-search-field,
+  .admin-session-search-field
+) input {
+  min-height: 42px;
+  padding-block: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Lists, tables, labels and changing values */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-table,
+  .reference-week-grid,
+  .history-list
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-table,
+  .admin-session-table,
+  .admin-audit-table,
+  .admin-timetable-room-table,
+  .aeck-table-wrap
+) {
+  max-width: 100%;
+  border-color: var(--alpha-line-strong);
+  border-radius: var(--alpha-card-radius);
+  background: #fff;
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-table,
+  .admin-session-table,
+  .admin-audit-table,
+  .admin-timetable-room-table,
+  .aeck-table-wrap
+) {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .overview-number,
+  .profile-score,
+  .history-status,
+  .reference-result-score,
+  .student-progress-kpis,
+  time
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-kpi-value,
+  .admin-session-summary,
+  .admin-session-count,
+  .admin-audit-summary,
+  .admin-timetable-summary,
+  .security-profile-summary,
+  time
+) {
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .muted,
+  small,
+  .course-search-status,
+  .reference-result-count,
+  .student-progress-inline-empty
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .muted,
+  small,
+  .admin-kpi-sub,
+  .admin-session-count,
+  .admin-upload-library-status,
+  .admin-reference-result-count,
+  .security-list-status
+) {
+  color: var(--alpha-muted);
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-card h2,
+  .course-card p,
+  .course-study-copy,
+  .history-exam,
+  .profile-real-name,
+  .reference-result-copy,
+  .student-progress-panel,
+  .empty-state
+),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .admin-action-text,
+  .admin-quick-action-copy,
+  .admin-session-main,
+  .admin-session-meta,
+  .admin-upload-image-title,
+  .admin-hls-vault-card,
+  .admin-audit-person,
+  .admin-timetable-room-identity,
+  .security-device,
+  .security-event,
+  .security-session,
+  .admin-capability-card-copy
+) {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* State feedback */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.form-success, .student-load-feedback),
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.form-success, .admin-session-notice, .admin-timetable-notice, .admin-hls-vault-notice) {
+  border-color: #b7e4c2;
+  border-radius: var(--alpha-control-radius);
+  background: var(--alpha-green-pale);
+  color: #166534;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface .form-error,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.form-error, .admin-session-error, .admin-audit-error, .admin-timetable-page-error, .admin-hls-vault-error) {
+  border-radius: var(--alpha-control-radius);
+  color: #9f1239;
+}
+
+/* Image edges stay neutral; they never inherit the accent. */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.course-cover, .course-study-hero, .viewer-card) img,
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(.tiny-cover, .course-cover-editor-preview, .admin-upload-preview, .admin-upload-private-thumb) img {
+  max-width: 100%;
+  outline: 1px solid oklch(0 0 0 / .1);
+  outline-offset: -1px;
+}
+
+@media (max-width: 1100px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .page-intro,
+    .profile-page-heading,
+    .reference-page-heading,
+    .student-progress-header,
+    .course-study-hero
+  ),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .admin-dash-header,
+    .assignment-page-head,
+    .builder-header,
+    .admin-session-header,
+    .admin-session-wizard-header,
+    .admin-upload-hero,
+    .admin-hls-vault-hero,
+    .admin-audit-header,
+    .admin-timetable-header,
+    .security-admin-head,
+    .aeck-page-header
+  ) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface {
+    font-size: 14px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    font-size: 16px;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .section-head,
+    .overview-card-head,
+    .course-curriculum-head,
+    .curriculum-panel-head,
+    .reference-result-head,
+    .reference-week-panel-head,
+    .student-progress-panel-heading
+  ),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .section-head,
+    .admin-action-panel-head,
+    .admin-quick-actions-head,
+    .admin-session-list-head,
+    .admin-upload-library-head,
+    .admin-hls-vault-card-head,
+    .admin-audit-list-heading,
+    .admin-timetable-panel-heading,
+    .aeck-section-header
+  ) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .page-intro h1,
+    .profile-page-heading h1,
+    .reference-page-heading h1,
+    .student-progress-header h1,
+    .course-study-copy h1
+  ),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .admin-dash-header h1,
+    .assignment-page-head h2,
+    .builder-header h2,
+    .admin-session-header h1,
+    .admin-session-wizard-header h1,
+    .admin-upload-hero h1,
+    .admin-hls-vault-hero h1,
+    .admin-audit-header h1,
+    .admin-timetable-header h1,
+    .security-admin-head h1,
+    .aeck-page-header h1
+  ) {
+    font-size: 24px;
+  }
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+  .course-card,
+    .course-study-hero,
+    .course-curriculum-panel,
+    .viewer-card,
+    .history-frame,
+    .profile-card,
+    .reference-search-console,
+    .reference-result-group,
+    .reference-week-panel,
+    .reference-open-rooms,
+    .student-progress-panel
+  ),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(
+    .section-card,
+    .admin-action-panel,
+    .admin-session-list,
+    .admin-session-wizard-panel,
+    .admin-upload-upload-card,
+    .admin-upload-library,
+    .admin-hls-vault-card,
+    .admin-audit-console,
+    .admin-audit-list-panel,
+    .admin-timetable-calendar,
+    .admin-timetable-editor,
+    .admin-timetable-unscheduled,
+    .security-page-content,
+    .admin-capability-detail-card
+) {
+    border-radius: 14px;
+  }
+}
+
+/* A course card is a content surface, not a filled action button. Its link
+ * owns the hit area while the card body keeps the shared surface treatment. */
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface .reference-course-card .course-card-action {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  text-decoration: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface .reference-course-card .course-card-action:hover,
+.ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface .reference-course-card .course-card-action:active {
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, a),
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, a) {
+    transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .ui-shell.student-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, a, summary, input, select, textarea):focus-visible,
+  .ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface > .main-content.product-content-surface :where(button, a, summary, input, select, textarea):focus-visible {
+    outline-color: CanvasText;
+    box-shadow: none;
+  }
+}
