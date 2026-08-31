@@ -1,0 +1,311 @@
+{
+  "dieu-khoan-dich-vu": {
+    "slug": "dieu-khoan-dich-vu",
+    "title": "Điều khoản dịch vụ",
+    "breadcrumb": "Giáo viên Gói học tập",
+    "updated": "",
+    "intro": "CẬP NHẬT LẦN CUỐI: 28/08/2026",
+    "toc": [
+      {
+        "label": "Ⅰ. Điều khoản sử dụng",
+        "href": "#dieu-khoan-su-dung"
+      },
+      {
+        "label": "Ⅱ. Bảo vệ thông tin cá nhân",
+        "href": "#bao-ve-thong-tin"
+      },
+      {
+        "label": "Ⅲ. Sử dụng dịch vụ",
+        "href": "#su-dung-dich-vu"
+      },
+      {
+        "label": "Ⅳ. Quyền sở hữu trí tuệ",
+        "href": "#so-huu-tri-tue"
+      },
+      {
+        "label": "Ⅴ. Giới hạn trách nhiệm",
+        "href": "#gioi-han-trach-nhiem"
+      },
+      {
+        "label": "Ⅵ. Cập nhật điều khoản",
+        "href": "#cap-nhat-dieu-khoan"
+      },
+      {
+        "label": "Ⅶ. Thông tin liên hệ",
+        "href": "#lien-he"
+      },
+      {
+        "label": "Ⅷ. Pháp lý",
+        "href": "#phap-ly"
+      }
+    ],
+    "sections": [
+      {
+        "id": "dieu-khoan-su-dung",
+        "title": "Ⅰ. Điều khoản sử dụng",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Khi bạn đăng ký tài khoản và sử dụng dịch vụ của AECK, bạn đồng ý tuân theo các quy tắc được đặt ra trong tài liệu này. Những quy tắc đó tồn tại để mọi hoạt động trên nền tảng diễn ra đúng pháp luật Việt Nam và công bằng với tất cả người học."
+          },
+          {
+            "tag": "ul",
+            "text": "Bạn cần cung cấp thông tin đăng ký chính xác và giữ thông tin đó luôn cập nhật, đặc biệt là họ tên và ngày sinh dùng để lập hồ sơ dự thi. Mỗi tài khoản chỉ dành cho một người học. Việc chia sẻ tài khoản, cho mượn hoặc bán lại quyền truy cập là vi phạm điều khoản này. Bạn chịu trách nhiệm bảo mật mật khẩu của mình và với mọi hoạt động phát sinh từ tài khoản của bạn.",
+            "items": [
+              "Bạn cần cung cấp thông tin đăng ký chính xác và giữ thông tin đó luôn cập nhật, đặc biệt là họ tên và ngày sinh dùng để lập hồ sơ dự thi.",
+              "Mỗi tài khoản chỉ dành cho một người học. Việc chia sẻ tài khoản, cho mượn hoặc bán lại quyền truy cập là vi phạm điều khoản này.",
+              "Bạn chịu trách nhiệm bảo mật mật khẩu của mình và với mọi hoạt động phát sinh từ tài khoản của bạn."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "AECK có quyền điều chỉnh các điều khoản này khi dịch vụ phát triển. Mọi thay đổi sẽ được thông báo rõ ràng trên website trước khi có hiệu lực."
+          }
+        ]
+      },
+      {
+        "id": "bao-ve-thong-tin",
+        "title": "Ⅱ. Bảo vệ thông tin cá nhân",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Thông tin cá nhân của bạn là tài sản của bạn, và AECK bảo mật thông tin đó một cách nghiêm ngặt. Chúng tôi không sử dụng, chia sẻ hay tiết lộ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào không liên quan đến việc cung cấp dịch vụ, trừ khi có sự đồng ý của bạn hoặc theo yêu cầu của cơ quan nhà nước có thẩm quyền."
+          },
+          {
+            "tag": "p",
+            "text": "Chi tiết về loại thông tin được thu thập và cách chúng tôi xử lý, bạn xem tại trang Chính sách bảo mật."
+          }
+        ]
+      },
+      {
+        "id": "su-dung-dich-vu",
+        "title": "Ⅲ. Sử dụng dịch vụ",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bạn sử dụng dịch vụ của AECK cho mục đích học tập cá nhân và hợp pháp. Những hành vi sau đây không được phép:"
+          },
+          {
+            "tag": "ul",
+            "text": "Sao chép, ghi hình, tải xuống trái phép hoặc phát tán lại đề thi, bài giảng, tài liệu và video của AECK dưới bất kỳ hình thức nào. Can thiệp, dò tìm lỗ hổng hoặc tìm cách vượt qua các cơ chế kỹ thuật bảo vệ nội dung và bảo vệ kỳ thi. Sử dụng công cụ tự động để thu thập dữ liệu, tạo tài khoản hàng loạt hoặc gây quá tải hệ thống. Gian lận trong quá trình làm bài, mạo danh người khác hoặc dùng tài khoản của người khác để dự thi.",
+            "items": [
+              "Sao chép, ghi hình, tải xuống trái phép hoặc phát tán lại đề thi, bài giảng, tài liệu và video của AECK dưới bất kỳ hình thức nào.",
+              "Can thiệp, dò tìm lỗ hổng hoặc tìm cách vượt qua các cơ chế kỹ thuật bảo vệ nội dung và bảo vệ kỳ thi.",
+              "Sử dụng công cụ tự động để thu thập dữ liệu, tạo tài khoản hàng loạt hoặc gây quá tải hệ thống.",
+              "Gian lận trong quá trình làm bài, mạo danh người khác hoặc dùng tài khoản của người khác để dự thi."
+            ]
+          },
+          {
+            "tag": "div",
+            "text": "Tài liệu và video của AECK được đánh dấu để truy vết nguồn phát tán. Khi phát hiện nội dung bị chia sẻ trái phép, chúng tôi có thể khoá tài khoản liên quan mà không hoàn phí và áp dụng các biện pháp pháp lý cần thiết."
+          }
+        ]
+      },
+      {
+        "id": "so-huu-tri-tue",
+        "title": "Ⅳ. Quyền sở hữu trí tuệ",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Toàn bộ nội dung trên nền tảng AECK — từ đề thi, lời giải, bài giảng, video, hình ảnh cho tới giao diện và mã nguồn phần mềm — thuộc quyền sở hữu của AECK hoặc được cấp phép hợp pháp cho AECK sử dụng."
+          },
+          {
+            "tag": "p",
+            "text": "Khi mua gói học tập, bạn được cấp quyền truy cập và sử dụng nội dung cho mục đích học tập cá nhân trong thời hạn của gói. Quyền này không bao gồm quyền sao chép, phân phối lại, kinh doanh hay tạo sản phẩm phái sinh từ nội dung của chúng tôi."
+          },
+          {
+            "tag": "p",
+            "text": "Tôn trọng quyền sở hữu trí tuệ không chỉ là tuân thủ pháp luật, mà còn là tôn trọng công sức của những người đã biên soạn nên nội dung đó."
+          }
+        ]
+      },
+      {
+        "id": "gioi-han-trach-nhiem",
+        "title": "Ⅴ. Giới hạn trách nhiệm",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "AECK nỗ lực để dịch vụ luôn chính xác và ổn định. Tuy nhiên, chúng tôi không cam kết dịch vụ hoàn toàn không gián đoạn hay không có sai sót. Hệ thống có thể tạm ngừng để bảo trì, nâng cấp, hoặc bị ảnh hưởng bởi các nguyên nhân nằm ngoài tầm kiểm soát như sự cố đường truyền, hạ tầng nhà cung cấp hay thiên tai."
+          },
+          {
+            "tag": "ul",
+            "text": "Điểm số và phân tích năng lực do hệ thống đưa ra mang tính tham khảo cho quá trình ôn luyện, không phải kết quả của kỳ thi chính thức và không thay thế kết quả do đơn vị tổ chức thi công bố. Thông tin về các kỳ thi được tổng hợp từ nguồn công bố chính thức tại thời điểm biên soạn; bạn nên đối chiếu lại với thông báo mới nhất của đơn vị tổ chức trước mỗi đợt thi. AECK không chịu trách nhiệm với thiệt hại phát sinh do bạn để lộ tài khoản, hoặc do bạn sử dụng dịch vụ sai mục đích.",
+            "items": [
+              "Điểm số và phân tích năng lực do hệ thống đưa ra mang tính tham khảo cho quá trình ôn luyện, không phải kết quả của kỳ thi chính thức và không thay thế kết quả do đơn vị tổ chức thi công bố.",
+              "Thông tin về các kỳ thi được tổng hợp từ nguồn công bố chính thức tại thời điểm biên soạn; bạn nên đối chiếu lại với thông báo mới nhất của đơn vị tổ chức trước mỗi đợt thi.",
+              "AECK không chịu trách nhiệm với thiệt hại phát sinh do bạn để lộ tài khoản, hoặc do bạn sử dụng dịch vụ sai mục đích."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Trong mọi trường hợp, trách nhiệm của AECK được giới hạn trong phạm vi giá trị gói dịch vụ mà bạn đã thanh toán."
+          }
+        ]
+      },
+      {
+        "id": "cap-nhat-dieu-khoan",
+        "title": "Ⅵ. Cập nhật điều khoản",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Để phản ánh đúng các thay đổi của pháp luật và cách thức vận hành dịch vụ, AECK có thể cập nhật các điều khoản này. Bản cập nhật được đăng tại chính trang này kèm ngày hiệu lực; việc bạn tiếp tục sử dụng dịch vụ sau ngày đó được hiểu là bạn chấp nhận nội dung mới."
+          }
+        ]
+      },
+      {
+        "id": "lien-he",
+        "title": "Ⅶ. Thông tin liên hệ",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Nếu bạn có thắc mắc hoặc cần hỗ trợ, vui lòng liên hệ AECK qua email hotro@aeck.vn, hotline 0776 362 944 hoặc fanpage chính thức. Chúng tôi cố gắng phản hồi mọi yêu cầu trong thời gian sớm nhất."
+          }
+        ]
+      },
+      {
+        "id": "phap-ly",
+        "title": "Ⅷ. Pháp lý",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Các điều khoản và quy định của AECK được điều chỉnh bởi pháp luật Việt Nam. Mọi tranh chấp phát sinh trước hết được giải quyết thông qua thương lượng; nếu không đạt được thoả thuận, vụ việc sẽ được đưa ra toà án có thẩm quyền tại Việt Nam."
+          }
+        ]
+      }
+    ]
+  },
+  "chinh-sach-bao-mat": {
+    "slug": "chinh-sach-bao-mat",
+    "title": "Chính sách bảo mật",
+    "breadcrumb": "Giáo viên Gói học tập",
+    "updated": "",
+    "intro": "CẬP NHẬT LẦN CUỐI: 28/08/2026",
+    "toc": [
+      {
+        "label": "Ⅰ. Thông tin chúng tôi thu thập",
+        "href": "#thong-tin-thu-thap"
+      },
+      {
+        "label": "Ⅱ. Mục đích sử dụng thông tin",
+        "href": "#muc-dich-su-dung"
+      },
+      {
+        "label": "Ⅲ. Chia sẻ thông tin",
+        "href": "#chia-se-thong-tin"
+      },
+      {
+        "label": "Ⅳ. Bảo mật thông tin",
+        "href": "#bao-mat-thong-tin"
+      },
+      {
+        "label": "Ⅴ. Quyền của bạn với dữ liệu cá nhân",
+        "href": "#quyen-cua-ban"
+      },
+      {
+        "label": "Ⅵ. Thay đổi chính sách bảo mật",
+        "href": "#thay-doi-chinh-sach"
+      },
+      {
+        "label": "Ⅶ. Liên hệ",
+        "href": "#lien-he"
+      }
+    ],
+    "sections": [
+      {
+        "id": "thong-tin-thu-thap",
+        "title": "Ⅰ. Thông tin chúng tôi thu thập",
+        "blocks": [
+          {
+            "tag": "ul",
+            "text": "Thông tin cá nhân — khi đăng ký tài khoản, bạn cung cấp họ tên, địa chỉ email, số điện thoại và ngày sinh. Khi lập hồ sơ dự thi, bạn có thể cần bổ sung trường học, lớp và các thông tin phục vụ việc xác nhận danh tính thí sinh. Dữ liệu học tập — kết quả làm bài, thời gian làm bài, tiến độ học và lịch sử luyện đề của bạn được lưu lại để dựng báo cáo năng lực cá nhân. Thông tin tự động thu thập — loại trình duyệt và thiết bị, thời điểm truy cập, các trang bạn đã xem và nhật ký đăng nhập, phục vụ vận hành và bảo mật hệ thống. Thông tin thanh toán — giao dịch mua gói học tập được xử lý qua đối tác thanh toán; AECK chỉ lưu thông tin đơn hàng, không lưu số thẻ hay thông tin đăng nhập ngân hàng của bạn.",
+            "items": [
+              "Thông tin cá nhân — khi đăng ký tài khoản, bạn cung cấp họ tên, địa chỉ email, số điện thoại và ngày sinh. Khi lập hồ sơ dự thi, bạn có thể cần bổ sung trường học, lớp và các thông tin phục vụ việc xác nhận danh tính thí sinh.",
+              "Dữ liệu học tập — kết quả làm bài, thời gian làm bài, tiến độ học và lịch sử luyện đề của bạn được lưu lại để dựng báo cáo năng lực cá nhân.",
+              "Thông tin tự động thu thập — loại trình duyệt và thiết bị, thời điểm truy cập, các trang bạn đã xem và nhật ký đăng nhập, phục vụ vận hành và bảo mật hệ thống.",
+              "Thông tin thanh toán — giao dịch mua gói học tập được xử lý qua đối tác thanh toán; AECK chỉ lưu thông tin đơn hàng, không lưu số thẻ hay thông tin đăng nhập ngân hàng của bạn."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "muc-dich-su-dung",
+        "title": "Ⅱ. Mục đích sử dụng thông tin",
+        "blocks": [
+          {
+            "tag": "ul",
+            "text": "Cung cấp và cải thiện dịch vụ — cá nhân hoá trải nghiệm học tập, đưa ra báo cáo năng lực và gợi ý lộ trình ôn luyện phù hợp với bạn. Hỗ trợ khách hàng — trả lời câu hỏi, xử lý sự cố và giải quyết các vấn đề bạn gặp trong quá trình sử dụng. Bảo đảm an toàn hệ thống — phát hiện đăng nhập bất thường, ngăn chặn gian lận trong kỳ thi và bảo vệ nội dung khỏi phát tán trái phép. Thông tin và ưu đãi — gửi thông báo về khoá học mới hoặc chương trình ưu đãi, nếu bạn chọn nhận thông tin này. Bạn có thể ngừng nhận bất cứ lúc nào.",
+            "items": [
+              "Cung cấp và cải thiện dịch vụ — cá nhân hoá trải nghiệm học tập, đưa ra báo cáo năng lực và gợi ý lộ trình ôn luyện phù hợp với bạn.",
+              "Hỗ trợ khách hàng — trả lời câu hỏi, xử lý sự cố và giải quyết các vấn đề bạn gặp trong quá trình sử dụng.",
+              "Bảo đảm an toàn hệ thống — phát hiện đăng nhập bất thường, ngăn chặn gian lận trong kỳ thi và bảo vệ nội dung khỏi phát tán trái phép.",
+              "Thông tin và ưu đãi — gửi thông báo về khoá học mới hoặc chương trình ưu đãi, nếu bạn chọn nhận thông tin này. Bạn có thể ngừng nhận bất cứ lúc nào."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "chia-se-thong-tin",
+        "title": "Ⅲ. Chia sẻ thông tin",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "AECK cam kết không bán, không cho thuê và không chia sẻ thông tin cá nhân của bạn với bất kỳ bên thứ ba nào vì mục đích thương mại, khi chưa có sự đồng ý rõ ràng của bạn."
+          },
+          {
+            "tag": "p",
+            "text": "Thông tin chỉ được chia sẻ trong ba trường hợp: với các nhà cung cấp hạ tầng và dịch vụ thanh toán ở mức tối thiểu cần thiết để vận hành dịch vụ; khi có yêu cầu hợp pháp từ cơ quan nhà nước có thẩm quyền; hoặc khi cần thiết để bảo vệ quyền lợi hợp pháp của AECK và của người dùng khác."
+          }
+        ]
+      },
+      {
+        "id": "bao-mat-thong-tin",
+        "title": "Ⅳ. Bảo mật thông tin",
+        "blocks": [
+          {
+            "tag": "ul",
+            "text": "Biện pháp kỹ thuật — toàn bộ kết nối tới hệ thống được mã hoá, mật khẩu được lưu ở dạng băm một chiều, dữ liệu nhạy cảm được mã hoá trên đường truyền và tài liệu tải về được đánh dấu để truy vết nguồn phát tán. Biện pháp tổ chức — quyền truy cập dữ liệu người dùng được phân quyền theo vai trò và giới hạn ở những nhân sự thực sự cần cho công việc. Thời gian lưu trữ — thông tin của bạn được lưu trong thời gian tài khoản còn hoạt động và trong khoảng thời gian cần thiết sau đó theo quy định của pháp luật.",
+            "items": [
+              "Biện pháp kỹ thuật — toàn bộ kết nối tới hệ thống được mã hoá, mật khẩu được lưu ở dạng băm một chiều, dữ liệu nhạy cảm được mã hoá trên đường truyền và tài liệu tải về được đánh dấu để truy vết nguồn phát tán.",
+              "Biện pháp tổ chức — quyền truy cập dữ liệu người dùng được phân quyền theo vai trò và giới hạn ở những nhân sự thực sự cần cho công việc.",
+              "Thời gian lưu trữ — thông tin của bạn được lưu trong thời gian tài khoản còn hoạt động và trong khoảng thời gian cần thiết sau đó theo quy định của pháp luật."
+            ]
+          },
+          {
+            "tag": "div",
+            "text": "Không hệ thống nào an toàn tuyệt đối. Bạn hãy đặt mật khẩu riêng cho tài khoản AECK, không chia sẻ tài khoản cho người khác, và thông báo ngay cho chúng tôi nếu nghi ngờ tài khoản bị truy cập trái phép."
+          }
+        ]
+      },
+      {
+        "id": "quyen-cua-ban",
+        "title": "Ⅴ. Quyền của bạn với dữ liệu cá nhân",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bạn có quyền xem và chỉnh sửa thông tin cá nhân trong trang tài khoản, yêu cầu cung cấp bản sao dữ liệu của mình, rút lại sự đồng ý nhận thông tin tiếp thị, hoặc yêu cầu xoá tài khoản. Với yêu cầu xoá, chúng tôi sẽ xử lý sau khi xác minh danh tính, trừ phần dữ liệu buộc phải lưu theo quy định pháp luật."
+          }
+        ]
+      },
+      {
+        "id": "thay-doi-chinh-sach",
+        "title": "Ⅵ. Thay đổi chính sách bảo mật",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Chính sách này có thể được cập nhật theo thời gian. Mọi thay đổi sẽ được đăng tại chính trang này kèm ngày cập nhật; với những thay đổi quan trọng, chúng tôi sẽ thông báo thêm qua email hoặc thông báo trong hệ thống."
+          }
+        ]
+      },
+      {
+        "id": "lien-he",
+        "title": "Ⅶ. Liên hệ",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Nếu bạn có câu hỏi về Chính sách bảo mật này hoặc về cách thông tin của bạn được xử lý, vui lòng liên hệ AECK qua email hotro@aeck.vn, hotline 0776 362 944 hoặc fanpage chính thức."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+/* Course-only grouping inside the shared Alpha learning space. This file is
+   intentionally scoped away from exam runners and protected review surfaces. */
+.ui-shell.student-app.product-shell .courses-page .course-exam-tabs {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid #e3e7e5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 8px rgba(15, 66, 36, 0.04);
+  scrollbar-width: thin;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: #5f6876;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button:hover {
+  background: #f4faf6;
+  color: #158a39;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button[aria-selected="true"] {
+  background: #eaf8ef;
+  color: #158a39;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button b {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f3f5;
+  color: #7a8290;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button[aria-selected="true"] b {
+  background: #158a39;
+  color: #fff;
+}
+
+.ui-shell.student-app.product-shell .courses-page #course-catalog-panel {
+  min-width: 0;
+  border-radius: 12px;
+}
+
+.ui-shell.student-app.product-shell .courses-page #course-catalog-panel:focus {
+  outline: none;
+}
+
+.ui-shell.student-app.product-shell .courses-page #course-catalog-panel:focus-visible {
+  outline: 3px solid rgba(21, 138, 57, 0.34);
+  outline-offset: 5px;
+}
+
+.ui-shell.student-app.product-shell .courses-page .course-exam-label {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 7px;
+  color: #158a39;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  line-height: 14px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575px) {
+  .ui-shell.student-app.product-shell .courses-page .course-exam-tabs {
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button {
+    flex: 1 0 auto;
+  }
+}

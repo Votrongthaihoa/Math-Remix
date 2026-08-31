@@ -8,7 +8,8 @@ rendering remain owned by their feature modules.
 ## Architecture
 
 - Runtime: Next.js 16 App Router through Vinext/Vite, React 19 and TypeScript.
-- Filesystem pages: `/` and `app/[...slug]/page.tsx`.
+- Filesystem pages: `/` and `app/[...slug]/page.tsx`. The root is now the
+  public AECK site; authenticated product entry remains `/dashboard`.
 - Client dispatch: `PlatformApp` in `app/platform.tsx` maps the pathname to the
   rendered screen and supplies authentication, navigation and shell state.
 - Route visual mode: `classifyUiRoute()` in `app/ui-route-mode.ts` is the
@@ -19,14 +20,16 @@ rendering remain owned by their feature modules.
 - Root layout: `app/layout.tsx`. There are no route groups, nested layouts or
   page-level error templates at this time.
 
-The repository can render 50 canonical semantic UI route patterns, 20 legacy
-alias families and 3 standalone HTML/embed surfaces. API route handlers are not
-UI routes and are intentionally excluded from this inventory.
+The repository can render 62 canonical semantic UI route patterns (12 public
+marketing/content routes plus the existing product patterns), 21 legacy/bridge
+aliases and 3 standalone HTML/embed surfaces. API route handlers are not UI
+routes and are intentionally excluded from this inventory.
 
 ## UI zones
 
 | Zone | Shell | Visual mode | Rule |
 | --- | --- | --- | --- |
+| Public AECK site | Isolated public header/content/footer | public reference | Uses `.aeck-public-site` CSS Module scope, red wordmark and localized public assets. |
 | Public account access | Standalone auth shell | optimized content | Uses isolated account/auth language. |
 | Student product | Student sidebar and topbar | optimized content | Uses Alpha tokens and product primitives. |
 | Admin operations | Admin sidebar and topbar | optimized content | Same foundation with denser operational layouts. |
@@ -51,12 +54,20 @@ boundaries and intentionally unchanged; **Redirect** has no independent UI;
 
 | Route pattern | Main screen | Status |
 | --- | --- | --- |
-| `/`, `/login` | `LoginPage` or `StudentDashboard` after authentication | Optimized |
+| `/` | Public homepage, teacher/honor carousels, course and article discovery | Public reference |
+| `/giao-vien` | Teacher grid and profile modal | Public reference |
+| `/goi-hoc-tap` | Package cards, detail modal and login handoff | Public reference |
+| `/dang-ky-minh-chung` | Public evidence-registration handoff | Public reference |
+| `/luyen-thi-tsa`, `/cau-truc-de-thi-tsa`, `/cach-tinh-diem-tsa` | TSA article template, FAQ and related reading | Public reference |
+| `/luyen-thi-hsa`, `/cau-truc-de-thi-hsa`, `/dang-ky-thi-hsa` | HSA article template, FAQ and related reading | Public reference |
+| `/dieu-khoan-dich-vu`, `/chinh-sach-bao-mat` | Legal content template | Public reference |
+| `/portal` | Compatibility bridge to `/courses` | Redirect |
+| `/login` | `LoginPage` | Optimized |
 | `/forgot-password` | `ForgotPasswordPage` | Optimized |
 | `/reset-password` | `ResetPasswordPage` | Optimized |
 | unknown route | `app/not-found.tsx` | Isolated |
 | `/dashboard` | `StudentDashboard` | Optimized |
-| `/courses` | course catalogue, URL-backed query and grid/list mode | Optimized |
+| `/courses` | unified Alpha course catalogue with URL-backed TSA/HSA tabs, query and grid/list mode | Optimized |
 | `/courses/:courseId` | course detail and curriculum disclosures | Optimized |
 | `/lessons/:lessonId` | lesson curriculum and `VideoPlayer` | Optimized |
 | `/exam-history` | attempt history and URL-backed search | Optimized |

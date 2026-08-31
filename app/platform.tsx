@@ -30,6 +30,7 @@ import "./admin-reference-suite.css";
 import "./alpha-reference-portal.css";
 import "./product-design-system.css";
 import "./account-auth-reference.css";
+import "./course-exam-tabs.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
@@ -133,6 +134,18 @@ function courseColor(value: string | null | undefined) {
 
 function courseColorStyle(value: string | null | undefined) {
   return { "--course-color": courseColor(value) } as React.CSSProperties;
+}
+
+type CourseExamTab = "ALL" | "TSA" | "HSA";
+
+function courseExamGroup(course: Pick<CourseData, "title" | "description">): Exclude<CourseExamTab, "ALL"> | "SHARED" {
+  const searchable = `${course.title} ${course.description}`.toLocaleUpperCase("vi");
+  const hasHsa = searchable.includes("HSA") || searchable.includes("ĐGNL") || searchable.includes("ĐÁNH GIÁ NĂNG LỰC") || searchable.includes("QDA") || searchable.includes("BCA");
+  const hasTsa = searchable.includes("TSA") || searchable.includes("ĐÁNH GIÁ TƯ DUY") || searchable.includes("TƯ DUY");
+  if (hasHsa && hasTsa) return "SHARED";
+  if (hasHsa) return "HSA";
+  if (hasTsa) return "TSA";
+  return "SHARED";
 }
 
 function cleanPartTitle(title: string | null | undefined) {
@@ -1158,6 +1171,8 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
   const searchParams = useSearchParams();
   const routeCourseSearch = searchParams.get("q") ?? "";
   const courseView = searchParams.get("view") === "list" ? "list" : "grid";
+  const requestedExamType = searchParams.get("examType")?.toLocaleUpperCase("vi");
+  const selectedExamTab: CourseExamTab = requestedExamType === "TSA" || requestedExamType === "HSA" ? requestedExamType : "ALL";
   const [courseSearch, setCourseSearch] = useState(routeCourseSearch);
   const committedCourseSearchRef = useRef(routeCourseSearch);
   useEffect(() => {
@@ -1183,16 +1198,54 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
   }, [courseSearch, pathname, router]);
   const filteredCourses = useMemo(() => {
     const query = courseSearch.trim().toLocaleLowerCase("vi");
-    if (!query) return courseItems;
-    return courseItems.filter(course => `${course.title} ${course.description}`.toLocaleLowerCase("vi").includes(query));
-  }, [courseItems, courseSearch]);
+    return courseItems.filter(course => {
+      const group = courseExamGroup(course);
+      const matchesExamType = selectedExamTab === "ALL" || group === "SHARED" || group === selectedExamTab;
+      const matchesQuery = !query || `${course.title} ${course.description}`.toLocaleLowerCase("vi").includes(query);
+      return matchesExamType && matchesQuery;
+    });
+  }, [courseItems, courseSearch, selectedExamTab]);
+  const courseCounts = useMemo(() => ({
+    ALL: courseItems.length,
+    TSA: courseItems.filter(course => ["TSA", "SHARED"].includes(courseExamGroup(course))).length,
+    HSA: courseItems.filter(course => ["HSA", "SHARED"].includes(courseExamGroup(course))).length,
+  }), [courseItems]);
+  const updateCourseExamTab = (nextTab: CourseExamTab) => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (nextTab === "ALL") nextParams.delete("examType"); else nextParams.set("examType", nextTab);
+    const nextQuery = nextParams.toString();
+    router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
+  };
+  const handleCourseTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const tabs: CourseExamTab[] = ["ALL", "TSA", "HSA"];
+    const currentIndex = tabs.indexOf(selectedExamTab);
+    const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    event.preventDefault();
+    updateCourseExamTab(tabs[nextIndex]);
+    window.requestAnimationFrame(() => document.getElementById(`course-exam-tab-${tabs[nextIndex].toLowerCase()}`)?.focus());
+  };
   const updateCourseView = (nextView: "grid" | "list") => {
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.set("view", nextView);
     const nextQuery = nextParams.toString();
     router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
   };
-  return <div className="page-stack courses-page"><div className="courses-toolbar"><div><h1>Khóa học</h1><p>Danh sách khóa học được phân cho tài khoản của bạn.</p></div><div className="course-search-wrap"><label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label><div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div></div></div>{filteredCourses.length ? <div className={`course-grid reference-course-grid ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học" : "Chưa có khóa học"} text={courseItems.length ? "Hãy thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}</div>;
+  return <div className="page-stack courses-page">
+    <div className="courses-toolbar">
+      <div><h1>Khóa học</h1><p>TSA và HSA dùng chung một không gian học tập, được phân loại theo từng tab.</p></div>
+      <div className="course-search-wrap">
+        <label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label>
+        <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch || selectedExamTab !== "ALL" ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
+      </div>
+    </div>
+    <div className="course-exam-tabs" role="tablist" aria-label="Phân loại khóa học" onKeyDown={handleCourseTabKeyDown}>
+      {([['ALL','Tất cả'],['TSA','TSA'],['HSA','HSA']] as const).map(([value,label])=><button id={`course-exam-tab-${value.toLowerCase()}`} type="button" role="tab" key={value} aria-selected={selectedExamTab===value} aria-controls="course-catalog-panel" tabIndex={selectedExamTab===value?0:-1} onClick={()=>updateCourseExamTab(value)}><span>{label}</span><b>{courseCounts[value]}</b></button>)}
+    </div>
+    <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0}>
+      {filteredCourses.length ? <div className={`course-grid reference-course-grid ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
+    </div>
+  </div>;
 }
 
 function CourseCoverVisual({ course, detail = false }: { course: CourseData; detail?: boolean }) {
@@ -1211,13 +1264,14 @@ function CourseCoverVisual({ course, detail = false }: { course: CourseData; det
 
 function CourseCard({ course }: { course: CourseData }) {
   const href = `/courses/${encodeURIComponent(String(course.id))}`;
-  return <article className="course-card reference-course-card" style={courseColorStyle(course.color)}>
+  const group = courseExamGroup(course);
+  return <article className="course-card reference-course-card" style={courseColorStyle(course.color)} data-course-exam-type={group.toLowerCase()}>
     <Link className="course-card-action" href={href} aria-label={`Vào học ${course.title}`}>
       <div className="course-cover">
         <CourseCoverVisual course={course} />
         {course.published === false && <span className="course-draft-badge">Bản nháp</span>}
       </div>
-      <div className="course-body"><h3>{course.title}</h3><div className="course-meta"><span><CirclePlay aria-hidden="true" /> {course.lessons} bài học</span><b>Vào học</b></div></div>
+      <div className="course-body"><span className="course-exam-label">{group === "SHARED" ? "TSA · HSA" : group}</span><h3>{course.title}</h3><div className="course-meta"><span><CirclePlay aria-hidden="true" /> {course.lessons} bài học</span><b>Vào học</b></div></div>
     </Link>
   </article>;
 }

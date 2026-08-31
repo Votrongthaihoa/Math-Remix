@@ -24,7 +24,7 @@ async function render(pathname = "/") {
 }
 
 test("server-renders the safe AECK session-checking shell", async () => {
-  const response = await render();
+  const response = await render("/dashboard");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -34,6 +34,17 @@ test("server-renders the safe AECK session-checking shell", async () => {
   assert.match(html, /Đang xác thực tài khoản/);
   assert.doesNotMatch(html, /placeholder="hocvien@example\.com"/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Building your site/i);
+});
+
+test("server-renders the public AECK homepage at the root route", async () => {
+  const response = await render("/");
+  assert.equal(response.status, 200);
+
+  const html = await response.text();
+  assert.match(html, /<title>AECK - Luyện thi TSA, HSA &amp; Đánh giá năng lực trực tuyến<\/title>/i);
+  assert.match(html, /GIẢI PHÁP HỌC TẬP TOÀN DIỆN/);
+  assert.match(html, /\/aeck-public\/logo-wordmark-red\.svg/);
+  assert.doesNotMatch(html, /class="remix-loading full-page" role="status"/);
 });
 
 test("returns the animated AECK 404 page for unknown routes", async () => {

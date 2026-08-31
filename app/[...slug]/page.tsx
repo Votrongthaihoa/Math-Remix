@@ -1,10 +1,16 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import PlatformApp from "../platform";
 import LoadingIndicator from "../loading-indicator";
 import { notFound, redirect } from "next/navigation";
 import { legacyAdminRedirectPath } from "../admin-route-map";
+import AeckPublicSite from "../aeck-public-site";
+import { AECK_PUBLIC_ROUTES, type AeckPublicRoute } from "../aeck-public-routes";
+import articleDocuments from "../aeck-public-articles.json";
+import legalDocuments from "../aeck-public-legal.json";
 
 const staticRoutes = new Set(["login", "dashboard", "exam-room", "courses", "exam-history", "progress", "search", "tkb", "profile", "admin", "forgot-password", "reset-password"]);
+const publicRoutes = new Set<string>(AECK_PUBLIC_ROUTES);
 const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const guestTokenSegment = /^[A-Za-z0-9_-]{10,100}$/;
 const legacyAdminPrefixes = [
@@ -15,8 +21,25 @@ const legacyAdminPrefixes = [
   "admin/all",
 ];
 
+const publicMetadata: Record<string, { title: string; description: string }> = {
+  "giao-vien": { title: "Đội ngũ giáo viên | AECK", description: "Đội ngũ giáo viên và cố vấn đồng hành cùng học viên AECK." },
+  "goi-hoc-tap": { title: "Gói học tập | AECK", description: "Các gói học tập mở khóa khóa học và phòng luyện thi AECK." },
+  "dang-ky-minh-chung": { title: "Đăng ký minh chứng | AECK", description: "Đăng ký tham gia và gửi minh chứng cho các chương trình AECK." },
+  ...Object.fromEntries(Object.entries(articleDocuments).map(([slug, document]) => [slug, { title: `${document.title} | AECK`, description: document.intro }])),
+  ...Object.fromEntries(Object.entries(legalDocuments).map(([slug, document]) => [slug, { title: `${document.title} | AECK`, description: document.title }])),
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const item = slug.length === 1 ? publicMetadata[slug[0]] : undefined;
+  return item ?? {};
+}
+
 export default async function CatchAllPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
+  if (slug.length === 1 && slug[0] === "portal") redirect("/courses");
+  const publicRoute = slug.length === 1 && publicRoutes.has(slug[0]) ? slug[0] as AeckPublicRoute : null;
+  if (publicRoute) return <AeckPublicSite route={publicRoute} />;
   const validStaticRoute = slug.length === 1 && staticRoutes.has(slug[0]);
   const validDetailRoute = slug.length === 2 && (slug[0] === "courses" || slug[0] === "lessons") && Boolean(slug[1]);
   const validDirectGuestExamRoute = slug.length === 2 && slug[0] === "exam" && guestTokenSegment.test(slug[1]) && !uuidSegment.test(slug[1]);

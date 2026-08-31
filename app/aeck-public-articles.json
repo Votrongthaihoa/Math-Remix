@@ -1,0 +1,1122 @@
+{
+  "luyen-thi-tsa": {
+    "slug": "luyen-thi-tsa",
+    "title": "Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết",
+    "eyebrow": "Đánh giá tư duy — TSA",
+    "intro": "TSA là kỳ thi riêng do Đại học Bách khoa Hà Nội tổ chức, đánh giá năng lực tư duy thay vì kiểm tra thuộc bài. Trang này tổng hợp những gì bạn cần nắm trước khi quyết định ôn thi.",
+    "toc": [
+      {
+        "label": "TSA là kỳ thi gì?",
+        "href": "#tsa-la-gi"
+      },
+      {
+        "label": "Bài thi đánh giá những năng lực nào?",
+        "href": "#danh-gia-gi"
+      },
+      {
+        "label": "Ai nên thi TSA?",
+        "href": "#ai-nen-thi"
+      },
+      {
+        "label": "Thi như thế nào, ở đâu?",
+        "href": "#hinh-thuc-thi"
+      },
+      {
+        "label": "Đăng ký dự thi",
+        "href": "#dang-ky"
+      },
+      {
+        "label": "Ôn TSA bắt đầu từ đâu",
+        "href": "#on-tap"
+      }
+    ],
+    "sections": [
+      {
+        "id": "tsa-la-gi",
+        "title": "TSA là kỳ thi gì?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "TSA viết tắt của Thinking Skills Assessment — Đánh giá tư duy. Đại học Bách khoa Hà Nội bắt đầu nghiên cứu và triển khai kỳ thi này từ năm 2020, với mục tiêu đưa mô hình thi đánh giá tư duy đang phổ biến ở các nước phát triển về Việt Nam."
+          },
+          {
+            "tag": "p",
+            "text": "Điểm khác biệt lớn nhất so với kỳ thi tốt nghiệp THPT: bài thi không kiểm tra kiến thức của một môn học cụ thể nào. Thay vào đó, các câu hỏi được thiết kế để đo năng lực tư duy — thứ quyết định bạn học đại học có tốt hay không. Bách khoa đặt TSA ở cùng nhóm với các kỳ thi như SAT hay ACT của Mỹ."
+          },
+          {
+            "tag": "p",
+            "text": "Vì vậy, cách ôn TSA khác hẳn cách ôn thi tốt nghiệp. Học thuộc công thức không giúp được nhiều; cái cần rèn là tốc độ đọc, khả năng suy luận nhiều bước và xử lý dữ liệu khoa học dưới áp lực thời gian."
+          }
+        ]
+      },
+      {
+        "id": "danh-gia-gi",
+        "title": "Bài thi đánh giá những năng lực nào?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bài thi đo ba năng lực tư duy nền tảng, tương ứng với ba phần thi:"
+          },
+          {
+            "tag": "ul",
+            "text": "Tư duy Toán học — vận dụng kiến thức toán phổ thông vào bài toán thực tế, nhấn mạnh tư duy định lượng và tính toán. Tư duy Đọc hiểu — đọc nhanh, hiểu đúng, phân tích và lập luận trên văn bản tiếng Việt. Tư duy Khoa học / Giải quyết vấn đề — đọc dữ liệu khoa học, suy luận và chọn phương án hợp lý.",
+            "items": [
+              "Tư duy Toán học — vận dụng kiến thức toán phổ thông vào bài toán thực tế, nhấn mạnh tư duy định lượng và tính toán.",
+              "Tư duy Đọc hiểu — đọc nhanh, hiểu đúng, phân tích và lập luận trên văn bản tiếng Việt.",
+              "Tư duy Khoa học / Giải quyết vấn đề — đọc dữ liệu khoa học, suy luận và chọn phương án hợp lý."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Trong mỗi phần, câu hỏi lại được chia theo ba mức độ tư duy: tái hiện (M1), suy luận (M2) và bậc cao (M3). Mức M1 chỉ yêu cầu nhớ lại và làm theo quy trình đã biết; M2 đòi hỏi phân tích, so sánh, giải thích; M3 yêu cầu đánh giá, phán đoán và lập luận nhiều bước dựa trên bằng chứng."
+          },
+          {
+            "tag": "p",
+            "text": "Hiểu ba mức này rất quan trọng khi ôn: điểm số TSA phụ thuộc vào việc bạn làm được câu khó tới đâu, chứ không chỉ làm được bao nhiêu câu. Chi tiết cách chấm nằm ở trang riêng bên dưới."
+          }
+        ]
+      },
+      {
+        "id": "ai-nen-thi",
+        "title": "Ai nên thi TSA?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "TSA phù hợp với học sinh nhắm vào các ngành kỹ thuật, công nghệ, kinh tế, tài chính, ngân hàng — những lĩnh vực cần nền tư duy định lượng và đọc hiểu tốt."
+          },
+          {
+            "tag": "p",
+            "text": "Về phạm vi sử dụng, tính đến tháng 5/2026 đã có 50 trường đại học dùng kết quả TSA để xét tuyển, không chỉ riêng Bách khoa. Trong danh sách có Đại học Kinh tế Quốc dân, Đại học Ngoại thương, Đại học Thương mại, Đại học Dược Hà Nội, Đại học Giao thông vận tải, Đại học Xây dựng Hà Nội, Đại học Thủy lợi, Học viện Tài chính, Học viện Công nghệ Bưu chính Viễn thông và nhiều trường khác."
+          },
+          {
+            "tag": "p",
+            "text": "Nói cách khác, một lần thi mở ra nhiều cửa xét tuyển. Đây là lý do chính khiến số thí sinh đăng ký TSA tăng đều qua từng năm."
+          }
+        ]
+      },
+      {
+        "id": "hinh-thuc-thi",
+        "title": "Thi như thế nào, ở đâu?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "TSA thi trực tuyến trên máy tính, tập trung tại phòng máy của các đơn vị được giao tổ chức — không thi trên giấy và cũng không thi tại nhà."
+          },
+          {
+            "tag": "p",
+            "text": "Điểm thi trải khắp miền Bắc và một phần miền Trung. Ngoài Hà Nội (Bách khoa, Kinh tế Quốc dân, Xây dựng, Thủy lợi, Giao thông vận tải, Công nghiệp Hà Nội, Phenikaa và nhiều trường khác), kỳ thi còn được tổ chức tại Hưng Yên, Thái Nguyên, Ninh Bình, Hải Phòng, Quảng Ninh, Thanh Hóa, Lào Cai, Sơn La, Nghệ An, Hà Tĩnh và Đà Nẵng."
+          },
+          {
+            "tag": "div",
+            "text": "Số chỗ mỗi điểm thi có hạn và địa điểm đã đăng ký thì không đổi được. Chọn điểm thi ngay khi cổng mở là an toàn nhất."
+          }
+        ]
+      },
+      {
+        "id": "dang-ky",
+        "title": "Đăng ký dự thi",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Thí sinh đăng ký tài khoản và nộp hồ sơ trên hệ thống của Bách khoa tại tsa.hust.edu.vn. Cần có Căn cước công dân để tạo tài khoản."
+          },
+          {
+            "tag": "p",
+            "text": "Cổng đăng ký của mỗi đợt thường mở trước ngày thi khoảng hai đến ba tuần và đóng sớm hơn ngày thi. Vì số chỗ có hạn, nên theo dõi thông báo chính thức và đăng ký ngay ngày đầu tiên thay vì đợi đến hạn chót."
+          }
+        ]
+      },
+      {
+        "id": "on-tap",
+        "title": "Ôn TSA bắt đầu từ đâu",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Vì bài thi đo tư duy chứ không đo trí nhớ, lộ trình ôn hợp lý thường đi theo ba bước:"
+          },
+          {
+            "tag": "ul",
+            "text": "Nắm luật chơi trước. Đọc kỹ cấu trúc từng phần, các dạng câu hỏi và cách chấm điểm. Rất nhiều bạn mất điểm oan chỉ vì không biết câu nhiều ý phải đúng hết mới được tính. Làm quen áp lực thời gian. 100 câu trong 150 phút nghĩa là trung bình chưa tới một phút rưỡi cho mỗi câu. Kỹ năng bỏ qua câu khó đúng lúc quan trọng ngang với kỹ năng giải. Luyện đề đều và soi lại lỗi. Làm đề xong mà không phân tích vì sao sai thì lần sau vẫn sai y hệt.",
+            "items": [
+              "Nắm luật chơi trước. Đọc kỹ cấu trúc từng phần, các dạng câu hỏi và cách chấm điểm. Rất nhiều bạn mất điểm oan chỉ vì không biết câu nhiều ý phải đúng hết mới được tính.",
+              "Làm quen áp lực thời gian. 100 câu trong 150 phút nghĩa là trung bình chưa tới một phút rưỡi cho mỗi câu. Kỹ năng bỏ qua câu khó đúng lúc quan trọng ngang với kỹ năng giải.",
+              "Luyện đề đều và soi lại lỗi. Làm đề xong mà không phân tích vì sao sai thì lần sau vẫn sai y hệt."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "AECK xây kho đề bám sát cấu trúc TSA cùng phòng luyện mô phỏng đúng trải nghiệm thi trên máy, kèm phần chữa chi tiết từng câu. Sau mỗi bài, hệ thống chỉ ra bạn yếu ở phần nào và ở mức tư duy nào để biết đường ôn tiếp."
+          }
+        ]
+      },
+      {
+        "id": "hoi-dap",
+        "title": "Câu hỏi thường gặp",
+        "faq": [
+          {
+            "question": "TSA thi trên máy tính hay trên giấy?",
+            "answer": "Thi trực tuyến trên máy tính, tập trung tại phòng máy của đơn vị tổ chức thi. Không có hình thức thi trên giấy."
+          },
+          {
+            "question": "TSA có kiểm tra kiến thức môn học không?",
+            "answer": "Bài thi không trực tiếp kiểm tra kiến thức của một môn cụ thể. Tuy nhiên phần Tư duy Toán học vẫn nằm trong chương trình toán phổ thông, nên vẫn cần nền kiến thức vững để vận dụng."
+          },
+          {
+            "question": "Kết quả TSA dùng được ở bao nhiêu trường?",
+            "answer": "Tính đến tháng 5/2026, đã có 50 trường đại học sử dụng kết quả TSA để xét tuyển, gồm cả các trường khối kinh tế và y dược chứ không riêng khối kỹ thuật."
+          },
+          {
+            "question": "Cần giấy tờ gì để đăng ký thi?",
+            "answer": "Cần Căn cước công dân để đăng ký tài khoản trên hệ thống tsa.hust.edu.vn của Đại học Bách khoa Hà Nội."
+          }
+        ]
+      }
+    ],
+    "references": {
+      "links": [
+        {
+          "label": "Giới thiệu về Kỳ thi Đánh giá tư duy — TSA (ĐH Bách khoa Hà Nội)",
+          "href": "https://ts.hust.edu.vn/tin-tuc/gioi-thieu-ve-ky-thi-danh-gia-tu-duy-tsa"
+        }
+      ],
+      "note": "Số liệu về kỳ thi được tổng hợp từ công bố chính thức của Đại học Bách khoa Hà Nội. Thí sinh nên đối chiếu lại với thông báo mới nhất trước mỗi đợt thi."
+    }
+  },
+  "cau-truc-de-thi-tsa": {
+    "slug": "cau-truc-de-thi-tsa",
+    "title": "Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút",
+    "eyebrow": "Đánh giá tư duy — TSA",
+    "intro": "Biết trước đề có gì là bước đầu tiên khi ôn TSA. Dưới đây là cấu trúc bài thi theo công bố chính thức của Đại học Bách khoa Hà Nội.",
+    "toc": [
+      {
+        "label": "Tổng quan bài thi",
+        "href": "#tong-quan"
+      },
+      {
+        "label": "Phần 1 — Tư duy Toán học (60 phút)",
+        "href": "#tu-duy-toan-hoc"
+      },
+      {
+        "label": "Phần 2 — Tư duy Đọc hiểu (30 phút)",
+        "href": "#tu-duy-doc-hieu"
+      },
+      {
+        "label": "Phần 3 — Tư duy Khoa học / Giải quyết vấn đề (60 phút)",
+        "href": "#tu-duy-khoa-hoc"
+      },
+      {
+        "label": "Ba mức độ tư duy trong đề",
+        "href": "#muc-do-tu-duy"
+      },
+      {
+        "label": "Năm dạng câu hỏi",
+        "href": "#dang-cau-hoi"
+      }
+    ],
+    "sections": [
+      {
+        "id": "tong-quan",
+        "title": "Tổng quan bài thi",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bài thi TSA kéo dài 150 phút với 100 câu hỏi trắc nghiệm, chia thành ba phần thi độc lập. Cấu trúc này được thiết kế từ năm 2022 theo hướng gọn nhẹ và bỏ hẳn cách chia theo tổ hợp môn học."
+          },
+          {
+            "tag": "div",
+            "text": "Phần thi Thời lượng Tư duy Toán học 60 phút Tư duy Đọc hiểu 30 phút Tư duy Khoa học / Giải quyết vấn đề 60 phút Tổng 150 phút — 100 câu"
+          },
+          {
+            "tag": "p",
+            "text": "Trung bình mỗi câu chưa tới một phút rưỡi. Phần Đọc hiểu là phần gấp nhất: chỉ 30 phút nhưng phải đọc những văn bản dài 800 đến 1.000 từ."
+          }
+        ]
+      },
+      {
+        "id": "tu-duy-toan-hoc",
+        "title": "Phần 1 — Tư duy Toán học (60 phút)",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Phần này đánh giá khả năng vận dụng kiến thức toán cơ bản vào bài toán thực tế, đồng thời dự báo khả năng học toán và các môn khoa học liên quan ở bậc đại học."
+          },
+          {
+            "tag": "p",
+            "text": "Nội dung nằm trong chương trình trung học phổ thông, gồm số học, đại số, hàm số, hình học, thống kê và xác suất."
+          },
+          {
+            "tag": "p",
+            "text": "Câu hỏi đặt trong ngữ cảnh cụ thể chứ ít khi hỏi công thức trần. Bạn sẽ phải mô hình hóa tình huống, tính toán, diễn giải kết quả rồi đưa ra quyết định dựa trên dữ liệu. Trọng tâm là tư duy định lượng."
+          }
+        ]
+      },
+      {
+        "id": "tu-duy-doc-hieu",
+        "title": "Phần 2 — Tư duy Đọc hiểu (30 phút)",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Phần ngắn nhất nhưng thường bị đánh giá thấp nhất. Nhiệm vụ là đọc nhanh và hiểu đúng các văn bản tiếng Việt dài từ 800 đến 1.000 từ, rồi phân tích, khái quát và suy luận từ đó."
+          },
+          {
+            "tag": "p",
+            "text": "Chủ đề văn bản rất rộng: khoa học, công nghệ, kinh tế, kỹ thuật, công nghiệp, nông nghiệp, tài chính, ngân hàng, y dược. Thể loại cũng đa dạng, từ văn bản khoa học tới văn bản văn học và báo chí."
+          },
+          {
+            "tag": "p",
+            "text": "Câu hỏi yêu cầu xác định ý chính, định vị chi tiết quan trọng, hiểu chuỗi sự kiện và quan hệ nhân quả, đoán nghĩa từ theo ngữ cảnh, phân tích giọng văn và lập luận của tác giả, có khi phải tổng hợp thông tin từ nhiều văn bản liên quan."
+          },
+          {
+            "tag": "div",
+            "text": "Với 30 phút cho những văn bản cỡ đó, tốc độ đọc là yếu tố sống còn. Đây là phần đáng luyện sớm nhất vì tiến bộ chậm, không thể nhồi trong vài tuần cuối."
+          }
+        ]
+      },
+      {
+        "id": "tu-duy-khoa-hoc",
+        "title": "Phần 3 — Tư duy Khoa học / Giải quyết vấn đề (60 phút)",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Phần này đưa ra một tập hợp thông tin khoa học rồi hỏi các câu trắc nghiệm dựa trên đó. Nó đo khả năng tính toán, giải thích dữ liệu và chọn phương án phù hợp với ngữ liệu được cho."
+          },
+          {
+            "tag": "p",
+            "text": "Thông tin khoa học xuất hiện dưới ba dạng chính:"
+          },
+          {
+            "tag": "ul",
+            "text": "Biểu diễn dữ liệu — đồ thị khoa học, bảng biểu, sơ đồ. Tóm tắt nghiên cứu — mô tả một hoặc nhiều thí nghiệm liên quan. Quan điểm xung đột — hai hay nhiều mô hình lý thuyết mâu thuẫn nhau, phải phân tích và đối chiếu.",
+            "items": [
+              "Biểu diễn dữ liệu — đồ thị khoa học, bảng biểu, sơ đồ.",
+              "Tóm tắt nghiên cứu — mô tả một hoặc nhiều thí nghiệm liên quan.",
+              "Quan điểm xung đột — hai hay nhiều mô hình lý thuyết mâu thuẫn nhau, phải phân tích và đối chiếu."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Câu hỏi tích hợp nhiều lĩnh vực khoa học tự nhiên và công nghệ, nên không thể ôn theo kiểu học riêng lẻ từng môn."
+          }
+        ]
+      },
+      {
+        "id": "muc-do-tu-duy",
+        "title": "Ba mức độ tư duy trong đề",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Câu hỏi trong đề được phân theo ba mức từ thấp đến cao:"
+          },
+          {
+            "tag": "div",
+            "text": "Mức Tên gọi Yêu cầu M1 Tư duy tái hiện Nhớ lại kiến thức, làm theo quy trình đã biết: xác định, tìm kiếm, lựa chọn, nhắc lại, ghép nối M2 Tư duy suy luận Lập luận có căn cứ, phân tích và tổng hợp: phân loại, so sánh, vận dụng, giải thích, tóm tắt M3 Tư duy bậc cao Thiết lập mô hình đánh giá, giải thích dựa trên bằng chứng: phân tích, phán đoán, lập luận nhiều bước, kiểm tra giả thuyết"
+          },
+          {
+            "tag": "p",
+            "text": "Sự phân tầng này không chỉ để tham khảo. Cách chấm điểm TSA khiến câu khó có trọng số cao hơn câu dễ, nên hai bạn cùng làm đúng số câu như nhau vẫn có thể ra điểm khác nhau."
+          }
+        ]
+      },
+      {
+        "id": "dang-cau-hoi",
+        "title": "Năm dạng câu hỏi",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Đề TSA không chỉ có dạng bốn phương án quen thuộc. Có tất cả năm dạng:"
+          },
+          {
+            "tag": "ul",
+            "text": "Chọn 1 trong 4 đáp án Chọn đáp án Đúng / Sai Chọn nhiều đáp án đúng Kéo thả đáp án đúng từ các phương án cho trước Điền đáp án đúng",
+            "items": [
+              "Chọn 1 trong 4 đáp án",
+              "Chọn đáp án Đúng / Sai",
+              "Chọn nhiều đáp án đúng",
+              "Kéo thả đáp án đúng từ các phương án cho trước",
+              "Điền đáp án đúng"
+            ]
+          },
+          {
+            "tag": "div",
+            "text": "Quy tắc dễ mất điểm nhất: với các dạng câu nhiều ý, bạn phải trả lời đúng tất cả các ý thì câu đó mới được tính là đúng. Đúng một nửa vẫn bằng không."
+          },
+          {
+            "tag": "p",
+            "text": "Vì có dạng kéo thả và điền đáp án, việc luyện trên máy tính là bắt buộc. Làm đề trên giấy sẽ không mô phỏng được thao tác thật và dễ mất thời gian trong phòng thi."
+          }
+        ]
+      },
+      {
+        "id": "hoi-dap",
+        "title": "Câu hỏi thường gặp",
+        "faq": [
+          {
+            "question": "Đề thi TSA có bao nhiêu câu và làm trong bao lâu?",
+            "answer": "100 câu hỏi trắc nghiệm trong 150 phút, chia làm ba phần: Tư duy Toán học 60 phút, Tư duy Đọc hiểu 30 phút, Tư duy Khoa học / Giải quyết vấn đề 60 phút."
+          },
+          {
+            "question": "Câu hỏi nhiều ý mà chỉ đúng một phần thì có được điểm không?",
+            "answer": "Không. Với các dạng câu hỏi trắc nghiệm nhiều ý, thí sinh phải trả lời đúng hết các ý thì câu đó mới được tính là trả lời đúng."
+          },
+          {
+            "question": "Văn bản phần Đọc hiểu dài bao nhiêu?",
+            "answer": "Các văn bản tiếng Việt có độ dài từ 800 đến 1.000 từ, chủ đề trải rộng từ khoa học, công nghệ tới kinh tế, tài chính, y dược."
+          },
+          {
+            "question": "Phần Tư duy Toán học gồm những nội dung nào?",
+            "answer": "Nằm trong chương trình trung học phổ thông, gồm số học, đại số, hàm số, hình học, thống kê và xác suất, đặt trong các bài toán có ngữ cảnh thực tế."
+          }
+        ]
+      }
+    ],
+    "references": {
+      "links": [
+        {
+          "label": "Giới thiệu về Kỳ thi Đánh giá tư duy — TSA (ĐH Bách khoa Hà Nội)",
+          "href": "https://ts.hust.edu.vn/tin-tuc/gioi-thieu-ve-ky-thi-danh-gia-tu-duy-tsa"
+        }
+      ],
+      "note": "Số liệu về kỳ thi được tổng hợp từ công bố chính thức của Đại học Bách khoa Hà Nội. Thí sinh nên đối chiếu lại với thông báo mới nhất trước mỗi đợt thi."
+    }
+  },
+  "cach-tinh-diem-tsa": {
+    "slug": "cach-tinh-diem-tsa",
+    "title": "Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao",
+    "eyebrow": "Đánh giá tư duy — TSA",
+    "intro": "Đây là phần gây hiểu nhầm nhiều nhất. Hai thí sinh cùng làm đúng 70 câu vẫn có thể nhận hai mức điểm TSA khác nhau — và điều đó là đúng chứ không phải lỗi hệ thống.",
+    "toc": [
+      {
+        "label": "Điểm TSA không phải điểm thô",
+        "href": "#khong-phai-diem-tho"
+      },
+      {
+        "label": "Mô hình IRT hai tham số",
+        "href": "#irt"
+      },
+      {
+        "label": "Quy trình chấm bốn bước",
+        "href": "#quy-trinh-4-buoc"
+      },
+      {
+        "label": "Thang điểm và điểm thành phần",
+        "href": "#thang-diem"
+      },
+      {
+        "label": "Điểm các đợt thi có so sánh được không?",
+        "href": "#cong-bang-giua-cac-dot"
+      },
+      {
+        "label": "Cách chấm này ảnh hưởng gì tới cách ôn",
+        "href": "#on-luyen"
+      }
+    ],
+    "sections": [
+      {
+        "id": "khong-phai-diem-tho",
+        "title": "Điểm TSA không phải điểm thô",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Hầu hết kỳ thi ở Việt Nam từ trước tới nay dùng điểm thô: cộng điểm các câu trả lời đúng. Đề 100 câu, mỗi câu 1 điểm, làm đúng 70 câu thì được 70 điểm."
+          },
+          {
+            "tag": "p",
+            "text": "Cách này có một lỗ hổng. Trong cùng một đợt thi, nhiều bạn cùng được 70 điểm thô nhưng tập hợp câu họ làm đúng lại khác nhau, và độ khó của những câu đó cũng khác nhau. Một bạn làm đúng 70 câu dễ và một bạn làm đúng 70 câu khó rõ ràng không cùng năng lực, nhưng điểm thô cho họ kết quả y hệt."
+          },
+          {
+            "tag": "p",
+            "text": "Đó là lý do Bách khoa không dùng điểm thô làm kết quả cuối cùng của TSA."
+          }
+        ]
+      },
+      {
+        "id": "irt",
+        "title": "Mô hình IRT hai tham số",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "TSA được chấm bằng lý thuyết ứng đáp câu hỏi — Item Response Theory, viết tắt IRT. Đây là công cụ đo lường đang được dùng cho các kỳ thi tuyển sinh lớn trên thế giới."
+          },
+          {
+            "tag": "p",
+            "text": "Ý tưởng nền: mỗi thí sinh có một mức năng lực nhất định, và người năng lực cao thì xác suất trả lời đúng một câu bất kỳ cũng cao hơn. Từ giả thuyết đó, có thể ước lượng đồng thời hai thứ độc lập nhau — đặc tính của câu hỏi và năng lực của thí sinh."
+          },
+          {
+            "tag": "p",
+            "text": "Bách khoa áp dụng mô hình IRT hai tham số, tức là mỗi câu hỏi được mô tả bằng hai chỉ số:"
+          },
+          {
+            "tag": "ul",
+            "text": "Độ khó — câu hỏi đòi hỏi mức năng lực bao nhiêu thì trả lời được. Độ phân biệt — câu hỏi tách được người giỏi khỏi người kém tốt tới đâu.",
+            "items": [
+              "Độ khó — câu hỏi đòi hỏi mức năng lực bao nhiêu thì trả lời được.",
+              "Độ phân biệt — câu hỏi tách được người giỏi khỏi người kém tốt tới đâu."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Hệ quả rất trực tiếp: làm được càng nhiều câu khó thì điểm TSA càng cao. Nếu chỉ làm được những câu dễ, điểm sẽ thấp dù số câu đúng không ít. Đây chính là lý do cùng điểm thô vẫn ra điểm TSA khác nhau."
+          }
+        ]
+      },
+      {
+        "id": "quy-trinh-4-buoc",
+        "title": "Quy trình chấm bốn bước",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Phần mềm chấm thi không tính điểm ngay từ bài làm mà đi qua bốn công đoạn:"
+          },
+          {
+            "tag": "ol",
+            "text": "Dựa trên kết quả làm bài của toàn bộ thí sinh trong cùng kíp thi, ước lượng độ khó và độ phân biệt của từng câu hỏi trong đề. Ước lượng điểm năng lực tư duy của từng thí sinh dựa trên bài làm và thang đo của chính đề thi đó. Quy đổi thang đo của đề hiện tại về thang tham chiếu chung với các đợt thi trước. Quy đổi điểm năng lực đã tham chiếu sang điểm TSA cuối cùng.",
+            "items": [
+              "Dựa trên kết quả làm bài của toàn bộ thí sinh trong cùng kíp thi, ước lượng độ khó và độ phân biệt của từng câu hỏi trong đề.",
+              "Ước lượng điểm năng lực tư duy của từng thí sinh dựa trên bài làm và thang đo của chính đề thi đó.",
+              "Quy đổi thang đo của đề hiện tại về thang tham chiếu chung với các đợt thi trước.",
+              "Quy đổi điểm năng lực đã tham chiếu sang điểm TSA cuối cùng."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Nói cách khác, điểm TSA được tính từ toàn bộ mẫu hình trả lời của bạn trên cả bài thi, chứ không phải bằng phép cộng điểm từng câu."
+          }
+        ]
+      },
+      {
+        "id": "thang-diem",
+        "title": "Thang điểm và điểm thành phần",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Điểm năng lực sau khi ước lượng được quy đổi về thang điểm 100. Đây là con số bạn thấy trên giấy báo kết quả và là con số các trường dùng để xét tuyển."
+          },
+          {
+            "tag": "p",
+            "text": "Ngoài điểm tổng, thí sinh còn nhận điểm thành phần của từng lĩnh vực. Nhưng có hai điều cần nhớ:"
+          },
+          {
+            "tag": "ul",
+            "text": "Điểm ba phần nằm trên ba thang đo riêng biệt, nên cộng chúng lại sẽ không ra điểm tổng. Phép cộng cơ học ở đây không còn đúng. So sánh điểm giữa các lĩnh vực với nhau, hoặc so điểm thành phần với điểm tổng, đều không có ý nghĩa.",
+            "items": [
+              "Điểm ba phần nằm trên ba thang đo riêng biệt, nên cộng chúng lại sẽ không ra điểm tổng. Phép cộng cơ học ở đây không còn đúng.",
+              "So sánh điểm giữa các lĩnh vực với nhau, hoặc so điểm thành phần với điểm tổng, đều không có ý nghĩa."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Điểm thành phần sinh ra để bạn tự soi mình mạnh yếu ở đâu trong từng lĩnh vực và đối chiếu với thí sinh khác trong chính lĩnh vực đó — chứ không phải để cộng trừ."
+          }
+        ]
+      },
+      {
+        "id": "cong-bang-giua-cac-dot",
+        "title": "Điểm các đợt thi có so sánh được không?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Có. Đây là mục đích của bước ba trong quy trình chấm."
+          },
+          {
+            "tag": "p",
+            "text": "Mỗi đợt thi dùng đề khác nhau nên độ khó trung bình khó mà giống hệt. Nếu để nguyên, thí sinh gặp đề khó hơn sẽ thiệt. Vì vậy điểm của mọi đợt đều được đưa về cùng một thang đo chung trước khi công bố và xét tuyển."
+          },
+          {
+            "tag": "p",
+            "text": "Nhờ đó, 70 điểm ở đợt 1 và 70 điểm ở đợt 3 mang cùng một ý nghĩa về năng lực. Bạn không cần đoán xem đợt nào đề dễ hơn để chọn thi."
+          }
+        ]
+      },
+      {
+        "id": "on-luyen",
+        "title": "Cách chấm này ảnh hưởng gì tới cách ôn",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Hiểu cơ chế chấm sẽ đổi hẳn chiến thuật ôn của bạn:"
+          },
+          {
+            "tag": "ul",
+            "text": "Đừng chỉ săn câu dễ. Làm hết câu dễ mà bỏ trắng câu khó thì điểm sẽ chững lại ở một ngưỡng, dù số câu đúng trông có vẻ nhiều. Đừng đánh giá bản thân bằng số câu đúng. Con số đó không phản ánh điểm TSA. Cái cần theo dõi là bạn đã chạm được tới mức tư duy nào. Đừng so điểm ba phần với nhau. Đọc hiểu 60 và Toán 70 không có nghĩa bạn giỏi toán hơn đọc hiểu — hai thang đo khác nhau.",
+            "items": [
+              "Đừng chỉ săn câu dễ. Làm hết câu dễ mà bỏ trắng câu khó thì điểm sẽ chững lại ở một ngưỡng, dù số câu đúng trông có vẻ nhiều.",
+              "Đừng đánh giá bản thân bằng số câu đúng. Con số đó không phản ánh điểm TSA. Cái cần theo dõi là bạn đã chạm được tới mức tư duy nào.",
+              "Đừng so điểm ba phần với nhau. Đọc hiểu 60 và Toán 70 không có nghĩa bạn giỏi toán hơn đọc hiểu — hai thang đo khác nhau."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Phòng luyện của AECK phân tích kết quả theo từng phần và từng mức tư duy, cho bạn thấy mình đang vướng ở đâu thay vì chỉ đưa ra một con số đúng/sai. Kho đề được biên soạn bám cấu trúc thật, có đủ cả câu ở mức tư duy bậc cao để bạn không luyện lệch về phần dễ."
+          }
+        ]
+      },
+      {
+        "id": "hoi-dap",
+        "title": "Câu hỏi thường gặp",
+        "faq": [
+          {
+            "question": "Điểm TSA tối đa là bao nhiêu?",
+            "answer": "Điểm năng lực của thí sinh được quy đổi về thang điểm 100."
+          },
+          {
+            "question": "Hai thí sinh cùng làm đúng số câu như nhau có cùng điểm TSA không?",
+            "answer": "Không nhất thiết. Vì TSA chấm theo mô hình IRT hai tham số, ai làm đúng những câu khó hơn sẽ có điểm cao hơn, dù tổng số câu đúng bằng nhau."
+          },
+          {
+            "question": "Cộng điểm ba phần có ra điểm TSA tổng không?",
+            "answer": "Không. Điểm ba phần nằm trên ba thang đo riêng biệt nên không cộng lại được, và việc so sánh điểm giữa các phần cũng không có ý nghĩa."
+          },
+          {
+            "question": "Điểm của các đợt thi khác nhau có so sánh được với nhau không?",
+            "answer": "Có. Điểm của tất cả các đợt đều được quy về cùng một thang đo tham chiếu chung trước khi công bố, nhằm đảm bảo công bằng giữa các đợt có độ khó đề khác nhau."
+          }
+        ]
+      }
+    ],
+    "references": {
+      "links": [
+        {
+          "label": "Hiểu thế nào về phương pháp chấm điểm TSA (ĐH Bách khoa Hà Nội)",
+          "href": "https://ts.hust.edu.vn/tin-tuc/hieu-the-nao-ve-phuong-phap-cham-diem-tsa-cua-dai-hoc-bach-khoa-ha-noi"
+        },
+        {
+          "label": "Vì sao điểm thi TSA phản ánh chính xác năng lực tư duy của thí sinh?",
+          "href": "https://hust.edu.vn/vi/news/tin-tuc-su-kien/vi-sao-diem-thi-tsa-phan-anh-chinh-xac-nang-luc-tu-duy-cua-thi-sinh-655844.html"
+        }
+      ],
+      "note": "Số liệu về kỳ thi được tổng hợp từ công bố chính thức của Đại học Bách khoa Hà Nội. Thí sinh nên đối chiếu lại với thông báo mới nhất trước mỗi đợt thi."
+    }
+  },
+  "luyen-thi-hsa": {
+    "slug": "luyen-thi-hsa",
+    "title": "Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội",
+    "eyebrow": "Đánh giá năng lực — HSA",
+    "intro": "HSA là kỳ thi đánh giá năng lực do Đại học Quốc gia Hà Nội tổ chức. Đây là một trong hai kỳ thi riêng được nhiều trường phía Bắc sử dụng nhất, bên cạnh TSA của Bách khoa.",
+    "toc": [
+      {
+        "label": "HSA là kỳ thi gì?",
+        "href": "#hsa-la-gi"
+      },
+      {
+        "label": "Bài thi đánh giá những gì?",
+        "href": "#danh-gia-gi"
+      },
+      {
+        "label": "Một năm được thi mấy lượt?",
+        "href": "#so-lan-thi"
+      },
+      {
+        "label": "Bao nhiêu trường dùng kết quả HSA?",
+        "href": "#truong-su-dung"
+      },
+      {
+        "label": "Thi ở đâu?",
+        "href": "#dia-diem"
+      },
+      {
+        "label": "Ôn HSA thế nào cho hiệu quả",
+        "href": "#on-tap"
+      }
+    ],
+    "sections": [
+      {
+        "id": "hsa-la-gi",
+        "title": "HSA là kỳ thi gì?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "HSA là bài thi đánh giá năng lực học sinh trung học phổ thông, do Viện Đào tạo số và Khảo thí thuộc Đại học Quốc gia Hà Nội tổ chức."
+          },
+          {
+            "tag": "p",
+            "text": "Khác với TSA của Bách khoa vốn đo năng lực tư duy thuần túy, HSA đánh giá các nhóm năng lực, kiến thức và kỹ năng mà học sinh tích lũy trong suốt ba năm phổ thông. Nói cách khác, HSA gần với chương trình học hơn — nền kiến thức phổ thông vững vẫn là lợi thế trực tiếp."
+          },
+          {
+            "tag": "p",
+            "text": "Bài thi hiện chỉ tổ chức trên máy tính, không có hình thức thi trên giấy."
+          }
+        ]
+      },
+      {
+        "id": "danh-gia-gi",
+        "title": "Bài thi đánh giá những gì?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bài thi trải trên ba lĩnh vực, tương ứng ba phần thi:"
+          },
+          {
+            "tag": "ul",
+            "text": "Tư duy định lượng — Toán học và xử lý số liệu. Tư duy định tính — Văn học và Ngôn ngữ. Khoa học hoặc Tiếng Anh — phần tự chọn, thí sinh quyết định thi nội dung nào.",
+            "items": [
+              "Tư duy định lượng — Toán học và xử lý số liệu.",
+              "Tư duy định tính — Văn học và Ngôn ngữ.",
+              "Khoa học hoặc Tiếng Anh — phần tự chọn, thí sinh quyết định thi nội dung nào."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "Phần tự chọn là điểm đáng chú ý nhất của HSA và không có ở TSA. Bạn được chọn hướng phù hợp với thế mạnh của mình thay vì buộc phải làm một đề cố định. Chi tiết số câu và thời gian nằm ở trang cấu trúc đề."
+          }
+        ]
+      },
+      {
+        "id": "so-lan-thi",
+        "title": "Một năm được thi mấy lượt?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Mỗi thí sinh được đăng ký tối đa 2 ca thi trong một năm, và hai ca phải cách nhau tối thiểu 28 ngày, tính cả ngày thi."
+          },
+          {
+            "tag": "p",
+            "text": "Quy định này ảnh hưởng trực tiếp tới kế hoạch ôn. Vì chỉ có hai cơ hội, nên chọn thời điểm thi lần đầu khi đã ôn tương đối chắc, giữ lượt thứ hai làm cơ hội cải thiện — thay vì thi sớm cho biết rồi lãng phí một lượt."
+          },
+          {
+            "tag": "div",
+            "text": "Điểm HSA không bị giới hạn thời gian sử dụng, nhưng đơn vị tổ chức khuyến nghị dùng trong vòng 24 tháng kể từ ngày thi."
+          }
+        ]
+      },
+      {
+        "id": "truong-su-dung",
+        "title": "Bao nhiêu trường dùng kết quả HSA?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Đã có 100 trường đại học sử dụng kết quả HSA để xét tuyển — con số lớn hơn đáng kể so với các kỳ thi riêng khác."
+          },
+          {
+            "tag": "p",
+            "text": "Ngoài toàn bộ các trường thành viên của ĐHQG Hà Nội (Y Dược, Ngoại ngữ, Công nghệ, Khoa học Tự nhiên, Kinh tế, Luật), danh sách còn có Đại học Ngoại thương, Đại học Kinh tế Quốc dân, Học viện Ngân hàng, Đại học Hà Nội, Đại học Vinh, Học viện Hàng không Việt Nam và nhiều trường khác."
+          },
+          {
+            "tag": "p",
+            "text": "Phổ ngành cũng rộng hơn TSA: từ y dược, ngoại ngữ, luật cho tới kinh tế và kỹ thuật. Nếu bạn còn phân vân giữa các khối ngành, HSA giữ được nhiều cửa hơn."
+          }
+        ]
+      },
+      {
+        "id": "dia-diem",
+        "title": "Thi ở đâu?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Năm 2026 có 18 điểm thi đặt tại 8 tỉnh, thành phố:"
+          },
+          {
+            "tag": "div",
+            "text": "Tỉnh / Thành phố Số điểm thi Hà Nội 9 Hưng Yên 2 Ninh Bình 2 Thái Nguyên 1 Hải Phòng 1 Thanh Hóa 1 Nghệ An 1 Hà Tĩnh 1"
+          },
+          {
+            "tag": "p",
+            "text": "Riêng Hà Nội có 9 điểm, gồm hai cơ sở của Viện Đào tạo số và Khảo thí cùng các trường Khoa học Tự nhiên, Thăng Long, Tài nguyên và Môi trường, Đại Nam, Phenikaa, Kinh tế Kỹ thuật Công nghiệp và Giao thông vận tải."
+          }
+        ]
+      },
+      {
+        "id": "on-tap",
+        "title": "Ôn HSA thế nào cho hiệu quả",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Ba điểm đặc thù của HSA quyết định cách ôn:"
+          },
+          {
+            "tag": "ul",
+            "text": "Bám chương trình phổ thông. Nội dung phân bổ khoảng 60% lớp 12, 30% lớp 11 và 10% lớp 10, nên ôn HSA không tách rời khỏi ôn thi tốt nghiệp. Chọn phần tự chọn từ sớm. Quyết định thi Khoa học hay Tiếng Anh ngay từ đầu để dồn thời gian đúng chỗ, đừng để tới sát ngày mới cân nhắc. Luyện tốc độ. 150 câu trong 195 phút, trung bình mỗi câu chỉ hơn một phút. Phần Toán còn có câu điền đáp án, không thể đoán bừa.",
+            "items": [
+              "Bám chương trình phổ thông. Nội dung phân bổ khoảng 60% lớp 12, 30% lớp 11 và 10% lớp 10, nên ôn HSA không tách rời khỏi ôn thi tốt nghiệp.",
+              "Chọn phần tự chọn từ sớm. Quyết định thi Khoa học hay Tiếng Anh ngay từ đầu để dồn thời gian đúng chỗ, đừng để tới sát ngày mới cân nhắc.",
+              "Luyện tốc độ. 150 câu trong 195 phút, trung bình mỗi câu chỉ hơn một phút. Phần Toán còn có câu điền đáp án, không thể đoán bừa."
+            ]
+          },
+          {
+            "tag": "p",
+            "text": "AECK có phòng luyện riêng cho HSA với kho đề bám sát dạng thức, mô phỏng đúng trải nghiệm làm bài trên máy và chữa chi tiết sau mỗi lần nộp."
+          }
+        ]
+      },
+      {
+        "id": "hoi-dap",
+        "title": "Câu hỏi thường gặp",
+        "faq": [
+          {
+            "question": "HSA do đơn vị nào tổ chức?",
+            "answer": "Viện Đào tạo số và Khảo thí, thuộc Đại học Quốc gia Hà Nội."
+          },
+          {
+            "question": "Một năm được thi HSA mấy lần?",
+            "answer": "Tối đa 2 ca thi trong một năm, hai ca phải cách nhau tối thiểu 28 ngày tính cả ngày thi."
+          },
+          {
+            "question": "Kết quả HSA có giá trị trong bao lâu?",
+            "answer": "Điểm HSA không bị giới hạn thời gian sử dụng, nhưng đơn vị tổ chức khuyến nghị sử dụng trong vòng 24 tháng kể từ ngày thi."
+          },
+          {
+            "question": "Có bao nhiêu trường xét tuyển bằng điểm HSA?",
+            "answer": "Đã có 100 trường đại học sử dụng kết quả HSA để xét tuyển, trải rộng từ khối y dược, ngoại ngữ, luật tới kinh tế và kỹ thuật."
+          }
+        ]
+      }
+    ],
+    "references": {
+      "links": [
+        {
+          "label": "Kỳ thi ĐGNL HSA (Viện Đào tạo số và Khảo thí — ĐHQGHN)",
+          "href": "https://www.hsa.edu.vn/ky-thi/ky-thi-dgnl-hsa"
+        },
+        {
+          "label": "Danh sách trường đại học sử dụng kết quả HSA",
+          "href": "https://www.hsa.edu.vn/tra-cuu/truong-dai-hoc-su-dung"
+        },
+        {
+          "label": "Địa điểm thi HSA",
+          "href": "https://www.hsa.edu.vn/tra-cuu/dia-diem-thi"
+        }
+      ],
+      "note": "Số liệu về kỳ thi được tổng hợp từ công bố chính thức của Đại học Bách khoa Hà Nội. Thí sinh nên đối chiếu lại với thông báo mới nhất trước mỗi đợt thi."
+    }
+  },
+  "cau-truc-de-thi-hsa": {
+    "slug": "cau-truc-de-thi-hsa",
+    "title": "Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút",
+    "eyebrow": "Đánh giá năng lực — HSA",
+    "intro": "Dạng thức dưới đây áp dụng từ năm 2026, theo Quyết định số 01/QĐ-ĐTSKT ngày 05/01/2026 của Viện Đào tạo số và Khảo thí, xây dựng theo Chương trình giáo dục phổ thông 2018.",
+    "toc": [
+      {
+        "label": "Tổng quan bài thi",
+        "href": "#tong-quan"
+      },
+      {
+        "label": "Phần 1 — Toán học và xử lý số liệu (75 phút)",
+        "href": "#phan-1"
+      },
+      {
+        "label": "Phần 2 — Văn học, Ngôn ngữ (60 phút)",
+        "href": "#phan-2"
+      },
+      {
+        "label": "Phần 3 — Khoa học hoặc Tiếng Anh (60 phút)",
+        "href": "#phan-3"
+      },
+      {
+        "label": "Kiến thức rơi vào lớp mấy?",
+        "href": "#phan-bo-kien-thuc"
+      },
+      {
+        "label": "Cách chấm điểm và quy tắc làm bài",
+        "href": "#cach-cham"
+      }
+    ],
+    "sections": [
+      {
+        "id": "tong-quan",
+        "title": "Tổng quan bài thi",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bài thi HSA gồm 3 phần, tổng 150 điểm, thời gian làm bài 195 phút."
+          },
+          {
+            "tag": "div",
+            "text": "Phần thi Số câu Thời gian Phần 1 — Toán học và xử lý số liệu 50 (35 trắc nghiệm + 15 điền đáp án) 75 phút Phần 2 — Văn học, Ngôn ngữ 50 trắc nghiệm khách quan 60 phút Phần 3 — Khoa học hoặc Tiếng Anh (tự chọn) 50 (trắc nghiệm và điền đáp án) 60 phút Tổng 150 câu 195 phút — 150 điểm"
+          },
+          {
+            "tag": "p",
+            "text": "Trung bình mỗi câu khoảng 1 phút 18 giây. Phần Toán được cho nhiều thời gian nhất vì có 15 câu điền đáp án — dạng không thể khoanh bừa."
+          }
+        ]
+      },
+      {
+        "id": "phan-1",
+        "title": "Phần 1 — Toán học và xử lý số liệu (75 phút)",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Còn gọi là phần Tư duy định lượng. 50 câu gồm 35 câu trắc nghiệm và 15 câu điền đáp án, làm trong 75 phút."
+          },
+          {
+            "tag": "p",
+            "text": "15 câu điền đáp án là điểm khác biệt lớn nhất so với các đề trắc nghiệm quen thuộc. Không có phương án để loại trừ, cũng không đoán được — bạn buộc phải ra đúng kết quả. Đây thường là chỗ mất điểm nhiều nhất của thí sinh quen kiểu làm mẹo."
+          }
+        ]
+      },
+      {
+        "id": "phan-2",
+        "title": "Phần 2 — Văn học, Ngôn ngữ (60 phút)",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Còn gọi là phần Tư duy định tính. 50 câu trắc nghiệm khách quan trong 60 phút."
+          },
+          {
+            "tag": "p",
+            "text": "Phần này đo năng lực đọc hiểu và sử dụng ngôn ngữ. Vì toàn bộ là trắc nghiệm, tốc độ đọc và khả năng loại trừ phương án đóng vai trò quyết định."
+          }
+        ]
+      },
+      {
+        "id": "phan-3",
+        "title": "Phần 3 — Khoa học hoặc Tiếng Anh (60 phút)",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Phần tự chọn, 50 câu gồm cả trắc nghiệm và điền đáp án, làm trong 60 phút. Thí sinh chọn một trong hai hướng:"
+          },
+          {
+            "tag": "ul",
+            "text": "Khoa học — chọn 3 trong 5 chủ đề: Vật lí, Hóa học, Sinh học, Lịch sử, Địa lí. Tiếng Anh — đánh giá năng lực ngôn ngữ theo khung năng lực ngoại ngữ 6 bậc dùng cho Việt Nam.",
+            "items": [
+              "Khoa học — chọn 3 trong 5 chủ đề: Vật lí, Hóa học, Sinh học, Lịch sử, Địa lí.",
+              "Tiếng Anh — đánh giá năng lực ngôn ngữ theo khung năng lực ngoại ngữ 6 bậc dùng cho Việt Nam."
+            ]
+          },
+          {
+            "tag": "div",
+            "text": "Hướng Khoa học cho phép chọn 3 trong 5 chủ đề, nghĩa là bạn có thể né hẳn môn yếu. Cân nhắc kỹ tổ hợp này từ sớm vì nó quyết định phần lớn chiến lược ôn tập."
+          }
+        ]
+      },
+      {
+        "id": "phan-bo-kien-thuc",
+        "title": "Kiến thức rơi vào lớp mấy?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Nội dung bài thi bao phủ chương trình phổ thông với tỉ lệ phân bổ:"
+          },
+          {
+            "tag": "div",
+            "text": "Khối lớp Tỉ lệ Lớp 12 khoảng 60% Lớp 11 khoảng 30% Lớp 10 khoảng 10%"
+          },
+          {
+            "tag": "p",
+            "text": "Đây là khác biệt đáng kể so với TSA. HSA bám chương trình rõ ràng, nên phần lớn công sức ôn thi tốt nghiệp vẫn dùng lại được. Trọng tâm nằm ở lớp 12, nhưng đừng bỏ hẳn lớp 10 và 11 vì gộp lại vẫn chiếm khoảng 40%."
+          }
+        ]
+      },
+      {
+        "id": "cach-cham",
+        "title": "Cách chấm điểm và quy tắc làm bài",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Bài thi làm trực tiếp trên máy tính, phần mềm chấm tự động dựa trên số câu trả lời đúng. Câu trả lời sai không bị trừ điểm."
+          },
+          {
+            "tag": "p",
+            "text": "Hệ quả rất thực dụng: không bao giờ bỏ trống câu trắc nghiệm. Sai không mất gì, mà đoán vẫn có xác suất đúng. Nguyên tắc này khác hẳn TSA, nơi điểm được ước lượng theo độ khó từng câu bằng mô hình IRT chứ không đếm số câu đúng."
+          },
+          {
+            "tag": "div",
+            "text": "Bạn chỉ có thể quay lại sửa câu hỏi trong cùng một phần thi và trước khi hết giờ phần đó. Hết giờ một phần là phần đó khóa lại, không quay về được nữa. Vì vậy phải phân bổ thời gian ngay trong từng phần, đừng để dồn câu khó lại cuối cùng."
+          }
+        ]
+      },
+      {
+        "id": "hoi-dap",
+        "title": "Câu hỏi thường gặp",
+        "faq": [
+          {
+            "question": "Đề thi HSA có bao nhiêu câu và làm trong bao lâu?",
+            "answer": "150 câu, làm trong 195 phút, tổng điểm 150. Chia làm ba phần: Toán học và xử lý số liệu 50 câu trong 75 phút, Văn học Ngôn ngữ 50 câu trong 60 phút, phần tự chọn Khoa học hoặc Tiếng Anh 50 câu trong 60 phút."
+          },
+          {
+            "question": "Thi HSA sai có bị trừ điểm không?",
+            "answer": "Không. Phần mềm chấm tự động dựa trên số câu trả lời đúng, câu sai không bị trừ điểm, nên không nên bỏ trống câu trắc nghiệm nào."
+          },
+          {
+            "question": "Phần tự chọn của HSA gồm những gì?",
+            "answer": "Thí sinh chọn hướng Khoa học — với 3 trong 5 chủ đề Vật lí, Hóa học, Sinh học, Lịch sử, Địa lí — hoặc hướng Tiếng Anh theo khung năng lực ngoại ngữ 6 bậc dùng cho Việt Nam."
+          },
+          {
+            "question": "Làm xong một phần có quay lại sửa được không?",
+            "answer": "Chỉ sửa được các câu trong cùng một phần thi và trước khi hết thời gian của phần đó. Đã chuyển sang phần sau thì không quay lại được."
+          },
+          {
+            "question": "Kiến thức trong đề HSA nằm ở lớp mấy?",
+            "answer": "Khoảng 60% thuộc chương trình lớp 12, 30% lớp 11 và 10% lớp 10."
+          }
+        ]
+      }
+    ],
+    "references": {
+      "links": [
+        {
+          "label": "Dạng thức và đề cương bài thi ĐGNL áp dụng từ năm 2026 (ĐHQGHN)",
+          "href": "https://www.hsa.edu.vn/huong-dan/dang-thuc-bai-thi"
+        },
+        {
+          "label": "Đề thi tham khảo bài thi ĐGNL (ĐHQGHN)",
+          "href": "https://www.hsa.edu.vn/bai-dang/44"
+        }
+      ],
+      "note": "Số liệu về kỳ thi được tổng hợp từ công bố chính thức của Đại học Bách khoa Hà Nội. Thí sinh nên đối chiếu lại với thông báo mới nhất trước mỗi đợt thi."
+    }
+  },
+  "dang-ky-thi-hsa": {
+    "slug": "dang-ky-thi-hsa",
+    "title": "Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt",
+    "eyebrow": "Đánh giá năng lực — HSA",
+    "intro": "Phần lớn rắc rối khi đăng ký HSA không nằm ở chỗ khó, mà ở chỗ sót hạn. Dưới đây là quy trình đầy đủ cùng những mốc thời gian dễ bỏ lỡ nhất.",
+    "toc": [
+      {
+        "label": "Đăng ký ở đâu?",
+        "href": "#dang-ky-o-dau"
+      },
+      {
+        "label": "Chuẩn bị trước khi mở cổng",
+        "href": "#chuan-bi"
+      },
+      {
+        "label": "Quy trình 8 bước",
+        "href": "#quy-trinh"
+      },
+      {
+        "label": "Lệ phí và hạn thanh toán",
+        "href": "#le-phi"
+      },
+      {
+        "label": "Giới hạn số lượt thi",
+        "href": "#so-luot-thi"
+      }
+    ],
+    "sections": [
+      {
+        "id": "dang-ky-o-dau",
+        "title": "Đăng ký ở đâu?",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Thí sinh đăng ký trực tuyến trên hệ thống của Viện Đào tạo số và Khảo thí tại hsa.edu.vn hoặc khaothi.vnu.edu.vn. Không có hình thức đăng ký trực tiếp tại điểm thi."
+          }
+        ]
+      },
+      {
+        "id": "chuan-bi",
+        "title": "Chuẩn bị trước khi mở cổng",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Gom sẵn những thứ này trước, vì lúc cổng mở thì chỗ hết rất nhanh:"
+          },
+          {
+            "tag": "ul",
+            "text": "Số điện thoại chính chủ — dùng nhận mã OTP xác thực tài khoản. Email cá nhân đang dùng được. Ảnh chân dung định dạng JPEG, dung lượng dưới 5 MB, cỡ 4×6 cm, chụp trong vòng 6 tháng. Ảnh căn cước 12 số, chụp đủ cả hai mặt. Điểm trung bình học kỳ các môn Toán, Văn, Anh, Sử, Địa, Hóa, Lý, Sinh của cả lớp 10, 11 và 12.",
+            "items": [
+              "Số điện thoại chính chủ — dùng nhận mã OTP xác thực tài khoản.",
+              "Email cá nhân đang dùng được.",
+              "Ảnh chân dung định dạng JPEG, dung lượng dưới 5 MB, cỡ 4×6 cm, chụp trong vòng 6 tháng.",
+              "Ảnh căn cước 12 số, chụp đủ cả hai mặt.",
+              "Điểm trung bình học kỳ các môn Toán, Văn, Anh, Sử, Địa, Hóa, Lý, Sinh của cả lớp 10, 11 và 12."
+            ]
+          },
+          {
+            "tag": "div",
+            "text": "Phần điểm trung bình các môn của ba năm học là thứ tốn thời gian nhất. Tra học bạ và ghi ra giấy trước, đừng đợi tới lúc ngồi điền form mới đi tìm."
+          }
+        ]
+      },
+      {
+        "id": "quy-trinh",
+        "title": "Quy trình 8 bước",
+        "blocks": [
+          {
+            "tag": "ol",
+            "text": "Đăng ký tài khoản bằng số điện thoại và email, xác thực qua OTP. Đăng nhập vào hệ thống. Cập nhật hồ sơ dự thi — thông tin cá nhân, ảnh căn cước hai mặt, ảnh chân dung. Đăng ký ca thi — chọn đợt, ngày và điểm thi. Thanh toán lệ phí thi. Tra cứu số báo danh và phòng thi — thông tin cập nhật chậm nhất 7 ngày trước ngày thi. Tra cứu điểm thi — có sau khoảng 14 ngày kể từ ngày thi. Nhận Phiếu báo điểm gửi qua bưu điện.",
+            "items": [
+              "Đăng ký tài khoản bằng số điện thoại và email, xác thực qua OTP.",
+              "Đăng nhập vào hệ thống.",
+              "Cập nhật hồ sơ dự thi — thông tin cá nhân, ảnh căn cước hai mặt, ảnh chân dung.",
+              "Đăng ký ca thi — chọn đợt, ngày và điểm thi.",
+              "Thanh toán lệ phí thi.",
+              "Tra cứu số báo danh và phòng thi — thông tin cập nhật chậm nhất 7 ngày trước ngày thi.",
+              "Tra cứu điểm thi — có sau khoảng 14 ngày kể từ ngày thi.",
+              "Nhận Phiếu báo điểm gửi qua bưu điện."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "le-phi",
+        "title": "Lệ phí và hạn thanh toán",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Mức lệ phí do đơn vị tổ chức quy định theo từng năm, công bố trên hệ thống khi bạn đăng ký ca thi."
+          },
+          {
+            "tag": "p",
+            "text": "Thanh toán qua Viettel Money — trên ứng dụng, quét mã QR, hoặc cổng thanh toán Viettel Pay."
+          },
+          {
+            "tag": "div",
+            "text": "Mốc dễ mất chỗ nhất: sau khi chọn ca thi thành công, bạn phải nộp lệ phí trong khoảng từ 1 giờ tới trước 96 giờ. Chọn ca xong mà quên trả tiền là mất chỗ, và lúc quay lại thường đã hết slot."
+          },
+          {
+            "tag": "p",
+            "text": "Lệ phí đã nộp không được hoàn lại với bất kỳ lý do gì. Nếu xóa ca thi đã nộp phí rồi chọn ca mới, bạn vẫn phải trả lệ phí lần nữa cho ca mới. Vì vậy hãy chắc chắn về ngày và điểm thi trước khi bấm thanh toán."
+          }
+        ]
+      },
+      {
+        "id": "so-luot-thi",
+        "title": "Giới hạn số lượt thi",
+        "blocks": [
+          {
+            "tag": "p",
+            "text": "Mỗi thí sinh được đăng ký tối đa 2 ca thi trong một năm, hai ca cách nhau tối thiểu 28 ngày tính cả ngày thi."
+          },
+          {
+            "tag": "p",
+            "text": "Với ràng buộc này, chiến thuật hợp lý là thi lần đầu khi đã ôn tương đối chắc chứ không thi thăm dò. Giữ lượt thứ hai làm cơ hội cải thiện, và khi đăng ký lượt đầu thì nhớ tính sao cho còn đủ 28 ngày trống trước hạn xét tuyển."
+          }
+        ]
+      },
+      {
+        "id": "hoi-dap",
+        "title": "Câu hỏi thường gặp",
+        "faq": [
+          {
+            "question": "Đăng ký thi HSA ở đâu?",
+            "answer": "Đăng ký trực tuyến tại hsa.edu.vn hoặc khaothi.vnu.edu.vn của Viện Đào tạo số và Khảo thí, ĐHQG Hà Nội."
+          },
+          {
+            "question": "Sau khi chọn ca thi thì bao lâu phải nộp lệ phí?",
+            "answer": "Phải nộp trong khoảng từ 1 giờ tới trước 96 giờ kể từ khi chọn ca thi thành công. Quá hạn sẽ mất chỗ đã chọn."
+          },
+          {
+            "question": "Lệ phí thi HSA có được hoàn lại không?",
+            "answer": "Không. Lệ phí đã nộp không hoàn lại với bất kỳ lý do gì. Nếu xóa ca thi đã nộp phí và chọn ca mới, thí sinh vẫn phải trả lệ phí cho ca mới."
+          },
+          {
+            "question": "Ảnh chân dung nộp hồ sơ HSA yêu cầu thế nào?",
+            "answer": "Định dạng JPEG, dung lượng dưới 5 MB, cỡ 4×6 cm và được chụp trong vòng 6 tháng."
+          },
+          {
+            "question": "Bao lâu sau khi thi thì có điểm?",
+            "answer": "Điểm thi tra cứu được sau khoảng 14 ngày kể từ ngày thi. Số báo danh và phòng thi được cập nhật chậm nhất 7 ngày trước ngày thi."
+          }
+        ]
+      }
+    ],
+    "references": {
+      "links": [
+        {
+          "label": "Hướng dẫn đăng ký thi (Viện Đào tạo số và Khảo thí — ĐHQGHN)",
+          "href": "https://www.hsa.edu.vn/huong-dan/dang-ky-thi"
+        },
+        {
+          "label": "Hướng dẫn nộp lệ phí thi",
+          "href": "https://www.hsa.edu.vn/huong-dan/nop-le-phi"
+        },
+        {
+          "label": "Quy chế thi đánh giá năng lực",
+          "href": "https://www.hsa.edu.vn/huong-dan/quy-che-thi"
+        }
+      ],
+      "note": "Số liệu về kỳ thi được tổng hợp từ công bố chính thức của Đại học Bách khoa Hà Nội. Thí sinh nên đối chiếu lại với thông báo mới nhất trước mỗi đợt thi."
+    }
+  }
+}

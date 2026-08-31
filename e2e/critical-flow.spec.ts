@@ -2,10 +2,12 @@ import { test, expect } from "@playwright/test";
 
 const hasAdminCredentials = Boolean(process.env.E2E_ADMIN_EMAIL && process.env.E2E_ADMIN_PASSWORD);
 
-test("public shell responds", async ({ page }) => {
+test("public AECK homepage responds", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main.login-page")).toBeVisible();
-  await expect(page.locator("#login-email")).toHaveAttribute("placeholder", "hocvien@example.com");
+  await expect(page.getByRole("heading", { name: "GIẢI PHÁP HỌC TẬP TOÀN DIỆN" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Trang chủ AECK" }).first().locator("img")).toHaveAttribute("src", "/aeck-public/logo-wordmark-red.svg");
+  await expect(page.locator('a[href="/courses"]', { hasText: "Không gian học tập" }).first()).toHaveAttribute("href", "/courses");
+  await expect(page.locator('a[href^="https://hsa.aeck.vn"]')).toHaveCount(0);
 });
 
 test("admin login reaches the teacher surface", async ({ page }) => {
