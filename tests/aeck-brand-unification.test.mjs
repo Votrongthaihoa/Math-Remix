@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("public auth and product chrome use the canonical AECK identity", async () => {
-  const [platform, layout, logo, capabilityCenter, videoPlayer, pdfRoute, pdfViewer, embeddedPlayer] = await Promise.all([
+  const [platform, layout, logo, compactLogo, capabilityCenter, videoPlayer, pdfRoute, pdfViewer, embeddedPlayer] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../public/logo_aeck_full.svg", import.meta.url), "utf8"),
+    readFile(new URL("../public/logo_aeck.svg", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-capability-center.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/lesson-pdf-download/route.ts", import.meta.url), "utf8"),
@@ -18,14 +20,49 @@ test("public auth and product chrome use the canonical AECK identity", async () 
   assert.match(platform, /src="\/logo_aeck\.svg"/);
   assert.doesNotMatch(platform, /src="\/logo_tsa\.svg"/);
   assert.match(layout, /title:\s*"AECK"/);
-  assert.match(layout, /icon:\s*"\/logo_aeck\.svg"/);
-  assert.match(logo, /ANH EM CÂY KHẾ|Anh Em Cây Khế/i);
+  assert.match(layout, /icon:\s*\[/);
+  assert.equal(
+    createHash("sha256").update(logo).digest("hex"),
+    "beb17ac33e32e6d19801bf2487a2ca1ac9ac8829a8cd6a9afe1e2ea8645456bb",
+    "logo_aeck_full.svg must stay byte-identical to the official account.aeck.vn asset",
+  );
+  assert.match(logo, /viewBox="0 0 600 89\.999999"/);
+  assert.doesNotMatch(logo, /<text\b/i);
+  assert.equal(
+    createHash("sha256").update(compactLogo).digest("hex"),
+    "07b7b1102e0b7bb94cba4d5ca4894e4481a8d0a72f3590374d8cd6a8cfc73ddf",
+    "logo_aeck.svg must stay byte-identical to the official Alpha shell asset",
+  );
+  assert.match(compactLogo, /#158a39/);
   assert.doesNotMatch(platform, /Remix Education/);
   assert.doesNotMatch(`${platform}\n${capabilityCenter}\n${videoPlayer}\n${pdfRoute}\n${pdfViewer}\n${embeddedPlayer}`, /Math Remix|Học viên REMIX|REMIX (?:PDF|Video) Viewer|REMIX Education/);
   assert.match(pdfViewer, /<title>AECK PDF Viewer<\/title>/);
   assert.match(embeddedPlayer, /<title>AECK Video Player<\/title>/);
   assert.match(pdfRoute, /setProducer\("AECK"\)/);
   assert.match(platform, /Tổng quan \| AECK/);
+});
+
+test("browser and install icons use the official square AECK mark", async () => {
+  const [layout, icon192, icon512] = await Promise.all([
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../public/logo192.png", import.meta.url)),
+    readFile(new URL("../public/logo512.png", import.meta.url)),
+  ]);
+
+  assert.match(layout, /url:\s*"\/logo192\.png"[\s\S]*?sizes:\s*"192x192"[\s\S]*?type:\s*"image\/png"/);
+  assert.match(layout, /url:\s*"\/logo512\.png"[\s\S]*?sizes:\s*"512x512"[\s\S]*?type:\s*"image\/png"/);
+  assert.match(layout, /apple:\s*\{\s*url:\s*"\/logo192\.png"/);
+  assert.doesNotMatch(layout, /icon:\s*"\/logo_aeck\.svg"/);
+  assert.equal(
+    createHash("sha256").update(icon192).digest("hex"),
+    "ebd5455826048ebc711b711baa2b4ef8ea1e2766e3e2912484ab23150d444111",
+    "logo192.png must stay byte-identical to the official AECK application icon",
+  );
+  assert.equal(
+    createHash("sha256").update(icon512).digest("hex"),
+    "a2223f6be351707d9a9aa020fd247f8a69db65bc546e9c2d819e25ea87b8b138",
+    "logo512.png must stay byte-identical to the official AECK application icon",
+  );
 });
 
 test("course cards remain content surfaces instead of inheriting primary-button chrome", async () => {

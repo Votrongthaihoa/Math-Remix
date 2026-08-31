@@ -61,6 +61,8 @@ CI chạy cùng các bước này trên Node 22.
 ## Nguyên tắc phát triển
 
 - Tài liệu audit và roadmap nằm tại [`docs/engineering-roadmap.md`](docs/engineering-roadmap.md).
+- Route/UI inventory, visual boundaries và contract tạo màn hình mới nằm tại
+  [`docs/ui-system.md`](docs/ui-system.md).
 - API phải xác thực quyền ở server, giới hạn payload và không trả dữ liệu đáp án
   khi chưa được phát hành.
 - Thay đổi database chỉ thêm migration mới theo thứ tự; không sửa migration đã

@@ -6,7 +6,11 @@ export const metadata: Metadata = {
   title: "AECK",
   description: "Không gian học tập, khảo thí và quản trị trực tuyến của AECK.",
   icons: {
-    icon: "/logo_aeck.svg",
+    icon: [
+      { url: "/logo192.png", sizes: "192x192", type: "image/png" },
+      { url: "/logo512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: { url: "/logo192.png", sizes: "192x192", type: "image/png" },
   },
 };
 

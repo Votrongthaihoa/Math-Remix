@@ -13,6 +13,14 @@ test("admin security actions use an accessible in-app reason dialog", async () =
   assert.match(page, /<button type="submit"/);
 });
 
+test("admin security reason dialog uses unique description ids", async () => {
+  const page = await readFile(new URL("../app/admin-security.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /aria-describedby="security-action-reason-help security-action-reason-count"/);
+  assert.match(page, /id="security-action-reason-count"/);
+  assert.equal((page.match(/id="security-action-reason-help"/g) ?? []).length, 1);
+});
+
 test("admin security state is safe for empty, busy, and malformed date states", async () => {
   const page = await readFile(new URL("../app/admin-security.tsx", import.meta.url), "utf8");
 

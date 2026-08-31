@@ -358,8 +358,8 @@ export default function AdminSecurity() {
         <form onSubmit={submitPendingAction}>
           <header><div><span className="security-action-kicker">XÁC NHẬN THAO TÁC</span><h2 id="security-action-title">{pendingAction.title}</h2></div><button type="button" onClick={closeActionDialog} aria-label="Đóng hộp thoại xác nhận" disabled={busy}><X aria-hidden="true" /></button></header>
           <p id="security-action-description">{pendingAction.description} Đối tượng: <b>{detail?.profile.full_name ?? selectedUser?.full_name ?? "học viên đã chọn"}</b>.</p>
-    <label htmlFor="security-action-reason">Lý do thao tác<textarea id="security-action-reason" name="reason" autoComplete="off" data-dialog-autofocus value={reasonDraft} maxLength={500} rows={4} onChange={event => setReasonDraft(event.target.value)} aria-describedby="security-action-reason-help" /></label><small id="security-action-reason-help">Ghi ngắn gọn lý do để người khác có thể rà soát lại thao tác.</small>
-          <small id="security-action-reason-help">Lý do được lưu trong nhật ký quản trị · {reasonDraft.length}/500 ký tự.</small>
+    <label htmlFor="security-action-reason">Lý do thao tác<textarea id="security-action-reason" name="reason" autoComplete="off" data-dialog-autofocus value={reasonDraft} maxLength={500} rows={4} onChange={event => setReasonDraft(event.target.value)} aria-describedby="security-action-reason-help security-action-reason-count" /></label><small id="security-action-reason-help">Ghi ngắn gọn lý do để người khác có thể rà soát lại thao tác.</small>
+          <small id="security-action-reason-count">Lý do được lưu trong nhật ký quản trị · {reasonDraft.length}/500 ký tự.</small>
           {actionError && <p className="security-action-error" role="alert">{actionError}</p>}
           <div className="security-action-dialog-actions"><button type="button" className="security-action-secondary" onClick={closeActionDialog} disabled={busy}>Hủy</button><button type="submit" className="security-action-primary" disabled={busy}>{busy ? <><LoaderCircle aria-hidden="true" /> Đang lưu…</> : pendingAction.submitLabel}</button></div>
         </form>

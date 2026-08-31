@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Activity,
   CheckCircle2,
@@ -92,9 +93,8 @@ function dateTime(value: string) {
   return formatUiDateTime(value, "Không rõ thời gian");
 }
 
-function initialFilter<T extends string>(name: string, allowed: readonly T[], fallback: T) {
-  if (typeof window === "undefined") return fallback;
-  const value = new URLSearchParams(window.location.search).get(name) as T | null;
+function initialFilter<T extends string>(searchParams: { get(name: string): string | null }, name: string, allowed: readonly T[], fallback: T) {
+  const value = searchParams.get(name) as T | null;
   return value && allowed.includes(value) ? value : fallback;
 }
 
@@ -106,9 +106,10 @@ function statusCopy(status: AdminAuditItem["status"]) {
 }
 
 export default function AdminAuditLog() {
-  const [query, setQuery] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? "");
-  const [source, setSource] = useState<AuditSource>(() => initialFilter("source", ["all", "exam", "account"] as const, "all"));
-  const [status, setStatus] = useState<AuditStatus>(() => initialFilter("status", ["all", "started", "succeeded", "failed"] as const, "all"));
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
+  const [source, setSource] = useState<AuditSource>(() => initialFilter(searchParams, "source", ["all", "exam", "account"] as const, "all"));
+  const [status, setStatus] = useState<AuditStatus>(() => initialFilter(searchParams, "status", ["all", "started", "succeeded", "failed"] as const, "all"));
   const [page, setPage] = useState(1);
   const [payload, setPayload] = useState<AuditPayload>({ items: [], summary: { total: 0, exam: 0, account: 0, failed: 0, pending: 0 }, total: 0, limit: 20 });
   const [loading, setLoading] = useState(true);

@@ -18,6 +18,7 @@
           DISPLAY_HEIGHT = window.innerHeight,
           DISPLAY_DURATION = 10,
           OVERLAY_DURATION = 3,
+          reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches,
           mouse = { x: DISPLAY_WIDTH / 2, y: DISPLAY_HEIGHT / 2 },
           container = document.getElementById('fof'),
           overlay = document.querySelector('#fof>div'),
@@ -40,6 +41,12 @@
 
       function initialize() {
         resize();
+        if (reducedMotion) {
+          if (overlay && overlay.parentNode === container) container.removeChild(overlay);
+          overlay = undefined;
+          window.addEventListener('resize', resize);
+          return;
+        }
         document.addEventListener('pointermove', function (event) {
           mouse.x = event.clientX;
           mouse.y = event.clientY;
@@ -59,6 +66,15 @@
         canvas.height = DISPLAY_HEIGHT;
         eyes = specs.map(function (spec) { return new Eye(canvas, spec[0], spec[1], spec[2], spec[3]); });
         startTime = Date.now();
+        if (reducedMotion) renderStatic();
+      }
+
+      function renderStatic() {
+        context.clearRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        for (var i = 0, len = eyes.length; i < len; i++) {
+          eyes[i].activate();
+          eyes[i].update(mouse);
+        }
       }
 
       function animate() {

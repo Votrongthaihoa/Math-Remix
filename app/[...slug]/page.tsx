@@ -26,6 +26,7 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
     || slug.length >= 4 && slug[0] === "exam" && Boolean(slug[1]) && slug[2] === "section" && Boolean(slug[3]) && (slug.length === 4 || slug.length === 5 && slug[4] === "confirm");
   const validLegacyGuestExamRoute = slug.length === 3 && slug[0] === "guest" && slug[1] === "exam" && guestTokenSegment.test(slug[2]);
   const validGuestExamRoute = validDirectGuestExamRoute || validLegacyGuestExamRoute;
+  const validLegacyExamResultRoute = slug.length === 2 && slug[0] === "exam-result" && Boolean(slug[1]);
   const adminTabs = new Set(["students", "content", "hls-vault", "exams", "question-bank", "sessions", "timetable", "upload", "enrollments", "security", "audit", "capabilities", "server-health"]);
   const validAdminRoute = slug[0] === "admin" && (
     slug.length === 1
@@ -47,7 +48,8 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
   );
   const legacyAdminPath = slug.join("/");
   const validRootLegacyAdminRoute = legacyAdminPrefixes.some(prefix => legacyAdminPath === prefix || legacyAdminPath.startsWith(`${prefix}/`));
-  if (!validStaticRoute && !validDetailRoute && !validExamRoute && !validGuestExamRoute && !validAdminRoute && !validAdminExamRoute && !validRootLegacyAdminRoute) notFound();
+  if (!validStaticRoute && !validDetailRoute && !validExamRoute && !validGuestExamRoute && !validLegacyExamResultRoute && !validAdminRoute && !validAdminExamRoute && !validRootLegacyAdminRoute) notFound();
+  if (validLegacyExamResultRoute) redirect(`/exam/result/${encodeURIComponent(slug[1])}`);
   if (validRootLegacyAdminRoute) {
     const destination = legacyAdminRedirectPath(`/${legacyAdminPath}`);
     if (destination) redirect(destination);

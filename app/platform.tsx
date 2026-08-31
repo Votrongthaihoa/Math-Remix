@@ -14,6 +14,7 @@ import AdminSecurity from "./admin-security";
 import { useAdminDialogFocus } from "./admin-dialog";
 import { classifyUiRoute, type UiRouteMode } from "./ui-route-mode";
 import { requestProductNavigation } from "./product-navigation-guard";
+import { adminCourseIdFromPath } from "./admin-route-map";
 import "./study.css";
 import "./admin-redesign.css";
 import "./student-redesign.css";
@@ -1626,11 +1627,7 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
   const [newCoursePublished, setNewCoursePublished] = useState(false);
   const [creatingCourse, setCreatingCourse] = useState(false);
   const [courseError, setCourseError] = useState("");
-  const [managedCourseId, setManagedCourseId] = useState(() => {
-    if (typeof window === "undefined") return "";
-    const match = window.location.pathname.match(/^\/admin\/content\/courses\/([^/]+)/);
-    return match?.[1] ? decodeURIComponent(match[1]) : "";
-  });
+  const [managedCourseId, setManagedCourseId] = useState(() => adminCourseIdFromPath(adminPathname));
   const [assignStudentId, setAssignStudentId] = useState("");
   const [assignCourseId, setAssignCourseId] = useState("");
   const [assignError, setAssignError] = useState("");
@@ -1716,8 +1713,7 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
     const syncAdminRoute = () => {
       setTab(adminTabFromPath(adminPathname));
       setAdminLocation(`${adminPathname}${window.location.search}`);
-      const match = adminPathname.match(/^\/admin\/content\/courses\/([^/]+)/);
-      setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
+      setManagedCourseId(adminCourseIdFromPath(adminPathname));
     };
     syncAdminRoute();
     window.addEventListener("popstate", syncAdminRoute);
@@ -1922,8 +1918,7 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
     window.history.pushState({}, "", path);
     setTab(adminTabFromPath(path));
     setAdminLocation(path);
-    const match = path.match(/^\/admin\/content\/courses\/([^/?#]+)/);
-    setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
+    setManagedCourseId(adminCourseIdFromPath(path));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1936,10 +1931,6 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
   function handleAdminFinderSelect(item: AdminFinderItem) {
     if (item.kind === "student") setSearchTerm(item.searchValue ?? item.title);
     navigateAdmin(item.path);
-    if (item.kind === "course") {
-      const match = item.path.match(/^\/admin\/content\/courses\/([^/]+)/);
-      setManagedCourseId(match?.[1] ? decodeURIComponent(match[1]) : "");
-    }
   }
 
   const publishedCourseCount = adminCourses.filter(course => course.published).length;
@@ -2066,7 +2057,7 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
       </div>
     </div>}
     {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div><label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button type="button" className="student-password-btn" onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
-    {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>navigateAdmin("/admin/content")} onChanged={loadAdminData} onDeleted={async()=>{navigateAdmin("/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt=""/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button type="button" className="outline-btn" onClick={()=>{setManagedCourseId(course.id);navigateAdmin(`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight aria-hidden="true"/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
+    {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>navigateAdmin("/admin/content")} onChanged={loadAdminData} onDeleted={async()=>{navigateAdmin("/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt="" width={320} height={180} loading="lazy" decoding="async"/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button type="button" className="outline-btn" onClick={()=>{setManagedCourseId(course.id);navigateAdmin(`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight aria-hidden="true"/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
     {tab === "hls-vault" && <Suspense fallback={<LoadingIndicator label="Đang mở công cụ HLS…" />}><AdminHlsVault /></Suspense>}
     {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị đề thi…" />}><AdminExamManager /></Suspense>}
     {tab === "question-bank" && <Suspense fallback={<LoadingIndicator label="Đang mở ngân hàng câu hỏi…" />}><AdminQuestionBank navigate={navigateAdmin} /></Suspense>}

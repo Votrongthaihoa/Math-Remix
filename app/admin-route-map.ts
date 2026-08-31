@@ -83,7 +83,7 @@ export function isLegacyAdminPath(value: string) {
 
 export function legacyAdminRedirectPath(value: string) {
  const pathname = normalizePathname(value);
-  if (pathname === "/admin/all") return "/admin/capabilities";
+  if (matchesPrefix(pathname, "/admin/all")) return "/admin/capabilities";
  if (matchesPrefix(pathname, "/question-bank") || matchesPrefix(pathname, "/item/create")) return "/admin/question-bank";
   if (matchesPrefix(pathname, "/exam-management")) return "/admin/exams";
   if (matchesPrefix(pathname, "/assessment-management") || matchesPrefix(pathname, "/exam-room-management")) return "/admin/sessions";

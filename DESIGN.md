@@ -127,6 +127,13 @@ This system applies only to the product shell. Test-taking, question presentatio
 
 Public authentication is a deliberate companion surface, not an Alpha-green product route. `/login`, `/admin` while signed out, forgot-password, and reset-password use the measured `account.aeck.vn/login` composition: the project logo over a centered white card, the existing map background, Lato typography, and red `#CD1627` auth actions. The Supabase and Turnstile behavior remains unchanged; the security challenge may increase the measured card height when visible.
 
+The brand artwork itself is never reconstructed. Public auth uses the exact
+`public/logo_aeck_full.svg` asset from `account.aeck.vn`; product chrome uses
+the exact `public/logo_aeck.svg` asset bundled by `alpha.aeck.vn`. Preserve each
+asset's intrinsic ratio and original colors. Browser and install metadata use
+the official square `public/logo192.png` and `public/logo512.png` marks served
+consistently by `aeck.vn`, `account.aeck.vn`, and `alpha.aeck.vn`.
+
 ## Colors
 
 The canvas is white with quiet neutral surfaces. `primary` is reserved for the next meaningful action, selected navigation, links, and focus indicators. Success, warning, and danger always include a text or icon cue; color alone never communicates status.

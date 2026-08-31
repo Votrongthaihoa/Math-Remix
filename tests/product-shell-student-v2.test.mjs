@@ -15,6 +15,13 @@ test("student navigation uses deep links while resource selection remains an act
   assert.match(platform, /<button type="button"[^>]*className=\{`curriculum-resource/);
 });
 
+test("search placeholders use a single typographic ellipsis", async () => {
+  const discovery = await readFile(new URL("../app/student-discovery.tsx", import.meta.url), "utf8");
+
+  assert.doesNotMatch(discovery, /placeholder="[^"]*\.\.\.[^"]*"/);
+  assert.doesNotMatch(discovery, /Đang đồng bộ dữ liệu quản trị\.\.\./);
+});
+
 test("course search is URL-backed and announces the filtered result count", async () => {
   const [platform, styles] = await Promise.all([
     readFile(platformUrl, "utf8"),

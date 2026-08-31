@@ -141,7 +141,7 @@ export function StudentSearchPage({
             autoComplete="off"
             value={query}
             onChange={event => setQuery(event.target.value)}
-            placeholder="Nhập tên khóa học, phòng thi hoặc bài đã làm..."
+            placeholder="Nhập tên khóa học, phòng thi hoặc bài đã làm…"
           />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label="Xóa từ khóa"><X aria-hidden="true" /></button> : null}
         </label>
@@ -383,12 +383,12 @@ export function AdminQuickFinder({
         <label htmlFor={inputId}>Từ khóa</label>
         <div className="admin-reference-search-field">
           <Search aria-hidden="true" />
-          <input id={inputId} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Ví dụ: học viên, khóa TSA, tạo kíp thi..." autoComplete="off" />
+          <input id={inputId} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Ví dụ: học viên, khóa TSA, tạo kíp thi…" autoComplete="off" />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label="Xóa từ khóa quản trị"><X aria-hidden="true" /></button> : null}
         </div>
       </div>
       <div className="admin-reference-results" aria-busy={loading}>
-        {loading ? <p className="admin-reference-loading" role="status">Đang đồng bộ dữ liệu quản trị...</p> : visibleItems.length ? visibleItems.map(item => (
+        {loading ? <p className="admin-reference-loading" role="status">Đang đồng bộ dữ liệu quản trị…</p> : visibleItems.length ? visibleItems.map(item => (
           <button type="button" key={item.id} onClick={() => { onSelect(item); setQuery(""); }}>
             <span className="admin-reference-result-category">{item.category}</span>
             <span className="admin-reference-result-copy"><b>{item.title}</b><small>{item.description}</small></span>

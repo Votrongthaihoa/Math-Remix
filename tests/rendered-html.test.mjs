@@ -46,6 +46,32 @@ test("returns the animated AECK 404 page for unknown routes", async () => {
   assert.match(html, /404-eyes\.html/);
 });
 
+test("404 animation honors reduced-motion preferences", async () => {
+  const [globals, eyes] = await Promise.all([
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../public/404-eyes.html", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(globals, /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[^}]*\.not-found-message/s);
+  assert.match(eyes, /prefers-reduced-motion/);
+});
+
+test("404 message exposes a labelled recovery landmark", async () => {
+  const notFound = await readFile(new URL("../app/not-found.tsx", import.meta.url), "utf8");
+
+  assert.match(notFound, /aria-labelledby="not-found-title"/);
+  assert.match(notFound, /aria-describedby="not-found-description"/);
+  assert.match(notFound, /id="not-found-title"/);
+  assert.match(notFound, /id="not-found-description"/);
+  assert.match(notFound, /sandbox="allow-scripts"/);
+});
+
+test("shared shell transitions declare the properties they animate", async () => {
+  const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.doesNotMatch(globals, /transition\s*:\s*all\b/);
+});
+
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
   const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminWorkspace, adminWorkspaceCss, adminWorkspaceLayoutCss, adminUsersRoute, r2Server] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
