@@ -232,6 +232,1195 @@
   }
 }
 
+/* Alpha reference student sidebar ---------------------------------------
+   Desktop product navigation only; protected and study surfaces opt out. */
+
+@media (min-width: 768px) {
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) > .sidebar {
+    width: 288px;
+    overflow-x: hidden;
+    border-inline-end: 1px solid rgba(229, 231, 235, .5);
+    background: rgba(255, 255, 255, .9);
+    box-shadow: none;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: width .5s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) > .sidebar {
+    width: 80px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) > .sidebar nav.student-sidebar-nav {
+    padding: 112px 0 16px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure > summary {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 16px 12px 24px;
+    overflow: hidden;
+    border: 0;
+    border-inline-end: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    white-space: nowrap;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure {
+    margin-block-start: 8px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure > summary {
+    min-height: 48px;
+    padding: 12px 16px 12px 24px;
+    border-inline-end: 3px solid transparent;
+    font-weight: 400;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure + .student-nav-primary,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary + .student-nav-primary {
+    margin-block-start: 8px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary > svg:first-child,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure > summary > svg:first-child {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    color: #4b5563;
+    stroke-width: 1.8px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary > span,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure > summary > span {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    color: currentColor;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure > summary > svg:last-child {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    margin-inline-start: 8px;
+    color: #9ca3af;
+    stroke-width: 1.8px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary:hover,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure > summary:hover {
+    background: #f9fafb;
+    color: #158a39;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary.active,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure.active-parent > summary {
+    border-inline-end-color: #158a39;
+    background: #f0fdf4;
+    color: #158a39;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary.active > svg:first-child,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-disclosure.active-parent > summary > svg:first-child {
+    color: currentColor;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 8px 0;
+    border-inline-start: 0;
+    background: rgba(249, 250, 251, .5);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children > a {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 8px 16px 8px 56px;
+    overflow: hidden;
+    border: 0;
+    border-inline-end: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    white-space: nowrap;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children > a + a {
+    margin-block-start: 4px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children > a > span:first-child {
+    display: grid;
+    width: 14px;
+    flex: 0 0 14px;
+    place-items: center;
+    color: currentColor;
+    font-size: 14px;
+    line-height: 14px;
+    opacity: .7;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children > a > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    color: currentColor;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children > a:hover {
+    background: #f9fafb;
+    color: #158a39;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav .student-nav-children > a.active {
+    border-inline-end-color: #158a39;
+    background: #f0fdf4;
+    color: #158a39;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .student-sidebar-nav > .student-nav-primary,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .student-sidebar-nav > .student-nav-disclosure > summary {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .student-sidebar-nav > .student-nav-primary > span,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .student-sidebar-nav > .student-nav-disclosure > summary > span,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .student-sidebar-nav > .student-nav-disclosure > summary > svg:last-child,
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .student-sidebar-nav .student-nav-children {
+    display: none;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .header-sidebar-toggle {
+    inset-inline-start: 295px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode):not(.sidebar-expanded) .header-sidebar-toggle {
+    inset-inline-start: 87px;
+  }
+}
+
+/* Compact student navigation popover -------------------------------------
+   Mirrors the reference rail interaction without changing route semantics. */
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover {
+  position: fixed;
+  z-index: 110;
+  inset-inline-start: 104px;
+  display: grid;
+  width: 224px;
+  max-width: calc(100vw - 128px);
+  max-height: calc(100dvh - 24px);
+  gap: 0;
+  padding: 8px 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, .08),
+    0 3px 6px -4px rgba(0, 0, 0, .12),
+    0 9px 28px 8px rgba(0, 0, 0, .05);
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 0;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a + a {
+  margin-block-start: 4px;
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a:hover {
+  background: rgba(0, 0, 0, .06);
+  color: #374151;
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a.active {
+  background: #f0fdf4;
+  color: #158a39;
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a:focus-visible {
+  outline: 2px solid #158a39;
+  outline-offset: -2px;
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a > span:first-child {
+  color: #158a39;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover > a > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface):not(.sidebar-expanded) .student-nav-disclosure.compact-nav-popover-open > summary {
+    background: #f9fafb;
+    color: #116f2e;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .compact-nav-popover {
+    display: none;
+  }
+}
+
+/* Course study mode -------------------------------------------------------
+   This is the final, route-scoped layer for /lessons/:lessonId. It mirrors
+   the measured AECK study geometry without affecting exam/product routes. */
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) {
+  --study-sidebar-collapsed: 80px;
+  --study-sidebar-expanded: 288px;
+  --study-curriculum-width: 400px;
+  --study-accent: #158a39;
+  --study-accent-hover: #116f2e;
+  --study-accent-soft: #eff9f2;
+  --study-accent-selected: #e3f4e8;
+  --study-ink: #1f2937;
+  --study-body: #374151;
+  --study-muted: #6b7280;
+  --study-subtle: #9ca3af;
+  --study-line: #e5e7eb;
+  --study-line-soft: #f3f4f6;
+  --study-surface: #fff;
+  --aeck-logo: var(--study-accent);
+  --aeck-logo-dark: var(--study-accent-hover);
+  --aeck-logo-soft: var(--study-accent-soft);
+  --aeck-logo-selected: var(--study-accent-selected);
+  --aeck-shell-bg: #fff;
+  --aeck-shell-line: var(--study-line);
+  --aeck-shell-ink: var(--study-ink);
+  --aeck-shell-body: var(--study-body);
+  --aeck-shell-muted: var(--study-muted);
+  --alpha-accent: var(--study-accent);
+  --alpha-accent-hover: var(--study-accent-hover);
+  --alpha-accent-soft: var(--study-accent-soft);
+  --alpha-accent-selected: var(--study-accent-selected);
+  --alpha-green-pale: var(--study-accent-soft);
+  --alpha-ink: var(--study-ink);
+  --alpha-body: var(--study-body);
+  --alpha-muted: var(--study-muted);
+  --alpha-subtle: var(--study-subtle);
+  --alpha-line: var(--study-line-soft);
+  --alpha-line-strong: var(--study-line);
+  --red: var(--study-accent);
+  --red-dark: var(--study-accent-hover);
+  min-width: 0;
+  background: #fff;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .student-global-bg {
+  z-index: 0;
+  background: rgba(21, 138, 57, .045);
+  -webkit-mask: url("/aeck-public/trongdong.svg") 50% 50% / min(150vw, 150vh) auto no-repeat;
+  mask: url("/aeck-public/trongdong.svg") 50% 50% / min(150vw, 150vh) auto no-repeat;
+  opacity: 1;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .topbar {
+  display: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .reference-topbar-search {
+  display: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .header-brand {
+  display: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .header-sidebar-toggle:hover,
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .account-trigger:hover {
+  background: var(--study-accent-soft);
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .account-trigger > .account-avatar {
+  background: var(--study-accent-selected);
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-mobile-menu {
+  display: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--study-line);
+  background: #fff;
+  color: var(--study-muted);
+  touch-action: manipulation;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-mobile-menu:hover {
+  border-color: #cde7d4;
+  background: var(--study-accent-soft);
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-mobile-menu:active,
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-close:active,
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger:active {
+  transform: scale(.96);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .main-content.lesson-main-content {
+  min-width: 0;
+  padding: 0 24px 48px;
+  background: transparent;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page {
+  width: min(100%, 1700px);
+  max-width: 1700px;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+  height: 72px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  overflow: hidden;
+  color: var(--study-muted);
+  white-space: nowrap;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb-back {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 7px 8px 7px 2px;
+  color: var(--study-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb-back:hover {
+  background: transparent;
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb :where(.breadcrumb-course, .breadcrumb-current) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .025em;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-course {
+  max-width: 34ch;
+  color: var(--study-ink);
+  font-weight: 750;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-current {
+  max-width: 42ch;
+  color: var(--study-accent);
+  font-weight: 750;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-separator,
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-current-separator {
+  flex: 0 0 auto;
+  color: #d1d5db;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .lesson-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--study-curriculum-width);
+  align-items: start;
+  gap: 32px;
+  min-width: 0;
+  padding: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-viewer-column {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .viewer-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 10px 24px rgba(15, 23, 42, .08);
+  scroll-margin-block-start: 84px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-viewer-surface {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+  border: 0;
+  background: #111827;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-viewer-surface.is-video {
+  aspect-ratio: 16 / 9;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-viewer-surface > :where(iframe, .lesson-document, .secure-viewer-state),
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-viewer-surface .lesson-video {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-viewer-surface.is-video > .secure-viewer-state {
+  aspect-ratio: 16 / 9;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-viewer-surface.is-document .lesson-frame {
+  min-height: clamp(560px, 74dvh, 860px);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-context {
+  min-width: 0;
+  padding: 18px 2px 14px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-context h1 {
+  margin: 0;
+  color: var(--study-ink);
+  font-size: clamp(19px, 1.7vw, 24px);
+  line-height: 1.3;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-context p {
+  margin: 5px 0 0;
+  color: var(--study-muted);
+  font-size: 13px;
+  line-height: 19px;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--study-line-soft);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation > :where(a, span) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--study-body);
+  text-decoration: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation > :where(a, span):last-child {
+  grid-template-columns: minmax(0, 1fr) auto;
+  text-align: end;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation a:hover {
+  border-color: #cde7d4;
+  background: var(--study-accent-soft);
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation > :where(a, span) > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation small {
+  color: var(--study-muted);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation b {
+  min-width: 0;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation .disabled {
+  color: var(--study-subtle);
+  opacity: .72;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger {
+  display: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-sheet-shade {
+  display: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .curriculum-panel {
+  position: sticky;
+  top: 72px;
+  display: flex;
+  width: var(--study-curriculum-width);
+  max-height: 85dvh;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--study-line-soft);
+  border-radius: 12px;
+  background: var(--study-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid var(--study-line-soft);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-head > span {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-head h2 {
+  margin: 0;
+  color: var(--study-ink);
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 28px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-head p {
+  margin: 4px 0 0;
+  color: var(--study-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-close {
+  display: none;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--study-muted);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-close:hover {
+  background: var(--study-accent-soft);
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-close svg {
+  width: 19px;
+  height: 19px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-nav > .lesson-curriculum-list {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-list > details {
+  margin: 0 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--study-line);
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-list > details > summary {
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  color: var(--study-body);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-list > details > summary:hover {
+  background: #f3f4f6;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-list > details > summary strong {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-list > details > summary svg {
+  order: 2;
+  width: 13px;
+  height: 13px;
+  margin-inline-start: auto;
+  color: var(--study-muted);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-lessons {
+  padding: 0 8px 8px;
+  background: #fff;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson {
+  min-width: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--study-line-soft);
+  background: transparent;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson.current {
+  padding: 0 0 10px;
+  background: var(--study-accent-soft);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson-title {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 7px;
+  color: var(--study-body);
+  text-decoration: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) a.curriculum-lesson-title:hover {
+  background: #f9fafb;
+  color: var(--study-accent-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson.current .curriculum-lesson-title {
+  color: var(--study-accent);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson.current .curriculum-lesson-title::before {
+  display: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-status-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson.current .curriculum-status-dot {
+  background: var(--study-accent);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson-title b,
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-lesson.current .curriculum-lesson-title b {
+  min-width: 0;
+  color: currentColor;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource {
+  display: flex;
+  width: calc(100% - 48px);
+  min-width: 0;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 4px 36px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--study-muted);
+  text-align: start;
+  text-decoration: none;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource:hover {
+  border-color: #cde7d4;
+  background: #fff;
+  color: var(--study-ink);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource.selected {
+  border-color: #e5ebe7;
+  background: #fff;
+  color: var(--study-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource > span:first-child {
+  display: grid;
+  flex: 0 0 16px;
+  place-items: center;
+  color: #9ca3af;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource.selected > span:first-child {
+  color: var(--study-accent);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource svg {
+  width: 15px;
+  height: 15px;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource > span:last-child {
+  min-width: 0;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource b,
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-resource.selected b {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) :where(.study-mobile-menu, .study-curriculum-trigger, .curriculum-panel-close, .study-lesson-navigation a, .lesson-curriculum-list summary, .curriculum-lesson-title, .curriculum-resource):focus-visible {
+  outline: 2px solid var(--study-accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1200px) {
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar {
+    width: var(--study-sidebar-collapsed);
+    overflow-x: hidden;
+    border-right: 1px solid rgba(229, 231, 235, .6);
+    background: rgba(255, 255, 255, .9);
+    box-shadow: none;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: width .5s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode.sidebar-expanded:not(.protected-exam-surface) > .sidebar {
+    width: var(--study-sidebar-expanded);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .main-content.lesson-main-content {
+    margin-inline-start: var(--study-sidebar-collapsed);
+    transition: margin-inline-start .5s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode.sidebar-expanded:not(.protected-exam-surface) > .main-content.lesson-main-content {
+    margin-inline-start: var(--study-sidebar-expanded);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar nav.student-sidebar-nav {
+    padding-top: 4px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .student-sidebar-nav :where(.student-nav-primary, .student-nav-disclosure > summary) {
+    min-height: 46px;
+    margin: 4px 0;
+    border-radius: 0;
+    font-weight: 500;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .student-sidebar-nav :where(.student-nav-primary.active, .student-nav-disclosure.active-parent > summary) {
+    background: #fff;
+    color: var(--study-accent);
+    font-weight: 650;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .student-sidebar-nav :where(.student-nav-primary:hover, .student-nav-disclosure > summary:hover) {
+    background: #f9fafb;
+    color: var(--study-accent-hover);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .student-sidebar-nav .student-nav-children a.active {
+    background: var(--study-accent-soft);
+    color: var(--study-accent-hover);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar .mobile-sidebar-account {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 60px;
+    margin: 8px 10px 12px;
+    padding: 8px 10px;
+    border: 1px solid var(--study-line-soft);
+    border-radius: 10px;
+    background: #f9fafb;
+    color: var(--study-body);
+    text-decoration: none;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface):not(.sidebar-expanded) > .sidebar .mobile-sidebar-account {
+    grid-template-columns: 36px;
+    width: 48px;
+    min-height: 48px;
+    justify-content: center;
+    margin-inline: auto;
+    padding: 6px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface):not(.sidebar-expanded) > .sidebar .mobile-sidebar-account > :not(.mini-avatar) {
+    display: none;
+  }
+}
+
+@media (max-width: 1199px) {
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-mobile-menu {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    margin-inline-start: auto;
+    border-color: transparent;
+    border-radius: 10px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-mobile-menu svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar {
+    z-index: 130;
+    width: min(288px, 86vw);
+    transform: translateX(-102%);
+    visibility: hidden;
+    border-right: 1px solid var(--study-line);
+    background: #fff;
+    box-shadow: 14px 0 36px rgba(15, 23, 42, .14);
+    pointer-events: none;
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1), visibility .3s ease;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar.mobile-open {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar .mobile-sidebar-head {
+    display: flex;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar .student-sidebar-brand {
+    display: none;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .sidebar nav.student-sidebar-nav {
+    padding: 12px 14px 18px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .main-content.lesson-main-content,
+  .app-shell.ui-shell.student-app.product-shell.study-mode.sidebar-expanded:not(.protected-exam-surface) > .main-content.lesson-main-content {
+    min-height: 100dvh;
+    margin-inline-start: 0;
+    padding: 0 16px 42px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .lesson-layout {
+    display: block;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    min-height: 58px;
+    margin-top: 16px;
+    padding: 9px 12px;
+    border: 1px solid var(--study-line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--study-body);
+    text-align: start;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger:hover {
+    border-color: #cde7d4;
+    background: var(--study-accent-soft);
+    color: var(--study-accent-hover);
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger > svg:last-child {
+    width: 17px;
+    height: 17px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger b {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-curriculum-trigger small {
+    color: var(--study-muted);
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-sheet-shade {
+    position: fixed;
+    z-index: 140;
+    inset: 0;
+    display: block;
+    visibility: hidden;
+    padding: 0;
+    border: 0;
+    background: rgba(15, 23, 42, .42);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, visibility .2s ease;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-sheet-shade.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .curriculum-panel {
+    position: fixed;
+    z-index: 150;
+    inset: 0 0 0 auto;
+    margin: 0;
+    visibility: hidden;
+    width: min(430px, calc(100vw - 24px));
+    max-width: 100%;
+    max-height: none;
+    height: 100dvh;
+    overscroll-behavior: contain;
+    border: 0;
+    border-left: 1px solid var(--study-line);
+    border-radius: 16px 0 0 16px;
+    box-shadow: -18px 0 48px rgba(15, 23, 42, .16);
+    transform: translateX(102%);
+    pointer-events: none;
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1), visibility .3s ease;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .curriculum-panel.mobile-open {
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-close {
+    display: grid;
+  }
+}
+
+@media (max-width: 575px) {
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .main-content.lesson-main-content,
+  .app-shell.ui-shell.student-app.product-shell.study-mode.sidebar-expanded:not(.protected-exam-surface) > .main-content.lesson-main-content {
+    padding: 0 8px 32px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb {
+    height: 72px;
+    min-height: 72px;
+    gap: 7px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb-back {
+    width: 36px;
+    min-width: 36px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-breadcrumb-back span,
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-current-separator,
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-current {
+    display: none;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .breadcrumb-course {
+    max-width: none;
+    flex: 1 1 auto;
+    font-size: 14px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .main-content.product-content-surface .lesson-breadcrumb .breadcrumb-course {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .viewer-card {
+    border-radius: 11px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-context {
+    padding: 15px 8px 12px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-context h1 {
+    font-size: 19px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-navigation > :where(a, span):last-child {
+    text-align: start;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .curriculum-panel {
+    width: calc(100vw - 8px);
+    border-radius: 16px 0 0 16px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .curriculum-panel-head {
+    padding: 16px;
+  }
+
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-nav > .lesson-curriculum-list {
+    padding: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) :where(.sidebar, .topbar, .main-content, .curriculum-panel, .curriculum-sheet-shade, .student-nav-disclosure svg) {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) :where(.study-mobile-menu, .study-curriculum-trigger, .curriculum-panel-close, .study-lesson-navigation a, .lesson-curriculum-list summary, .curriculum-lesson-title, .curriculum-resource):focus-visible {
+    outline-color: CanvasText;
+  }
+}
+
 @media (forced-colors: active) {
   .app-shell.ui-shell.product-shell:not(.protected-exam-surface) .account-dropdown-actions > :where(a, button):focus-visible {
     outline-color: CanvasText;

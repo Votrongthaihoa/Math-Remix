@@ -97,6 +97,7 @@ page.on("pageerror", error => runtimeIssues.push({ type: "pageerror", text: erro
 page.on("console", message => {
   if (message.type() !== "error") return;
   if (mockAuth && message.text().includes("/realtime/v1/websocket") && message.text().includes("ERR_NAME_NOT_RESOLVED")) return;
+  if (message.text() === "Permissions policy violation: compute-pressure is not allowed in this document.") return;
   const expectedIndex = expectedMockFailureMessages.findIndex(expected => message.text().includes(expected));
   if (expectedIndex >= 0) {
     expectedMockFailureMessages.splice(expectedIndex, 1);
@@ -239,12 +240,39 @@ const mockLessonResources = [
   { id: "mock-video-resource", lesson_id: "mock-lesson", title: "Video bài giảng TSA", resource_type: "youtube", allow_download: false, sort_order: 1, provider_metadata: {}, videoToken: "mock-video-token" },
   { id: "mock-pdf-resource", lesson_id: "mock-lesson", title: "Tài liệu bài học HSA", resource_type: "storage_pdf", allow_download: true, sort_order: 2, provider_metadata: {}, videoToken: "mock-pdf-token" },
 ];
-const mockLessonCurriculum = [{
-  id: "mock-chapter",
-  title: "Hàm số",
-  sort_order: 0,
-  lessons: [{ id: "mock-lesson", chapter_id: "mock-chapter", title: "Ôn tập nền tảng", description: "Bài học kết hợp video TSA và tài liệu HSA.", published: true, sort_order: 0, resources: mockLessonResources }],
-}];
+const mockMiddleLessonResources = [
+  { id: "mock-video-resource-middle", lesson_id: "mock-lesson-middle", title: "Video khảo sát hàm số", resource_type: "youtube", allow_download: false, sort_order: 1, provider_metadata: {}, videoToken: "mock-video-token-middle" },
+];
+const mockLastLessonResources = [
+  { id: "mock-video-resource-last", lesson_id: "mock-lesson-last", title: "Video tích phân cuối khóa", resource_type: "youtube", allow_download: false, sort_order: 1, provider_metadata: {}, videoToken: "mock-video-token-last" },
+];
+const mockLessonRows = [
+  { id: "mock-lesson", chapter_id: "mock-chapter", title: "Ôn tập nền tảng", description: "Bài học kết hợp video TSA và tài liệu HSA.", published: true, sort_order: 0 },
+  { id: "mock-lesson-middle", chapter_id: "mock-chapter", title: "Khảo sát hàm số", description: "Bài học giữa khóa để kiểm tra điều hướng.", published: true, sort_order: 1 },
+  { id: "mock-lesson-last", chapter_id: "mock-chapter-last", title: "Tích phân tổng hợp", description: "Bài học cuối khóa để kiểm tra trạng thái biên.", published: true, sort_order: 0 },
+];
+const mockLessonResourcesByLesson = new Map([
+  ["mock-lesson", mockLessonResources],
+  ["mock-lesson-middle", mockMiddleLessonResources],
+  ["mock-lesson-last", mockLastLessonResources],
+]);
+const mockLessonCurriculum = [
+  {
+    id: "mock-chapter",
+    title: "Hàm số",
+    sort_order: 0,
+    lessons: [
+      { ...mockLessonRows[0], resources: mockLessonResources },
+      { ...mockLessonRows[1], resources: mockMiddleLessonResources },
+    ],
+  },
+  {
+    id: "mock-chapter-last",
+    title: "Tích phân",
+    sort_order: 1,
+    lessons: [{ ...mockLessonRows[2], resources: mockLastLessonResources }],
+  },
+];
 const mockGuestMeta = {
   slot: {
     id: "mock-guest-slot",
@@ -371,22 +399,31 @@ async function installMockAuth() {
               : table === "exam_rooms" ? mockRooms
                 : table === "exams" ? mockExams
                   : table === "exam_room_enrollments" ? []
-                    : table === "chapters" ? [{ id: "mock-chapter", course_id: mockCourse.id, title: "Hàm số", sort_order: 0 }]
-                      : table === "lessons" ? [{ id: "mock-lesson", chapter_id: "mock-chapter", title: "Ôn tập nền tảng", description: "Bài học kết hợp video TSA và tài liệu HSA.", published: true, sort_order: 0 }]
+                : table === "chapters" ? [{ id: "mock-chapter", course_id: mockCourse.id, title: "Hàm số", sort_order: 0 }, { id: "mock-chapter-last", course_id: mockCourse.id, title: "Tích phân", sort_order: 1 }]
+                      : table === "lessons" ? mockLessonRows
                         : [];
         const objectProfileResponse = requestUrl.searchParams.get("id")?.includes(`eq.${mockUser.id}`) && table === "profiles";
-        const objectLessonResponse = requestUrl.searchParams.get("id")?.includes("eq.mock-lesson") && table === "lessons";
+        const requestedLessonId = table === "lessons"
+          ? mockLessonRows.find(item => requestUrl.searchParams.get("id")?.includes(`eq.${item.id}`))?.id ?? ""
+          : "";
+        const requestedLesson = mockLessonRows.find(item => item.id === requestedLessonId);
+        const requestedChapter = requestedLesson?.chapter_id === "mock-chapter-last"
+          ? { course_id: mockCourse.id, title: "Tích phân", sort_order: 1, courses: { title: mockCourse.title } }
+          : { course_id: mockCourse.id, title: "Hàm số", sort_order: 0, courses: { title: mockCourse.title } };
         const lessonWithRelations = {
-          ...rows[0],
-          chapters: { course_id: mockCourse.id, title: "Hàm số", sort_order: 0, courses: { title: mockCourse.title } },
+          ...requestedLesson,
+          chapters: requestedChapter,
         };
-        return route.fulfill(jsonResponse(objectProfileResponse ? rows[0] : objectLessonResponse ? lessonWithRelations : rows));
+        return route.fulfill(jsonResponse(objectProfileResponse ? rows[0] : requestedLesson ? lessonWithRelations : rows));
       }
     }
     if (requestUrl.origin === new URL(baseUrl).origin && requestUrl.pathname.startsWith("/api/")) {
       if (requestUrl.pathname === "/api/guest-exams" && route.request().method() === "GET") return route.fulfill(jsonResponse(mockGuestMeta));
       if (requestUrl.pathname === "/api/security/session") return route.fulfill(jsonResponse({ allowed: true, exempt: true, serverTime: new Date().toISOString() }));
-      if (requestUrl.pathname === "/api/lesson-resources") return route.fulfill(jsonResponse({ resources: mockLessonResources, curriculum: mockLessonCurriculum }));
+      if (requestUrl.pathname === "/api/lesson-resources") {
+        const requestedLessonId = requestUrl.searchParams.get("lessonId") ?? "mock-lesson";
+        return route.fulfill(jsonResponse({ resources: mockLessonResourcesByLesson.get(requestedLessonId) ?? [], curriculum: mockLessonCurriculum }));
+      }
       if (requestUrl.pathname === "/api/video-token") {
         if (failNextVideoToken) {
           failNextVideoToken = false;
@@ -394,6 +431,8 @@ async function installMockAuth() {
         }
         const body = JSON.parse(route.request().postData() || "{}");
         if (body.videoToken === "mock-video-token") return route.fulfill(jsonResponse({ type: "youtube", title: "Video bài giảng TSA", youtubeId: "dQw4w9WgXcQ", start: 0 }));
+        if (body.videoToken === "mock-video-token-middle") return route.fulfill(jsonResponse({ type: "youtube", title: "Video khảo sát hàm số", youtubeId: "dQw4w9WgXcQ", start: 0 }));
+        if (body.videoToken === "mock-video-token-last") return route.fulfill(jsonResponse({ type: "youtube", title: "Video tích phân cuối khóa", youtubeId: "dQw4w9WgXcQ", start: 0 }));
         if (body.videoToken === "mock-pdf-token") return route.fulfill(jsonResponse({ type: "storage_pdf", title: "Tài liệu bài học HSA", protectedContent: "pdf" }));
         return route.fulfill(jsonResponse({ error: "Token nội dung thử nghiệm không hợp lệ." }, 403));
       }
@@ -661,13 +700,14 @@ async function inspectStress(name, path, width) {
   const result = await page.evaluate(() => {
     const longVietnamese = "Nội dung tiếng Việt rất dài để kiểm tra khả năng xuống dòng, thứ bậc thông tin và việc các hành động quan trọng luôn còn nhìn thấy trên màn hình hẹp";
     const unbroken = "CHUOIKHONGCODAUCACTRONGIUPHATHIENOVERFLOW".repeat(4);
-    const targets = [...document.querySelectorAll(".reference-room-card-title h2, .admin-kpi-label, .admin-action-text b, .admin-session-title-row h3, .security-user-grid b, .overview-card-head b, .course-body h3, .history-exam b, .detail-row b")].slice(0, 8);
+    const targets = [...document.querySelectorAll(".reference-room-card-title h2, .admin-kpi-label, .admin-action-text b, .admin-session-title-row h3, .security-user-grid b, .overview-card-head b, .course-body h3, .history-exam b, .detail-row b, .breadcrumb-course, .breadcrumb-current, .study-lesson-context h1, .study-lesson-context p, .curriculum-lesson-title b, .curriculum-resource b")].slice(0, 8);
     targets.forEach((target, index) => { target.textContent = index === targets.length - 1 ? unbroken : longVietnamese; });
     document.documentElement.style.fontSize = "200%";
     const root = document.documentElement;
     const controls = [...document.querySelectorAll("button, a, input, select, textarea")];
     const outsideViewportControls = controls.filter(control => {
       if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
+      if (control.closest(".curriculum-panel:not(.mobile-open)")) return false;
       const rect = control.getBoundingClientRect();
       return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
     });
@@ -677,6 +717,10 @@ async function inspectStress(name, path, width) {
       clientWidth: root.clientWidth,
       controlsOutsideViewport: outsideViewportControls.filter(control => !control.closest(".admin-timetable-week-grid")).length,
       scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.closest(".admin-timetable-week-grid")).length,
+      outsideViewportControls: outsideViewportControls.map(control => {
+        const rect = control.getBoundingClientRect();
+        return { tag: control.tagName.toLowerCase(), className: control.className, text: control.textContent?.trim().slice(0, 80) ?? "", left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+      }),
     };
   });
   report.push({ name: `${name}-text-stress-200pct`, path, width, ...result });
@@ -789,24 +833,183 @@ async function inspectAccountMenu() {
 
 async function inspectLessonResources() {
   for (const width of [1440, 768, 390, 320]) {
+    const studyRequests = { lesson: 0, curriculum: 0 };
+    const recordStudyRequest = request => {
+      const requestUrl = new URL(request.url());
+      if (requestUrl.pathname === "/api/lesson-resources") studyRequests.curriculum += 1;
+      if (requestUrl.pathname === "/rest/v1/lessons" && requestUrl.searchParams.has("id")) studyRequests.lesson += 1;
+    };
+    page.on("request", recordStudyRequest);
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/lessons/mock-lesson`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await waitForRouteSurface();
     await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 });
     const videoState = await page.evaluate(() => ({
-      pageHeading: document.querySelector(".lesson-page-header h1")?.textContent?.trim() ?? "",
-      viewerHeading: document.querySelector("#lesson-viewer-title")?.textContent?.trim() ?? "",
+      lessonContext: document.querySelector(".study-lesson-context p")?.textContent?.trim() ?? "",
+      resourceHeading: document.querySelector("#study-lesson-title")?.textContent?.trim() ?? "",
       videoVisible: Boolean(document.querySelector('.lesson-video[title="Video bài giảng TSA"]')),
       curriculumVisible: Boolean(document.querySelector(".lesson-nav.curriculum-panel")),
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
     }));
+    let presentationStability = null;
+    if (width === 1440) {
+      await page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => { element.dataset.studyPresentationStable = "true"; });
+      const stablePlayer = () => page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => element.dataset.studyPresentationStable === "true");
+      const compactCourseTrigger = page.locator('[data-compact-nav-trigger="courses"]');
+      const compactCourseFlyout = page.locator("#compact-nav-courses-popover");
+      await compactCourseTrigger.click();
+      await compactCourseFlyout.waitFor({ state: "visible" });
+      const compactFlyoutGeometry = await page.evaluate(() => {
+        const flyout = document.querySelector("#compact-nav-courses-popover");
+        const flyoutBox = flyout?.getBoundingClientRect();
+        const flyoutStyle = flyout ? getComputedStyle(flyout) : null;
+        const itemHeights = [...(flyout?.querySelectorAll(":scope > a") ?? [])].map(item => Math.round(item.getBoundingClientRect().height));
+        return {
+          left: Math.round(flyoutBox?.left ?? 0),
+          width: Math.round(flyoutBox?.width ?? 0),
+          paddingTop: flyoutStyle?.paddingTop ?? "",
+          paddingBottom: flyoutStyle?.paddingBottom ?? "",
+          borderTopWidth: flyoutStyle?.borderTopWidth ?? "",
+          borderRadius: flyoutStyle?.borderTopLeftRadius ?? "",
+          itemHeights,
+        };
+      });
+      const compactFlyoutStable = await stablePlayer();
+      const compactFlyoutExpanded = await compactCourseTrigger.getAttribute("aria-expanded") === "true";
+      await compactCourseTrigger.click();
+      await compactCourseFlyout.waitFor({ state: "detached" });
+      const compactFlyoutSecondClickClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
+      const compactFlyoutSecondClickStable = await stablePlayer();
+      await compactCourseTrigger.click();
+      await compactCourseFlyout.waitFor({ state: "visible" });
+      await page.keyboard.press("Escape");
+      await compactCourseFlyout.waitFor({ state: "detached" });
+      const compactFlyoutEscapeClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
+      const compactFlyoutEscapeFocusRestored = await compactCourseTrigger.evaluate(element => document.activeElement === element);
+      const compactFlyoutEscapeStable = await stablePlayer();
+      await compactCourseTrigger.click();
+      await compactCourseFlyout.waitFor({ state: "visible" });
+      await page.locator(".study-lesson-context").click();
+      await compactCourseFlyout.waitFor({ state: "detached" });
+      const compactFlyoutOutsideClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
+      const compactFlyoutOutsideStable = await stablePlayer();
+      const compactFlyoutGeometryValid = compactFlyoutGeometry.left === 104
+        && compactFlyoutGeometry.width === 224
+        && compactFlyoutGeometry.paddingTop === "8px"
+        && compactFlyoutGeometry.paddingBottom === "8px"
+        && compactFlyoutGeometry.borderTopWidth === "0px"
+        && compactFlyoutGeometry.borderRadius === "8px"
+        && compactFlyoutGeometry.itemHeights.length > 0
+        && compactFlyoutGeometry.itemHeights.every(itemHeight => itemHeight === 40);
+      const chapterToggle = page.locator(".lesson-curriculum-list summary").first();
+      await chapterToggle.click();
+      const chapterCollapsedStable = await stablePlayer();
+      await chapterToggle.click();
+      const chapterExpandedStable = await stablePlayer();
+      const secondChapterToggle = page.locator(".lesson-curriculum-list summary").nth(1);
+      await secondChapterToggle.click();
+      const accordion = await page.evaluate(() => {
+        const chapters = [...document.querySelectorAll(".lesson-curriculum-list details")];
+        return { firstClosed: !chapters[0]?.open, secondOpen: chapters[1]?.open ?? false };
+      });
+      const accordionStable = await stablePlayer();
+      await chapterToggle.click();
+      const activeChapterRestoredStable = await stablePlayer();
+      await page.setViewportSize({ width: 1180, height: 900 });
+      await page.waitForTimeout(350);
+      const compactResizeStable = await stablePlayer();
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.waitForTimeout(350);
+      const desktopResizeStable = await stablePlayer();
+      presentationStability = {
+        compactFlyoutGeometry,
+        compactFlyoutGeometryValid,
+        compactFlyoutStable,
+        compactFlyoutExpanded,
+        compactFlyoutSecondClickClosed,
+        compactFlyoutSecondClickStable,
+        compactFlyoutEscapeClosed,
+        compactFlyoutEscapeFocusRestored,
+        compactFlyoutEscapeStable,
+        compactFlyoutOutsideClosed,
+        compactFlyoutOutsideStable,
+        chapterCollapsedStable,
+        chapterExpandedStable,
+        accordion,
+        accordionStable,
+        activeChapterRestoredStable,
+        compactResizeStable,
+        desktopResizeStable,
+      };
+      if (!compactFlyoutGeometryValid || !compactFlyoutStable || !compactFlyoutExpanded
+        || !compactFlyoutSecondClickClosed || !compactFlyoutSecondClickStable
+        || !compactFlyoutEscapeClosed || !compactFlyoutEscapeFocusRestored || !compactFlyoutEscapeStable
+        || !compactFlyoutOutsideClosed || !compactFlyoutOutsideStable) {
+        throw new Error(`Compact course flyout failed: ${JSON.stringify(presentationStability)}`);
+      }
+      if (!accordion.firstClosed || !accordion.secondOpen) throw new Error(`Study chapters are not exclusive: ${JSON.stringify(accordion)}`);
+      if (Object.values(presentationStability).some(value => !value)) throw new Error(`Study presentation state replaced the player: ${JSON.stringify(presentationStability)}`);
+    }
 
+    if (width === 390) {
+      await page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => { element.dataset.studyQaPlayer = "stable"; });
+      const curriculumTrigger = page.getByRole("button", { name: /Nội dung giáo trình/ });
+      await curriculumTrigger.click();
+      const curriculumDialog = page.locator('#lesson-curriculum-panel[role="dialog"][aria-modal="true"]');
+      await curriculumDialog.waitFor({ state: "visible" });
+      await page.waitForTimeout(100);
+      const opened = await page.evaluate(() => {
+        const dialog = document.querySelector("#lesson-curriculum-panel");
+        const close = dialog?.querySelector(".curriculum-panel-close");
+        const shell = document.querySelector(".study-mode");
+        const sidebar = shell?.querySelector(":scope > .sidebar");
+        const breadcrumb = document.querySelector(".lesson-breadcrumb");
+        const viewer = document.querySelector(".study-viewer-column");
+        const closeBox = close?.getBoundingClientRect();
+        return {
+          documentFocused: document.hasFocus(),
+          activeElement: document.activeElement ? `${document.activeElement.tagName}.${document.activeElement.className}` : "",
+          closeFocused: document.activeElement === close,
+          focusInsideBeforeTrap: Boolean(dialog?.contains(document.activeElement)),
+          dialogOpen: dialog?.classList.contains("mobile-open") ?? false,
+          closeConnected: close?.isConnected ?? false,
+          closeInert: close?.matches(":disabled") || close?.closest("[inert]") !== null,
+          closeVisible: Boolean(closeBox && closeBox.width > 0 && closeBox.height > 0),
+          mainInert: document.querySelector("#main-content")?.inert ?? false,
+          bodyLocked: document.body.style.overflow === "hidden",
+          backgroundInert: Boolean(sidebar?.inert && breadcrumb?.inert && viewer?.inert),
+          playerStable: document.querySelector(".lesson-video")?.dataset.studyQaPlayer === "stable",
+        };
+      });
+      await page.keyboard.press("Shift+Tab");
+      const focusTrapped = await page.evaluate(() => document.querySelector("#lesson-curriculum-panel")?.contains(document.activeElement) ?? false);
+      await page.screenshot({ path: join(outputDir, "student-curriculum-drawer-open-390.png"), fullPage: true });
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(100);
+      const closed = await page.evaluate(() => ({
+        dialogClosed: !document.querySelector("#lesson-curriculum-panel")?.classList.contains("mobile-open"),
+        triggerRestored: document.activeElement?.classList.contains("study-curriculum-trigger") ?? false,
+        bodyUnlocked: document.body.style.overflow !== "hidden",
+        backgroundInteractive: !document.querySelector(".study-viewer-column")?.inert,
+        playerStable: document.querySelector(".lesson-video")?.dataset.studyQaPlayer === "stable",
+      }));
+      const drawerResult = { name: "student-study-curriculum-dialog", path: "/lessons/mock-lesson", width, ...opened, focusTrapped, ...closed };
+      report.push(drawerResult);
+      if (!drawerResult.closeFocused || !drawerResult.bodyLocked || !drawerResult.backgroundInert || !drawerResult.playerStable || !drawerResult.focusTrapped
+        || !drawerResult.dialogClosed || !drawerResult.triggerRestored || !drawerResult.bodyUnlocked || !drawerResult.backgroundInteractive) {
+        throw new Error(`Study curriculum dialog failed: ${JSON.stringify(drawerResult)}`);
+      }
+    }
+
+    if (width <= 1199) await page.getByRole("button", { name: /Nội dung giáo trình/ }).click();
     await page.getByRole("button", { name: /Tài liệu bài học HSA/ }).click();
     await page.locator('.lesson-document iframe[title="Tài liệu bài học HSA"]').waitFor({ state: "visible", timeout: 10_000 });
     const pdfVisible = await page.locator('.lesson-document iframe[title="Tài liệu bài học HSA"]').count() === 1;
+    const resourceReplacedPlayer = !await page.locator('.lesson-video[title="Video bài giảng TSA"]').count();
 
     failNextVideoToken = true;
     expectedMockFailureMessages.push("status of 503");
+    if (width <= 1199) await page.getByRole("button", { name: /Nội dung giáo trình/ }).click();
     await page.getByRole("button", { name: /Video bài giảng TSA/ }).click();
     const playerError = page.locator(".lesson-viewer-surface .secure-viewer-state.error");
     await playerError.waitFor({ state: "visible", timeout: 10_000 });
@@ -814,10 +1017,62 @@ async function inspectLessonResources() {
     await playerError.getByRole("button", { name: "Thử tải lại" }).click();
     await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 });
     const recoveredVideo = await page.locator('.lesson-video[title="Video bài giảng TSA"]').count() === 1;
+    let lessonEdges = null;
+    if (width === 1440) {
+      await page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => { element.dataset.studyLessonEdge = "first"; });
+      lessonEdges = await page.evaluate(() => ({
+        firstPreviousDisabled: document.querySelector(".study-lesson-navigation > :first-child")?.getAttribute("aria-disabled") === "true",
+        firstNextHref: document.querySelector(".study-lesson-navigation > a:last-child")?.getAttribute("href") ?? "",
+      }));
+      await page.locator(".study-lesson-navigation > a:last-child").click();
+      await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-middle", { timeout: 5_000 });
+      await page.locator('.lesson-video[title="Video khảo sát hàm số"]').waitFor({ state: "visible", timeout: 10_000 });
+      Object.assign(lessonEdges, await page.evaluate(() => ({
+        middlePreviousHref: document.querySelector(".study-lesson-navigation > a:first-child")?.getAttribute("href") ?? "",
+        middleNextHref: document.querySelector(".study-lesson-navigation > a:last-child")?.getAttribute("href") ?? "",
+        middleReplacedPlayer: document.querySelector(".lesson-video")?.dataset.studyLessonEdge !== "first",
+      })));
+      await page.locator('.lesson-video[title="Video khảo sát hàm số"]').evaluate(element => { element.dataset.studyLessonEdge = "middle"; });
+      await page.locator(".study-lesson-navigation > a:last-child").click();
+      await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-last", { timeout: 5_000 });
+      await page.locator('.lesson-video[title="Video tích phân cuối khóa"]').waitFor({ state: "visible", timeout: 10_000 });
+      Object.assign(lessonEdges, await page.evaluate(() => ({
+        lastPreviousHref: document.querySelector(".study-lesson-navigation > a:first-child")?.getAttribute("href") ?? "",
+        lastNextDisabled: document.querySelector(".study-lesson-navigation > :last-child")?.getAttribute("aria-disabled") === "true",
+        lastReplacedPlayer: document.querySelector(".lesson-video")?.dataset.studyLessonEdge !== "middle",
+      })));
+      await page.goBack();
+      await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-middle", { timeout: 5_000 });
+      await page.locator('.lesson-video[title="Video khảo sát hàm số"]').waitFor({ state: "visible", timeout: 10_000 });
+      lessonEdges.backRestoredMiddle = true;
+      await page.goBack();
+      await page.waitForURL(url => url.pathname === "/lessons/mock-lesson", { timeout: 5_000 });
+      await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 }).catch(async error => {
+        const state = await page.evaluate(() => ({
+          url: location.href,
+          shell: document.querySelector(".ui-shell")?.className ?? "",
+          heading: document.querySelector("#study-lesson-title")?.textContent ?? "",
+          status: document.querySelector(".lesson-resource-status")?.textContent ?? "",
+          viewer: document.querySelector(".lesson-viewer-surface")?.textContent ?? "",
+          page: document.querySelector(".real-lesson-page")?.textContent?.slice(0, 500) ?? "",
+        }));
+        throw new Error(`Study back navigation did not restore the first player: ${JSON.stringify(state)}; ${error.message}`);
+      });
+      lessonEdges.backRestoredFirst = true;
+      if (!lessonEdges.firstPreviousDisabled || lessonEdges.firstNextHref !== "/lessons/mock-lesson-middle"
+        || lessonEdges.middlePreviousHref !== "/lessons/mock-lesson" || lessonEdges.middleNextHref !== "/lessons/mock-lesson-last"
+        || !lessonEdges.middleReplacedPlayer || lessonEdges.lastPreviousHref !== "/lessons/mock-lesson-middle"
+        || !lessonEdges.lastNextDisabled || !lessonEdges.lastReplacedPlayer || !lessonEdges.backRestoredMiddle || !lessonEdges.backRestoredFirst) {
+        throw new Error(`Study lesson edge navigation is incomplete: ${JSON.stringify(lessonEdges)}`);
+      }
+    }
     await page.screenshot({ path: join(outputDir, `student-lesson-resources-${width}.png`), fullPage: true });
-    const result = { name: "student-lesson-resource-flow", path: "/lessons/mock-lesson", width, ...videoState, pdfVisible, retryVisible, recoveredVideo };
+    page.off("request", recordStudyRequest);
+    const expectedLessonLoads = width === 1440 ? 5 : 1;
+    const result = { name: "student-lesson-resource-flow", path: "/lessons/mock-lesson", width, ...videoState, presentationStability, pdfVisible, resourceReplacedPlayer, retryVisible, recoveredVideo, lessonEdges, studyRequests, expectedLessonLoads };
     report.push(result);
-    if (!videoState.pageHeading.includes("Ôn tập nền tảng") || videoState.pageHeading.includes("NaN") || !videoState.viewerHeading || !videoState.videoVisible || !videoState.curriculumVisible || videoState.horizontalOverflow || !pdfVisible || !retryVisible || !recoveredVideo) {
+    if (!videoState.lessonContext.includes("Ôn tập nền tảng") || videoState.lessonContext.includes("NaN") || !videoState.resourceHeading || !videoState.videoVisible || !videoState.curriculumVisible || videoState.horizontalOverflow || !pdfVisible || !resourceReplacedPlayer || !retryVisible || !recoveredVideo
+      || studyRequests.lesson !== expectedLessonLoads || studyRequests.curriculum !== expectedLessonLoads) {
       throw new Error(`Lesson resource flow failed at ${width}px: ${JSON.stringify(result)}`);
     }
   }

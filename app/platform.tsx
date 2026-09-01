@@ -38,7 +38,7 @@ import StudentDashboard from "./student-dashboard";
 import { formatUiActivityDate, formatUiDate, formatUiShortDateTime } from "./ui-format";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
-  Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
+  Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Play, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
   ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3,
   LayoutGrid, List as ListIcon, Server
 } from "lucide-react";
@@ -304,7 +304,12 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [checkingSession, setCheckingSession] = useState(() => Boolean(supabase));
   const [, setAuthReady] = useState(() => !supabase);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [productSidebarOpen, setProductSidebarOpen] = useState(true);
+  const [studySidebarOpen, setStudySidebarOpen] = useState(false);
+  const sidebarOpen = currentView === "lesson" ? studySidebarOpen : productSidebarOpen;
+  const [compactNavPopover, setCompactNavPopover] = useState<"exams" | "courses" | null>(null);
+  const [compactNavPopoverTop, setCompactNavPopoverTop] = useState(0);
+  const [resolvedLessonCourseId, setResolvedLessonCourseId] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [, setRouteVersion] = useState(0);
   const [fullName, setFullName] = useState("");
@@ -337,6 +342,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const accountMenuFocusEdgeRef = useRef<"first" | "last">("first");
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
+  const compactNavTriggerRef = useRef<HTMLElement | null>(null);
+  const compactNavPopoverRef = useRef<HTMLElement | null>(null);
   const lastAllowedRouteRef = useRef(pathname);
   const handleHistoryLoaded = useCallback((nextAttempts: AttemptData[]) => {
     setAttempts(current => {
@@ -362,11 +369,60 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     return Array.from(types).sort((left, right) => left.localeCompare(right, "vi"));
   }, [practiceRooms]);
   const runnerShellPath = isExamRunnerPath(pathname);
+  const openMobileMenu = useCallback((trigger?: HTMLButtonElement) => {
+    if (trigger) mobileMenuRef.current = trigger;
+    setCompactNavPopover(null);
+    setMobileOpen(true);
+    if (currentView === "lesson") {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+        document.querySelector<HTMLButtonElement>("#main-sidebar.mobile-open .mobile-sidebar-close")?.focus({ preventScroll: true });
+      }));
+    }
+  }, [currentView]);
+  const toggleSidebar = useCallback(() => {
+    setCompactNavPopover(null);
+    if (currentView === "lesson") setStudySidebarOpen(value => !value);
+    else setProductSidebarOpen(value => !value);
+  }, [currentView]);
+  const handleCompactNavDisclosure = useCallback((event: React.MouseEvent<HTMLElement>, kind: "exams" | "courses") => {
+    if (sidebarOpen || mobileOpen) return;
+    event.preventDefault();
+    compactNavTriggerRef.current = event.currentTarget;
+    const triggerBox = event.currentTarget.getBoundingClientRect();
+    setCompactNavPopoverTop(triggerBox.bottom + 5);
+    setCompactNavPopover(current => current === kind ? null : kind);
+  }, [mobileOpen, sidebarOpen]);
   const closeMobileMenu = useCallback(() => {
     setMobileOpen(false);
-    window.requestAnimationFrame(() => mobileMenuRef.current?.focus());
-  }, []);
+    const restoreFocus = () => mobileMenuRef.current?.focus({ preventScroll: true });
+    if (currentView === "lesson") window.requestAnimationFrame(() => window.requestAnimationFrame(restoreFocus));
+    else window.requestAnimationFrame(restoreFocus);
+  }, [currentView]);
   const mobileSidebarRef = useAdminDialogFocus<HTMLElement>(mobileOpen && !runnerShellPath, closeMobileMenu);
+
+  useEffect(() => {
+    if (!compactNavPopover) return;
+    const closeOnPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target || compactNavPopoverRef.current?.contains(target) || compactNavTriggerRef.current?.contains(target)) return;
+      setCompactNavPopover(null);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setCompactNavPopover(null);
+      compactNavTriggerRef.current?.focus({ preventScroll: true });
+    };
+    const closeOnViewportChange = () => setCompactNavPopover(null);
+    document.addEventListener("pointerdown", closeOnPointerDown);
+    document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", closeOnViewportChange);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnPointerDown);
+      document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", closeOnViewportChange);
+    };
+  }, [compactNavPopover]);
 
   useEffect(() => {
     const adminPath = pathname.startsWith("/admin");
@@ -924,6 +980,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   if (pathname === "/login") return <LoadingIndicator label="Đang mở tổng quan…" fullPage />;
 
   const go = (next: View, pathOverride?: string) => {
+    setCompactNavPopover(null);
     if (next === "admin" && !isAdmin) {
       setMobileOpen(false);
       router.replace("/dashboard");
@@ -945,6 +1002,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const currentAdminTab = adminRouteRequested ? adminTabFromPath(pathname) : "";
   const visibleCourses = assignedCourses;
   const routeCourseId = currentView === "course" || currentView === "lesson" ? decodeURIComponent(pathname.split("/")[2] ?? "") : "";
+  const activeSidebarCourseId = currentView === "lesson" ? resolvedLessonCourseId : routeCourseId;
   const selectedCourse = visibleCourses.find(course => String(course.id) === routeCourseId) ?? null;
   const accountLabel = activeProfile.full_name || activeProfile.email.split("@")[0] || "Tài khoản AECK";
   const accountInitials = accountLabel.split(" ").filter(Boolean).slice(-2).map(value => value[0]).join("").toUpperCase();
@@ -1007,14 +1065,14 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     }
   }
   return (
-    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
+    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${currentView === "lesson" ? "study-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
       {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
       <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={closeMobileMenu} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
       {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
       {!examRunnerSurface && (
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
            <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="mobile-sidebar-logo mobile-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="mobile-sidebar-logo mobile-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
-          {!adminRouteRequested && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link>}
+          {!adminRouteRequested && currentView === "lesson" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link>}
           <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
@@ -1023,18 +1081,18 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
               </div>)}
             </> : <>
               <Link key="overview" href="/dashboard" className={`student-nav-primary ${currentView === "overview" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "overview", "/dashboard")} title="Tổng quan" aria-label="Tổng quan" aria-current={currentView === "overview" ? "page" : undefined}><LayoutDashboard aria-hidden="true" /><span>Tổng quan</span></Link>
-              {availableExamTypes.length > 0 && <details className={`student-nav-disclosure ${currentView === "exams" ? "active-parent" : ""}`} open>
-                <summary><ClipboardCheck aria-hidden="true" /><span>Phòng khảo thí</span><ChevronDown aria-hidden="true" /></summary>
+              {availableExamTypes.length > 0 && <details className={`student-nav-disclosure ${currentView === "exams" ? "active-parent" : ""} ${compactNavPopover === "exams" ? "compact-nav-popover-open" : ""}`} open>
+                <summary data-compact-nav-trigger="exams" aria-controls="compact-nav-exams-popover" aria-expanded={sidebarOpen || mobileOpen ? undefined : compactNavPopover === "exams"} onClick={event => handleCompactNavDisclosure(event, "exams")}><ClipboardCheck aria-hidden="true" /><span>Phòng khảo thí</span><ChevronDown aria-hidden="true" /></summary>
                 <div className="student-nav-children">
                   {availableExamTypes.map(type => <Link key={type} href="/exam-room" className={currentView === "exams" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
                 </div>
               </details>}
-              {visibleCourses.length > 0 && <details className={`student-nav-disclosure ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active-parent" : ""}`} open>
-                <summary><BookOpen aria-hidden="true" /><span>Khóa học</span><ChevronDown aria-hidden="true" /></summary>
+              {visibleCourses.length > 0 && <details className={`student-nav-disclosure ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active-parent" : ""} ${compactNavPopover === "courses" ? "compact-nav-popover-open" : ""}`} open>
+                <summary data-compact-nav-trigger="courses" aria-controls="compact-nav-courses-popover" aria-expanded={sidebarOpen || mobileOpen ? undefined : compactNavPopover === "courses"} onClick={event => handleCompactNavDisclosure(event, "courses")}><BookOpen aria-hidden="true" /><span>Khóa học</span><ChevronDown aria-hidden="true" /></summary>
                 <div className="student-nav-children">
                   {visibleCourses.map(course => {
                     const href = `/courses/${encodeURIComponent(String(course.id))}`;
-                    const active = (currentView === "course" || currentView === "lesson") && String(course.id) === routeCourseId;
+                    const active = (currentView === "course" || currentView === "lesson") && String(course.id) === activeSidebarCourseId;
                     return <Link key={course.id} href={href} className={active ? "active" : ""} onClick={event => handleNavigationLink(event, "course", href)} aria-current={active ? "page" : undefined}><span aria-hidden="true">☰</span><span>{course.title}</span></Link>;
                   })}
                 </div>
@@ -1051,11 +1109,26 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           <Link className="mobile-sidebar-account" href={adminRouteRequested ? "/admin" : "/profile"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "profile", adminRouteRequested ? "/admin" : "/profile")}><span className="mini-avatar">{activeProfile.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><span><b>{activeProfile.full_name}</b><small>{adminRouteRequested ? "Quản trị viên" : activeProfile.student_code}</small></span><ChevronRight aria-hidden="true"/></Link>
         </aside>
       )}
+      {!adminRouteRequested && !sidebarOpen && !mobileOpen && compactNavPopover && (
+        <nav
+          ref={compactNavPopoverRef}
+          id={`compact-nav-${compactNavPopover}-popover`}
+          className="compact-nav-popover"
+          style={{ top: compactNavPopoverTop }}
+          aria-label={compactNavPopover === "courses" ? "Danh sách khóa học" : "Danh sách phòng khảo thí"}
+        >
+          {compactNavPopover === "courses" ? visibleCourses.map(course => {
+            const href = `/courses/${encodeURIComponent(String(course.id))}`;
+            const active = (currentView === "course" || currentView === "lesson") && String(course.id) === activeSidebarCourseId;
+            return <Link key={course.id} href={href} className={active ? "active" : ""} onClick={event => handleNavigationLink(event, "course", href)} aria-current={active ? "page" : undefined}><span aria-hidden="true">☰</span><span>{course.title}</span></Link>;
+          }) : availableExamTypes.map(type => <Link key={type} href="/exam-room" className={currentView === "exams" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
+        </nav>
+      )}
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
           <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src="/logo_aeck.svg" alt="" width={180} height={48}/></Link>
-          <button type="button" className="header-sidebar-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
-          <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu /></button>
+          <button type="button" className="header-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
+          <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={event => openMobileMenu(event.currentTarget)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu aria-hidden="true" /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
           <div className="top-actions">
             {!adminRouteRequested && !protectedProductSurface && <Link className="reference-topbar-search" href="/search" onClick={event => handleNavigationLink(event, "search", "/search")} aria-label="Mở trang tra cứu"><Search aria-hidden="true" /><span>Tra cứu</span></Link>}
@@ -1076,7 +1149,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
-        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} />}
+        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onCourseResolved={setResolvedLessonCourseId} onOpenAppMenu={openMobileMenu} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
@@ -1576,23 +1649,39 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
   </div>;
 }
 
-function LessonViewer({ lessonId }: { lessonId: string }) {
+function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId: string; onCourseResolved: (courseId: string) => void; onOpenAppMenu: (trigger: HTMLButtonElement) => void }) {
   const router = useRouter();
   const viewerRef = useRef<HTMLElement | null>(null);
+  const curriculumTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const currentLessonRef = useRef<HTMLDivElement | null>(null);
   const [lesson, setLesson] = useState<(LessonData & { course_id: string; course_title: string; chapter_title: string; chapter_sort_order: number }) | null>(null);
   const [resources, setResources] = useState<SecureLessonResource[]>([]);
   const [curriculum, setCurriculum] = useState<LessonCurriculumSection[]>([]);
   const [selectedResourceId, setSelectedResourceId] = useState("");
+  const [expandedChapterId, setExpandedChapterId] = useState("");
+  const [curriculumOpen, setCurriculumOpen] = useState(false);
   const [lessonLoading, setLessonLoading] = useState(() => Boolean(supabase && lessonId));
   const [lessonError, setLessonError] = useState("");
   const [lessonReloadVersion, setLessonReloadVersion] = useState(0);
+  const closeCurriculum = useCallback(() => {
+    setCurriculumOpen(false);
+    window.requestAnimationFrame(() => curriculumTriggerRef.current?.focus({ preventScroll: true }));
+  }, []);
+  const curriculumPanelRef = useAdminDialogFocus<HTMLElement>(curriculumOpen, closeCurriculum);
+  const openCurriculum = useCallback(() => {
+    setCurriculumOpen(true);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      document.querySelector<HTMLButtonElement>("#lesson-curriculum-panel.mobile-open [data-dialog-autofocus]")?.focus({ preventScroll: true });
+    }));
+  }, []);
 
   useEffect(() => {
     if (!supabase || !lessonId) return;
     let cancelled = false;
     async function loadLesson() {
       setLessonLoading(true); setLessonError("");
-      setLesson(null); setResources([]); setCurriculum([]); setSelectedResourceId("");
+      setLesson(null); setResources([]); setCurriculum([]); setSelectedResourceId(""); setExpandedChapterId("");
+      onCourseResolved("");
       try {
         const accessToken = await activeSessionToken().catch(() => null);
         if (cancelled) return;
@@ -1609,10 +1698,13 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
         const raw = lessonResult.data as LessonWithChapterRow;
         const chapter = Array.isArray(raw.chapters) ? raw.chapters[0] : raw.chapters;
         const relatedCourse = Array.isArray(chapter?.courses) ? chapter.courses[0] : chapter?.courses;
+        onCourseResolved(chapter?.course_id ?? "");
         setLesson({ id: raw.id, chapter_id: raw.chapter_id, title: raw.title, description: raw.description ?? "", published: raw.published, sort_order: raw.sort_order, course_id: chapter?.course_id ?? "", course_title: relatedCourse?.title ?? "", chapter_title: chapter?.title ?? "", chapter_sort_order: chapter?.sort_order ?? 0 });
         const nextResources = resourcePayload?.resources ?? [];
+        const nextCurriculum = resourcePayload?.curriculum ?? [];
         setResources(nextResources);
-        setCurriculum(resourcePayload?.curriculum ?? []);
+        setCurriculum(nextCurriculum);
+        setExpandedChapterId(nextCurriculum.find(section => section.lessons.some(item => item.id === lessonId))?.id ?? nextCurriculum[0]?.id ?? "");
         const requestedResource = new URLSearchParams(window.location.search).get("resource") ?? "";
         setSelectedResourceId(nextResources.some(resource => resource.id === requestedResource) ? requestedResource : nextResources[0]?.id ?? "");
       } catch (value) {
@@ -1623,7 +1715,44 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
     }
     void loadLesson();
     return () => { cancelled = true; };
-  }, [lessonId, lessonReloadVersion]);
+  }, [lessonId, lessonReloadVersion, onCourseResolved]);
+
+  useEffect(() => {
+    if (!curriculumOpen) return;
+    const compactViewport = window.matchMedia("(max-width: 1199px)");
+    const previousOverflow = document.body.style.overflow;
+    const background = [
+      document.querySelector<HTMLElement>(".study-mode > .sidebar"),
+      document.querySelector<HTMLElement>(".lesson-breadcrumb"),
+      document.querySelector<HTMLElement>(".study-viewer-column"),
+    ].filter((element): element is HTMLElement => Boolean(element));
+    const previousInert = background.map(element => element.inert);
+    document.body.style.overflow = "hidden";
+    background.forEach(element => { element.inert = true; });
+    const closeAtDesktop = (event: MediaQueryListEvent) => {
+      if (!event.matches) setCurriculumOpen(false);
+    };
+    compactViewport.addEventListener("change", closeAtDesktop);
+    return () => {
+      compactViewport.removeEventListener("change", closeAtDesktop);
+      document.body.style.overflow = previousOverflow;
+      background.forEach((element, index) => { element.inert = previousInert[index]; });
+    };
+  }, [curriculumOpen, curriculumPanelRef]);
+
+  useEffect(() => {
+    if (!curriculum.length) return;
+    const frame = window.requestAnimationFrame(() => {
+      const item = currentLessonRef.current;
+      const scroller = item?.closest<HTMLElement>(".lesson-curriculum-list");
+      if (!item || !scroller) return;
+      const itemBox = item.getBoundingClientRect();
+      const scrollerBox = scroller.getBoundingClientRect();
+      if (itemBox.top < scrollerBox.top) scroller.scrollTop -= scrollerBox.top - itemBox.top + 12;
+      else if (itemBox.bottom > scrollerBox.bottom) scroller.scrollTop += itemBox.bottom - scrollerBox.bottom + 12;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [curriculum, curriculumOpen, lessonId]);
 
   const selectedResource = resources.find(resource=>resource.id===selectedResourceId) ?? resources[0];
   const lessonCount = curriculum.reduce((total, section) => total + section.lessons.length, 0);
@@ -1632,7 +1761,8 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
     const url = new URL(window.location.href);
     url.searchParams.set("resource", resourceId);
     router.replace(`${url.pathname}${url.search}`, { scroll: false });
-    if (window.matchMedia("(max-width: 1023px)").matches) {
+    closeCurriculum();
+    if (window.matchMedia("(max-width: 1199px)").matches) {
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.requestAnimationFrame(() => viewerRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }));
     }
@@ -1645,8 +1775,11 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
       : <button type="button" className="outline-btn" onClick={() => setLessonReloadVersion(version => version + 1)}>Thử tải lại</button>;
     return <div className="lesson-page"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true"/> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy bài học" text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."} action={recoveryAction}/></div>;
   }
-  const selectedResourceIndex = selectedResource ? Math.max(0, resources.findIndex(resource => resource.id === selectedResource.id)) : -1;
-  const selectedResourceKind = selectedResource ? resourceTypeLabel(selectedResource.resource_type) : "Chưa có tài nguyên";
+  const orderedLessons = curriculum.flatMap(section => section.lessons);
+  const currentLessonIndex = orderedLessons.findIndex(item => item.id === lessonId);
+  const previousLesson = currentLessonIndex > 0 ? orderedLessons[currentLessonIndex - 1] : null;
+  const nextLesson = currentLessonIndex >= 0 && currentLessonIndex < orderedLessons.length - 1 ? orderedLessons[currentLessonIndex + 1] : null;
+  const selectedResourceIsVideo = Boolean(selectedResource && ["youtube", "onedrive_video", "hls_vault"].includes(selectedResource.resource_type));
   return <div className="lesson-page real-lesson-page">
     <AccountSecurityGuard activityType={selectedResource && ["youtube", "onedrive_video", "hls_vault"].includes(selectedResource.resource_type) ? "video" : selectedResource ? "pdf" : "lesson"} resourceId={selectedResource?.id ?? lessonId} />
     <nav className="lesson-breadcrumb" aria-label="Điều hướng bài học">
@@ -1655,31 +1788,36 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
       <strong className="breadcrumb-course" title={lesson.course_title}>{lesson.course_title || "Khóa học"}</strong>
       <span className="breadcrumb-current-separator" aria-hidden="true">/</span>
       <span className="breadcrumb-current" title={formatLessonTitle(lesson.title,lesson.sort_order)}>{formatLessonTitle(lesson.title,lesson.sort_order)}</span>
+      <button type="button" className="study-mobile-menu" onClick={event => onOpenAppMenu(event.currentTarget)} aria-label="Mở menu chính" aria-controls="main-sidebar"><Menu aria-hidden="true" /></button>
     </nav>
-    <header className="lesson-page-header">
-      <div><span className="lesson-page-kicker">{formatPartTitle(lesson.chapter_title, lesson.chapter_sort_order)}</span><h1>{formatLessonTitle(lesson.title,lesson.sort_order)}</h1><p>{lesson.description || "Theo dõi bài giảng và mở tài liệu theo thứ tự trong giáo trình."}</p></div>
-      <div className="lesson-page-summary" aria-label="Tóm tắt bài học"><span><b>{resources.length}</b> tài nguyên</span><span><b>{lessonCount}</b> bài trong khóa</span></div>
-    </header>
     <div className="lesson-layout">
-      <section ref={viewerRef} className="viewer-card" aria-labelledby="lesson-viewer-title">
-        <header className="lesson-viewer-header">
-          <div><span className="lesson-resource-kind">{selectedResource && ["youtube", "onedrive_video", "hls_vault"].includes(selectedResource.resource_type) ? <CirclePlay aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}{selectedResourceKind}</span><h2 id="lesson-viewer-title">{selectedResource?.title || "Nội dung bài học"}</h2></div>
-          {selectedResourceIndex >= 0 && <span className="lesson-resource-position">{selectedResourceIndex + 1}/{resources.length}</span>}
-        </header>
-        <p className="lesson-resource-status" role="status" aria-live="polite">{selectedResource ? `Đang mở: ${selectedResource.title}` : "Bài học chưa có tài nguyên."}</p>
-        <div className="lesson-viewer-surface">{!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer key={selectedResource.id} resource={selectedResource}/>}</div>
-      </section>
-      <aside className="lesson-nav curriculum-panel">
-        <div className="curriculum-panel-head"><h2>Nội dung giáo trình</h2><p>{curriculum.length} phần • {lessonCount} bài học</p></div>
-        {curriculum.length ? <div className="lesson-curriculum-list">{curriculum.map((section, partIndex) => {
-          const containsCurrentLesson = section.lessons.some(item => item.id === lessonId);
-          return <details key={section.id} open={containsCurrentLesson || partIndex === 0}>
-            <summary><ChevronRight/><strong>{formatPartTitle(section.title, section.sort_order)}</strong></summary>
-            <div className="lesson-curriculum-lessons">{section.lessons.map(item => <div className={`curriculum-lesson ${item.id === lessonId ? "current" : ""}`} key={item.id}>
-              {item.id === lessonId ? <span className="curriculum-lesson-title" aria-current="page"><b>{formatLessonTitle(item.title, item.sort_order)}</b></span> : <Link className="curriculum-lesson-title" href={`/lessons/${encodeURIComponent(item.id)}`}><b>{formatLessonTitle(item.title, item.sort_order)}</b></Link>}
+      <div className="study-viewer-column">
+        <section ref={viewerRef} className="viewer-card" aria-label={`Nội dung: ${selectedResource?.title || formatLessonTitle(lesson.title, lesson.sort_order)}`}>
+          <p className="lesson-resource-status" role="status" aria-live="polite">{selectedResource ? `Đang mở: ${selectedResource.title}` : "Bài học chưa có tài nguyên."}</p>
+          <div className={`lesson-viewer-surface ${selectedResourceIsVideo ? "is-video" : "is-document"}`}>{!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer key={selectedResource.id} resource={selectedResource}/>}</div>
+        </section>
+        <section className="study-lesson-context" aria-labelledby="study-lesson-title">
+          <h1 id="study-lesson-title">{formatLessonTitle(lesson.title, lesson.sort_order)}</h1>
+          <p>{formatPartTitle(lesson.chapter_title, lesson.chapter_sort_order)}</p>
+        </section>
+        <nav className="study-lesson-navigation" aria-label="Chuyển bài học">
+          {previousLesson ? <Link href={`/lessons/${encodeURIComponent(previousLesson.id)}`} onClick={closeCurriculum}><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>{formatLessonTitle(previousLesson.title, previousLesson.sort_order)}</b></span></Link> : <span className="disabled" aria-disabled="true"><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>Đây là bài đầu tiên</b></span></span>}
+          {nextLesson ? <Link href={`/lessons/${encodeURIComponent(nextLesson.id)}`} onClick={closeCurriculum}><span><small>Bài tiếp theo</small><b>{formatLessonTitle(nextLesson.title, nextLesson.sort_order)}</b></span><ChevronRight aria-hidden="true"/></Link> : <span className="disabled" aria-disabled="true"><span><small>Bài tiếp theo</small><b>Đã hết khóa học</b></span><ChevronRight aria-hidden="true"/></span>}
+        </nav>
+        <button ref={curriculumTriggerRef} type="button" className="study-curriculum-trigger" aria-controls="lesson-curriculum-panel" aria-expanded={curriculumOpen} onClick={openCurriculum}><BookOpen aria-hidden="true"/><span><b>Nội dung giáo trình</b><small>{curriculum.length} phần • {lessonCount} bài học</small></span><ChevronRight aria-hidden="true"/></button>
+      </div>
+      <button type="button" className={`curriculum-sheet-shade ${curriculumOpen ? "show" : ""}`} onClick={closeCurriculum} aria-label="Đóng nội dung giáo trình" tabIndex={curriculumOpen ? 0 : -1}/>
+      <aside ref={curriculumPanelRef} id="lesson-curriculum-panel" className={`lesson-nav curriculum-panel ${curriculumOpen ? "mobile-open" : ""}`} aria-label="Nội dung giáo trình" aria-modal={curriculumOpen ? "true" : undefined} role={curriculumOpen ? "dialog" : undefined}>
+        <div className="curriculum-panel-head"><span><h2>Nội dung giáo trình</h2><p>{curriculum.length} phần • {lessonCount} bài học</p></span><button type="button" className="curriculum-panel-close" data-dialog-autofocus onClick={closeCurriculum} aria-label="Đóng nội dung giáo trình"><X aria-hidden="true"/></button></div>
+        {curriculum.length ? <div className="lesson-curriculum-list">{curriculum.map(section => {
+          const chapterExpanded = section.id === expandedChapterId;
+          return <details key={section.id} open={chapterExpanded}>
+            <summary onClick={event => { event.preventDefault(); setExpandedChapterId(chapterExpanded ? "" : section.id); }}><ChevronRight/><strong>{formatPartTitle(section.title, section.sort_order)}</strong></summary>
+            <div className="lesson-curriculum-lessons">{section.lessons.map(item => <div ref={item.id === lessonId ? currentLessonRef : undefined} className={`curriculum-lesson ${item.id === lessonId ? "current" : ""}`} key={item.id}>
+              {item.id === lessonId ? <span className="curriculum-lesson-title" aria-current="page"><span className="curriculum-status-dot" aria-hidden="true"/><b>{formatLessonTitle(item.title, item.sort_order)}</b></span> : <Link className="curriculum-lesson-title" href={`/lessons/${encodeURIComponent(item.id)}`} onClick={closeCurriculum}><span className="curriculum-status-dot" aria-hidden="true"/><b>{formatLessonTitle(item.title, item.sort_order)}</b></Link>}
               {item.resources.map(resource => item.id === lessonId
-                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => selectResource(resource.id)}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <CirclePlay aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></button>
-                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <CirclePlay aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></Link>)}
+                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => selectResource(resource.id)}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <Play aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></button>
+                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`} onClick={closeCurriculum}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <Play aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></Link>)}
             </div>)}</div>
           </details>;
         })}</div> : <MiniEmpty text="Chưa có nội dung giáo trình."/>}

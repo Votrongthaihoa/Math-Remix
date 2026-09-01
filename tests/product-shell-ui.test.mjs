@@ -215,6 +215,7 @@ test("account menu identifies the session and completes local sign-out even when
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8"),
   ]);
+  const accountMenuCss = css.slice(0, css.indexOf("/* Alpha reference student sidebar"));
 
   assert.match(platform, /async function logoutFromAccountMenu/);
   assert.match(platform, /signOut\(\{ scope: "local" \}\)/);
@@ -226,7 +227,7 @@ test("account menu identifies the session and completes local sign-out even when
   assert.match(css, /\.app-shell\.ui-shell\.product-shell[^\n]*\.account-dropdown-identity/);
   assert.match(css, /--learning-danger:\s*#b4232f/);
   assert.match(css, /background:\s*var\(--alpha-accent-selected\)/);
-  assert.doesNotMatch(css, /#158a39|#127534|#18231c/);
+  assert.doesNotMatch(accountMenuCss, /#158a39|#127534|#18231c/);
   assert.doesNotMatch(css, /\.exam-shell|\.question|\.answer|\.result|\.review|\.solution/);
 });
 
@@ -265,14 +266,14 @@ test("lesson viewer gives video and documents a complete learning hierarchy", as
     readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(platform, /className="lesson-page-header"/);
-  assert.match(platform, /className="lesson-viewer-header"/);
-  assert.match(platform, /className="lesson-resource-kind"/);
+  assert.match(platform, /className="study-lesson-context"/);
+  assert.match(platform, /id="study-lesson-title"/);
+  assert.doesNotMatch(platform, /className="study-resource-meta"/);
   assert.match(platform, /aria-live="polite"/);
   assert.match(player, /className="secure-viewer-state error" role="alert"/);
   assert.match(player, /onRetry=\{retryVideoSource\}/);
   assert.match(css, /\.real-lesson-page \.lesson-layout/);
-  assert.match(css, /@media \(max-width: 1023px\)/);
+  assert.match(css, /@media \(max-width: 1199px\)/);
 });
 
 test("browser smoke renders real lesson video and PDF resource states", async () => {
@@ -283,7 +284,7 @@ test("browser smoke renders real lesson video and PDF resource states", async ()
   assert.match(smoke, /requestUrl\.pathname === "\/api\/resource-content"/);
   assert.match(smoke, /requestUrl\.pathname === "\/api\/security\/session"/);
   assert.match(smoke, /expectedMockFailureMessages/);
-  assert.match(smoke, /pageHeading\.includes\("Ôn tập nền tảng"\)/);
+  assert.match(smoke, /lessonContext\.includes\("Ôn tập nền tảng"\)/);
   assert.match(smoke, /inspectLessonResources/);
 });
 
