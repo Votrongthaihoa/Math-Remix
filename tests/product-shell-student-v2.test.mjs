@@ -53,7 +53,8 @@ test("optimized routes update the document title and loading failures stay actio
     readFile(stylesUrl, "utf8"),
   ]);
 
-  assert.match(platform, /if \(uiRouteMode !== "optimized-content"\) return;[\s\S]*?const authenticationRequired = !signedIn[\s\S]*?const appliedTitle = optimizedDocumentTitle\(pathname, authenticationRequired\);[\s\S]*?document\.title = appliedTitle/);
+  assert.match(platform, /if \(uiRouteMode !== "optimized-content"\) return;[\s\S]*?const authenticationRequired = !signedIn[\s\S]*?const appliedTitle = optimizedDocumentTitle\(pathname, authenticationRequired, authMode\);[\s\S]*?document\.title = appliedTitle/);
+  assert.match(platform, /if \(authMode === "signup"\) return "Đăng ký tài khoản \| AECK"/);
   assert.match(platform, /authenticationRequired \|\| pathname === "\/login"\) return pathname\.startsWith\("\/admin"\) \? "Đăng nhập quản trị \| AECK" : "Đăng nhập \| AECK"/);
   assert.match(platform, /if \(document\.title === appliedTitle\) document\.title = previousTitle/);
   assert.match(platform, /<CourseCurriculumSkeleton \/>/);

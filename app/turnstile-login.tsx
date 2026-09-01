@@ -35,7 +35,7 @@ export default function TurnstileChallenge({
   onTokenChange,
   resetSignal,
 }: {
-  action: "login" | "password_reset";
+  action: "login" | "signup" | "password_reset";
   onTokenChange: (token: string) => void;
   resetSignal: number;
 }) {

@@ -128,7 +128,9 @@ test("public login follows the measured account.aeck.vn composition without chan
   assert.match(platform, /className="login-page ui-auth-surface auth-public-refresh account-auth-reference"/);
   assert.match(platform, /src="\/logo_aeck_full\.svg"/);
   assert.match(platform, /Bạn chưa có tài khoản\?/);
-  assert.match(platform, /href="https:\/\/account\.aeck\.vn\/signup"/);
+  assert.match(platform, /href="\/login\?intent=register"/);
+  assert.match(platform, /function SignupPage/);
+  assert.doesNotMatch(platform, /account\.aeck\.vn\/signup/);
   assert.match(platform, /<TurnstileChallenge action="login"/);
   assert.doesNotMatch(platform, /function AuthAside/);
 
@@ -156,5 +158,5 @@ test("the explicit login route resolves to the same account reference surface", 
 test("auth route changes never leave the password visibly exposed", async () => {
   const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
 
-  assert.match(platform, /useEffect\(\(\) => \{[\s\S]*?setShowPassword\(false\);[\s\S]*?setAuthMode\(pathname === "\/forgot-password"/);
+  assert.match(platform, /useEffect\(\(\) => \{[\s\S]*?setShowPassword\(false\);[\s\S]*?setAuthMode\(authModeFromLocation\(pathname, shellSearchParams\)\);[\s\S]*?\}, \[pathname, shellSearchParams\]\)/);
 });

@@ -31,6 +31,7 @@ import "./alpha-reference-portal.css";
 import "./product-design-system.css";
 import "./account-auth-reference.css";
 import "./course-exam-tabs.css";
+import "./account-learning-polish.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
@@ -56,7 +57,8 @@ const StudentProgress = lazy(() => import("./student-progress"));
 const GuestExamModule = lazy(() => import("./guest-exam"));
 
 type View = "overview" | "exams" | "courses" | "history" | "progress" | "search" | "schedule" | "profile" | "admin" | "course" | "lesson";
-type AuthMode = "login" | "forgot" | "reset";
+type AuthMode = "login" | "signup" | "forgot" | "reset";
+type SignupErrorField = "name" | "password" | "confirmPassword" | null;
 type ProfileData = { full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
 type CourseData = { id: string | number; title: string; description: string; lessons: number; color: string; cover_url?: string | null; published?: boolean };
 type CourseRow = { id: string; title: string; description: string | null; cover_url: string | null; cover_color: string | null; published: boolean };
@@ -101,11 +103,33 @@ type AuthPageProps = {
   showPassword: boolean;
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
   authError: string;
+  authNotice?: string;
   loading: boolean;
   setTurnstileToken: React.Dispatch<React.SetStateAction<string>>;
   turnstileResetNonce: number;
   login: (event: React.FormEvent) => Promise<void>;
   onForgot: () => void;
+};
+type SignupPageProps = {
+  uiRouteMode: UiRouteMode;
+  fullName: string;
+  setFullName: React.Dispatch<React.SetStateAction<string>>;
+  email: string;
+  setEmail: React.Dispatch<React.SetStateAction<string>>;
+  password: string;
+  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  confirmPassword: string;
+  setConfirmPassword: React.Dispatch<React.SetStateAction<string>>;
+  showPassword: boolean;
+  setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
+  authError: string;
+  authNotice: string;
+  signupErrorField: SignupErrorField;
+  clearSignupError: () => void;
+  loading: boolean;
+  setTurnstileToken: React.Dispatch<React.SetStateAction<string>>;
+  turnstileResetNonce: number;
+  signup: (event: React.FormEvent) => Promise<void>;
 };
 type IconComponent = React.ComponentType<{ className?: string }>;
 type LessonWithChapterRow = {
@@ -170,6 +194,13 @@ function resourceTypeLabel(type: ResourceData["resource_type"]) {
   return type === "youtube" ? "Video YouTube" : type === "onedrive_video" ? "Video Microsoft" : type === "hls_vault" ? "Video HLS Vault" : type === "storage_pdf" ? "PDF trên R2 private" : "PDF / Google Drive";
 }
 
+function authModeFromLocation(pathname: string, searchParams: { get(name: string): string | null }): AuthMode {
+  if (pathname === "/forgot-password") return "forgot";
+  if (pathname === "/reset-password") return "reset";
+  if (pathname === "/login" && searchParams.get("intent") === "register") return "signup";
+  return "login";
+}
+
 const pathsByView: Record<View, string> = {
   overview: "/dashboard",
   exams: "/exam-room",
@@ -184,7 +215,8 @@ const pathsByView: Record<View, string> = {
   lesson: "/courses",
 };
 
-function optimizedDocumentTitle(pathname: string, authenticationRequired = false) {
+function optimizedDocumentTitle(pathname: string, authenticationRequired = false, authMode: AuthMode = "login") {
+  if (authMode === "signup") return "Đăng ký tài khoản | AECK";
   if (pathname === "/forgot-password") return "Khôi phục mật khẩu | AECK";
   if (pathname === "/reset-password") return "Đặt mật khẩu mới | AECK";
   if (authenticationRequired || pathname === "/login") return pathname.startsWith("/admin") ? "Đăng nhập quản trị | AECK" : "Đăng nhập | AECK";
@@ -275,10 +307,14 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [, setRouteVersion] = useState(0);
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [authNotice, setAuthNotice] = useState("");
+  const [signupErrorField, setSignupErrorField] = useState<SignupErrorField>(null);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
@@ -289,7 +325,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
  const [overviewLoading, setOverviewLoading] = useState(false);
  const [overviewError, setOverviewError] = useState("");
   const [overviewReloadKey, setOverviewReloadKey] = useState(0);
- const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [loginContext, setLoginContext] = useState<"student" | "admin">(initialAdminRoute ? "admin" : "student");
   const authOperationRef = useRef(0);
@@ -298,6 +335,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const popstateNavigationRef = useRef(false);
   const accountTriggerRef = useRef<HTMLButtonElement | null>(null);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
+  const accountMenuFocusEdgeRef = useRef<"first" | "last">("first");
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
   const lastAllowedRouteRef = useRef(pathname);
   const handleHistoryLoaded = useCallback((nextAttempts: AttemptData[]) => {
@@ -336,7 +374,18 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     if (adminPath || (["/forgot-password", "/reset-password"].includes(pathname) && shellSearchParams.get("from") === "admin")) setLoginContext("admin");
     else if (!["/forgot-password", "/reset-password"].includes(pathname)) setLoginContext("student");
     setShowPassword(false);
-    setAuthMode(pathname === "/forgot-password" ? "forgot" : pathname === "/reset-password" ? "reset" : "login");
+    setAuthError("");
+    setSignupErrorField(null);
+    setAuthNotice(
+      shellSearchParams.get("logoutWarning") === "1"
+        ? "Bạn đã đăng xuất khỏi thiết bị này. Máy chủ chưa xác nhận thu hồi phiên; hãy kiểm tra mạng trước khi đăng nhập lại."
+        : shellSearchParams.get("registered") === "1"
+        ? "Email đã được xác minh hoặc đăng ký đã được ghi nhận. Bạn có thể đăng nhập tại đây."
+        : shellSearchParams.get("loggedOut") === "1"
+          ? "Bạn đã đăng xuất an toàn khỏi thiết bị này."
+          : ""
+    );
+    setAuthMode(authModeFromLocation(pathname, shellSearchParams));
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname, shellSearchParams]);
 
@@ -352,12 +401,12 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     if (uiRouteMode !== "optimized-content") return;
     const previousTitle = document.title;
     const authenticationRequired = !signedIn || (pathname.startsWith("/admin") && !isAdmin);
-    const appliedTitle = optimizedDocumentTitle(pathname, authenticationRequired);
+    const appliedTitle = optimizedDocumentTitle(pathname, authenticationRequired, authMode);
     document.title = appliedTitle;
     return () => {
       if (document.title === appliedTitle) document.title = previousTitle;
     };
-  }, [isAdmin, pathname, signedIn, uiRouteMode]);
+  }, [authMode, isAdmin, pathname, signedIn, uiRouteMode]);
 
   useEffect(() => {
     if (!signedIn) return;
@@ -394,7 +443,19 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setRouteVersion(value => value + 1);
       if (adminPath) setLoginContext("admin");
       else if (!["/forgot-password", "/reset-password"].includes(window.location.pathname)) setLoginContext("student");
-      setAuthMode(window.location.pathname === "/forgot-password" ? "forgot" : window.location.pathname === "/reset-password" ? "reset" : "login");
+      const nextSearchParams = new URLSearchParams(window.location.search);
+      setAuthError("");
+      setSignupErrorField(null);
+      setAuthNotice(
+        nextSearchParams.get("logoutWarning") === "1"
+          ? "Bạn đã đăng xuất khỏi thiết bị này. Máy chủ chưa xác nhận thu hồi phiên; hãy kiểm tra mạng trước khi đăng nhập lại."
+          : nextSearchParams.get("registered") === "1"
+          ? "Email đã được xác minh hoặc đăng ký đã được ghi nhận. Bạn có thể đăng nhập tại đây."
+          : nextSearchParams.get("loggedOut") === "1"
+            ? "Bạn đã đăng xuất an toàn khỏi thiết bị này."
+            : ""
+      );
+      setAuthMode(authModeFromLocation(window.location.pathname, nextSearchParams));
     };
     syncRoute();
     window.addEventListener("popstate", syncRoute);
@@ -490,8 +551,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   useEffect(() => {
     if (!accountMenuOpen) return;
     const menu = accountMenuRef.current;
-    const firstItem = menu?.querySelector<HTMLElement>("[data-account-menu-item]");
-    firstItem?.focus();
+    const items = Array.from(menu?.querySelectorAll<HTMLElement>("[data-account-menu-item]") ?? []);
+    const initialItem = accountMenuFocusEdgeRef.current === "last" ? items.at(-1) : items[0];
+    initialItem?.focus();
 
     const closeOnPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
@@ -502,10 +564,16 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setAccountMenuOpen(false);
       accountTriggerRef.current?.focus();
     };
+    const closeOnFocusOutside = (event: FocusEvent) => {
+      const target = event.target as Node;
+      if (!menu?.contains(target) && !accountTriggerRef.current?.contains(target)) setAccountMenuOpen(false);
+    };
     document.addEventListener("pointerdown", closeOnPointerDown);
+    document.addEventListener("focusin", closeOnFocusOutside);
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       document.removeEventListener("pointerdown", closeOnPointerDown);
+      document.removeEventListener("focusin", closeOnFocusOutside);
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [accountMenuOpen]);
@@ -745,16 +813,114 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     }
   }
 
+  async function signup(e: React.FormEvent) {
+    e.preventDefault();
+    if (loading) return;
+    setAuthError("");
+    setAuthNotice("");
+    setSignupErrorField(null);
+    const normalizedName = fullName.trim().replace(/\s+/g, " ");
+    const normalizedEmail = email.trim().toLocaleLowerCase("vi");
+    if (normalizedName.length < 2) {
+      setAuthError("Vui lòng nhập họ và tên đầy đủ.");
+      focusSignupField("name");
+      return;
+    }
+    if (password.length < 8) {
+      setAuthError("Mật khẩu cần có ít nhất 8 ký tự.");
+      focusSignupField("password");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setAuthError("Mật khẩu xác nhận chưa trùng khớp.");
+      focusSignupField("confirmPassword");
+      return;
+    }
+    if (!turnstileToken) {
+      setAuthError("Vui lòng hoàn tất xác minh chống spam trước khi đăng ký.");
+      return;
+    }
+    if (!supabase) {
+      setAuthError("Chưa cấu hình dịch vụ tài khoản.");
+      return;
+    }
+
+    authOperationRef.current += 1;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          captchaToken: turnstileToken,
+          data: { full_name: normalizedName },
+          emailRedirectTo: `${window.location.origin}/login?registered=1`,
+        },
+      });
+      if (error) {
+        const status = Number(error.status ?? 0);
+        const code = String(error.code ?? "").toLocaleLowerCase("en-US");
+        const message = String(error.message ?? "").toLocaleLowerCase("en-US");
+        setAuthError(
+          code.includes("captcha") || message.includes("captcha")
+            ? "Xác minh chống spam không thành công. Vui lòng thử lại."
+            : status === 429 || code.includes("rate")
+              ? "Bạn đăng ký quá nhanh. Hãy chờ một lát rồi thử lại."
+              : message.includes("password")
+                ? "Mật khẩu chưa đáp ứng yêu cầu bảo mật. Hãy dùng ít nhất 8 ký tự."
+                : "Không thể tạo tài khoản lúc này. Hãy thử lại hoặc dùng chức năng quên mật khẩu nếu email đã được đăng ký."
+        );
+        return;
+      }
+
+      if (data.session && data.user) {
+        const profile = await loadUserData(data.user);
+        if (profile && profile.status === "active") {
+          setSignedIn(true);
+          router.replace("/dashboard");
+          return;
+        }
+        await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+      }
+
+      setPassword("");
+      setConfirmPassword("");
+      setAuthMode("login");
+      setAuthNotice("Đã nhận đăng ký. Hãy kiểm tra email để xác minh tài khoản, sau đó đăng nhập tại đây.");
+      router.replace("/login?registered=1");
+    } catch (error) {
+      setAuthError(error instanceof Error && /fetch|network/i.test(error.message)
+        ? "Không thể kết nối dịch vụ tài khoản. Hãy kiểm tra mạng rồi thử lại."
+        : "Không thể hoàn tất đăng ký. Hãy thử lại.");
+    } finally {
+      setTurnstileToken("");
+      setTurnstileResetNonce(value => value + 1);
+      setLoading(false);
+    }
+  }
+
+  function focusSignupField(field: Exclude<SignupErrorField, null>) {
+    setSignupErrorField(field);
+  }
+
+  const clearSignupError = () => {
+    setSignupErrorField(null);
+    setAuthError("");
+  };
+
   const showLogin = () => {
     setAuthMode("login");
+    setAuthError("");
+    setSignupErrorField(null);
     router.replace(loginContext === "admin" ? "/admin" : "/login");
   };
   if (checkingSession && !initialGuestToken) return <LoadingIndicator label="Đang xác thực tài khoản…" fullPage />;
   if (initialGuestToken && !adminRouteRequested) return <Suspense fallback={<LoadingIndicator label="Đang mở link thi…" fullPage />}><GuestExamModule token={initialGuestToken} /></Suspense>;
   if (authMode === "forgot") return <ForgotPasswordPage initialEmail={email} returnToAdmin={loginContext === "admin"} onBack={showLogin} />;
   if (authMode === "reset") return <ResetPasswordPage onComplete={showLogin} />;
+  if (authMode === "signup" && !adminRouteRequested && !signedIn) return <SignupPage {...{ uiRouteMode, fullName, setFullName, email, setEmail, password, setPassword, confirmPassword, setConfirmPassword, showPassword, setShowPassword, authError, authNotice, signupErrorField, clearSignupError, loading, setTurnstileToken, turnstileResetNonce, signup }} />;
   if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); router.push("/forgot-password?from=admin"); } }} />;
-  if (!signedIn) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
+  if (!signedIn) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, authNotice, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
   if (pathname === "/login") return <LoadingIndicator label="Đang mở tổng quan…" fullPage />;
 
   const go = (next: View, pathOverride?: string) => {
@@ -774,14 +940,14 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     }
   };
   if (!profileData) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError: "Không tìm thấy hồ sơ tài khoản hợp lệ.", loading: false, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
-  if (standaloneAdminPreview) return <div className="ui-shell admin-app admin-exam-preview-host"><Suspense fallback={<LoadingIndicator label="Đang mở preview đề thi…" />}><AdminExamManager /></Suspense></div>;
+  if (standaloneAdminPreview) return <div className="ui-shell admin-app admin-exam-preview-host protected-exam-surface"><Suspense fallback={<LoadingIndicator label="Đang mở preview đề thi…" />}><AdminExamManager /></Suspense></div>;
   const activeProfile = profileData;
   const currentAdminTab = adminRouteRequested ? adminTabFromPath(pathname) : "";
   const visibleCourses = assignedCourses;
   const routeCourseId = currentView === "course" || currentView === "lesson" ? decodeURIComponent(pathname.split("/")[2] ?? "") : "";
   const selectedCourse = visibleCourses.find(course => String(course.id) === routeCourseId) ?? null;
-  const accountLabel = activeProfile.email.split("@")[0] || activeProfile.full_name;
-  const accountInitials = activeProfile.full_name.split(" ").filter(Boolean).slice(-2).map(value => value[0]).join("").toUpperCase();
+  const accountLabel = activeProfile.full_name || activeProfile.email.split("@")[0] || "Tài khoản AECK";
+  const accountInitials = accountLabel.split(" ").filter(Boolean).slice(-2).map(value => value[0]).join("").toUpperCase();
   const adminNavigation = adminRouteRequested ? adminNav.map(item => item) : [];
   const activeAdminNavigation = adminNavigation.find(item => item.id === currentAdminTab) ?? adminNav[0];
   const currentPath = pathname;
@@ -810,6 +976,36 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         : (currentIndex + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
     items[nextIndex]?.focus();
   };
+  const handleAccountTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!(event.key === "ArrowDown" || event.key === "ArrowUp")) return;
+    event.preventDefault();
+    accountMenuFocusEdgeRef.current = event.key === "ArrowUp" ? "last" : "first";
+    setAccountMenuOpen(true);
+  };
+  async function logoutFromAccountMenu() {
+    if (signingOut || !requestProductNavigation("/login")) return;
+    setSigningOut(true);
+    let logoutWarning = false;
+    try {
+      if (supabase) {
+        const { error } = await supabase.auth.signOut({ scope: "local" });
+        logoutWarning = Boolean(error);
+      }
+    } catch {
+      logoutWarning = true;
+    } finally {
+      setSignedIn(false);
+      setProfileData(null);
+      setIsAdmin(false);
+      setAssignedCourses([]);
+      setPracticeRooms([]);
+      setAttempts([]);
+      setAccountMenuOpen(false);
+      const logoutDestination = logoutWarning ? "/login?loggedOut=1&logoutWarning=1" : "/login?loggedOut=1";
+      router.replace(logoutDestination);
+      setSigningOut(false);
+    }
+  }
   return (
     <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
       {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
@@ -864,10 +1060,13 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           <div className="top-actions">
             {!adminRouteRequested && !protectedProductSurface && <Link className="reference-topbar-search" href="/search" onClick={event => handleNavigationLink(event, "search", "/search")} aria-label="Mở trang tra cứu"><Search aria-hidden="true" /><span>Tra cứu</span></Link>}
             <div className={`account-menu-wrap ${accountMenuOpen ? "open" : ""}`}>
-              <button type="button" ref={accountTriggerRef} className="account-trigger" aria-label={`Mở menu tài khoản ${accountLabel}`} aria-haspopup="menu" aria-controls="account-menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(value => !value)}><span className="account-avatar" aria-hidden="true">{accountInitials}</span><span className="account-name">{accountLabel}</span><ChevronDown aria-hidden="true" /></button>
+              <button type="button" ref={accountTriggerRef} className="account-trigger" aria-label={`${accountMenuOpen ? "Đóng" : "Mở"} menu tài khoản ${accountLabel}`} aria-haspopup="menu" aria-controls="account-menu" aria-expanded={accountMenuOpen} onKeyDown={handleAccountTriggerKeyDown} onClick={() => { accountMenuFocusEdgeRef.current = "first"; setAccountMenuOpen(value => !value); }}><span className="account-avatar" aria-hidden="true">{accountInitials}</span><span className="account-name">{accountLabel}</span><ChevronDown aria-hidden="true" /></button>
               <div id="account-menu" ref={accountMenuRef} className="account-dropdown" role="menu" aria-label="Menu tài khoản" hidden={!accountMenuOpen} onKeyDown={handleAccountMenuKeyDown}>
-                <Link href="/profile" role="menuitem" data-account-menu-item onClick={event => { handleNavigationLink(event, "profile", "/profile"); setAccountMenuOpen(false); }}><UserRound aria-hidden="true" /><span>Tài khoản</span></Link>
-                <button type="button" role="menuitem" data-account-menu-item onClick={async () => { if (!requestProductNavigation("/")) return; if (supabase) await supabase.auth.signOut(); setSignedIn(false); setAccountMenuOpen(false); router.replace("/"); }}><LogOut aria-hidden="true" /><span>Đăng xuất</span></button>
+                <div className="account-dropdown-identity" role="none"><span className="account-dropdown-avatar" aria-hidden="true">{accountInitials}</span><span><strong>{accountLabel}</strong><small>{activeProfile.email}</small><em>{adminRouteRequested ? "Quản trị viên" : activeProfile.student_code || "Học viên AECK"}</em></span></div>
+                <div className="account-dropdown-actions" role="none">
+                  <Link href="/profile" role="menuitem" data-account-menu-item onClick={event => { handleNavigationLink(event, "profile", "/profile"); setAccountMenuOpen(false); }}><UserRound aria-hidden="true" /><span><b>Hồ sơ tài khoản</b><small>Cập nhật thông tin và mật khẩu</small></span><ChevronRight aria-hidden="true"/></Link>
+                  <button type="button" role="menuitem" data-account-menu-item disabled={signingOut} aria-busy={signingOut} onClick={() => void logoutFromAccountMenu()}><LogOut aria-hidden="true" /><span><b>{signingOut ? "Đang đăng xuất…" : "Đăng xuất"}</b><small>Kết thúc phiên trên thiết bị này</small></span></button>
+                </div>
               </div>
             </div>
           </div>
@@ -893,11 +1092,15 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
 function LoginPage(p: AuthPageProps) {
   return <main data-ui-mode={p.uiRouteMode} className="login-page ui-auth-surface auth-public-refresh account-auth-reference">
     <section className="login-wrap" aria-labelledby="login-title">
-      <div className="login-brand"><img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/></div>
+      <div className="login-brand">
+        {/* Keep the exact intrinsic SVG asset and dimensions used by the existing account surface. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/>
+      </div>
       <form className="login-card" onSubmit={p.login}>
         <div className="login-heading">
           <h1 id="login-title">Đăng nhập</h1>
-          <p>Bạn chưa có tài khoản? <a className="login-signup-link" href="https://account.aeck.vn/signup">Đăng ký ngay</a></p>
+          <p>Bạn chưa có tài khoản? <Link className="login-signup-link" href="/login?intent=register">Đăng ký ngay</Link></p>
         </div>
         <div className="login-form-stack">
           <div className="login-control-group">
@@ -909,9 +1112,57 @@ function LoginPage(p: AuthPageProps) {
             <div className="field"><LockKeyhole aria-hidden="true" /><input id="login-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="current-password" value={p.password} onChange={(event) => p.setPassword(event.target.value)} placeholder="Nhập mật khẩu" required /><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></div>
           </div>
           <TurnstileChallenge action="login" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce} />
+          {p.authNotice && <p className="form-success" role="status">{p.authNotice}</p>}
           {p.authError && <p className="form-error" role="alert">{p.authError}</p>}
           <div className="login-submit-row"><button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang đăng nhập…" : "Đăng nhập"}</button></div>
           <div className="login-link-row"><button className="forgot" type="button" onClick={p.onForgot}>Quên mật khẩu?</button></div>
+        </div>
+      </form>
+    </section>
+  </main>;
+}
+
+function SignupPage(p: SignupPageProps) {
+  const nameError = p.signupErrorField === "name" ? p.authError : "";
+  const passwordError = p.signupErrorField === "password" ? p.authError : "";
+  const confirmPasswordError = p.signupErrorField === "confirmPassword" ? p.authError : "";
+  useEffect(() => {
+    if (!p.signupErrorField) return;
+    document.getElementById(`signup-${p.signupErrorField === "confirmPassword" ? "confirm-password" : p.signupErrorField}`)?.focus();
+  }, [p.signupErrorField]);
+  return <main data-ui-mode={p.uiRouteMode} className="login-page signup-page ui-auth-surface auth-public-refresh account-auth-reference">
+    <section className="login-wrap" aria-labelledby="signup-title">
+      <div className="login-brand"><img className="login-project-logo" src="/logo_aeck_full.svg" alt="AECK - Anh Em Cây Khế" width={800} height={120}/></div>
+      <form className="login-card signup-card" onSubmit={p.signup}>
+        <div className="login-heading">
+          <h1 id="signup-title">Tạo tài khoản AECK</h1>
+          <p>Đã có tài khoản? <Link className="login-signup-link" href="/login">Đăng nhập</Link></p>
+        </div>
+        <div className="login-form-stack">
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="signup-name">Họ và tên <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><UserRound aria-hidden="true"/><input id="signup-name" name="name" type="text" autoComplete="name" value={p.fullName} onChange={event => { p.setFullName(event.target.value); if (nameError) p.clearSignupError(); }} placeholder="Nguyễn Văn An" minLength={2} maxLength={100} aria-invalid={nameError ? true : undefined} aria-describedby={nameError ? "signup-name-error" : undefined} required/></div>
+            {nameError && <p id="signup-name-error" className="login-field-error" role="alert">{nameError}</p>}
+          </div>
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="signup-email">Email <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><Mail aria-hidden="true"/><input id="signup-email" name="email" type="email" autoComplete="email" spellCheck={false} value={p.email} onChange={event => p.setEmail(event.target.value)} placeholder="hocvien@example.com" required/></div>
+          </div>
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="signup-password">Mật khẩu <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><LockKeyhole aria-hidden="true"/><input id="signup-password" name="password" type={p.showPassword ? "text" : "password"} autoComplete="new-password" value={p.password} onChange={event => { p.setPassword(event.target.value); if (passwordError) p.clearSignupError(); }} placeholder="Tối thiểu 8 ký tự" minLength={8} aria-invalid={passwordError ? true : undefined} aria-describedby={passwordError ? "signup-password-error" : undefined} required/><button type="button" aria-label={p.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={p.showPassword} onClick={() => p.setShowPassword(!p.showPassword)}>{p.showPassword ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}</button></div>
+            {passwordError && <p id="signup-password-error" className="login-field-error" role="alert">{passwordError}</p>}
+          </div>
+          <div className="login-control-group">
+            <label className="login-control-label" htmlFor="signup-confirm-password">Xác nhận mật khẩu <span className="login-required" aria-hidden="true">*</span></label>
+            <div className="field"><LockKeyhole aria-hidden="true"/><input id="signup-confirm-password" name="confirmPassword" type={p.showPassword ? "text" : "password"} autoComplete="new-password" value={p.confirmPassword} onChange={event => { p.setConfirmPassword(event.target.value); if (confirmPasswordError) p.clearSignupError(); }} placeholder="Nhập lại mật khẩu" minLength={8} aria-invalid={p.signupErrorField === "confirmPassword" ? true : undefined} aria-describedby={p.signupErrorField === "confirmPassword" ? "signup-confirm-password-error" : undefined} required/></div>
+            {confirmPasswordError && <p id="signup-confirm-password-error" className="login-field-error" role="alert">{confirmPasswordError}</p>}
+          </div>
+          <p className="signup-terms">Khi đăng ký, bạn đồng ý với <Link href="/dieu-khoan-dich-vu">Điều khoản dịch vụ</Link> và <Link href="/chinh-sach-bao-mat">Chính sách bảo mật</Link> của AECK.</p>
+          <TurnstileChallenge action="signup" onTokenChange={p.setTurnstileToken} resetSignal={p.turnstileResetNonce}/>
+          {p.authNotice && <p className="form-success" role="status">{p.authNotice}</p>}
+          {p.authError && !p.signupErrorField && <p className="form-error" role="alert">{p.authError}</p>}
+          <div className="login-submit-row"><button type="submit" className="primary-btn" disabled={p.loading}>{p.loading ? "Đang tạo tài khoản…" : "Tạo tài khoản"}</button></div>
         </div>
       </form>
     </section>
@@ -1310,11 +1561,12 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
   }, [contentReloadVersion, course, showDrafts]);
 
   if (!course) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
+  const firstCourseLesson = courseLessons[0];
   return <div className="page-stack course-study-page">
     <Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link>
     <section className="course-study-hero">
       <CourseCoverVisual course={course} detail />
-      <div className="course-study-copy"><span className="eyebrow">KHÓA HỌC</span><h1>{course.title}</h1><p>{course.description || "Nội dung khóa học đang được cập nhật."}</p></div>
+      <div className="course-study-copy"><span className="eyebrow">KHÓA HỌC</span><h1>{course.title}</h1><p>{course.description || "Nội dung khóa học đang được cập nhật."}</p><div className="course-study-facts" aria-label="Tóm tắt khóa học"><span><b>{chapters.length}</b> phần</span><span><b>{courseLessons.length}</b> bài học</span><span><b>{course.published === false ? "Nháp" : "Đang học"}</b> trạng thái</span></div>{firstCourseLesson && <Link className="course-study-primary-action" href={`/lessons/${encodeURIComponent(firstCourseLesson.id)}`}>Bắt đầu học <CirclePlay aria-hidden="true"/></Link>}</div>
     </section>
     <section className="course-curriculum-panel">
       <div className="course-curriculum-head"><h2>Nội dung giáo trình</h2><p>{chapters.length} phần • {courseLessons.length} bài học</p></div>
@@ -1326,6 +1578,7 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
 
 function LessonViewer({ lessonId }: { lessonId: string }) {
   const router = useRouter();
+  const viewerRef = useRef<HTMLElement | null>(null);
   const [lesson, setLesson] = useState<(LessonData & { course_id: string; course_title: string; chapter_title: string; chapter_sort_order: number }) | null>(null);
   const [resources, setResources] = useState<SecureLessonResource[]>([]);
   const [curriculum, setCurriculum] = useState<LessonCurriculumSection[]>([]);
@@ -1379,6 +1632,10 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
     const url = new URL(window.location.href);
     url.searchParams.set("resource", resourceId);
     router.replace(`${url.pathname}${url.search}`, { scroll: false });
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.requestAnimationFrame(() => viewerRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }));
+    }
   }
   if (lessonLoading) return <div className="lesson-page"><LessonViewerSkeleton /></div>;
   if (!lesson) {
@@ -1388,6 +1645,8 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
       : <button type="button" className="outline-btn" onClick={() => setLessonReloadVersion(version => version + 1)}>Thử tải lại</button>;
     return <div className="lesson-page"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true"/> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy bài học" text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."} action={recoveryAction}/></div>;
   }
+  const selectedResourceIndex = selectedResource ? Math.max(0, resources.findIndex(resource => resource.id === selectedResource.id)) : -1;
+  const selectedResourceKind = selectedResource ? resourceTypeLabel(selectedResource.resource_type) : "Chưa có tài nguyên";
   return <div className="lesson-page real-lesson-page">
     <AccountSecurityGuard activityType={selectedResource && ["youtube", "onedrive_video", "hls_vault"].includes(selectedResource.resource_type) ? "video" : selectedResource ? "pdf" : "lesson"} resourceId={selectedResource?.id ?? lessonId} />
     <nav className="lesson-breadcrumb" aria-label="Điều hướng bài học">
@@ -1397,9 +1656,18 @@ function LessonViewer({ lessonId }: { lessonId: string }) {
       <span className="breadcrumb-current-separator" aria-hidden="true">/</span>
       <span className="breadcrumb-current" title={formatLessonTitle(lesson.title,lesson.sort_order)}>{formatLessonTitle(lesson.title,lesson.sort_order)}</span>
     </nav>
+    <header className="lesson-page-header">
+      <div><span className="lesson-page-kicker">{formatPartTitle(lesson.chapter_title, lesson.chapter_sort_order)}</span><h1>{formatLessonTitle(lesson.title,lesson.sort_order)}</h1><p>{lesson.description || "Theo dõi bài giảng và mở tài liệu theo thứ tự trong giáo trình."}</p></div>
+      <div className="lesson-page-summary" aria-label="Tóm tắt bài học"><span><b>{resources.length}</b> tài nguyên</span><span><b>{lessonCount}</b> bài trong khóa</span></div>
+    </header>
     <div className="lesson-layout">
-      <section className="viewer-card">
-        {!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer key={selectedResource.id} resource={selectedResource}/>}
+      <section ref={viewerRef} className="viewer-card" aria-labelledby="lesson-viewer-title">
+        <header className="lesson-viewer-header">
+          <div><span className="lesson-resource-kind">{selectedResource && ["youtube", "onedrive_video", "hls_vault"].includes(selectedResource.resource_type) ? <CirclePlay aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}{selectedResourceKind}</span><h2 id="lesson-viewer-title">{selectedResource?.title || "Nội dung bài học"}</h2></div>
+          {selectedResourceIndex >= 0 && <span className="lesson-resource-position">{selectedResourceIndex + 1}/{resources.length}</span>}
+        </header>
+        <p className="lesson-resource-status" role="status" aria-live="polite">{selectedResource ? `Đang mở: ${selectedResource.title}` : "Bài học chưa có tài nguyên."}</p>
+        <div className="lesson-viewer-surface">{!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer key={selectedResource.id} resource={selectedResource}/>}</div>
       </section>
       <aside className="lesson-nav curriculum-panel">
         <div className="curriculum-panel-head"><h2>Nội dung giáo trình</h2><p>{curriculum.length} phần • {lessonCount} bài học</p></div>

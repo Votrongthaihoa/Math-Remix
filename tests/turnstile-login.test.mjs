@@ -8,10 +8,15 @@ test("login renders a Cloudflare Turnstile challenge with a stable action", asyn
   const widget = await source("app/turnstile-login.tsx");
   assert.match(widget, /NEXT_PUBLIC_TURNSTILE_SITE_KEY/);
   assert.match(widget, /api\.js\?render=explicit/);
-  assert.match(widget, /action: "login" \| "password_reset"/);
+  assert.match(widget, /action: "login" \| "signup" \| "password_reset"/);
   assert.match(widget, /matchMedia\("\(max-width: 480px\)"\)\.matches \? "compact" : "flexible"/);
   assert.match(widget, /"expired-callback": \(\) => onTokenChange\(""\)/);
   assert.match(widget, /"error-callback": \(\) => onTokenChange\(""\)/);
+});
+
+test("signup renders Turnstile with its own stable action", async () => {
+  const platform = await source("app/platform.tsx");
+  assert.match(platform, /<TurnstileChallenge action="signup"/);
 });
 
 test("password login sends the CAPTCHA token to Supabase Auth and resets it", async () => {

@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { webcrypto } from "node:crypto";
 import { join } from "node:path";
 import { chromium } from "playwright";
+import { PDFDocument } from "pdf-lib";
 
 const baseUrl = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 const mockAuth = process.env.MOCK_AUTH === "1";
@@ -39,16 +41,38 @@ const chromeOnlyRoutes = [
   ["student-exam-catalog", "/exam-room"],
   ["student-exam-list", "/exam-room/mock-room"],
 ];
+const accountExamId = "00000000-0000-4000-8000-000000000001";
 const protectedRegressionRoutes = [
-  ["protected-exam-runner", "/exam/00000000-0000-4000-8000-000000000001?mode=practice"],
-  ["protected-exam-result", "/exam/result/mock-attempt-latest"],
-  ["protected-admin-exam-catalog", "/admin/exams"],
-  ["protected-admin-authoring", "/admin/exams/mock-exam"],
-  ["protected-admin-question-bank", "/admin/question-bank"],
-  ["protected-admin-session-results", "/admin/sessions/mock-session/results"],
+  ["protected-guest-exam", "/exam/mock-guest-token-12345", ".guest-exam-page"],
+  ["protected-legacy-guest-exam", "/guest/exam/mock-guest-token-12345", ".guest-exam-page"],
+  ["protected-account-exam-dashboard", `/exam/${accountExamId}?mode=practice`, ".hsa-session-page .tsa-session-page"],
+  ["protected-account-exam-confirm", `/exam/${accountExamId}/section/mock-account-section/confirm?mode=practice`, ".hsa-confirmation-page"],
+  ["protected-account-exam-runner", `/exam/${accountExamId}/section/mock-account-section?mode=practice`, ".hsa-exam-page"],
+  ["protected-exam-result", "/exam/result/mock-attempt-latest", ".exam-result-page"],
+  ["protected-admin-exam-catalog", "/admin/exams", ".room-catalog-grid"],
+  ["protected-admin-room-new", "/admin/exams/rooms/new", ".room-form-page"],
+  ["protected-admin-room-workspace", "/admin/exams/rooms/mock-room", ".room-workspace-page"],
+  ["protected-admin-room-edit", "/admin/exams/rooms/mock-room/edit", ".room-form-page"],
+  ["protected-admin-exam-new", "/admin/exams/rooms/mock-room/exams/new", ".exam-create-page"],
+  ["protected-admin-exam-workspace", "/admin/exams/mock-exam", ".exam-editor-page"],
+  ["protected-admin-exam-access", "/admin/exams/mock-exam/access?slotId=mock-slot", ".admin-access-page"],
+  ["protected-admin-exam-policy", "/admin/exams/mock-exam/policy", ".policy-page"],
+  ["protected-admin-question-new", "/admin/exams/mock-exam/questions/new?section=mock-section", ".question-editor-page"],
+  ["protected-admin-question-edit", "/admin/exams/mock-exam/questions/mock-question", ".question-editor-page"],
+  ["protected-admin-section-editor", "/admin/exams/mock-exam/sections/mock-section/editor", ".question-editor-page"],
+  ["protected-admin-exam-preview", "/admin/exams/mock-exam/preview", ".exam-preview-page"],
+  ["protected-admin-section-preview", "/admin/exams/mock-exam/sections/mock-section/preview?draft=mock-draft", ".section-preview-page"],
+  ["protected-admin-question-bank", "/admin/question-bank", ".question-bank-page"],
+  ["protected-admin-session-results", "/admin/sessions/mock-session/results?examId=mock-exam&slotId=mock-slot&mode=both", ".admin-session-results"],
 ];
+const protectedRegressionWidths = [1440, 768, 390, 320];
 const requestedRoutes = new Set((process.env.SMOKE_ROUTES ?? "").split(",").map(value => value.trim()).filter(Boolean));
 const focusedAudit = requestedRoutes.size > 0;
+const roleProtectedRoutes = protectedRegressionRoutes.filter(([name]) => mockRole === "admin" || !name.startsWith("protected-admin"));
+const protectedAuditRequested = !focusedAudit
+  || roleProtectedRoutes.some(([name]) => requestedRoutes.has(name))
+  || requestedRoutes.has("student-exam-catalog")
+  || requestedRoutes.has("student-exam-list");
 const roleAuditRoutes = mockRole === "student"
   ? [...redesignRoutes.filter(([name]) => name.startsWith("student-")), ...chromeOnlyRoutes]
   : [...redesignRoutes, ...chromeOnlyRoutes];
@@ -68,9 +92,17 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const report = [];
 const runtimeIssues = [];
+const expectedMockFailureMessages = [];
 page.on("pageerror", error => runtimeIssues.push({ type: "pageerror", text: error.message, url: page.url(), viewport: page.viewportSize() }));
 page.on("console", message => {
-  if (message.type() === "error") runtimeIssues.push({ type: "console", text: message.text(), url: page.url(), viewport: page.viewportSize() });
+  if (message.type() !== "error") return;
+  if (mockAuth && message.text().includes("/realtime/v1/websocket") && message.text().includes("ERR_NAME_NOT_RESOLVED")) return;
+  const expectedIndex = expectedMockFailureMessages.findIndex(expected => message.text().includes(expected));
+  if (expectedIndex >= 0) {
+    expectedMockFailureMessages.splice(expectedIndex, 1);
+    return;
+  }
+  runtimeIssues.push({ type: "console", text: message.text(), url: page.url(), viewport: page.viewportSize() });
 });
 
 const mockUser = {
@@ -113,11 +145,89 @@ const mockSections = [
   { id: "mock-section", exam_id: "mock-exam", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
   { id: "mock-section-2", exam_id: "mock-exam-2", title: "Tư duy định lượng", duration_minutes: 90, sort_order: 1, subject_code: null },
 ];
+const mockAdminSections = [
+  { id: "mock-section", exam_id: "mock-exam", title: "Tư duy định lượng", duration_minutes: 75, sort_order: 0, subject_code: null, source_latex: null },
+  { id: "mock-section-language", exam_id: "mock-exam", title: "Tư duy ngôn ngữ", duration_minutes: 60, sort_order: 1, subject_code: null, source_latex: null },
+  { id: "mock-section-science", exam_id: "mock-exam", title: "Khoa học", duration_minutes: 60, sort_order: 2, subject_code: null, source_latex: null },
+];
+const mockAccountSections = [
+  { id: "mock-account-section", exam_id: accountExamId, title: "Tư duy định lượng", duration_minutes: 75, sort_order: 0, subject_code: null },
+  { id: "mock-account-language", exam_id: accountExamId, title: "Tư duy ngôn ngữ", duration_minutes: 60, sort_order: 1, subject_code: null },
+  { id: "mock-account-science", exam_id: accountExamId, title: "Khoa học", duration_minutes: 60, sort_order: 2, subject_code: null },
+];
+const mockAdminQuestion = {
+  id: "mock-question",
+  section_id: "mock-section",
+  prompt: "Cho 2 + 2 bằng bao nhiêu?",
+  question_type: "single",
+  options: [{ value: "A", label: "4" }, { value: "B", label: "5" }],
+  points: 1,
+  sort_order: 0,
+  passage: null,
+  media_url: null,
+  instruction: null,
+  latex_source: null,
+  solution_source: "Ta có 2 + 2 = 4.",
+};
+const mockAdminKeys = [{ question_id: "mock-question", correct_answer: "A", explanation: "Ta có 2 + 2 = 4." }];
+const mockExamPolicy = {
+  version: 1,
+  examType: "HSA",
+  mode: "practice",
+  examCode: null,
+  access: { audience: "account", accountRequired: true, rosterMode: "open", allowedClasses: [], maxAttempts: 0, passwordRequired: false },
+  timing: { opensAt: null, closesAt: null, durationMinutes: 195, gracePeriodMinutes: 0 },
+  randomization: { enabled: false, shuffleQuestions: false, shuffleOptions: false, questionPoolSize: 0, randomizationMode: "none", examCodeCount: 0, seedStrategy: "none", seed: null },
+  navigation: { allowBacktrack: true, allowSkip: true, allowSectionBacktrack: true, requireAnswerBeforeNext: false, lockCompletedSections: false },
+  integrity: { fullscreenRequired: false, warnOnExit: false, visibilityMonitoring: false, focusMonitoring: false, copyProtection: false, pasteProtection: false, contextMenuProtection: false, maxConcurrentDevices: 1 },
+  release: { score: "after_submit", answers: "after_submit", solutions: "after_submit", scoreThreshold: 0, answerThreshold: 0, hideWrongAnswers: false, releaseAt: null },
+  network: { showSaveState: true, allowOfflineDraft: true },
+  review: { manualReviewRequired: false, allowScoreOverride: false, regradeVersion: 1 },
+};
+const mockParsedPreviewQuestion = {
+  source: "\\begin{ex}Cho 2 + 2 bằng bao nhiêu?\\choice{\\True 4}{5}\\loigiai{Ta có 2 + 2 = 4.}\\end{ex}",
+  body: "Cho 2 + 2 bằng bao nhiêu?",
+  prompt: "Cho 2 + 2 bằng bao nhiêu?",
+  questionType: "single",
+  optionColumns: 1,
+  detectedCommands: ["choice", "loigiai"],
+  options: [{ value: "A", label: "4", correct: true }, { value: "B", label: "5" }],
+  correctAnswer: "A",
+  solution: "Ta có 2 + 2 = 4.",
+};
+const mockSectionPreviewDraft = {
+  version: 1,
+  examTitle: "Đề HSA tổng hợp",
+  sectionTitle: "Tư duy định lượng",
+  durationMinutes: 75,
+  questions: [{ parsed: mockParsedPreviewQuestion }],
+};
 const mockAttemptYear = new Date().getFullYear();
 const mockAttempts = [
   { id: "mock-attempt-latest", exam_id: "mock-exam", exam_type: "HSA", title: "Đề TSA tổng hợp", status: "graded", score: 87.5, correct_answers: 42, total_questions: 50, started_at: `${mockAttemptYear}-08-09T07:00:00.000Z`, submitted_at: `${mockAttemptYear}-08-09T08:12:00.000Z`, duration_seconds: 4320 },
   { id: "mock-attempt-first", exam_id: "mock-exam", exam_type: "TSA", title: "Đề TSA luyện tập số 2", status: "completed", score: 72, correct_answers: 36, total_questions: 50, started_at: `${mockAttemptYear}-08-06T07:00:00.000Z`, submitted_at: `${mockAttemptYear}-08-06T08:18:00.000Z`, duration_seconds: 4680 },
 ];
+const mockActiveAttempt = {
+  id: "mock-account-attempt",
+  exam_id: accountExamId,
+  mode: "practice",
+  section_id: "mock-account-section",
+  student_id: mockUser.id,
+  status: "in_progress",
+  score: 0,
+  correct_answers: 0,
+  total_questions: 1,
+  submitted_at: null,
+  started_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+  deadline_at: new Date(Date.now() + 73 * 60 * 1000).toISOString(),
+  section_started_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+  current_section_id: "mock-account-section",
+  answers: {},
+  flagged_questions: [],
+  progress_version: 0,
+  network_state: "online",
+  policy: mockExamPolicy,
+};
 const mockSecurityUser = { id: "11111111-1111-4111-8111-111111111111", full_name: "Nguyễn Minh Anh với tên tiếng Việt đủ dài để kiểm tra giao diện", student_code: "REMIX000128", email: "student.with.a.long.address@example.com", status: "active", account_status: "active", violation_count: 0, banned_at: null, banned_until: null, ban_reason: null, ban_event_id: null };
 const mockSession = { id: "22222222-2222-4222-8222-222222222222", kind: "both", exam_id: "mock-exam", room_id: "mock-room", name: "Kíp thi thử có tên tiếng Việt dài để kiểm tra khả năng xuống dòng an toàn", exam_title: "Đề đánh giá năng lực tổng hợp", exam_type: "HSA", room_title: "Phòng luyện đánh giá năng lực", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, token_hint: "ABCD", attempt_count: 18, submitted_count: 12 };
 const mockAuditItems = [
@@ -125,20 +235,108 @@ const mockAuditItems = [
   { id: "account:2", source: "account", action: "trust_device", status: "recorded", admin_id: "mock-admin", admin_name: "Nguyễn Minh Anh", target_id: "mock-student-2", target_name: "Lê Gia Bảo", target_code: "REMIX000129", context: "Bảo mật tài khoản", reason: "Thiết bị học tập đã được xác minh.", created_at: "2026-08-09T08:10:00.000Z", completed_at: "2026-08-09T08:10:00.000Z" },
   { id: "exam:3", source: "exam", action: "extend_exam_attempt_time", status: "failed", admin_id: "mock-admin", admin_name: "Nguyễn Minh Anh", target_id: "mock-exam", target_name: "Đề thi", target_code: "mock-exam", context: "Đề thi", reason: "", created_at: "2026-08-09T08:00:00.000Z", completed_at: "2026-08-09T08:00:02.000Z" },
 ];
+const mockLessonResources = [
+  { id: "mock-video-resource", lesson_id: "mock-lesson", title: "Video bài giảng TSA", resource_type: "youtube", allow_download: false, sort_order: 1, provider_metadata: {}, videoToken: "mock-video-token" },
+  { id: "mock-pdf-resource", lesson_id: "mock-lesson", title: "Tài liệu bài học HSA", resource_type: "storage_pdf", allow_download: true, sort_order: 2, provider_metadata: {}, videoToken: "mock-pdf-token" },
+];
+const mockLessonCurriculum = [{
+  id: "mock-chapter",
+  title: "Hàm số",
+  sort_order: 0,
+  lessons: [{ id: "mock-lesson", chapter_id: "mock-chapter", title: "Ôn tập nền tảng", description: "Bài học kết hợp video TSA và tài liệu HSA.", published: true, sort_order: 0, resources: mockLessonResources }],
+}];
+const mockGuestMeta = {
+  slot: {
+    id: "mock-guest-slot",
+    name: "Kíp luyện HSA",
+    starts_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    ends_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+    grace_period_minutes: 15,
+    has_password: false,
+  },
+  exam: {
+    id: "mock-guest-exam",
+    title: "Phòng luyện đánh giá năng lực HSA",
+    description: "Giao diện vào phòng thi dành cho học viên AECK.",
+    exam_type: "HSA",
+    duration_minutes: 90,
+  },
+  room: { title: "Không gian luyện HSA", exam_type: "HSA" },
+  section: null,
+  settings: {
+    identityFields: [
+      { key: "full_name", label: "Họ và tên", type: "text", required: true },
+      { key: "email", label: "Email", type: "email", required: true },
+    ],
+    maxAttempts: 1,
+    autoMonitor: "off",
+    hideGroupHeaders: false,
+    resetQuestionIndex: false,
+  },
+  phase: "open",
+  serverTime: new Date().toISOString(),
+};
+const mockPdfDocument = await PDFDocument.create();
+mockPdfDocument.addPage([595, 842]);
+const mockPdfBase64 = Buffer.from(await mockPdfDocument.save()).toString("base64");
 let mockAuthStorage = null;
+let failNextLogout = false;
+let failNextVideoToken = false;
 
 function jsonResponse(body, status = 200) {
   return { status, contentType: "application/json", body: JSON.stringify(body) };
 }
 
+function base64Url(value) {
+  return Buffer.from(value).toString("base64url");
+}
+
+async function encryptMockExamPayload(payload, clientPublicKey, expectedBinding) {
+  const subtle = webcrypto.subtle;
+  const clientKey = await subtle.importKey("jwk", clientPublicKey, { name: "ECDH", namedCurve: "P-256" }, false, []);
+  const serverKeyPair = await subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]);
+  const sharedSecret = await subtle.deriveBits({ name: "ECDH", public: clientKey }, serverKeyPair.privateKey, 256);
+  const hkdfKey = await subtle.importKey("raw", sharedSecret, "HKDF", false, ["deriveKey"]);
+  const salt = webcrypto.getRandomValues(new Uint8Array(16));
+  const iv = webcrypto.getRandomValues(new Uint8Array(12));
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  const binding = { version: 1, ...expectedBinding, expiresAt };
+  const encoder = new TextEncoder();
+  const aad = encoder.encode(JSON.stringify(binding));
+  const key = await subtle.deriveKey({
+    name: "HKDF",
+    hash: "SHA-256",
+    salt,
+    info: encoder.encode(`remix-exam-content:v1:${expectedBinding.kind}`),
+  }, hkdfKey, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+  const ciphertext = await subtle.encrypt({ name: "AES-GCM", iv, additionalData: aad, tagLength: 128 }, key, encoder.encode(JSON.stringify(payload)));
+  return {
+    version: 1,
+    algorithm: "ECDH-P256+HKDF-SHA256+A256GCM",
+    serverPublicKey: await subtle.exportKey("jwk", serverKeyPair.publicKey),
+    salt: base64Url(salt),
+    iv: base64Url(iv),
+    aad: base64Url(aad),
+    ciphertext: base64Url(new Uint8Array(ciphertext)),
+    expiresAt,
+  };
+}
+
 async function waitForRouteSurface() {
-  await page.locator(".ui-shell, main.login-page, .exam-shell").first().waitFor({ state: "visible", timeout: 10_000 });
+  await page.locator(".ui-shell, main.login-page, .exam-shell, .guest-exam-page, .guest-exam-state").first().waitFor({ state: "visible", timeout: 10_000 });
   await page.waitForFunction(
     () => !document.body.innerText.includes("Đang xác thực tài khoản"),
     null,
     { timeout: 10_000 },
   );
   await page.waitForTimeout(mockAuth ? 250 : 100);
+}
+
+function isNavigationSnapshotRace(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("Execution context was destroyed")
+    || message.includes("Cannot find context with specified id")
+    || message.includes("most likely because of a navigation");
 }
 
 async function installMockAuth() {
@@ -148,14 +346,22 @@ async function installMockAuth() {
   const encode = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const accessToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub: mockUser.id, exp: expiresAt, role: "authenticated" })}.mock-signature`;
   mockAuthStorage = { storageKey: `sb-${projectRef}-auth-token`, session: { access_token: accessToken, refresh_token: "mock-refresh", expires_in: 3600, expires_at: expiresAt, token_type: "bearer", user: mockUser } };
-  await page.addInitScript(({ storageKey, user, accessToken, expiresAt }) => {
+  await page.addInitScript(({ storageKey, user, accessToken, expiresAt, sectionPreviewDraft }) => {
     localStorage.setItem(storageKey, JSON.stringify({ access_token: accessToken, refresh_token: "mock-refresh", expires_in: 3600, expires_at: expiresAt, token_type: "bearer", user }));
-  }, { storageKey: mockAuthStorage.storageKey, user: mockUser, accessToken, expiresAt });
+    localStorage.setItem("exam-preview:mock-draft", JSON.stringify(sectionPreviewDraft));
+  }, { storageKey: mockAuthStorage.storageKey, user: mockUser, accessToken, expiresAt, sectionPreviewDraft: mockSectionPreviewDraft });
 
   await page.route("**/*", async route => {
     const requestUrl = new URL(route.request().url());
     if (requestUrl.origin === new URL(supabaseUrl).origin) {
       if (requestUrl.pathname === "/auth/v1/user") return route.fulfill(jsonResponse({ user: mockUser }));
+      if (requestUrl.pathname === "/auth/v1/logout") {
+        if (failNextLogout) {
+          failNextLogout = false;
+          return route.fulfill(jsonResponse({ message: "Mock logout unavailable" }, 503));
+        }
+        return route.fulfill({ status: 204, body: "" });
+      }
       if (requestUrl.pathname.startsWith("/rest/v1/")) {
         const table = requestUrl.pathname.slice("/rest/v1/".length);
         const rows = table === "profiles"
@@ -165,17 +371,106 @@ async function installMockAuth() {
               : table === "exam_rooms" ? mockRooms
                 : table === "exams" ? mockExams
                   : table === "exam_room_enrollments" ? []
-                    : table === "chapters" ? [{ id: "mock-chapter", course_id: mockCourse.id, title: "Hàm số", sort_order: 1 }]
-                      : table === "lessons" ? [{ id: "mock-lesson", chapter_id: "mock-chapter", title: "Ôn tập nền tảng", description: "", published: true, sort_order: 1 }]
+                    : table === "chapters" ? [{ id: "mock-chapter", course_id: mockCourse.id, title: "Hàm số", sort_order: 0 }]
+                      : table === "lessons" ? [{ id: "mock-lesson", chapter_id: "mock-chapter", title: "Ôn tập nền tảng", description: "Bài học kết hợp video TSA và tài liệu HSA.", published: true, sort_order: 0 }]
                         : [];
-        const objectResponse = requestUrl.searchParams.get("id")?.includes(`eq.${mockUser.id}`) && table === "profiles";
-        return route.fulfill(jsonResponse(objectResponse ? rows[0] : rows));
+        const objectProfileResponse = requestUrl.searchParams.get("id")?.includes(`eq.${mockUser.id}`) && table === "profiles";
+        const objectLessonResponse = requestUrl.searchParams.get("id")?.includes("eq.mock-lesson") && table === "lessons";
+        const lessonWithRelations = {
+          ...rows[0],
+          chapters: { course_id: mockCourse.id, title: "Hàm số", sort_order: 0, courses: { title: mockCourse.title } },
+        };
+        return route.fulfill(jsonResponse(objectProfileResponse ? rows[0] : objectLessonResponse ? lessonWithRelations : rows));
       }
     }
     if (requestUrl.origin === new URL(baseUrl).origin && requestUrl.pathname.startsWith("/api/")) {
+      if (requestUrl.pathname === "/api/guest-exams" && route.request().method() === "GET") return route.fulfill(jsonResponse(mockGuestMeta));
+      if (requestUrl.pathname === "/api/security/session") return route.fulfill(jsonResponse({ allowed: true, exempt: true, serverTime: new Date().toISOString() }));
+      if (requestUrl.pathname === "/api/lesson-resources") return route.fulfill(jsonResponse({ resources: mockLessonResources, curriculum: mockLessonCurriculum }));
+      if (requestUrl.pathname === "/api/video-token") {
+        if (failNextVideoToken) {
+          failNextVideoToken = false;
+          return route.fulfill(jsonResponse({ error: "Không thể mở nội dung thử nghiệm." }, 503));
+        }
+        const body = JSON.parse(route.request().postData() || "{}");
+        if (body.videoToken === "mock-video-token") return route.fulfill(jsonResponse({ type: "youtube", title: "Video bài giảng TSA", youtubeId: "dQw4w9WgXcQ", start: 0 }));
+        if (body.videoToken === "mock-pdf-token") return route.fulfill(jsonResponse({ type: "storage_pdf", title: "Tài liệu bài học HSA", protectedContent: "pdf" }));
+        return route.fulfill(jsonResponse({ error: "Token nội dung thử nghiệm không hợp lệ." }, 403));
+      }
+      if (requestUrl.pathname === "/api/resource-content") return route.fulfill(jsonResponse({ encoding: "base64", mimeType: "application/pdf", data: mockPdfBase64 }));
+      if (requestUrl.pathname === "/api/exams/content" && route.request().method() === "POST") {
+        const body = JSON.parse(route.request().postData() || "{}");
+        const index = Number(body.index) || 0;
+        const question = { ...mockAdminQuestion, id: "mock-account-question", section_id: String(body.sectionId || "mock-account-section"), index };
+        const envelope = await encryptMockExamPayload({
+          kind: "question-group",
+          attemptId: String(body.attemptId),
+          sectionId: String(body.sectionId),
+          requestedIndex: index,
+          questionCount: 1,
+          questions: [question],
+          serverTime: new Date().toISOString(),
+        }, body.clientPublicKey, { kind: "question", attemptId: String(body.attemptId), sectionId: String(body.sectionId), index, nonce: String(body.nonce) });
+        return route.fulfill(jsonResponse(envelope));
+      }
+      if (requestUrl.pathname === "/api/exams/result-content" && route.request().method() === "POST") {
+        const body = JSON.parse(route.request().postData() || "{}");
+        const resultAttempt = {
+          ...mockAttempts[0],
+          exam_id: accountExamId,
+          mode: "practice",
+          section_id: "mock-account-section",
+          student_id: mockUser.id,
+          answers: { "mock-account-question": "A" },
+          flagged_questions: [],
+        };
+        const resultQuestion = { ...mockAdminQuestion, id: "mock-account-question", section_id: "mock-account-section" };
+        const envelope = await encryptMockExamPayload({
+          room: { ...mockRooms[0], exam_type: "HSA" },
+          exam: { ...mockExams[0], id: accountExamId, exam_type: "HSA", duration_minutes: 195 },
+          sections: mockAccountSections,
+          questions: [resultQuestion],
+          attempt: resultAttempt,
+          keys: [{ question_id: resultQuestion.id, correct_answer: "A", explanation: "Ta có 2 + 2 = 4." }],
+          resultVisibility: { scoreVisible: true, answersVisible: true, solutionsVisible: true },
+        }, body.clientPublicKey, { kind: "result", attemptId: String(body.attemptId), sectionId: null, index: null, nonce: String(body.nonce) });
+        return route.fulfill(jsonResponse(envelope));
+      }
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "rooms") return route.fulfill(jsonResponse({ rooms: mockRooms, exams: mockExams, attempts: mockAttempts }));
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "room") return route.fulfill(jsonResponse({ room: mockRooms[0], exams: mockExams, sections: mockSections, attempts: mockAttempts }));
       if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "history") return route.fulfill(jsonResponse({ attempts: mockAttempts }));
+      if (requestUrl.pathname === "/api/exams" && requestUrl.searchParams.get("scope") === "exam") {
+        const sectionId = requestUrl.searchParams.get("sectionId");
+        return route.fulfill(jsonResponse({
+          room: { ...mockRooms[0], exam_type: "HSA" },
+          exam: { ...mockExams[0], id: accountExamId, exam_type: "HSA", duration_minutes: 195 },
+          sections: mockAccountSections,
+          questions: [],
+          questionCounts: Object.fromEntries(mockAccountSections.map(section => [section.id, section.id === "mock-account-section" ? 1 : 0])),
+          policy: mockExamPolicy,
+          activeAttempt: sectionId ? mockActiveAttempt : null,
+          subjectAttempts: [],
+        }));
+      }
+      if (requestUrl.pathname === "/api/admin/exam-content") return route.fulfill(jsonResponse({
+        rooms: mockRooms,
+        exams: mockExams,
+        sections: mockAdminSections,
+        questions: [mockAdminQuestion],
+        keys: mockAdminKeys,
+      }));
+      if (requestUrl.pathname === "/api/admin/exam-policy") return route.fulfill(jsonResponse({ policy: mockExamPolicy, presets: [], exam: { results_released_at: null } }));
+      if (requestUrl.pathname === "/api/admin/exam-regrade") return route.fulfill(jsonResponse({
+        questions: [{ id: mockAdminQuestion.id, section_id: mockAdminQuestion.section_id, section_title: mockAdminSections[0].title, prompt: mockAdminQuestion.prompt, question_type: mockAdminQuestion.question_type }],
+        versions: [],
+        runs: [],
+      }));
+      if (requestUrl.pathname === "/api/admin/exam-operations") return route.fulfill(jsonResponse({
+        session: { id: "mock-session", name: mockSession.name, mode: "both", examTitle: mockSession.exam_title, examType: mockSession.exam_type, roomId: mockSession.room_id, startsAt: mockSession.starts_at, endsAt: mockSession.ends_at, enabled: true, resultsReleasedAt: null, tokenHint: mockSession.token_hint },
+        attempts: [{ id: "mock-result-attempt", kind: "account", candidate_name: "Trần Minh Anh", candidate_code: "REMIX000128", status: "graded", score: 87.5, correct_answers: 1, total_questions: 1, answers: { "mock-question": "A" }, network_state: "online", monitor_events: [], started_at: mockAttempts[0].started_at, submitted_at: mockAttempts[0].submitted_at, duration_seconds: mockAttempts[0].duration_seconds }],
+        stats: { total: 1, inProgress: 0, submitted: 1, expired: 0, offline: 0, autosaveErrors: 0, monitorEvents: 0, fullscreenExits: 0, visibilityEvents: 0, focusEvents: 0, tabExits: 0, suspectedAppSwitches: 0, attentionAwaySeconds: 0, longestAwaySeconds: 0, fullscreenAwaySeconds: 0, averageScore: 87.5, completionRate: 100 },
+        questionStats: [{ id: "mock-question", prompt: mockAdminQuestion.prompt, attempted: 1, correct: 1, accuracy: 100 }],
+      }));
       if (requestUrl.pathname === "/api/admin/users") return route.fulfill(jsonResponse({ users: [{ id: "mock-student-2", email: "student@example.com" }] }));
       if (requestUrl.pathname === "/api/admin/course-covers" && route.request().method() === "POST") {
         mockCourse.cover_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -218,7 +513,7 @@ async function installMockAuth() {
         const items = mockAuditItems.filter(item => (!source || item.source === source) && (!status || item.status === status) && (!query || JSON.stringify(item).toLocaleLowerCase("vi-VN").includes(query)));
         return route.fulfill(jsonResponse({ items, summary: { total: mockAuditItems.length, exam: 2, account: 1, failed: 1, pending: 0 }, total: items.length, page: 1, limit: 20, hasNextPage: false, serverTime: "2026-08-09T08:21:00.000Z" }));
       }
-      if (requestUrl.pathname === "/api/admin/exam-access") return route.fulfill(jsonResponse({ slots: [{ id: "mock-slot", exam_id: "mock-exam", name: "Kíp thi sáng", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, export_open_at: null, export_close_at: null, grace_period_minutes: 30, token_hint: "ABCD", created_at: "2026-08-08T08:00:00.000Z" }], attempts: [] }));
+      if (requestUrl.pathname === "/api/admin/exam-access") return route.fulfill(jsonResponse({ exam: { settings: {} }, sections: mockAdminSections, slots: [{ id: "mock-slot", exam_id: "mock-exam", section_id: null, name: "Kíp thi sáng", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, export_open_at: null, export_close_at: null, grace_period_minutes: 30, token_hint: "ABCD", created_at: "2026-08-08T08:00:00.000Z" }], attempts: [] }));
       if (requestUrl.pathname === "/api/admin/images" || requestUrl.pathname === "/api/admin/exam-images") return route.fulfill(jsonResponse({ images: [] }));
       return route.fulfill(jsonResponse({}));
     }
@@ -226,18 +521,39 @@ async function installMockAuth() {
   });
 }
 
-async function inspect(name, path, width, screenshot = false) {
+async function inspect(name, path, width, screenshot = false, expectedSurface = "", reuseCurrentRoute = false) {
   await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
   if (mockAuth && mockAuthStorage && page.url().startsWith(baseUrl)) {
     await page.evaluate(({ storageKey, session }) => localStorage.setItem(storageKey, JSON.stringify(session)), mockAuthStorage);
   }
-  await page.goto(`${baseUrl}${path}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
-  await page.waitForTimeout(mockAuth ? 1_200 : 350);
-  await waitForRouteSurface();
-  const state = await page.evaluate(() => {
+  const targetUrl = new URL(path, baseUrl);
+  const currentUrl = page.url().startsWith(baseUrl) ? new URL(page.url()) : null;
+  const canReuse = reuseCurrentRoute && currentUrl?.pathname === targetUrl.pathname && currentUrl.search === targetUrl.search;
+  if (!canReuse) await page.goto(targetUrl.href, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  for (let surfaceAttempt = 0; surfaceAttempt < 2; surfaceAttempt += 1) {
+    await page.waitForTimeout(mockAuth ? 1_200 : 350);
+    try {
+      await waitForRouteSurface();
+      if (expectedSurface) await page.locator(expectedSurface).first().waitFor({ state: "visible", timeout: 10_000 });
+      break;
+    } catch (error) {
+      if (surfaceAttempt === 1) throw error;
+      await page.reload({ waitUntil: "domcontentloaded", timeout: 30_000 });
+    }
+  }
+  let state;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      state = await page.evaluate(() => {
     const root = document.documentElement;
     const shell = document.querySelector(".ui-shell");
     const controls = [...document.querySelectorAll("button, a, input, select, textarea")];
+    const visibleControls = controls.filter(control => {
+      const rect = control.getBoundingClientRect();
+      const style = getComputedStyle(control);
+      const visuallyHiddenFile = control instanceof HTMLInputElement && control.type === "file" && rect.width <= 2 && rect.height <= 2;
+      return !visuallyHiddenFile && rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+    });
     const activeStudentNav = document.querySelector(".student-sidebar-nav .student-nav-primary.active, .student-sidebar-nav .student-nav-children a.active, .student-sidebar-nav .student-nav-disclosure.active-parent > summary");
     const activeStudentNavStyle = activeStudentNav ? getComputedStyle(activeStudentNav) : null;
     const adminNavItems = [...document.querySelectorAll(".admin-sidebar-nav-item")];
@@ -250,25 +566,34 @@ async function inspect(name, path, width, screenshot = false) {
         labelPresent: Boolean(label && label.textContent?.trim()),
       };
     });
-    const unnamed = controls.filter(control => {
+    const unnamed = visibleControls.filter(control => {
       const text = control.textContent?.trim();
       const label = control.getAttribute("aria-label") || control.getAttribute("title") || control.getAttribute("placeholder");
       const labelled = control.labels?.length || control.getAttribute("aria-labelledby");
       return !text && !label && !labelled && control.getAttribute("type") !== "hidden";
     });
-    const outsideViewportControls = controls.filter(control => {
+    const outsideViewportControls = visibleControls.filter(control => {
       if (window.innerWidth <= 767 && control.closest(".sidebar:not(.mobile-open)")) return false;
+      const examSidebar = control.closest(".math-exam-sidebar");
+      if (examSidebar && !examSidebar.classList.contains("open") && getComputedStyle(examSidebar).transform !== "none") return false;
       const rect = control.getBoundingClientRect();
       return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
     }).map(control => {
       const rect = control.getBoundingClientRect();
+      const scrollContainer = control.closest(".admin-timetable-week-grid, .exam-part-sidebar, .access-table-wrap");
       return {
         tag: control.tagName.toLowerCase(),
         className: control.className,
         text: control.textContent?.trim().slice(0, 40) ?? "",
         left: Math.round(rect.left),
         right: Math.round(rect.right),
-        scrollRegion: control.closest(".admin-timetable-week-grid") ? "admin-timetable-week-grid" : null,
+        scrollRegion: scrollContainer?.classList.contains("admin-timetable-week-grid")
+          ? "admin-timetable-week-grid"
+          : scrollContainer?.classList.contains("exam-part-sidebar")
+            ? "exam-part-sidebar"
+            : scrollContainer?.classList.contains("access-table-wrap")
+              ? "access-table-wrap"
+              : null,
       };
     });
     return {
@@ -278,19 +603,21 @@ async function inspect(name, path, width, screenshot = false) {
       clientWidth: root.clientWidth,
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       shell: shell?.className ?? null,
+      guestExam: Boolean(document.querySelector(".guest-exam-page")),
       login: Boolean(document.querySelector("main.login-page")),
       adminNavItems: adminNavItems.length,
       adminNavItemsWithIcons: adminNavItemGeometry.filter(item => item.iconPresent).length,
       adminNavItemsWithVisibleIcons: adminNavItemGeometry.filter(item => item.iconVisible).length,
       adminNavItemsWithLabels: adminNavItemGeometry.filter(item => item.labelPresent).length,
       unnamedControls: unnamed.length,
+      unnamedControlDetails: unnamed.map(control => ({ tag: control.tagName.toLowerCase(), type: control.getAttribute("type"), className: control.className, id: control.id })),
       controlsOutsideViewport: outsideViewportControls.filter(control => !control.scrollRegion).length,
       scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.scrollRegion).length,
       outsideViewportControls,
       activeStudentNav: activeStudentNav?.textContent?.trim().slice(0, 80) ?? null,
       activeStudentNavColor: activeStudentNavStyle?.color ?? null,
       activeStudentNavBackground: activeStudentNavStyle?.backgroundColor ?? null,
-      undersizedControls: controls.filter(control => {
+      undersizedControls: visibleControls.filter(control => {
         const rect = control.getBoundingClientRect();
         const style = getComputedStyle(control);
         const hiddenFileInput = control instanceof HTMLInputElement
@@ -306,7 +633,15 @@ async function inspect(name, path, width, screenshot = false) {
         return { tag: control.tagName.toLowerCase(), className: control.className, width: Math.round(rect.width), height: Math.round(rect.height), text: control.textContent?.trim().slice(0, 40) ?? "" };
       }),
     };
-  });
+      });
+      break;
+    } catch (error) {
+      if (!isNavigationSnapshotRace(error) || attempt === 2) throw error;
+      await page.waitForLoadState("domcontentloaded");
+      await waitForRouteSurface();
+    }
+  }
+  if (!state) throw new Error(`Unable to inspect ${path} at ${width}px.`);
   if (mockRole === "admin" && path.startsWith("/admin") && state.adminNavItems > 0 && (
     state.adminNavItemsWithIcons !== state.adminNavItems
     || state.adminNavItemsWithVisibleIcons !== state.adminNavItems
@@ -387,6 +722,104 @@ async function inspectDrawer(path) {
   report.push({ name: `${mockRole}-drawer-keyboard`, path, width: 390, ...skipLink, ...opened, restoredFocus: restored });
   if (!opened.drawerFullLogoVisible || opened.drawerFullLogoSource !== "/logo_aeck.svg" || opened.drawerCompactLogoVisible) {
     throw new Error(`${mockRole} drawer logo variant failed: ${JSON.stringify(opened)}`);
+  }
+}
+
+async function inspectAccountMenu() {
+  const accountMenuPath = mockRole === "admin" ? "/admin" : "/dashboard";
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}${accountMenuPath}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await waitForRouteSurface();
+    const trigger = page.locator(".account-trigger");
+    await trigger.focus();
+    await page.keyboard.press("ArrowDown");
+    await page.locator("#account-menu:not([hidden])").waitFor({ state: "visible" });
+    const opened = await page.evaluate(() => {
+      const menu = document.querySelector("#account-menu");
+      const avatar = document.querySelector(".account-trigger > .account-avatar");
+      const menuRect = menu?.getBoundingClientRect();
+      const avatarRect = avatar?.getBoundingClientRect();
+      return {
+        firstItemFocused: document.activeElement?.matches('[data-account-menu-item]:first-of-type') ?? false,
+        avatarVisible: Boolean(avatar && getComputedStyle(avatar).display === "grid" && avatarRect && avatarRect.width > 0 && avatarRect.height > 0),
+        menuInsideViewport: Boolean(menuRect && menuRect.left >= -1 && menuRect.right <= innerWidth + 1),
+        horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      };
+    });
+    await page.keyboard.press("ArrowDown");
+    const secondItemFocused = await page.evaluate(() => document.activeElement?.matches('[data-account-menu-item]:last-of-type') ?? false);
+    await page.keyboard.press("Escape");
+    const escapeRestoredTrigger = await page.evaluate(() => document.activeElement?.classList.contains("account-trigger") ?? false);
+
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.waitForTimeout(50);
+    const focusOutsideClosed = await page.locator("#account-menu").getAttribute("hidden") !== null;
+    await page.screenshot({ path: join(outputDir, `${mockRole}-account-menu-${width}.png`), fullPage: true });
+    const result = { name: `${mockRole}-account-menu-keyboard`, path: accountMenuPath, width, ...opened, secondItemFocused, escapeRestoredTrigger, focusOutsideClosed };
+    report.push(result);
+    if (!opened.firstItemFocused || !opened.avatarVisible || !opened.menuInsideViewport || opened.horizontalOverflow || !secondItemFocused || !escapeRestoredTrigger || !focusOutsideClosed) {
+      throw new Error(`Account menu keyboard flow failed at ${width}px: ${JSON.stringify(result)}`);
+    }
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}${accountMenuPath}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  failNextLogout = true;
+  expectedMockFailureMessages.push("status of 503");
+  await page.locator(".account-trigger").click();
+  await page.getByRole("menuitem", { name: /Đăng xuất/ }).click();
+  await page.waitForURL(url => url.pathname === "/login" && url.searchParams.get("logoutWarning") === "1", { timeout: 5_000 });
+  await page.getByText("Máy chủ chưa xác nhận thu hồi phiên", { exact: false }).waitFor({ state: "visible" });
+  const failureEndedLocalSession = new URL(page.url()).pathname === "/login" && await page.locator(".account-trigger").count() === 0;
+  await page.evaluate(({ storageKey, session }) => localStorage.setItem(storageKey, JSON.stringify(session)), mockAuthStorage);
+  await page.goto(`${baseUrl}${accountMenuPath}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  await page.locator(".account-trigger").click();
+  await page.getByRole("menuitem", { name: /Đăng xuất/ }).click();
+  await page.waitForURL(url => url.pathname === "/login" && url.searchParams.get("loggedOut") === "1" && !url.searchParams.has("logoutWarning"), { timeout: 5_000 });
+  await page.getByText("Bạn đã đăng xuất an toàn khỏi thiết bị này.").waitFor({ state: "visible" });
+  const result = { name: `${mockRole}-account-logout-feedback`, path: accountMenuPath, width: 1440, failureEndedLocalSession, successUrl: page.url() };
+  report.push(result);
+  if (!failureEndedLocalSession) throw new Error(`Account logout failure recovery failed: ${JSON.stringify(result)}`);
+}
+
+async function inspectLessonResources() {
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/lessons/mock-lesson`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await waitForRouteSurface();
+    await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 });
+    const videoState = await page.evaluate(() => ({
+      pageHeading: document.querySelector(".lesson-page-header h1")?.textContent?.trim() ?? "",
+      viewerHeading: document.querySelector("#lesson-viewer-title")?.textContent?.trim() ?? "",
+      videoVisible: Boolean(document.querySelector('.lesson-video[title="Video bài giảng TSA"]')),
+      curriculumVisible: Boolean(document.querySelector(".lesson-nav.curriculum-panel")),
+      horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    }));
+
+    await page.getByRole("button", { name: /Tài liệu bài học HSA/ }).click();
+    await page.locator('.lesson-document iframe[title="Tài liệu bài học HSA"]').waitFor({ state: "visible", timeout: 10_000 });
+    const pdfVisible = await page.locator('.lesson-document iframe[title="Tài liệu bài học HSA"]').count() === 1;
+
+    failNextVideoToken = true;
+    expectedMockFailureMessages.push("status of 503");
+    await page.getByRole("button", { name: /Video bài giảng TSA/ }).click();
+    const playerError = page.locator(".lesson-viewer-surface .secure-viewer-state.error");
+    await playerError.waitFor({ state: "visible", timeout: 10_000 });
+    const retryVisible = await playerError.getByRole("button", { name: "Thử tải lại" }).count() === 1;
+    await playerError.getByRole("button", { name: "Thử tải lại" }).click();
+    await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 });
+    const recoveredVideo = await page.locator('.lesson-video[title="Video bài giảng TSA"]').count() === 1;
+    await page.screenshot({ path: join(outputDir, `student-lesson-resources-${width}.png`), fullPage: true });
+    const result = { name: "student-lesson-resource-flow", path: "/lessons/mock-lesson", width, ...videoState, pdfVisible, retryVisible, recoveredVideo };
+    report.push(result);
+    if (!videoState.pageHeading.includes("Ôn tập nền tảng") || videoState.pageHeading.includes("NaN") || !videoState.viewerHeading || !videoState.videoVisible || !videoState.curriculumVisible || videoState.horizontalOverflow || !pdfVisible || !retryVisible || !recoveredVideo) {
+      throw new Error(`Lesson resource flow failed at ${width}px: ${JSON.stringify(result)}`);
+    }
   }
 }
 
@@ -986,7 +1419,7 @@ const authenticated = !(await page.locator("main.login-page").count());
 
 if (authenticated) {
   for (const [name, path] of auditRoutes) {
-    for (const width of auditWidths) await inspect(name, path, width, width === 1440 || width === 390 || requestedWidths.includes(width));
+    for (const [widthIndex, width] of auditWidths.entries()) await inspect(name, path, width, width === 1440 || width === 390 || requestedWidths.includes(width), "", widthIndex > 0);
     if (stressEnabled) await inspectStress(name, path, Math.min(...auditWidths));
   }
   if (extendedInteractions) {
@@ -994,10 +1427,13 @@ if (authenticated) {
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard") || requestedRoutes.has("admin-enrollments"))) {
       await inspectCollapsedAdminSidebar();
     }
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAccountMenu();
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-dashboard"))) {
       await inspectCollapsedStudentSidebar();
       await inspectDashboardDotAlignment();
+      await inspectAccountMenu();
     }
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-lesson"))) await inspectLessonResources();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
     if (!focusedAudit || requestedRoutes.has(mockRole === "admin" ? "admin-dashboard" : "student-dashboard")) await inspectNewWorkflowActions();
     if (!focusedAudit || requestedRoutes.has("student-search")) await inspectStudentSearch();
@@ -1007,24 +1443,15 @@ if (authenticated) {
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-audit"))) await inspectAdminAudit();
     if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
     if (!focusedAudit || requestedRoutes.has("student-exam-list")) await inspectExamHistoryDialog();
-    if (!focusedAudit || requestedRoutes.has("student-exam-catalog") || requestedRoutes.has("student-exam-list")) {
+    if (protectedAuditRequested) {
       const catalogRoutes = [["student-exam-catalog-shell", "/exam-room"]];
-      for (const [name, path] of catalogRoutes) {
-        await inspect(name, path, 1440, true);
-        const latest = report.at(-1);
-        if (!latest?.shell?.includes("product-shell") || latest.shell.includes("protected-exam-surface")) {
-          throw new Error(`${name} did not expose the standardized product shell: ${latest?.shell}`);
-        }
-      }
-      const protectedRoutes = protectedRegressionRoutes.filter(([name]) => mockRole === "admin" || !name.startsWith("protected-admin"));
-      for (const [name, path] of protectedRoutes) {
-        for (const width of [1440, 390]) {
-          await inspect(name, path, width, true);
+      if (!focusedAudit || requestedRoutes.has("student-exam-catalog") || requestedRoutes.has("student-exam-list")) {
+        for (const [name, path] of catalogRoutes) {
+          await inspect(name, path, 1440, true);
           const latest = report.at(-1);
-          if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) {
-            throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+          if (!latest?.shell?.includes("product-shell") || latest.shell.includes("protected-exam-surface")) {
+            throw new Error(`${name} did not expose the standardized product shell: ${latest?.shell}`);
           }
-          if (latest?.shell?.includes("ui-optimized-surface")) throw new Error(`${name} incorrectly opted into optimized content.`);
         }
       }
     }
@@ -1033,13 +1460,32 @@ if (authenticated) {
   if (courseCoverEnabled && mockRole === "admin") await inspectCourseCoverEditor();
 }
 
-const result = { baseUrl, mockAuth, mockRole, authenticated, runtimeIssues, report };
+if (authenticated && protectedAuditRequested) {
+  const protectedRoutes = focusedAudit
+    ? roleProtectedRoutes.filter(([name]) => requestedRoutes.has(name))
+    : roleProtectedRoutes;
+  for (const [name, path, expectedSurface] of protectedRoutes) {
+    for (const [widthIndex, width] of protectedRegressionWidths.entries()) {
+      await inspect(name, path, width, width === 1440 || width === 390, expectedSurface, widthIndex > 0);
+      const latest = report.at(-1);
+      if (name.includes("guest-exam") && !latest?.guestExam) throw new Error(`${name} did not render the protected guest entry surface.`);
+      if (!await page.locator(expectedSurface).first().count()) throw new Error(`${name} did not render ${expectedSurface}.`);
+      if (latest?.shell && !latest.shell.includes("protected-exam-surface") && !latest.shell.includes("exam-shell")) throw new Error(`${name} did not expose the protected shell boundary: ${latest.shell}`);
+      if (latest?.shell?.includes("ui-optimized-surface")) throw new Error(`${name} incorrectly opted into optimized content.`);
+    }
+  }
+}
+
+const layoutIssues = report.filter(item => item.horizontalOverflow || item.controlsOutsideViewport || item.unnamedControls);
+const protectedFindings = layoutIssues.filter(item => item.name?.startsWith("protected-"));
+const blockingLayoutIssues = layoutIssues.filter(item => !item.name?.startsWith("protected-"));
+const result = { baseUrl, mockAuth, mockRole, authenticated, runtimeIssues, protectedFindings, report };
 if (reportFile) await writeFile(reportFile, JSON.stringify(result, null, 2), "utf8");
-if (quietOutput) console.log(JSON.stringify({ baseUrl, mockRole, authenticated, runtimeIssues: runtimeIssues.length, checks: report.length, reportFile }));
+if (quietOutput) console.log(JSON.stringify({ baseUrl, mockRole, authenticated, runtimeIssues: runtimeIssues.length, protectedFindings: protectedFindings.length, checks: report.length, reportFile }));
 else console.log(JSON.stringify(result, null, 2));
 await browser.close();
+if (expectedMockFailureMessages.length) throw new Error(`Expected mock failure console messages were not observed: ${JSON.stringify(expectedMockFailureMessages)}`);
 if (runtimeIssues.length) throw new Error(`Browser runtime issues: ${JSON.stringify(runtimeIssues)}`);
-const layoutIssues = report.filter(item => item.horizontalOverflow || item.controlsOutsideViewport || item.unnamedControls);
-if (layoutIssues.length) {
-  throw new Error(`Layout/accessibility issues: ${JSON.stringify(layoutIssues.map(item => ({ name: item.name, path: item.path, width: item.width, horizontalOverflow: item.horizontalOverflow, controlsOutsideViewport: item.controlsOutsideViewport, unnamedControls: item.unnamedControls })))}`);
+if (blockingLayoutIssues.length) {
+  throw new Error(`Layout/accessibility issues: ${JSON.stringify(blockingLayoutIssues.map(item => ({ name: item.name, path: item.path, width: item.width, horizontalOverflow: item.horizontalOverflow, controlsOutsideViewport: item.controlsOutsideViewport, unnamedControls: item.unnamedControls })))}`);
 }

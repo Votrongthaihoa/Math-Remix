@@ -77,6 +77,60 @@ test("product-shell smoke can focus on requested routes without unrelated intera
   assert.match(smoke, /inspectCourseResourceModal/);
 });
 
+test("protected UI regression uses the four repository validation viewports", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /const protectedRegressionWidths = \[1440, 768, 390, 320\]/);
+  assert.match(smoke, /for \(const \[widthIndex, width\] of protectedRegressionWidths\.entries\(\)\)/);
+  assert.match(smoke, /inspect\(name, path, width, width === 1440 \|\| width === 390, expectedSurface, widthIndex > 0\)/);
+  assert.match(smoke, /\["protected-guest-exam", "\/exam\/mock-guest-token-12345", "\.guest-exam-page"\]/);
+  assert.match(smoke, /\["protected-legacy-guest-exam", "\/guest\/exam\/mock-guest-token-12345", "\.guest-exam-page"\]/);
+  for (const name of [
+    "protected-account-exam-dashboard",
+    "protected-account-exam-confirm",
+    "protected-account-exam-runner",
+    "protected-exam-result",
+    "protected-admin-exam-catalog",
+    "protected-admin-room-new",
+    "protected-admin-room-workspace",
+    "protected-admin-room-edit",
+    "protected-admin-exam-new",
+    "protected-admin-exam-workspace",
+    "protected-admin-exam-access",
+    "protected-admin-exam-policy",
+    "protected-admin-question-new",
+    "protected-admin-question-edit",
+    "protected-admin-section-editor",
+    "protected-admin-exam-preview",
+    "protected-admin-section-preview",
+    "protected-admin-question-bank",
+    "protected-admin-session-results",
+  ]) assert.ok(smoke.includes(`"${name}"`), `protected smoke missing ${name}`);
+  assert.match(smoke, /if \(authenticated && protectedAuditRequested\)/);
+  assert.match(smoke, /expectedSurface/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/guest-exams"/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/exams\/content"/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/exams\/result-content"/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/admin\/exam-content"/);
+  assert.match(smoke, /\.guest-exam-page/);
+});
+
+test("standalone admin previews expose the protected visual marker without changing preview internals", async () => {
+  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+
+  assert.match(platform, /admin-exam-preview-host protected-exam-surface/);
+  assert.match(platform, /standaloneAdminPreview[\s\S]*?<AdminExamManager/);
+});
+
+test("browser smoke retries snapshots interrupted by intentional route reloads", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /function isNavigationSnapshotRace/);
+  assert.match(smoke, /Execution context was destroyed/);
+  assert.match(smoke, /for \(let attempt = 0; attempt < 3; attempt \+= 1\)/);
+  assert.match(smoke, /await page\.waitForLoadState\("domcontentloaded"\)/);
+});
+
 test("courses use native links and curriculum list semantics", async () => {
   const [platform, productCss] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
@@ -124,16 +178,126 @@ test("admin quick actions connect to real modals and routes", async () => {
   assert.match(css, /\.admin-workflow-strip > a/);
 });
 
-test("public auth pages expose the measured account signup path", async () => {
+test("public registration stays inside the AECK app", async () => {
   const [platform, css] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/account-auth-reference.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /className="login-signup-link"/);
-  assert.match(platform, /href="https:\/\/account\.aeck\.vn\/signup"/);
+  assert.match(platform, /href="\/login\?intent=register"/);
+  assert.match(platform, /function SignupPage/);
+  assert.match(platform, /supabase\.auth\.signUp\(/);
+  assert.match(platform, /authMode === "signup"[\s\S]*?Đăng ký tài khoản \| AECK/);
+  assert.doesNotMatch(platform, /account\.aeck\.vn\/signup/);
   assert.match(css, /\.login-page\.ui-auth-surface\.account-auth-reference \.login-signup-link/);
   assert.doesNotMatch(platform, /className="login-portal-switch"/);
+});
+
+test("registration validation identifies and focuses the field that needs correction", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/account-auth-reference.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /type SignupErrorField = "name" \| "password" \| "confirmPassword" \| null/);
+  assert.match(platform, /function focusSignupField/);
+  assert.match(platform, /useEffect\(\(\) => \{[\s\S]*?document\.getElementById\(`signup-\$\{p\.signupErrorField === "confirmPassword" \? "confirm-password" : p\.signupErrorField\}`\)\?\.focus\(\)/);
+  assert.match(platform, /aria-invalid=\{p\.signupErrorField === "confirmPassword" \? true : undefined\}/);
+  assert.match(platform, /aria-describedby=\{p\.signupErrorField === "confirmPassword" \? "signup-confirm-password-error" : undefined\}/);
+  assert.match(platform, /id="signup-confirm-password-error" className="login-field-error" role="alert"/);
+  assert.ok((platform.match(/setSignupErrorField\(null\)/g) ?? []).length >= 4);
+  assert.match(css, /\.login-field-error/);
+});
+
+test("account menu identifies the session and completes local sign-out even when revocation is unconfirmed", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /async function logoutFromAccountMenu/);
+  assert.match(platform, /signOut\(\{ scope: "local" \}\)/);
+  assert.match(platform, /let logoutWarning = false/);
+  assert.match(platform, /logoutWarning=1/);
+  assert.match(platform, /router\.replace\(logoutDestination\)/);
+  assert.match(platform, /className="account-dropdown-identity"/);
+  assert.match(platform, /signingOut \? "Đang đăng xuất…" : "Đăng xuất"/);
+  assert.match(css, /\.app-shell\.ui-shell\.product-shell[^\n]*\.account-dropdown-identity/);
+  assert.match(css, /--learning-danger:\s*#b4232f/);
+  assert.match(css, /background:\s*var\(--alpha-accent-selected\)/);
+  assert.doesNotMatch(css, /#158a39|#127534|#18231c/);
+  assert.doesNotMatch(css, /\.exam-shell|\.question|\.answer|\.result|\.review|\.solution/);
+});
+
+test("account menu opens from arrow keys and closes when focus leaves", async () => {
+  const [platform, smoke] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /handleAccountTriggerKeyDown/);
+  assert.match(platform, /event\.key === "ArrowDown" \|\| event\.key === "ArrowUp"/);
+  assert.match(platform, /document\.addEventListener\("focusin", closeOnFocusOutside\)/);
+  assert.match(platform, /document\.removeEventListener\("focusin", closeOnFocusOutside\)/);
+  assert.match(smoke, /const accountMenuPath = mockRole === "admin" \? "\/admin" : "\/dashboard"/);
+  assert.match(smoke, /if \(mockRole === "admin"[\s\S]*?await inspectAccountMenu\(\)/);
+});
+
+test("account avatar remains visible above the legacy Alpha cascade", async () => {
+  const css = await readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.app-shell\.ui-shell\.student-app\.product-shell\.alpha-reference-surface \.account-trigger > \.account-avatar/);
+  assert.match(css, /\.app-shell\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface \.account-trigger > \.account-avatar/);
+  assert.match(css, /display:\s*grid/);
+});
+
+test("account menu stacking context stays above product content", async () => {
+  const css = await readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.app-shell\.ui-shell\.product-shell:not\(\.protected-exam-surface\) > \.topbar\s*\{[^}]*z-index:\s*80/s);
+});
+
+test("lesson viewer gives video and documents a complete learning hierarchy", async () => {
+  const [platform, player, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /className="lesson-page-header"/);
+  assert.match(platform, /className="lesson-viewer-header"/);
+  assert.match(platform, /className="lesson-resource-kind"/);
+  assert.match(platform, /aria-live="polite"/);
+  assert.match(player, /className="secure-viewer-state error" role="alert"/);
+  assert.match(player, /onRetry=\{retryVideoSource\}/);
+  assert.match(css, /\.real-lesson-page \.lesson-layout/);
+  assert.match(css, /@media \(max-width: 1023px\)/);
+});
+
+test("browser smoke renders real lesson video and PDF resource states", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/lesson-resources"/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/video-token"/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/resource-content"/);
+  assert.match(smoke, /requestUrl\.pathname === "\/api\/security\/session"/);
+  assert.match(smoke, /expectedMockFailureMessages/);
+  assert.match(smoke, /pageHeading\.includes\("Ôn tập nền tảng"\)/);
+  assert.match(smoke, /inspectLessonResources/);
+});
+
+test("course detail exposes a clear first learning action", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /const firstCourseLesson = courseLessons\[0\]/);
+  assert.match(platform, /className="course-study-primary-action"/);
+  assert.match(platform, /Bắt đầu học/);
+  assert.match(platform, /className="course-study-facts"/);
+  assert.match(css, /\.course-study-primary-action/);
 });
 
 test("course content loaders always settle and ignore superseded routes", async () => {

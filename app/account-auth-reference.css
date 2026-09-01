@@ -13,6 +13,7 @@
   --account-body: #1f2937;
   --account-muted: #4b5563;
   --account-line: #e5e7eb;
+  --account-danger: #b4232f;
 
   display: flex;
   min-height: 100dvh;
@@ -120,6 +121,19 @@
 
 .login-page.ui-auth-surface.account-auth-reference .login-control-group + .login-control-group {
   margin-block-start: 24px;
+}
+
+.login-page.ui-auth-surface.account-auth-reference .login-field-error {
+  margin: 7px 0 0;
+  color: var(--account-danger);
+  font-size: 12px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface.account-auth-reference .field:has(input[aria-invalid="true"]) {
+  border-color: var(--account-danger);
+  box-shadow: 0 0 0 1px var(--account-danger);
 }
 
 .login-page.ui-auth-surface.account-auth-reference .login-control-label {
@@ -284,6 +298,40 @@
   margin-block-start: 24px;
   padding-block-start: 16px;
   text-align: start;
+}
+
+.login-page.ui-auth-surface.account-auth-reference.signup-page {
+  align-items: flex-start;
+}
+
+.login-page.ui-auth-surface.account-auth-reference.signup-page .login-wrap {
+  margin-block: max(28px, env(safe-area-inset-top)) max(28px, env(safe-area-inset-bottom));
+}
+
+.login-page.ui-auth-surface.account-auth-reference.signup-page .login-brand {
+  margin-block-end: 20px;
+}
+
+.login-page.ui-auth-surface.account-auth-reference .signup-card {
+  padding-block-start: 32px;
+}
+
+.login-page.ui-auth-surface.account-auth-reference .signup-card .login-heading {
+  margin-block-end: 24px;
+}
+
+.login-page.ui-auth-surface.account-auth-reference .signup-terms {
+  margin: 18px 0 0;
+  color: var(--account-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.login-page.ui-auth-surface.account-auth-reference .signup-terms a {
+  color: var(--account-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .login-page.ui-auth-surface.account-auth-reference .forgot {

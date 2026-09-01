@@ -27,6 +27,14 @@ type ResolvedContent = {
   playbackMode?: "native" | "embed" | "external" | "hls-vault";
 };
 
+function SecureViewerState({ label }: { label: string }) {
+  return <div className="secure-viewer-state" role="status" aria-live="polite" aria-busy="true"><LoadingIndicator label={label}/></div>;
+}
+
+function SecureViewerError({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return <div className="secure-viewer-state error" role="alert"><div><p>{message}</p>{onRetry && <button type="button" className="outline-btn" onClick={onRetry}>Thử tải lại</button>}</div></div>;
+}
+
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
   const [content, setContent] = useState<ResolvedContent | null>(null);
   const [watermarkEmail, setWatermarkEmail] = useState("");
@@ -213,18 +221,18 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     };
   }, [content, resource.videoToken]);
 
-  if (loading) return <div className="secure-viewer-state"><LoadingIndicator label="Đang xác thực nội dung…" /></div>;
-  if (error || !content) return <div className="secure-viewer-state error">{error || "Không thể mở nội dung."}</div>;
+  if (loading) return <SecureViewerState label="Đang xác thực nội dung…"/>;
+  if (error || !content) return <SecureViewerError message={error || "Không thể mở nội dung."} onRetry={retryVideoSource}/>;
 
   if (content.type === "youtube") {
-    if (!content.youtubeId) return <div className="secure-viewer-state error">Liên kết YouTube không hợp lệ.</div>;
+    if (!content.youtubeId) return <SecureViewerError message="Liên kết YouTube không hợp lệ."/>;
     return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen/>;
   }
 
   if (content.type === "hls_vault") {
-    if (!content.playbackUrl) return <div className="secure-viewer-state error">Không lấy được nguồn phát HLS.</div>;
+    if (!content.playbackUrl) return <SecureViewerError message="Không lấy được nguồn phát HLS." onRetry={retryVideoSource}/>;
     if (content.playbackMode === "hls-vault") {
-      if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryVideoSource}>Lấy nguồn phát mới</button></div></div>;
+      if (videoPlaybackError) return <SecureViewerError message={videoPlaybackError} onRetry={retryVideoSource}/>;
       return <iframe
         ref={hlsFrameRef}
         key={`${resource.id}:${resolutionNonce}`}
@@ -240,7 +248,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   }
 
   if (content.type === "onedrive_video") {
-    if (videoPlaybackError) return <div className="secure-viewer-state error" role="alert"><div><p>{videoPlaybackError}</p><button type="button" className="outline-btn" onClick={retryVideoSource}>Lấy nguồn phát mới</button></div></div>;
+    if (videoPlaybackError) return <SecureViewerError message={videoPlaybackError} onRetry={retryVideoSource}/>;
     return <iframe
       ref={videoFrameRef}
       key={`${resource.id}:${resolutionNonce}`}
@@ -253,9 +261,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     />;
   }
 
-  if (content.protectedContent !== "pdf") return <div className="secure-viewer-state error">Không thể mở tài liệu PDF.</div>;
-  if (pdfLoading || !pdfObjectUrl && !pdfError) return <div className="secure-viewer-state"><LoadingIndicator label="Đang tải tài liệu PDF…" /></div>;
-  if (pdfError) return <div className="secure-viewer-state error">{pdfError}</div>;
+  if (content.protectedContent !== "pdf") return <SecureViewerError message="Không thể mở tài liệu PDF."/>;
+  if (pdfLoading || !pdfObjectUrl && !pdfError) return <SecureViewerState label="Đang tải tài liệu PDF…"/>;
+  if (pdfError) return <SecureViewerError message={pdfError} onRetry={retryVideoSource}/>;
   const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(pdfObjectUrl)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
   return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title}/></div>;
 }

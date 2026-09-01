@@ -96,3 +96,31 @@ test("the mobile navigation overlay fills the dynamic viewport", async () => {
   assert.match(css, /\.mobileMenuShade\s*\{[\s\S]*?width:\s*100vw;[\s\S]*?height:\s*100dvh;/);
   assert.match(css, /\.mobileMenuPanel\s*\{[\s\S]*?height:\s*100dvh;/);
 });
+
+test("public browser smoke covers every public route, auth state, modal, menu, and standalone surface", async () => {
+  const smoke = await source("scripts/public-ui-smoke.mjs");
+
+  for (const route of ["/", "/giao-vien", "/goi-hoc-tap", "/dang-ky-minh-chung", "/luyen-thi-tsa", "/cau-truc-de-thi-tsa", "/cach-tinh-diem-tsa", "/luyen-thi-hsa", "/cau-truc-de-thi-hsa", "/dang-ky-thi-hsa", "/dieu-khoan-dich-vu", "/chinh-sach-bao-mat"]) {
+    assert.ok(smoke.includes(JSON.stringify(route)), `public smoke missing ${route}`);
+  }
+  assert.match(smoke, /\/login\?intent=register/);
+  assert.match(smoke, /inspectMobileMenu/);
+  assert.match(smoke, /inspectTeacherModal/);
+  assert.match(smoke, /inspectSignupValidation/);
+  assert.match(smoke, /pdf-viewer\.html/);
+  assert.match(smoke, /yt-embed-player\.html/);
+  assert.match(smoke, /404-eyes\.html/);
+  assert.match(smoke, /const redirectRoutes = \[/);
+  for (const route of ["/portal", "/exam-result/mock-attempt-latest", "/question-bank/example", "/item/create/example", "/exam-management/example", "/assessment-management/example", "/exam-room-management/example", "/user-management/example", "/group-user-management/example", "/course-management", "/media-management/example", "/exam-result-management/example", "/tkb-management/example", "/admin-log/example", "/server-health/example", "/irt-exam-management/example", "/evidence-registration-management/example", "/subscription-package-management/example", "/shipment-management/example", "/ilearn-management/example", "/watermark-trace/example", "/admin/all/example"]) {
+    assert.ok(smoke.includes(JSON.stringify(route)), `redirect smoke missing ${route}`);
+  }
+  assert.match(smoke, /inspectRedirects/);
+});
+
+test("public interaction smoke waits for hydration before clicking controls", async () => {
+  const smoke = await source("scripts/public-ui-smoke.mjs");
+
+  assert.match(smoke, /async function waitForPublicHydration/);
+  assert.match(smoke, /await page\.waitForLoadState\("networkidle"\)/);
+  assert.ok((smoke.match(/await waitForPublicHydration\(\)/g) ?? []).length >= 5);
+});

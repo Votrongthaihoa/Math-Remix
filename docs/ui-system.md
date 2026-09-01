@@ -21,8 +21,11 @@ rendering remain owned by their feature modules.
   page-level error templates at this time.
 
 The repository can render 62 canonical semantic UI route patterns (12 public
-marketing/content routes plus the existing product patterns), 21 legacy/bridge
-aliases and 3 standalone HTML/embed surfaces. API route handlers are not UI
+marketing/content routes plus the existing product patterns and fallback), 22
+redirect-only compatibility patterns (20 administration aliases, `/portal`
+and `/exam-result/:attemptId`) and 3 standalone HTML/embed surfaces.
+`/guest/exam/:token` is a legacy URL that intentionally renders the same
+protected guest surface instead of redirecting. API route handlers are not UI
 routes and are intentionally excluded from this inventory.
 
 ## UI zones
@@ -235,3 +238,28 @@ with mock auth for both roles. The smoke inventory covers optimized routes,
 desktop/mobile widths, long-text stress, interactions and protected-route shell
 boundaries. Any change to a guarded shared file requires protected route images
 at desktop and mobile before merge.
+
+### Current route coverage tracker
+
+| Zone | Coverage | Result |
+| --- | ---: | --- |
+| Public marketing/content | 12 routes + 404 fallback at 1440/768/390/320 | Audited and matched to the public AECK structure |
+| Account access | login, signup query state, forgot and reset at 4 widths | Audited; signup stays inside the local app |
+| Student product | 9 product patterns + 2 exam catalogue patterns at 8 widths | Migrated and visually checked |
+| Account/guest exam boundary | 6 route templates at 1440/768/390/320 | Regression checked; protected internals unchanged |
+| Admin operations | 14 route templates at 8 widths | Migrated and visually checked |
+| Admin exam/authoring boundary | 15 route templates at 1440/768/390/320 | Regression checked; protected internals unchanged |
+| Compatibility | 22 redirect patterns, including root/detail/deep course variants | Browser redirect checked |
+| Standalone | PDF viewer, video embed and 404 canvas | Audited at desktop and mobile |
+
+Latest browser evidence:
+
+- Public/auth/standalone/redirect suite: 102 checks, no runtime, blank-page,
+  image, accessible-name or horizontal-overflow failure.
+- Full student suite: 139 checks, 0 runtime issues and 0 protected findings.
+- Full admin suite: 323 checks, 0 runtime issues. One protected finding remains:
+  the section answer preview toolbar exceeds the 320 px viewport. The direct
+  preview and its styles are protected by `AGENTS.md`, so this is recorded as a
+  blocker until a task explicitly authorizes question/answer preview changes.
+- Chrome DevTools directly confirmed the 12 public reference routes and the
+  current account redirects used by `alpha.aeck.vn` and `tsa.aeck.vn`.
