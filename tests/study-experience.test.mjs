@@ -6,10 +6,13 @@ const platformUrl = new URL("../app/platform.tsx", import.meta.url);
 const learningCssUrl = new URL("../app/account-learning-polish.css", import.meta.url);
 const smokeUrl = new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url);
 
-test("lesson routes expose an isolated study-mode product shell", async () => {
+test("course, lesson, and schedule routes expose their isolated product shells", async () => {
   const source = await readFile(platformUrl, "utf8");
 
-  assert.match(source, /currentView === "lesson" \? "study-mode" : ""/);
+  assert.match(
+    source,
+    /currentView === "course"[\s\S]*?\? "study-mode course-study-mode"[\s\S]*?: currentView === "lesson"[\s\S]*?\? "study-mode"[\s\S]*?: currentView === "schedule"[\s\S]*?\? "schedule-mode"[\s\S]*?: ""/,
+  );
 });
 
 test("lesson curriculum exposes an accessible compact drawer trigger", async () => {

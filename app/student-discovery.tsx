@@ -246,8 +246,9 @@ const timetableStartHour = 8;
 const timetableEndHour = 24;
 const timetableHourHeight = 64;
 const timetableHeight = (timetableEndHour - timetableStartHour) * timetableHourHeight;
+const timetableAccent = "#778CF7";
 const timetablePalettes = [
-  { background: "rgb(254,226,226)", border: "rgb(205,22,39)", text: "rgb(159,18,57)", soft: "rgb(254,242,242)" },
+  { background: "rgba(119,140,247,.16)", border: timetableAccent, text: "rgb(75,69,181)", soft: "rgba(119,140,247,.10)" },
   { background: "rgb(224,242,254)", border: "rgb(2,132,199)", text: "rgb(7,89,133)", soft: "rgb(240,249,255)" },
   { background: "rgb(254,243,199)", border: "rgb(217,119,6)", text: "rgb(146,64,14)", soft: "rgb(255,251,235)" },
   { background: "rgb(209,250,229)", border: "rgb(5,150,105)", text: "rgb(6,95,70)", soft: "rgb(236,253,245)" },
@@ -296,7 +297,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
     <div className="student-timetable-page w-full">
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 select-none overflow-hidden" aria-labelledby="student-timetable-title">
         <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-          <h1 id="student-timetable-title" className="text-base font-semibold text-gray-800 flex items-center gap-2 m-0"><CalendarClock className="text-[#cd1627]" aria-hidden="true" />Thời Khóa Biểu</h1>
+          <h1 id="student-timetable-title" className="text-base font-semibold text-gray-800 flex items-center gap-2 m-0"><CalendarClock style={{ color: timetableAccent }} aria-hidden="true" />Thời Khóa Biểu</h1>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="hidden sm:flex items-center gap-2" aria-label="Loại lịch">
               {examTypes.map((type, index) => {
@@ -319,7 +320,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
               {days.map(day => {
                 const key = dateKey(day);
                 const isToday = key === todayKey;
-                return <div key={key} className={`flex-1 text-center py-2 border-l border-gray-100 min-w-[72px]${isToday ? " bg-red-50/40" : ""}`}><div className="text-[10px] leading-none" style={{ color: isToday ? "rgb(205,22,39)" : "rgb(156,163,175)" }}><span className="hidden sm:block">{formatUiWeekday(day)}</span><span className="block sm:hidden">{["CN", "T2", "T3", "T4", "T5", "T6", "T7"][day.getDay()]}</span></div><div className="text-[12px] font-semibold leading-tight mt-0.5" style={{ color: isToday ? "rgb(205,22,39)" : "rgb(107,114,128)" }}>{day.getDate()}/{day.getMonth() + 1}</div>{isToday ? <div className="w-1 h-1 rounded-full mx-auto mt-1 bg-[#cd1627]" /> : null}</div>;
+                return <div key={key} className="flex-1 text-center py-2 border-l border-gray-100 min-w-[72px]" style={isToday ? { background: "rgba(119,140,247,.06)" } : undefined}><div className="text-[10px] leading-none" style={{ color: isToday ? timetableAccent : "rgb(156,163,175)" }}><span className="hidden sm:block">{formatUiWeekday(day)}</span><span className="block sm:hidden">{["CN", "T2", "T3", "T4", "T5", "T6", "T7"][day.getDay()]}</span></div><div className="text-[12px] font-semibold leading-tight mt-0.5" style={{ color: isToday ? timetableAccent : "rgb(107,114,128)" }}>{day.getDate()}/{day.getMonth() + 1}</div>{isToday ? <div className="w-1 h-1 rounded-full mx-auto mt-1" style={{ background: timetableAccent }} /> : null}</div>;
               })}
             </div>
             <div className="relative">
@@ -331,7 +332,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
                   const key = dateKey(day);
                   const isToday = key === todayKey;
                   const dayRooms = roomsByDate.get(key) ?? [];
-                  return <div key={key} className="flex-1 relative border-l border-gray-100 min-w-[72px]" style={isToday ? { background: "rgba(205,22,39,0.016)" } : undefined}>
+                  return <div key={key} className="flex-1 relative border-l border-gray-100 min-w-[72px]" style={isToday ? { background: "rgba(119,140,247,.025)" } : undefined}>
                     {Array.from({ length: timetableEndHour - timetableStartHour + 1 }, (_, index) => <span key={index} className="absolute left-0 right-0 border-t border-dashed border-gray-100" style={{ top: index * timetableHourHeight }} />)}
                     {dayRooms.map(room => {
                       const start = new Date(room.exam_start!);
@@ -344,7 +345,7 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
                       const palette = paletteForRoom(room);
                       return <Link href={`/exam-room/${encodeURIComponent(room.id)}`} key={room.id} className="absolute overflow-hidden transition-opacity hover:opacity-80" style={{ top, height, left: 2, right: 2, borderRadius: 5, background: palette.background, borderLeft: `3px solid ${palette.border}`, boxShadow: "rgba(0,0,0,0.06) 0px 1px 3px", color: palette.text }} title={`${room.title} · ${formatUiTime(start)}`}><span className="block p-[3px_6px] min-w-0"><b className="block text-[11px] leading-[1.25] overflow-hidden text-ellipsis whitespace-nowrap">{room.title}</b><span className="block text-[10px] leading-[1.3] opacity-80 overflow-hidden text-ellipsis whitespace-nowrap">{formatUiTime(start)}{parsedEnd && Number.isFinite(parsedEnd.getTime()) ? `–${formatUiTime(parsedEnd)}` : ""}</span><span className="block text-[10px] leading-[1.3] opacity-65 overflow-hidden text-ellipsis whitespace-nowrap">{room.exam_type || "Phòng khảo thí"} · {room.examCount} đề</span></span></Link>;
                     })}
-                    {isToday && currentMinutes >= timetableStartHour * 60 && currentMinutes <= timetableEndHour * 60 ? <div className="absolute left-0 right-0 z-10 pointer-events-none flex items-center" style={{ top: currentLineTop }}><span className="w-2 h-2 rounded-full bg-[#cd1627] -ml-1" /><span className="flex-1 h-0.5 bg-[#cd1627] opacity-85" /></div> : null}
+                    {isToday && currentMinutes >= timetableStartHour * 60 && currentMinutes <= timetableEndHour * 60 ? <div className="absolute left-0 right-0 z-10 pointer-events-none flex items-center" style={{ top: currentLineTop }}><span className="w-2 h-2 rounded-full -ml-1" style={{ background: timetableAccent }} /><span className="flex-1 h-0.5 opacity-85" style={{ background: timetableAccent }} /></div> : null}
                   </div>;
                 })}
               </div>

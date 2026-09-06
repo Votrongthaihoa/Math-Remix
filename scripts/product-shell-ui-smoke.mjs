@@ -1814,6 +1814,25 @@ async function inspectExamHistoryDialog() {
   }
 }
 
+async function inspectProfilePortalTabs() {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}/profile?tab=courses`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  await page.locator(".profile-portal-reference").waitFor({ state: "visible", timeout: 10_000 });
+  const result = await page.evaluate(() => ({
+    profileTab: new URLSearchParams(window.location.search).get("tab"),
+    heading: document.querySelector(".profile-portal-section-title h1")?.textContent?.trim() ?? "",
+    courseRows: document.querySelectorAll(".profile-course-row").length,
+    horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+  }));
+  await page.screenshot({ path: join(outputDir, "student-profile-courses-1440.png"), fullPage: true });
+  report.push({ name: "student-profile-tabs", path: "/profile?tab=courses", width: 1440, ...result });
+  const profileTabReady = result.profileTab === "courses";
+  if (!profileTabReady || result.heading !== "Khóa học của tôi" || result.courseRows !== 1 || result.horizontalOverflow) {
+    throw new Error(`Profile portal tabs failed: ${JSON.stringify(result)}`);
+  }
+}
+
 await installMockAuth();
 await inspect(mockRole === "student" ? "student-login" : "admin-login", startPath, 390, true);
 const authenticated = !(await page.locator("main.login-page").count());
@@ -1836,6 +1855,7 @@ if (authenticated) {
     }
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-courses") || requestedRoutes.has("student-course-detail"))) await inspectCourseReferenceStates();
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-lesson"))) await inspectLessonResources();
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-profile"))) await inspectProfilePortalTabs();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
     if (!focusedAudit || requestedRoutes.has(mockRole === "admin" ? "admin-dashboard" : "student-dashboard")) await inspectNewWorkflowActions();
     if (!focusedAudit || requestedRoutes.has("student-search")) await inspectStudentSearch();

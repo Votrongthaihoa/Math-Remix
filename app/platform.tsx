@@ -32,6 +32,7 @@ import "./product-design-system.css";
 import "./account-auth-reference.css";
 import "./course-exam-tabs.css";
 import "./account-learning-polish.css";
+import "./student-reference-fidelity.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
@@ -40,7 +41,8 @@ import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
   Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
   ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3,
-  LayoutGrid, List as ListIcon, Server
+  LayoutGrid, List as ListIcon, Server, Home, GraduationCap, FileText, Package, Pencil, KeyRound, CheckCircle2, Hash,
+  MessageCircle, Phone
 } from "lucide-react";
 
 const ExamRoomModule = lazy(() => import("./exam-room"));
@@ -324,7 +326,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [isAdmin, setIsAdmin] = useState(false);
   const [productSidebarOpen, setProductSidebarOpen] = useState(true);
   const [studySidebarOpen, setStudySidebarOpen] = useState(false);
-  const sidebarOpen = currentView === "lesson" ? studySidebarOpen : productSidebarOpen;
+  const sidebarOpen = currentView === "schedule" ? false : currentView === "course" ? false : currentView === "lesson" ? studySidebarOpen : productSidebarOpen;
   const [compactNavPopover, setCompactNavPopover] = useState<"exams" | "courses" | null>(null);
   const [compactNavPopoverTop, setCompactNavPopoverTop] = useState(0);
   const [resolvedLessonCourseId, setResolvedLessonCourseId] = useState("");
@@ -1082,8 +1084,11 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setSigningOut(false);
     }
   }
+  if (currentView === "profile" && !adminRouteRequested) {
+    return <Profile profile={activeProfile} courses={visibleCourses} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />;
+  }
   return (
-    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${currentView === "lesson" ? "study-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
+    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${currentView === "course" ? "study-mode course-study-mode" : currentView === "lesson" ? "study-mode" : currentView === "schedule" ? "schedule-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
       {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
       <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={closeMobileMenu} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
       {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
@@ -1091,6 +1096,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
            <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="mobile-sidebar-logo mobile-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="mobile-sidebar-logo mobile-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
           {!adminRouteRequested && currentView === "lesson" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link>}
+          {!adminRouteRequested && currentView === "course" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link>}
           <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
@@ -1163,7 +1169,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           </div>
         </header>
       )}
-      <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
+      <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : currentView === "course" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
         {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
@@ -1173,7 +1179,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
         {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "schedule" && <StudentSchedulePage rooms={practiceRooms} />}
-        {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} />}
+        {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} courses={visibleCourses} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />}
         {currentView === "admin" && isAdmin && <RealAdminDashboard pathname={pathname} />}
       </main>
     </div>
@@ -1662,7 +1668,7 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
   if (!course) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
   const firstCourseLesson = courseLessons[0];
   return <div className="course-study-page-reference max-w-[1700px] mx-auto min-h-[calc(100vh-32px)] flex flex-col">
-    <div className="py-2 pb-4 flex items-center justify-between"><div className="flex items-center gap-2 overflow-hidden"><Link className="text-gray-500 hover:text-[#158a39] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2">/</span><span className="font-bold text-gray-800 uppercase tracking-wide truncate max-w-[200px] md:max-w-[400px]">{course.title}</span></div></div>
+    <div className="course-detail-breadcrumb py-2 pb-4 flex items-center justify-between"><div className="flex items-center gap-2 overflow-hidden"><Link className="text-gray-500 hover:text-[#158a39] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2">/</span><span className="font-bold text-gray-800 uppercase tracking-wide truncate max-w-[200px] md:max-w-[400px]">{course.title}</span></div></div>
     <div className="flex flex-col lg:flex-row flex-1 gap-8 pt-2 items-start">
       <section className="flex-1 w-full overflow-hidden">
         <div className="w-full h-auto bg-[#0f172a] rounded-xl shadow-sm relative group"><div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-900 relative flex items-center justify-center shadow-lg"><CourseCoverVisual course={course} detail /></div></div>
@@ -1943,6 +1949,19 @@ function ExamHistory({ attempts, onAttemptsLoaded, onOpen }: { attempts: Attempt
   const visibleAttempts = attempts;
   const completedAttempts = visibleAttempts.filter(attempt => attempt.status !== "in_progress" && Boolean(attempt.submitted_at));
   const filteredAttempts = completedAttempts.filter(attempt => (attempt.title || "Bài thi").toLocaleLowerCase("vi").includes(searchTerm.trim().toLocaleLowerCase("vi")));
+  const groupedAttempts = (() => {
+    const formatter = new Intl.DateTimeFormat("vi-VN", { day: "numeric", month: "numeric", year: "numeric" });
+    const groups = new Map<string, { label: string; timestamp: number; attempts: AttemptData[] }>();
+    for (const attempt of filteredAttempts) {
+      const submitted = new Date(attempt.submitted_at);
+      if (!Number.isFinite(submitted.getTime())) continue;
+      const key = `${submitted.getFullYear()}-${submitted.getMonth()}-${submitted.getDate()}`;
+      const current = groups.get(key) ?? { label: formatter.format(submitted), timestamp: new Date(submitted.getFullYear(), submitted.getMonth(), submitted.getDate()).getTime(), attempts: [] };
+      current.attempts.push(attempt);
+      groups.set(key, current);
+    }
+    return Array.from(groups.values()).sort((left, right) => right.timestamp - left.timestamp);
+  })();
   const thptqgHistory = completedAttempts.length > 0 && completedAttempts.every(attempt => normalizeExamType(attempt.exam_type) === "THPTQG");
   const statusLabel = (status: string) => status === "graded" ? "Đã chấm" : status === "completed" ? "Đã hoàn thành" : "Đã nộp";
   const openHistoryItem = (event: React.MouseEvent<HTMLAnchorElement>, attemptId: string) => {
@@ -1954,21 +1973,24 @@ function ExamHistory({ attempts, onAttemptsLoaded, onOpen }: { attempts: Attempt
     ? <HistoryLoading />
     : loadError && !visibleAttempts.length
       ? <section className="history-feedback"><span><History /></span><h2>Chưa tải được lịch sử</h2><p>{loadError}</p><button type="button" onClick={() => setReloadVersion(version => version + 1)}>Thử tải lại</button></section>
-      : filteredAttempts.length
-        ? <section className="history-list">{filteredAttempts.map(attempt => <article className={`history-row ${normalizeExamType(attempt.exam_type) === "THPTQG" ? "history-row-thptqg" : ""}`} key={attempt.id}>
-            <div className="history-exam"><b>{attempt.title || "Bài thi"}</b><small>{Number(attempt.score ?? 0)} điểm</small></div>
-            <time dateTime={attempt.submitted_at ?? undefined}>{formatUiShortDateTime(attempt.submitted_at, "Chưa nộp")}</time>
-            <strong>{attempt.correct_answers}/{attempt.total_questions}</strong>
-            <div className="history-status"><span>{statusLabel(attempt.status)}</span><Link href={`/exam/result/${encodeURIComponent(attempt.id)}`} onClick={event => openHistoryItem(event, attempt.id)}>Xem chi tiết<ChevronRight aria-hidden="true" /></Link></div>
-          </article>)}</section>
+      : groupedAttempts.length
+        ? <section className="history-date-groups">{groupedAttempts.map(group => <section className="history-date-group" key={group.timestamp}>
+            <h2>{group.label}</h2>
+            <div className="history-date-frame">
+              <div className="history-head"><span>KỲ THI / ĐỀ THI</span><span>THỜI GIAN NỘP</span><span>SỐ CÂU ĐÚNG</span><span>TRẠNG THÁI</span></div>
+              <div className="history-list">{group.attempts.map(attempt => <article className={`history-row ${normalizeExamType(attempt.exam_type) === "THPTQG" ? "history-row-thptqg" : ""}`} key={attempt.id}>
+                <div className="history-exam"><b>{attempt.title || "Bài thi"}</b><small>{Number(attempt.score ?? 0)} điểm</small></div>
+                <time dateTime={attempt.submitted_at ?? undefined}>{formatUiShortDateTime(attempt.submitted_at, "Chưa nộp")}</time>
+                <strong>{attempt.correct_answers}/{attempt.total_questions}</strong>
+                <div className="history-status"><span>{statusLabel(attempt.status)}</span><Link href={`/exam/result/${encodeURIComponent(attempt.id)}`} onClick={event => openHistoryItem(event, attempt.id)}>Xem chi tiết<ChevronRight aria-hidden="true" /></Link></div>
+              </article>)}</div>
+            </div>
+          </section>)}</section>
         : <EmptyState icon={History} title={searchTerm ? "Không tìm thấy bài thi" : "Bạn chưa có lịch sử làm bài"} text={searchTerm ? "Thử tìm bằng tên đề thi khác." : "Kết quả sẽ xuất hiện tại đây sau khi bạn nộp bài thi."} role="status" ariaLive="polite" />;
 
   return <div className={`page-stack ${thptqgHistory ? "thptqg-history" : ""}`}>
     <div className="page-intro"><div><span className="eyebrow">KẾT QUẢ HỌC TẬP</span><h1>Lịch sử làm bài</h1><p>Xem lại kết quả các bài thi đã thực hiện.</p></div><label className="search"><Search aria-hidden="true" /><input name="historySearch" type="search" autoComplete="off" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Tìm kiếm bài thi…" aria-label="Tìm kiếm bài thi" /></label></div>
-    <section className="history-frame">
-      <div className="history-head"><span>KỲ THI / ĐỀ THI</span><span>THỜI GIAN NỘP</span><span>SỐ CÂU ĐÚNG</span><span>TRẠNG THÁI</span></div>
-      {historyContent}
-    </section>
+    {historyContent}
   </div>;
 }
 
@@ -1994,7 +2016,10 @@ function LessonViewerSkeleton() {
   </section>;
 }
 
-function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData; attempts: AttemptData[]; onProfileUpdated: (profile: ProfileData) => void }) {
+function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signingOut }: { profile: ProfileData; courses: CourseData[]; attempts: AttemptData[]; onProfileUpdated: (profile: ProfileData) => void; onLogout: () => void; signingOut: boolean }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") === "courses" ? "courses" : "info";
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(profile.full_name);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -2061,14 +2086,57 @@ function Profile({ profile, attempts, onProfileUpdated }: { profile: ProfileData
   const currentYear = new Date().getFullYear();
   const completedYearAttempts = attempts.filter(attempt => attempt.status !== "in_progress" && Boolean(attempt.submitted_at) && new Date(attempt.submitted_at).getFullYear() === currentYear);
   const averageScore = completedYearAttempts.length ? Math.round(completedYearAttempts.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0) / completedYearAttempts.length) : 0;
-  const profileHandle = `@${profile.email.split("@")[0] || profile.student_code.toLocaleLowerCase("vi")}`;
   const profileFeedbackId = profileError ? "profile-name-error" : undefined;
 
-  return <div className="profile-grid">
-    <header className="profile-page-heading"><span className="eyebrow">TÀI KHOẢN</span><h1>Hồ sơ cá nhân</h1><p>Quản lý thông tin hiển thị và bảo mật tài khoản.</p></header>
-    <section className="profile-card identity"><span className="profile-label">HỒ SƠ HỌC VIÊN</span><span className="big-avatar" aria-hidden="true"><UserRound/></span><h2 className="profile-verified-name"><span>{profileHandle}</span><BadgeCheck aria-label="Tài khoản đã xác minh"/></h2><p className="profile-real-name">{profile.full_name}</p><span className={`status ${profile.status === "locked" ? "locked" : ""}`}><i/> {profile.status === "active" ? "Tài khoản đang hoạt động" : "Tài khoản đã bị khóa"}</span></section>
-    <form className="profile-card details profile-details-form" onSubmit={saveProfile} aria-busy={savingProfile}><div className="section-head"><div><span className="eyebrow">THÔNG TIN</span><h2>Thông tin chi tiết</h2></div><button type="button" className="outline-btn" onClick={()=>{setEditing(!editing);setDraftName(profile.full_name);setProfileError("");setProfileMessage("")}}>{editing?"Hủy":"Chỉnh sửa"}</button></div><div className="detail-list"><Detail icon={UserRound} label="Họ và tên" labelFor={editing ? "profile-full-name" : undefined} value={editing?<input ref={profileNameInputRef} id="profile-full-name" name="fullName" autoComplete="name" value={draftName} onChange={event=>setDraftName(event.target.value)} aria-invalid={Boolean(profileError && !draftName.trim())} aria-describedby={profileFeedbackId} maxLength={120} required/>:profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={BadgeCheck} label="Mã học viên" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "Quản trị viên" : "Học sinh"}/></div>{profileError&&<p id="profile-name-error" className="form-error" role="alert">{profileError}</p>}{profileMessage&&<p id="profile-name-success" className="form-success" role="status" aria-live="polite">{profileMessage}</p>}{editing&&<button type="submit" className="primary-btn small" disabled={savingProfile}>{savingProfile?"Đang lưu…":"Lưu thay đổi"}</button>}<hr/><div className="password-row"><div><LockKeyhole aria-hidden="true"/><span><b>Đổi mật khẩu</b><small>Nên sử dụng mật khẩu mạnh và riêng biệt.</small></span></div><button type="button" className="outline-btn" onClick={()=>setPasswordModal(true)}>Cập nhật mật khẩu</button></div></form>
-    <section className="profile-card exam-profile"><div className="profile-stat-heading"><div><span className="eyebrow">THỐNG KÊ</span><h2>Hoạt động thi năm {currentYear}</h2></div><span className="profile-score"><small>Điểm trung bình</small><b>{averageScore}</b></span></div>{completedYearAttempts.length ? <ul className="attempt-list">{completedYearAttempts.slice(0,5).map(attempt=><li key={attempt.id}><span><b>{attempt.title}</b><small>{formatUiDate(attempt.submitted_at)}</small></span><strong>{attempt.score}</strong></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu bài thi trong năm nay." />}</section>
+  const switchTab = (tab: "info" | "courses") => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "courses") params.set("tab", "courses"); else params.delete("tab");
+    const query = params.toString();
+    router.replace(`/profile${query ? `?${query}` : ""}`, { scroll: false });
+  };
+  const profileInitial = (profile.full_name.trim()[0] || profile.email[0] || "A").toLocaleUpperCase("vi");
+
+  return <div className="profile-portal-reference ui-shell student-app product-shell">
+    <header className="profile-portal-header bg-white sm:bg-white/80 sm:backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 w-full shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+      <div className="profile-portal-header-inner">
+        <Link className="profile-portal-brand" href="/" aria-label="Trang chủ AECK"><img src="/aeck-public/logo-wordmark-red.svg" alt="AECK" width={180} height={49}/></Link>
+        <nav className="profile-portal-public-nav" aria-label="Điều hướng AECK"><Link href="/giao-vien">Giáo viên</Link><Link href="/goi-hoc-tap">Gói học tập</Link><Link href="/dang-ky-minh-chung">Đăng ký minh chứng</Link></nav>
+        <div className="profile-portal-header-actions"><Link className="profile-learning-space" href="/dashboard">Không gian học tập <ChevronDown aria-hidden="true"/></Link><details className="profile-account-menu"><summary>{profile.email.split("@")[0]} <ChevronDown aria-hidden="true"/></summary><div><Link href="/dashboard">Tổng quan</Link><button type="button" onClick={onLogout} disabled={signingOut}>{signingOut ? "Đang đăng xuất…" : "Đăng xuất"}</button></div></details></div>
+      </div>
+    </header>
+    <main className="profile-portal-main p-4 sm:p-6 lg:p-8 xl:p-12 2xl:p-14">
+      <div className="profile-portal-container mx-auto max-w-6xl text-left">
+        <nav className="profile-portal-breadcrumb mb-4 flex items-center gap-1.5 text-sm text-gray-500" aria-label="Đường dẫn"><Link href="/dashboard" aria-label="Tổng quan"><Home aria-hidden="true"/></Link><ChevronRight aria-hidden="true"/><span>Cá nhân</span><ChevronRight aria-hidden="true"/><strong>{activeTab === "courses" ? "Khóa học của tôi" : "Thông tin cá nhân"}</strong></nav>
+        <div className="profile-portal-layout flex flex-col gap-6 lg:flex-row">
+          <aside className="profile-portal-sidebar lg:w-72 lg:shrink-0">
+            <div className="profile-portal-sidebar-card rounded-2xl border border-gray-100 bg-white p-4 shadow-sm md:p-5 lg:sticky lg:top-24">
+              <div className="profile-portal-sidebar-identity flex items-center gap-3 lg:flex-col lg:gap-2 lg:py-3 lg:text-center"><span className="profile-portal-avatar">{profileInitial}</span><span><b>{profile.email.split("@")[0]}</b><small>{profile.email}</small></span></div>
+              <div className="profile-portal-divider"/>
+              <nav className="profile-portal-nav" aria-label="Khu vực cá nhân">
+                <button type="button" className={activeTab === "info" ? "active" : ""} aria-current={activeTab === "info" ? "page" : undefined} onClick={() => switchTab("info")}><BadgeCheck aria-hidden="true"/><span>Thông tin cá nhân</span><ChevronRight aria-hidden="true"/></button>
+                <button type="button" className={activeTab === "courses" ? "active" : ""} aria-current={activeTab === "courses" ? "page" : undefined} onClick={() => switchTab("courses")}><GraduationCap aria-hidden="true"/><span>Khóa học của tôi</span><ChevronRight aria-hidden="true"/></button>
+                <button type="button" onClick={() => switchTab("info")}><FileText aria-hidden="true"/><span>Hồ sơ học viên</span><ChevronRight aria-hidden="true"/></button>
+                <Link href="/exam-history"><CalendarClock aria-hidden="true"/><span>Thống kê làm bài</span><ChevronRight aria-hidden="true"/></Link>
+                <Link href="/goi-hoc-tap"><Package aria-hidden="true"/><span>Giao hàng &amp; Đơn hàng</span><ChevronRight aria-hidden="true"/></Link>
+              </nav>
+            </div>
+          </aside>
+          <section className="profile-portal-content min-w-0 flex-1">
+            {activeTab === "courses" ? <div className="profile-portal-courses-card rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:p-8">
+              <div className="profile-portal-section-title"><h1>Khóa học của tôi</h1><span>{courses.length} khóa học</span></div>
+              {courses.length ? <div className="profile-course-list">{courses.map(course => <Link key={course.id} href={`/courses/${encodeURIComponent(String(course.id))}`} className="profile-course-row"><span className="profile-course-cover"><CourseCoverVisual course={course}/></span><span className="profile-course-copy"><b>{course.title}</b><small>Vào học <ChevronRight aria-hidden="true"/></small></span></Link>)}</div> : <MiniEmpty text="Chưa có khóa học nào được phân cho tài khoản này."/>}
+            </div> : <form className="profile-card details profile-details-form" onSubmit={saveProfile} aria-busy={savingProfile}>
+              <div className="profile-portal-info-head"><div className="profile-portal-person"><span className="profile-portal-avatar">{profileInitial}</span><span><h1>{profile.email.split("@")[0]}</h1><small>{profile.email}</small></span></div><div className="profile-portal-actions">{editing ? <><button type="submit" className="primary" disabled={savingProfile}>{savingProfile ? "Đang lưu…" : "Lưu hồ sơ"}</button><button type="button" onClick={() => { setEditing(false); setDraftName(profile.full_name); setProfileError(""); }}>Hủy</button></> : <button type="button" className="primary" onClick={() => setEditing(true)}><Pencil aria-hidden="true"/> Chỉnh sửa hồ sơ</button>}<button type="button" onClick={() => setPasswordModal(true)}><KeyRound aria-hidden="true"/> Đổi mật khẩu</button></div></div>
+              <div className={`profile-portal-status ${profile.status === "locked" ? "locked" : ""}`}><CheckCircle2 aria-hidden="true"/><span><small>Trạng thái tài khoản</small><b>{profile.status === "active" ? "Đã xác thực email" : "Tài khoản đã bị khóa"}</b></span></div>
+              <div className="profile-portal-detail-list"><Detail icon={UserRound} label="Họ và tên" labelFor={editing ? "profile-full-name" : undefined} value={editing ? <input ref={profileNameInputRef} id="profile-full-name" name="fullName" autoComplete="name" value={draftName} onChange={event => setDraftName(event.target.value)} aria-invalid={Boolean(profileError && !draftName.trim())} aria-describedby={profileFeedbackId} maxLength={120} required/> : profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={Hash} label="Định danh / Mã thí sinh" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "QUẢN TRỊ VIÊN" : "HỌC SINH"}/></div>
+              {profileError && <p id="profile-name-error" className="form-error" role="alert">{profileError}</p>}{profileMessage && <p id="profile-name-success" className="form-success" role="status" aria-live="polite">{profileMessage}</p>}
+              <span className="profile-portal-stat" aria-label={`Điểm trung bình năm ${currentYear}: ${averageScore}`}>{completedYearAttempts.length ? `${completedYearAttempts.length} bài thi · Điểm trung bình ${averageScore}` : `Chưa có bài thi trong năm ${currentYear}`}</span>
+            </form>}
+          </section>
+        </div>
+      </div>
+    </main>
+    <div className="profile-portal-contact" aria-hidden="true"><span>Zalo</span><span><MessageCircle/></span><span>f</span><span><Phone/></span></div>
     {passwordModal && <div className="modal-shade"><form className="modal password-modal" role="dialog" aria-modal="true" aria-labelledby="profile-password-title" aria-busy={savingPassword} onSubmit={changePassword}><div className="section-head"><div><span className="eyebrow">BẢO MẬT</span><h2 id="profile-password-title">Đổi mật khẩu</h2></div><button type="button" className="icon-btn" onClick={closePasswordModal} aria-label="Đóng hộp thoại đổi mật khẩu" disabled={savingPassword}><X aria-hidden="true"/></button></div><label htmlFor="profile-new-password">Mật khẩu mới<input id="profile-new-password" name="newPassword" type="password" autoComplete="new-password" value={newPassword} onChange={event=>setNewPassword(event.target.value)} placeholder="Tối thiểu 8 ký tự" minLength={8} required/></label><label htmlFor="profile-confirm-password">Xác nhận mật khẩu<input id="profile-confirm-password" name="passwordConfirmation" type="password" autoComplete="new-password" value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)} placeholder="Nhập lại mật khẩu mới" minLength={8} required/></label>{passwordError&&<p className="form-error" role="alert">{passwordError}</p>}{passwordMessage&&<p className="form-success" role="status" aria-live="polite">{passwordMessage}</p>}<button type="submit" className="primary-btn" disabled={savingPassword||Boolean(passwordMessage)}>{savingPassword?"Đang cập nhật…":passwordMessage?"Đã cập nhật":"Đổi mật khẩu"}</button></form></div>}
   </div>;
 }

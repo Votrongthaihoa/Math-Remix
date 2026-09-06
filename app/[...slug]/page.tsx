@@ -38,9 +38,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return item ?? {};
 }
 
-export default async function CatchAllPage({ params }: { params: Promise<{ slug: string[] }> }) {
-  const { slug } = await params;
+export default async function CatchAllPage({ params, searchParams }: { params: Promise<{ slug: string[] }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [{ slug }, queryValues] = await Promise.all([params, searchParams]);
+  const query = new URLSearchParams();
+  const requestedTab = queryValues.tab;
+  if (typeof requestedTab === "string") query.set("tab", requestedTab);
   const targetAlias = targetRouteRedirect(slug);
+  if (targetAlias === "/profile" && query.get("tab") === "courses") redirect("/profile?tab=courses");
   if (targetAlias) redirect(targetAlias);
   const publicRoute = slug.length === 1 && publicRoutes.has(slug[0]) ? slug[0] as AeckPublicRoute : null;
   if (publicRoute) return <AeckPublicSite route={publicRoute} />;
