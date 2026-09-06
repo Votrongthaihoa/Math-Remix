@@ -200,6 +200,27 @@ function isVideoResource(type: ResourceData["resource_type"]) {
   return type === "youtube" || type === "onedrive_video" || type === "hls_vault";
 }
 
+type ReferenceSidebarIconName = "appstore" | "read" | "play-square" | "bar-chart" | "history" | "search" | "calendar";
+
+const referenceSidebarIconPaths: Record<ReferenceSidebarIconName, readonly string[]> = {
+  appstore: ["M464 144H160c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V160c0-8.8-7.2-16-16-16zm-52 268H212V212h200v200zm452-268H560c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V160c0-8.8-7.2-16-16-16zm-52 268H612V212h200v200zM464 544H160c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V560c0-8.8-7.2-16-16-16zm-52 268H212V612h200v200zm452-268H560c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V560c0-8.8-7.2-16-16-16zm-52 268H612V612h200v200z"],
+  read: ["M928 161H699.2c-49.1 0-97.1 14.1-138.4 40.7L512 233l-48.8-31.3A255.2 255.2 0 00324.8 161H96c-17.7 0-32 14.3-32 32v568c0 17.7 14.3 32 32 32h228.8c49.1 0 97.1 14.1 138.4 40.7l44.4 28.6c1.3.8 2.8 1.3 4.3 1.3s3-.4 4.3-1.3l44.4-28.6C602 807.1 650.1 793 699.2 793H928c17.7 0 32-14.3 32-32V193c0-17.7-14.3-32-32-32zM324.8 721H136V233h188.8c35.4 0 69.8 10.1 99.5 29.2l48.8 31.3 6.9 4.5v462c-47.6-25.6-100.8-39-155.2-39zm563.2 0H699.2c-54.4 0-107.6 13.4-155.2 39V298l6.9-4.5 48.8-31.3c29.7-19.1 64.1-29.2 99.5-29.2H888v488zM396.9 361H211.1c-3.9 0-7.1 3.4-7.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c.1-4.1-3.1-7.5-7-7.5zm223.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c0-4.1-3.2-7.5-7.1-7.5H627.1c-3.9 0-7.1 3.4-7.1 7.5zM396.9 501H211.1c-3.9 0-7.1 3.4-7.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c.1-4.1-3.1-7.5-7-7.5zm416 0H627.1c-3.9 0-7.1 3.4-7.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c.1-4.1-3.1-7.5-7-7.5z"],
+  "play-square": [
+    "M442.3 677.6l199.4-156.7a11.3 11.3 0 000-17.7L442.3 346.4c-7.4-5.8-18.3-.6-18.3 8.8v313.5c0 9.4 10.9 14.7 18.3 8.9z",
+    "M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z",
+  ],
+  "bar-chart": ["M888 792H200V168c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v688c0 4.4 3.6 8 8 8h752c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm-600-80h56c4.4 0 8-3.6 8-8V560c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v144c0 4.4 3.6 8 8 8zm152 0h56c4.4 0 8-3.6 8-8V384c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v320c0 4.4 3.6 8 8 8zm152 0h56c4.4 0 8-3.6 8-8V462c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v242c0 4.4 3.6 8 8 8zm152 0h56c4.4 0 8-3.6 8-8V304c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v400c0 4.4 3.6 8 8 8z"],
+  history: ["M536.1 273H488c-4.4 0-8 3.6-8 8v275.3c0 2.6 1.2 5 3.3 6.5l165.3 120.7c3.6 2.6 8.6 1.9 11.2-1.7l28.6-39c2.7-3.7 1.9-8.7-1.7-11.2L544.1 528.5V281c0-4.4-3.6-8-8-8zm219.8 75.2l156.8 38.3c5 1.2 9.9-2.6 9.9-7.7l.8-161.5c0-6.7-7.7-10.5-12.9-6.3L752.9 334.1a8 8 0 003 14.1zm167.7 301.1l-56.7-19.5a8 8 0 00-10.1 4.8c-1.9 5.1-3.9 10.1-6 15.1-17.8 42.1-43.3 80-75.9 112.5a353 353 0 01-112.5 75.9 352.18 352.18 0 01-137.7 27.8c-47.8 0-94.1-9.3-137.7-27.8a353 353 0 01-112.5-75.9c-32.5-32.5-58-70.4-75.9-112.5A353.44 353.44 0 01171 512c0-47.8 9.3-94.2 27.8-137.8 17.8-42.1 43.3-80 75.9-112.5a353 353 0 01112.5-75.9C430.6 167.3 477 158 524.8 158s94.1 9.3 137.7 27.8A353 353 0 01775 261.7c10.2 10.3 19.8 21 28.6 32.3l59.8-46.8C784.7 146.6 662.2 81.9 524.6 82 285 82.1 92.6 276.7 95 516.4 97.4 751.9 288.9 942 524.8 942c185.5 0 343.5-117.6 403.7-282.3 1.5-4.2-.7-8.9-4.9-10.4z"],
+  search: ["M909.6 854.5L649.9 594.8C690.2 542.7 712 479 712 412c0-80.2-31.3-155.4-87.9-212.1-56.6-56.7-132-87.9-212.1-87.9s-155.5 31.3-212.1 87.9C143.2 256.5 112 331.8 112 412c0 80.1 31.3 155.5 87.9 212.1C256.5 680.8 331.8 712 412 712c67 0 130.6-21.8 182.7-62l259.7 259.6a8.2 8.2 0 0011.6 0l43.6-43.5a8.2 8.2 0 000-11.6zM570.4 570.4C528 612.7 471.8 636 412 636s-116-23.3-158.4-65.6C211.3 528 188 471.8 188 412s23.3-116.1 65.6-158.4C296 211.3 352.2 188 412 188s116.1 23.2 158.4 65.6S636 352.2 636 412s-23.3 116.1-65.6 158.4z"],
+  calendar: ["M880 184H712v-64c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v64H384v-64c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v64H144c-17.7 0-32 14.3-32 32v664c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V216c0-17.7-14.3-32-32-32zm-40 656H184V460h656v380zM184 392V256h128v48c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8v-48h256v48c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8v-48h128v136H184z"],
+};
+
+function ReferenceSidebarIcon({ name }: { name: ReferenceSidebarIconName }) {
+  return <svg viewBox="64 64 896 896" focusable="false" data-icon={name} width="1em" height="1em" fill="currentColor" aria-hidden="true">
+    {referenceSidebarIconPaths[name].map((path, index) => <path d={path} key={`${name}-${index}`} />)}
+  </svg>;
+}
+
 function ReferencePlayCircleIcon({ className }: { className?: string }) {
   return <svg className={className} viewBox="64 64 896 896" focusable="false" data-icon="play-circle" width="1em" height="1em" fill="currentColor" aria-hidden="true">
     <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
@@ -327,9 +348,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [productSidebarOpen, setProductSidebarOpen] = useState(true);
   const [studySidebarOpen, setStudySidebarOpen] = useState(false);
   const sidebarOpen = currentView === "schedule" ? false : currentView === "course" ? false : currentView === "lesson" ? studySidebarOpen : productSidebarOpen;
-  const [compactNavPopover, setCompactNavPopover] = useState<"exams" | "courses" | null>(null);
-  const [compactNavPopoverTop, setCompactNavPopoverTop] = useState(0);
-  const [resolvedLessonCourseId, setResolvedLessonCourseId] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [, setRouteVersion] = useState(0);
   const [fullName, setFullName] = useState("");
@@ -362,8 +380,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const accountMenuFocusEdgeRef = useRef<"first" | "last">("first");
   const mobileMenuRef = useRef<HTMLButtonElement | null>(null);
-  const compactNavTriggerRef = useRef<HTMLElement | null>(null);
-  const compactNavPopoverRef = useRef<HTMLElement | null>(null);
   const lastAllowedRouteRef = useRef(pathname);
   const handleHistoryLoaded = useCallback((nextAttempts: AttemptData[]) => {
     setAttempts(current => {
@@ -380,18 +396,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       return same ? current : nextAttempts;
     });
   }, []);
-  const availableExamTypes = useMemo(() => {
-    const types = new Set<string>();
-    for (const room of practiceRooms) {
-      const rawType = room.exam_type?.trim();
-      if (rawType) types.add(normalizeExamType(rawType));
-    }
-    return Array.from(types).sort((left, right) => left.localeCompare(right, "vi"));
-  }, [practiceRooms]);
   const runnerShellPath = isExamRunnerPath(pathname);
   const openMobileMenu = useCallback((trigger?: HTMLButtonElement) => {
     if (trigger) mobileMenuRef.current = trigger;
-    setCompactNavPopover(null);
     setMobileOpen(true);
     if (currentView === "lesson") {
       window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
@@ -400,18 +407,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     }
   }, [currentView]);
   const toggleSidebar = useCallback(() => {
-    setCompactNavPopover(null);
     if (currentView === "lesson") setStudySidebarOpen(value => !value);
     else setProductSidebarOpen(value => !value);
   }, [currentView]);
-  const handleCompactNavDisclosure = useCallback((event: React.MouseEvent<HTMLElement>, kind: "exams" | "courses") => {
-    if (sidebarOpen || mobileOpen) return;
-    event.preventDefault();
-    compactNavTriggerRef.current = event.currentTarget;
-    const triggerBox = event.currentTarget.getBoundingClientRect();
-    setCompactNavPopoverTop(triggerBox.bottom + 5);
-    setCompactNavPopover(current => current === kind ? null : kind);
-  }, [mobileOpen, sidebarOpen]);
   const closeMobileMenu = useCallback(() => {
     setMobileOpen(false);
     const restoreFocus = () => mobileMenuRef.current?.focus({ preventScroll: true });
@@ -419,30 +417,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     else window.requestAnimationFrame(restoreFocus);
   }, [currentView]);
   const mobileSidebarRef = useAdminDialogFocus<HTMLElement>(mobileOpen && !runnerShellPath, closeMobileMenu);
-
-  useEffect(() => {
-    if (!compactNavPopover) return;
-    const closeOnPointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target || compactNavPopoverRef.current?.contains(target) || compactNavTriggerRef.current?.contains(target)) return;
-      setCompactNavPopover(null);
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      setCompactNavPopover(null);
-      compactNavTriggerRef.current?.focus({ preventScroll: true });
-    };
-    const closeOnViewportChange = () => setCompactNavPopover(null);
-    document.addEventListener("pointerdown", closeOnPointerDown);
-    document.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("resize", closeOnViewportChange);
-    return () => {
-      document.removeEventListener("pointerdown", closeOnPointerDown);
-      document.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("resize", closeOnViewportChange);
-    };
-  }, [compactNavPopover]);
 
   useEffect(() => {
     const adminPath = pathname.startsWith("/admin");
@@ -1000,7 +974,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   if (pathname === "/login") return <LoadingIndicator label="Đang mở tổng quan…" fullPage />;
 
   const go = (next: View, pathOverride?: string) => {
-    setCompactNavPopover(null);
     if (next === "admin" && !isAdmin) {
       setMobileOpen(false);
       router.replace("/dashboard");
@@ -1022,7 +995,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const currentAdminTab = adminRouteRequested ? adminTabFromPath(pathname) : "";
   const visibleCourses = assignedCourses;
   const routeCourseId = currentView === "course" || currentView === "lesson" ? decodeURIComponent(pathname.split("/")[2] ?? "") : "";
-  const activeSidebarCourseId = currentView === "lesson" ? resolvedLessonCourseId : routeCourseId;
   const selectedCourse = visibleCourses.find(course => String(course.id) === routeCourseId) ?? null;
   const accountLabel = activeProfile.full_name || activeProfile.email.split("@")[0] || "Tài khoản AECK";
   const accountInitials = accountLabel.split(" ").filter(Boolean).slice(-2).map(value => value[0]).join("").toUpperCase();
@@ -1104,49 +1076,20 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
                 {group.items.map(item => <Link key={`admin-${item.id}`} href={item.path} className={`admin-sidebar-nav-item ${currentAdminTab === item.id ? "active" : ""}`} onClick={event => handleNavigationLink(event, "admin", item.path)} title={item.label} aria-label={item.label} aria-current={currentAdminTab === item.id ? "page" : undefined}><item.icon aria-hidden="true" /><span>{item.label}</span></Link>)}
               </div>)}
             </> : <>
-              <Link key="overview" href="/dashboard" className={`student-nav-primary ${currentView === "overview" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "overview", "/dashboard")} title="Tổng quan" aria-label="Tổng quan" aria-current={currentView === "overview" ? "page" : undefined}><LayoutDashboard aria-hidden="true" /><span>Tổng quan</span></Link>
-              {availableExamTypes.length > 0 && <details className={`student-nav-disclosure ${currentView === "exams" ? "active-parent" : ""} ${compactNavPopover === "exams" ? "compact-nav-popover-open" : ""}`} open>
-                <summary data-compact-nav-trigger="exams" aria-controls="compact-nav-exams-popover" aria-expanded={sidebarOpen || mobileOpen ? undefined : compactNavPopover === "exams"} onClick={event => handleCompactNavDisclosure(event, "exams")}><ClipboardCheck aria-hidden="true" /><span>Phòng khảo thí</span><ChevronDown aria-hidden="true" /></summary>
-                <div className="student-nav-children">
-                  {availableExamTypes.map(type => <Link key={type} href="/exam-room" className={currentView === "exams" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
-                </div>
-              </details>}
-              {visibleCourses.length > 0 && <details className={`student-nav-disclosure ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active-parent" : ""} ${compactNavPopover === "courses" ? "compact-nav-popover-open" : ""}`} open>
-                <summary data-compact-nav-trigger="courses" aria-controls="compact-nav-courses-popover" aria-expanded={sidebarOpen || mobileOpen ? undefined : compactNavPopover === "courses"} onClick={event => handleCompactNavDisclosure(event, "courses")}><BookOpen aria-hidden="true" /><span>Khóa học</span><ChevronDown aria-hidden="true" /></summary>
-                <div className="student-nav-children">
-                  {visibleCourses.map(course => {
-                    const href = `/courses/${encodeURIComponent(String(course.id))}`;
-                    const active = (currentView === "course" || currentView === "lesson") && String(course.id) === activeSidebarCourseId;
-                    return <Link key={course.id} href={href} className={active ? "active" : ""} onClick={event => handleNavigationLink(event, "course", href)} aria-current={active ? "page" : undefined}><span aria-hidden="true">☰</span><span>{course.title}</span></Link>;
-                  })}
-                </div>
-              </details>}
-              <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><History aria-hidden="true" /><span>Lịch sử thi</span></Link>
-              <Link key="progress" href="/progress" className={`student-nav-primary ${currentView === "progress" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "progress", "/progress")} title="Tiến độ học tập" aria-label="Tiến độ học tập" aria-current={currentView === "progress" ? "page" : undefined}><BarChart3 aria-hidden="true" /><span>Tiến độ</span></Link>
+              <Link key="overview" href="/dashboard" className={`student-nav-primary ${currentView === "overview" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "overview", "/dashboard")} title="Tổng quan" aria-label="Tổng quan" aria-current={currentView === "overview" ? "page" : undefined}><ReferenceSidebarIcon name="appstore" /><span>Tổng quan</span></Link>
+              <Link key="exams" href="/exam-room" className={`student-nav-primary ${currentView === "exams" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} title="Phòng khảo thí" aria-label="Phòng khảo thí" aria-current={currentView === "exams" ? "page" : undefined}><ReferenceSidebarIcon name="read" /><span>Phòng khảo thí</span></Link>
+              <Link key="courses" href="/courses" className={`student-nav-primary ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "courses", "/courses")} title="Khóa học" aria-label="Khóa học" aria-current={currentView === "courses" || currentView === "course" || currentView === "lesson" ? "page" : undefined}><ReferenceSidebarIcon name="play-square" /><span>Khóa học</span></Link>
+              <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><ReferenceSidebarIcon name="history" /><span>Lịch sử thi</span></Link>
+              <Link key="progress" href="/progress" className={`student-nav-primary ${currentView === "progress" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "progress", "/progress")} title="Tiến độ học tập" aria-label="Tiến độ học tập" aria-current={currentView === "progress" ? "page" : undefined}><ReferenceSidebarIcon name="bar-chart" /><span>Tiến độ</span></Link>
               {!protectedProductSurface && <>
-                <Link key="search" href="/search" className={`student-nav-primary ${currentView === "search" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "search", "/search")} title="Tra cứu" aria-label="Tra cứu" aria-current={currentView === "search" ? "page" : undefined}><Search aria-hidden="true" /><span>Tra cứu</span></Link>
-                <Link key="schedule" href="/tkb" className={`student-nav-primary ${currentView === "schedule" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "schedule", "/tkb")} title="Thời khóa biểu" aria-label="Thời khóa biểu" aria-current={currentView === "schedule" ? "page" : undefined}><CalendarClock aria-hidden="true" /><span>Thời khóa biểu</span></Link>
+                <Link key="search" href="/search" className={`student-nav-primary ${currentView === "search" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "search", "/search")} title="Tra cứu" aria-label="Tra cứu" aria-current={currentView === "search" ? "page" : undefined}><ReferenceSidebarIcon name="search" /><span>Tra cứu</span></Link>
+                <Link key="schedule" href="/tkb" className={`student-nav-primary ${currentView === "schedule" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "schedule", "/tkb")} title="Thời khóa biểu" aria-label="Thời khóa biểu" aria-current={currentView === "schedule" ? "page" : undefined}><ReferenceSidebarIcon name="calendar" /><span>Thời khóa biểu</span></Link>
               </>}
               {isAdmin && <Link href="/admin" className="student-nav-primary" onClick={event => handleNavigationLink(event, "admin", "/admin")} title="Quản trị" aria-label="Quản trị"><ShieldCheck aria-hidden="true" /><span>Quản trị</span></Link>}
             </>}
           </nav>
           <Link className="mobile-sidebar-account" href={adminRouteRequested ? "/admin" : "/profile"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "profile", adminRouteRequested ? "/admin" : "/profile")}><span className="mini-avatar">{activeProfile.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</span><span><b>{activeProfile.full_name}</b><small>{adminRouteRequested ? "Quản trị viên" : activeProfile.student_code}</small></span><ChevronRight aria-hidden="true"/></Link>
         </aside>
-      )}
-      {!adminRouteRequested && !sidebarOpen && !mobileOpen && compactNavPopover && (
-        <nav
-          ref={compactNavPopoverRef}
-          id={`compact-nav-${compactNavPopover}-popover`}
-          className="compact-nav-popover"
-          style={{ top: compactNavPopoverTop }}
-          aria-label={compactNavPopover === "courses" ? "Danh sách khóa học" : "Danh sách phòng khảo thí"}
-        >
-          {compactNavPopover === "courses" ? visibleCourses.map(course => {
-            const href = `/courses/${encodeURIComponent(String(course.id))}`;
-            const active = (currentView === "course" || currentView === "lesson") && String(course.id) === activeSidebarCourseId;
-            return <Link key={course.id} href={href} className={active ? "active" : ""} onClick={event => handleNavigationLink(event, "course", href)} aria-current={active ? "page" : undefined}><span aria-hidden="true">☰</span><span>{course.title}</span></Link>;
-          }) : availableExamTypes.map(type => <Link key={type} href="/exam-room" className={currentView === "exams" ? "active" : ""} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} aria-current={currentView === "exams" ? "page" : undefined}><span aria-hidden="true">☰</span><span>Đánh giá năng lực - {type}</span></Link>)}
-        </nav>
       )}
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
@@ -1173,7 +1116,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
-        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onCourseResolved={setResolvedLessonCourseId} onOpenAppMenu={openMobileMenu} />}
+        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onOpenAppMenu={openMobileMenu} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
@@ -1685,7 +1628,7 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
   </div>;
 }
 
-function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId: string; onCourseResolved: (courseId: string) => void; onOpenAppMenu: (trigger: HTMLButtonElement) => void }) {
+function LessonViewer({ lessonId, onOpenAppMenu }: { lessonId: string; onOpenAppMenu: (trigger: HTMLButtonElement) => void }) {
   const router = useRouter();
   const viewerRef = useRef<HTMLElement | null>(null);
   const curriculumTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -1730,7 +1673,6 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
     async function loadLesson() {
       setLessonLoading(true); setLessonError("");
       setLesson(null); setResources([]); setCurriculum([]); setSelectedResourceId(""); setExpandedChapterId("");
-      onCourseResolved("");
       try {
         const accessToken = await activeSessionToken().catch(() => null);
         if (cancelled) return;
@@ -1747,7 +1689,6 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
         const raw = lessonResult.data as LessonWithChapterRow;
         const chapter = Array.isArray(raw.chapters) ? raw.chapters[0] : raw.chapters;
         const relatedCourse = Array.isArray(chapter?.courses) ? chapter.courses[0] : chapter?.courses;
-        onCourseResolved(chapter?.course_id ?? "");
         setLesson({ id: raw.id, chapter_id: raw.chapter_id, title: raw.title, description: raw.description ?? "", published: raw.published, sort_order: raw.sort_order, course_id: chapter?.course_id ?? "", course_title: relatedCourse?.title ?? "", chapter_title: chapter?.title ?? "", chapter_sort_order: chapter?.sort_order ?? 0 });
         const nextResources = resourcePayload?.resources ?? [];
         const nextCurriculum = resourcePayload?.curriculum ?? [];
@@ -1764,7 +1705,7 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
     }
     void loadLesson();
     return () => { cancelled = true; };
-  }, [lessonId, lessonReloadVersion, onCourseResolved]);
+  }, [lessonId, lessonReloadVersion]);
 
   useEffect(() => {
     if (!curriculumOpen) return;

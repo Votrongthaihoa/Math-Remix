@@ -882,52 +882,31 @@ async function inspectLessonResources() {
     if (width === 1440) {
       await page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => { element.dataset.studyPresentationStable = "true"; });
       const stablePlayer = () => page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => element.dataset.studyPresentationStable === "true");
-      const compactCourseTrigger = page.locator('[data-compact-nav-trigger="courses"]');
-      const compactCourseFlyout = page.locator("#compact-nav-courses-popover");
-      await compactCourseTrigger.click();
-      await compactCourseFlyout.waitFor({ state: "visible" });
-      const compactFlyoutGeometry = await page.evaluate(() => {
-        const flyout = document.querySelector("#compact-nav-courses-popover");
-        const flyoutBox = flyout?.getBoundingClientRect();
-        const flyoutStyle = flyout ? getComputedStyle(flyout) : null;
-        const itemHeights = [...(flyout?.querySelectorAll(":scope > a") ?? [])].map(item => Math.round(item.getBoundingClientRect().height));
+      const directNavigation = await page.evaluate(() => {
+        const navigation = document.querySelector(".student-sidebar-nav");
+        const examLink = navigation?.querySelector(':scope > a[href="/exam-room"]');
+        const courseLink = navigation?.querySelector(':scope > a[href="/courses"]');
+        const labels = [...(navigation?.querySelectorAll(":scope > a > span") ?? [])].map(item => item.textContent?.trim());
+        const icons = [...(navigation?.querySelectorAll(":scope > a > svg") ?? [])].map(item => item.getAttribute("data-icon"));
+        const navigationStyle = navigation ? getComputedStyle(navigation) : null;
         return {
-          left: Math.round(flyoutBox?.left ?? 0),
-          width: Math.round(flyoutBox?.width ?? 0),
-          paddingTop: flyoutStyle?.paddingTop ?? "",
-          paddingBottom: flyoutStyle?.paddingBottom ?? "",
-          borderTopWidth: flyoutStyle?.borderTopWidth ?? "",
-          borderRadius: flyoutStyle?.borderTopLeftRadius ?? "",
-          itemHeights,
+          examHref: examLink?.getAttribute("href") ?? "",
+          courseHref: courseLink?.getAttribute("href") ?? "",
+          hasGeneratedChildren: Boolean(navigation?.querySelector("details, .student-nav-children, .compact-nav-popover")),
+          labels,
+          icons,
+          paddingTop: navigationStyle?.paddingTop ?? "",
         };
       });
-      const compactFlyoutStable = await stablePlayer();
-      const compactFlyoutExpanded = await compactCourseTrigger.getAttribute("aria-expanded") === "true";
-      await compactCourseTrigger.click();
-      await compactCourseFlyout.waitFor({ state: "detached" });
-      const compactFlyoutSecondClickClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
-      const compactFlyoutSecondClickStable = await stablePlayer();
-      await compactCourseTrigger.click();
-      await compactCourseFlyout.waitFor({ state: "visible" });
-      await page.keyboard.press("Escape");
-      await compactCourseFlyout.waitFor({ state: "detached" });
-      const compactFlyoutEscapeClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
-      const compactFlyoutEscapeFocusRestored = await compactCourseTrigger.evaluate(element => document.activeElement === element);
-      const compactFlyoutEscapeStable = await stablePlayer();
-      await compactCourseTrigger.click();
-      await compactCourseFlyout.waitFor({ state: "visible" });
-      await page.locator(".lesson-breadcrumb").click();
-      await compactCourseFlyout.waitFor({ state: "detached" });
-      const compactFlyoutOutsideClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
-      const compactFlyoutOutsideStable = await stablePlayer();
-      const compactFlyoutGeometryValid = compactFlyoutGeometry.left === 104
-        && compactFlyoutGeometry.width === 224
-        && compactFlyoutGeometry.paddingTop === "8px"
-        && compactFlyoutGeometry.paddingBottom === "8px"
-        && compactFlyoutGeometry.borderTopWidth === "0px"
-        && compactFlyoutGeometry.borderRadius === "8px"
-        && compactFlyoutGeometry.itemHeights.length > 0
-        && compactFlyoutGeometry.itemHeights.every(itemHeight => itemHeight === 40);
+      const directNavigationValid = directNavigation.examHref === "/exam-room"
+        && directNavigation.courseHref === "/courses"
+        && !directNavigation.hasGeneratedChildren
+        && directNavigation.labels.includes("Phòng khảo thí")
+        && directNavigation.labels.includes("Khóa học")
+        && !directNavigation.labels.some(label => label?.startsWith("Đánh giá năng lực -"))
+        && directNavigation.icons.includes("read")
+        && directNavigation.icons.includes("play-square")
+        && directNavigation.paddingTop === "12px";
       const chapterToggle = page.locator(".lesson-curriculum-list summary").first();
       await chapterToggle.click();
       const chapterCollapsedStable = await stablePlayer();
@@ -949,17 +928,8 @@ async function inspectLessonResources() {
       await page.waitForTimeout(350);
       const desktopResizeStable = await stablePlayer();
       presentationStability = {
-        compactFlyoutGeometry,
-        compactFlyoutGeometryValid,
-        compactFlyoutStable,
-        compactFlyoutExpanded,
-        compactFlyoutSecondClickClosed,
-        compactFlyoutSecondClickStable,
-        compactFlyoutEscapeClosed,
-        compactFlyoutEscapeFocusRestored,
-        compactFlyoutEscapeStable,
-        compactFlyoutOutsideClosed,
-        compactFlyoutOutsideStable,
+        directNavigation,
+        directNavigationValid,
         chapterCollapsedStable,
         chapterExpandedStable,
         accordion,
@@ -968,12 +938,7 @@ async function inspectLessonResources() {
         compactResizeStable,
         desktopResizeStable,
       };
-      if (!compactFlyoutGeometryValid || !compactFlyoutStable || !compactFlyoutExpanded
-        || !compactFlyoutSecondClickClosed || !compactFlyoutSecondClickStable
-        || !compactFlyoutEscapeClosed || !compactFlyoutEscapeFocusRestored || !compactFlyoutEscapeStable
-        || !compactFlyoutOutsideClosed || !compactFlyoutOutsideStable) {
-        throw new Error(`Compact course flyout failed: ${JSON.stringify(presentationStability)}`);
-      }
+      if (!directNavigationValid) throw new Error(`Direct student navigation failed: ${JSON.stringify(directNavigation)}`);
       if (!accordion.firstClosed || !accordion.secondOpen) throw new Error(`Study chapters are not exclusive: ${JSON.stringify(accordion)}`);
       if (Object.values(presentationStability).some(value => !value)) throw new Error(`Study presentation state replaced the player: ${JSON.stringify(presentationStability)}`);
     }
@@ -1833,6 +1798,36 @@ async function inspectProfilePortalTabs() {
   }
 }
 
+async function inspectDirectStudentNavigation() {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  const navigation = page.locator(".student-sidebar-nav");
+  const labels = await navigation.locator(":scope > a > span").allTextContents();
+  const icons = await navigation.locator(":scope > a > svg").evaluateAll(items => items.map(item => item.getAttribute("data-icon")));
+  const paddingTop = await navigation.evaluate(element => getComputedStyle(element).paddingTop);
+  const hasGeneratedChildren = await navigation.locator("details, .student-nav-children").count() > 0;
+  await page.screenshot({ path: join(outputDir, "student-sidebar-direct-1440.png"), fullPage: false });
+
+  await navigation.locator(':scope > a[href="/exam-room"]').click();
+  await page.waitForURL(url => url.pathname === "/exam-room", { timeout: 5_000 });
+  const examDestination = new URL(page.url()).pathname;
+  await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  await page.locator('.student-sidebar-nav > a[href="/courses"]').click();
+  await page.waitForURL(url => url.pathname === "/courses", { timeout: 5_000 });
+  const courseDestination = new URL(page.url()).pathname;
+  await page.screenshot({ path: join(outputDir, "student-sidebar-course-destination-1440.png"), fullPage: false });
+
+  const result = { name: "student-sidebar-direct-navigation", path: "/dashboard", width: 1440, labels, icons, paddingTop, hasGeneratedChildren, examDestination, courseDestination };
+  report.push(result);
+  if (hasGeneratedChildren || labels.some(label => label.startsWith("Đánh giá năng lực -"))
+    || !icons.includes("read") || !icons.includes("play-square") || paddingTop !== "12px"
+    || examDestination !== "/exam-room" || courseDestination !== "/courses") {
+    throw new Error(`Direct student navigation failed: ${JSON.stringify(result)}`);
+  }
+}
+
 await installMockAuth();
 await inspect(mockRole === "student" ? "student-login" : "admin-login", startPath, 390, true);
 const authenticated = !(await page.locator("main.login-page").count());
@@ -1844,6 +1839,7 @@ if (authenticated) {
   }
   if (extendedInteractions) {
     await inspectDrawer(mockRole === "admin" ? "/admin" : "/dashboard");
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-courses") || requestedRoutes.has("student-exam-catalog"))) await inspectDirectStudentNavigation();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard") || requestedRoutes.has("admin-enrollments"))) {
       await inspectCollapsedAdminSidebar();
     }

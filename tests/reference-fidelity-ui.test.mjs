@@ -80,3 +80,20 @@ test("browser QA verifies both supplied profile portal tabs", async () => {
   assert.match(smoke, /student-profile-courses-1440\.png/);
   assert.match(smoke, /profileTab === "courses"/);
 });
+
+test("learner sidebar uses direct routes and the original filled reference icons", async () => {
+  const [platform, styles] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+  ]);
+  const learnerNavigation = platform.slice(platform.indexOf('<Link key="overview"'), platform.indexOf("{isAdmin &&"));
+
+  assert.match(platform, /function ReferenceSidebarIcon/);
+  assert.match(platform, /viewBox="64 64 896 896"/);
+  assert.match(platform, /M928 161H699\.2c-49\.1 0-97\.1 14\.1-138\.4 40\.7/);
+  assert.match(platform, /M442\.3 677\.6l199\.4-156\.7/);
+  assert.match(learnerNavigation, /href="\/exam-room"[\s\S]*?<ReferenceSidebarIcon name="read"/);
+  assert.match(learnerNavigation, /href="\/courses"[\s\S]*?<ReferenceSidebarIcon name="play-square"/);
+  assert.doesNotMatch(learnerNavigation, /student-nav-disclosure|student-nav-children|availableExamTypes\.map|visibleCourses\.map/);
+  assert.match(styles, /nav\.student-sidebar-nav\s*\{[^}]*padding:\s*12px 0 16px !important;/s);
+});

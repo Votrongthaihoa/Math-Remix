@@ -138,11 +138,11 @@ test("study sidebar state is isolated from the wider product shell", async () =>
   assert.match(source, /currentView === "lesson" \? studySidebarOpen : productSidebarOpen/);
 });
 
-test("lesson data resolves the active course in the global sidebar", async () => {
+test("course and lesson routes keep the direct course catalogue link active", async () => {
   const source = await readFile(platformUrl, "utf8");
 
-  assert.match(source, /onCourseResolved\(chapter\?\.course_id \?\? ""\)/);
-  assert.match(source, /currentView === "lesson" \? resolvedLessonCourseId : routeCourseId/);
+  assert.match(source, /href="\/courses"[\s\S]*?currentView === "courses" \|\| currentView === "course" \|\| currentView === "lesson" \? "active"/);
+  assert.doesNotMatch(source, /resolvedLessonCourseId|onCourseResolved/);
 });
 
 test("study chrome leaves the first 72px to the lesson breadcrumb", async () => {
@@ -159,7 +159,7 @@ test("only study mode renders a dedicated sidebar brand beneath the hidden topba
   ]);
 
   assert.match(source, /currentView === "lesson"\s*&&\s*<Link className="student-sidebar-brand"/);
-  assert.match(css, /:not\(\.study-mode\)[\s\S]*?>\s*\.sidebar\s+nav\.student-sidebar-nav\s*\{[^}]*padding:\s*112px 0 16px;/);
+  assert.match(css, /:not\(\.study-mode\)[\s\S]*?>\s*\.sidebar\s+nav\.student-sidebar-nav\s*\{[^}]*padding:\s*12px 0 16px;/);
 });
 
 test("expanded product sidebar follows the flat Alpha reference geometry", async () => {
@@ -172,17 +172,11 @@ test("expanded product sidebar follows the flat Alpha reference geometry", async
   assert.match(css, /\.student-nav-children\s*\{[^}]*margin:\s*0;[^}]*padding:\s*8px 0;[^}]*border-inline-start:\s*0;[^}]*background:\s*rgba\(249,\s*250,\s*251,\s*\.5\);/);
 });
 
-test("compact course navigation opens the reference-style flyout", async () => {
-  const [source, css] = await Promise.all([
-    readFile(platformUrl, "utf8"),
-    readFile(learningCssUrl, "utf8"),
-  ]);
+test("compact rail routes directly to the course catalogue", async () => {
+  const source = await readFile(platformUrl, "utf8");
 
-  assert.match(source, /const \[compactNavPopover, setCompactNavPopover\] = useState<"exams" \| "courses" \| null>\(null\)/);
-  assert.match(source, /compact-nav-popover-open/);
-  assert.match(source, /aria-expanded=\{sidebarOpen \|\| mobileOpen \? undefined : compactNavPopover === "courses"\}/);
-  assert.match(source, /className="compact-nav-popover"/);
-  assert.match(css, /\.compact-nav-popover\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?inset-inline-start:\s*104px;[\s\S]*?width:\s*224px;[\s\S]*?padding:\s*8px 0;[\s\S]*?border-radius:\s*8px;/);
+  assert.match(source, /<Link key="courses" href="\/courses"/);
+  assert.doesNotMatch(source, /compactNavPopover|compact-nav-popover|data-compact-nav-trigger/);
 });
 
 test("study video affordances keep the supplied reference icons", async () => {
@@ -259,12 +253,12 @@ test("course detail starts with every curriculum section collapsed", async () =>
   assert.doesNotMatch(detailSource, /<details[^>]*\sopen=/);
 });
 
-test("study browser QA verifies the compact course flyout without replacing the player", async () => {
+test("study browser QA verifies direct room and course navigation", async () => {
   const smoke = await readFile(smokeUrl, "utf8");
 
-  assert.match(smoke, /compactFlyoutGeometry/);
-  assert.match(smoke, /compactFlyoutStable/);
-  assert.match(smoke, /Compact course flyout failed/);
+  assert.match(smoke, /directNavigationValid/);
+  assert.match(smoke, /Direct student navigation failed/);
+  assert.doesNotMatch(smoke, /compactFlyoutGeometry|Compact course flyout failed/);
   assert.doesNotMatch(smoke, /\.study-sidebar-toggle/);
 });
 

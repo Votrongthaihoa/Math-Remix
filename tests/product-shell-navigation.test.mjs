@@ -11,7 +11,7 @@ test("product shell navigation exposes state and keyboard menu behavior", async 
   assert.match(platform, /data-account-menu-item/);
   assert.match(platform, /event\.key === "ArrowDown"/);
   assert.match(platform, /className=\{`student-nav-primary/);
-  assert.match(platform, /className=\{`student-nav-disclosure/);
+  assert.doesNotMatch(platform, /className=\{`student-nav-disclosure/);
   assert.match(platform, /!examRunnerSurface && !protectedProductSurface && <a className="skip-link"/);
   assert.match(platform, /const currentView = viewFromPath\(pathname\)/);
   assert.doesNotMatch(platform, /const \[view, setView\]/);
@@ -25,13 +25,13 @@ test("product shell navigation exposes state and keyboard menu behavior", async 
   assert.match(platform, /aria-label="Vị trí hiện tại"/);
 });
 
-test("student sidebar uses created rooms and courses instead of placeholder exam types", async () => {
+test("student sidebar routes directly to the room and course catalogues", async () => {
   const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
 
-  assert.match(platform, /const availableExamTypes = useMemo\(/);
-  assert.match(platform, /availableExamTypes\.map\(type =>/);
-  assert.match(platform, /visibleCourses\.map\(course =>/);
-  assert.match(platform, /const href = `\/courses\/\$\{encodeURIComponent\(String\(course\.id\)\)\}`/);
+  assert.match(platform, /<Link key="exams" href="\/exam-room"/);
+  assert.match(platform, /<Link key="courses" href="\/courses"/);
+  assert.doesNotMatch(platform, /availableExamTypes\.map\(type =>/);
+  assert.doesNotMatch(platform, /student-nav-children/);
   assert.doesNotMatch(platform, /\["HSA", "QDA", "BCA"\] as const/);
 });
 

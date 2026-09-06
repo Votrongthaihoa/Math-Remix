@@ -252,7 +252,7 @@
   }
 
   .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) > .sidebar nav.student-sidebar-nav {
-    padding: 112px 0 16px;
+    padding: 12px 0 16px;
   }
 
   .app-shell.ui-shell.student-app.product-shell.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav > .student-nav-primary,

@@ -168,6 +168,18 @@
   margin-inline: auto;
 }
 
+.ui-shell.student-app.product-shell:not(.protected-exam-surface):not(.study-mode) > .sidebar nav.student-sidebar-nav {
+  padding: 12px 0 16px !important;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-sidebar-nav > .student-nav-primary > svg:first-child {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  fill: currentColor;
+  stroke: none;
+}
+
 .ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) > .topbar {
   display: none;
 }
