@@ -619,15 +619,17 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
     }).map(control => {
       const rect = control.getBoundingClientRect();
-      const scrollContainer = control.closest(".admin-timetable-week-grid, .exam-part-sidebar, .access-table-wrap");
+      const scrollContainer = control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .exam-part-sidebar, .access-table-wrap");
       return {
         tag: control.tagName.toLowerCase(),
         className: control.className,
         text: control.textContent?.trim().slice(0, 40) ?? "",
         left: Math.round(rect.left),
         right: Math.round(rect.right),
-        scrollRegion: scrollContainer?.classList.contains("admin-timetable-week-grid")
-          ? "admin-timetable-week-grid"
+        scrollRegion: scrollContainer?.classList.contains("student-timetable-scroll")
+          ? "student-timetable-scroll"
+          : scrollContainer?.classList.contains("admin-timetable-week-grid")
+            ? "admin-timetable-week-grid"
           : scrollContainer?.classList.contains("exam-part-sidebar")
             ? "exam-part-sidebar"
             : scrollContainer?.classList.contains("access-table-wrap")
@@ -715,8 +717,8 @@ async function inspectStress(name, path, width) {
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       scrollWidth: root.scrollWidth,
       clientWidth: root.clientWidth,
-      controlsOutsideViewport: outsideViewportControls.filter(control => !control.closest(".admin-timetable-week-grid")).length,
-      scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.closest(".admin-timetable-week-grid")).length,
+      controlsOutsideViewport: outsideViewportControls.filter(control => !control.closest(".student-timetable-scroll, .admin-timetable-week-grid")).length,
+      scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.closest(".student-timetable-scroll, .admin-timetable-week-grid")).length,
       outsideViewportControls: outsideViewportControls.map(control => {
         const rect = control.getBoundingClientRect();
         return { tag: control.tagName.toLowerCase(), className: control.className, text: control.textContent?.trim().slice(0, 80) ?? "", left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
@@ -832,7 +834,8 @@ async function inspectAccountMenu() {
 }
 
 async function inspectLessonResources() {
-  for (const width of [1440, 768, 390, 320]) {
+  for (const width of [1440, 1100, 768, 390, 320]) {
+    const usesCurriculumDrawer = width >= 1024 && width <= 1199;
     const studyRequests = { lesson: 0, curriculum: 0 };
     const recordStudyRequest = request => {
       const requestUrl = new URL(request.url());
@@ -843,6 +846,26 @@ async function inspectLessonResources() {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/lessons/mock-lesson`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await waitForRouteSurface();
+    const resourcePicker = page.locator(".lesson-resource-picker");
+    await resourcePicker.waitFor({ state: "visible", timeout: 10_000 });
+    const pickerState = await page.evaluate(expectedCount => {
+      const picker = document.querySelector(".lesson-resource-picker");
+      const grid = document.querySelector(".lesson-resource-picker-grid");
+      return {
+        pickerVisible: Boolean(picker && picker.getBoundingClientRect().width > 0),
+        choiceCount: document.querySelectorAll(".lesson-resource-choice").length,
+        expectedCount,
+        playerAbsentBeforeSelection: !document.querySelector(".lesson-video, .lesson-document"),
+        gridColumns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+        horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      };
+    }, mockLessonResources.length);
+    await page.screenshot({ path: join(outputDir, `student-lesson-picker-${width}.png`), fullPage: true });
+    if (!pickerState.pickerVisible || pickerState.choiceCount !== pickerState.expectedCount || !pickerState.playerAbsentBeforeSelection
+      || pickerState.horizontalOverflow || pickerState.gridColumns !== (width >= 768 ? 2 : 1)) {
+      throw new Error(`Study resource picker failed at ${width}px: ${JSON.stringify(pickerState)}`);
+    }
+    await resourcePicker.locator(".lesson-resource-choice").first().click();
     await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 });
     const videoState = await page.evaluate(() => ({
       lessonContext: document.querySelector(".study-lesson-context p")?.textContent?.trim() ?? "",
@@ -889,7 +912,7 @@ async function inspectLessonResources() {
       const compactFlyoutEscapeStable = await stablePlayer();
       await compactCourseTrigger.click();
       await compactCourseFlyout.waitFor({ state: "visible" });
-      await page.locator(".study-lesson-context").click();
+      await page.locator(".lesson-breadcrumb").click();
       await compactCourseFlyout.waitFor({ state: "detached" });
       const compactFlyoutOutsideClosed = await compactCourseTrigger.getAttribute("aria-expanded") === "false";
       const compactFlyoutOutsideStable = await stablePlayer();
@@ -951,7 +974,8 @@ async function inspectLessonResources() {
       if (Object.values(presentationStability).some(value => !value)) throw new Error(`Study presentation state replaced the player: ${JSON.stringify(presentationStability)}`);
     }
 
-    if (width === 390) {
+    let curriculumPresentation = null;
+    if (usesCurriculumDrawer) {
       await page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => { element.dataset.studyQaPlayer = "stable"; });
       const curriculumTrigger = page.getByRole("button", { name: /Nội dung giáo trình/ });
       await curriculumTrigger.click();
@@ -983,7 +1007,7 @@ async function inspectLessonResources() {
       });
       await page.keyboard.press("Shift+Tab");
       const focusTrapped = await page.evaluate(() => document.querySelector("#lesson-curriculum-panel")?.contains(document.activeElement) ?? false);
-      await page.screenshot({ path: join(outputDir, "student-curriculum-drawer-open-390.png"), fullPage: true });
+      await page.screenshot({ path: join(outputDir, `student-curriculum-drawer-open-${width}.png`), fullPage: true });
       await page.keyboard.press("Escape");
       await page.waitForTimeout(100);
       const closed = await page.evaluate(() => ({
@@ -994,6 +1018,7 @@ async function inspectLessonResources() {
         playerStable: document.querySelector(".lesson-video")?.dataset.studyQaPlayer === "stable",
       }));
       const drawerResult = { name: "student-study-curriculum-dialog", path: "/lessons/mock-lesson", width, ...opened, focusTrapped, ...closed };
+      curriculumPresentation = drawerResult;
       report.push(drawerResult);
       if (!drawerResult.closeFocused || !drawerResult.bodyLocked || !drawerResult.backgroundInert || !drawerResult.playerStable || !drawerResult.focusTrapped
         || !drawerResult.dialogClosed || !drawerResult.triggerRestored || !drawerResult.bodyUnlocked || !drawerResult.backgroundInteractive) {
@@ -1001,15 +1026,76 @@ async function inspectLessonResources() {
       }
     }
 
-    if (width <= 1199) await page.getByRole("button", { name: /Nội dung giáo trình/ }).click();
+    if (width <= 1023) {
+      const inlineState = await page.evaluate(() => {
+        const root = document.documentElement;
+        const panel = document.querySelector("#lesson-curriculum-panel");
+        const layout = document.querySelector(".lesson-layout");
+        const viewer = document.querySelector(".study-viewer-column");
+        const trigger = document.querySelector(".study-curriculum-trigger");
+        const shade = document.querySelector(".curriculum-sheet-shade");
+        const close = document.querySelector(".curriculum-panel-close");
+        const navigation = document.querySelector(".study-lesson-navigation");
+        const curriculumList = panel?.querySelector(".lesson-curriculum-list");
+        const sidebar = document.querySelector(".study-mode > .sidebar");
+        const breadcrumb = document.querySelector(".lesson-breadcrumb");
+        const panelBox = panel?.getBoundingClientRect();
+        const layoutBox = layout?.getBoundingClientRect();
+        const viewerBox = viewer?.getBoundingClientRect();
+        const panelStyle = panel ? getComputedStyle(panel) : null;
+        const isHidden = element => !element || getComputedStyle(element).display === "none";
+        const background = [sidebar, breadcrumb, viewer].filter(Boolean);
+        return {
+          panelInline: panelStyle?.position === "static" && panelStyle.transform === "none" && panelStyle.visibility === "visible",
+          panelVisible: Boolean(panelBox && panelBox.width > 0 && panelBox.height > 0 && panelStyle?.display !== "none"),
+          panelFullWidth: Boolean(panelBox && layoutBox && Math.abs(panelBox.width - layoutBox.width) <= 1),
+          panelFollowsViewer: Boolean(panel && viewer
+            && (viewer.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING)
+            && panelBox && viewerBox && panelBox.top >= viewerBox.bottom - 1),
+          panelAccessible: panel?.getAttribute("aria-label") === "Nội dung giáo trình"
+            && !panel.hasAttribute("role") && !panel.hasAttribute("aria-modal"),
+          curriculumListVisible: Boolean(curriculumList && getComputedStyle(curriculumList).display !== "none"),
+          triggerHidden: isHidden(trigger),
+          shadeHidden: isHidden(shade),
+          closeHidden: isHidden(close),
+          previousNextHidden: isHidden(navigation),
+          bodyUnlocked: document.body.style.overflow !== "hidden",
+          backgroundInteractive: background.length === 3 && background.every(element => !element.inert)
+            && !document.querySelector("#main-content")?.inert,
+          horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+        };
+      });
+      const inlineResult = {
+        name: "student-study-curriculum-inline",
+        path: "/lessons/mock-lesson",
+        width,
+        resourceHeadingMatches: videoState.resourceHeading === mockLessonResources[0].title,
+        lessonSubtitleMatches: videoState.lessonContext === `Bài ${mockLessonRows[0].sort_order + 1}: ${mockLessonRows[0].title}`,
+        ...inlineState,
+      };
+      curriculumPresentation = inlineResult;
+      report.push(inlineResult);
+      if (!inlineResult.panelInline || !inlineResult.panelVisible || !inlineResult.panelFullWidth || !inlineResult.panelFollowsViewer
+        || !inlineResult.panelAccessible || !inlineResult.curriculumListVisible || !inlineResult.triggerHidden || !inlineResult.shadeHidden
+        || !inlineResult.closeHidden || !inlineResult.previousNextHidden || !inlineResult.bodyUnlocked || !inlineResult.backgroundInteractive
+        || inlineResult.horizontalOverflow || !inlineResult.resourceHeadingMatches || !inlineResult.lessonSubtitleMatches) {
+        throw new Error(`Study inline curriculum failed at ${width}px: ${JSON.stringify(inlineResult)}`);
+      }
+    }
+
+    if (usesCurriculumDrawer) await page.getByRole("button", { name: /Nội dung giáo trình/ }).click();
     await page.getByRole("button", { name: /Tài liệu bài học HSA/ }).click();
     await page.locator('.lesson-document iframe[title="Tài liệu bài học HSA"]').waitFor({ state: "visible", timeout: 10_000 });
     const pdfVisible = await page.locator('.lesson-document iframe[title="Tài liệu bài học HSA"]').count() === 1;
     const resourceReplacedPlayer = !await page.locator('.lesson-video[title="Video bài giảng TSA"]').count();
+    const pdfContext = await page.evaluate(() => ({
+      resourceHeading: document.querySelector("#study-lesson-title")?.textContent?.trim() ?? "",
+      lessonSubtitle: document.querySelector(".study-lesson-context p")?.textContent?.trim() ?? "",
+    }));
 
     failNextVideoToken = true;
     expectedMockFailureMessages.push("status of 503");
-    if (width <= 1199) await page.getByRole("button", { name: /Nội dung giáo trình/ }).click();
+    if (usesCurriculumDrawer) await page.getByRole("button", { name: /Nội dung giáo trình/ }).click();
     await page.getByRole("button", { name: /Video bài giảng TSA/ }).click();
     const playerError = page.locator(".lesson-viewer-surface .secure-viewer-state.error");
     await playerError.waitFor({ state: "visible", timeout: 10_000 });
@@ -1017,6 +1103,10 @@ async function inspectLessonResources() {
     await playerError.getByRole("button", { name: "Thử tải lại" }).click();
     await page.locator('.lesson-video[title="Video bài giảng TSA"]').waitFor({ state: "visible", timeout: 10_000 });
     const recoveredVideo = await page.locator('.lesson-video[title="Video bài giảng TSA"]').count() === 1;
+    const recoveredContext = await page.evaluate(() => ({
+      resourceHeading: document.querySelector("#study-lesson-title")?.textContent?.trim() ?? "",
+      lessonSubtitle: document.querySelector(".study-lesson-context p")?.textContent?.trim() ?? "",
+    }));
     let lessonEdges = null;
     if (width === 1440) {
       await page.locator('.lesson-video[title="Video bài giảng TSA"]').evaluate(element => { element.dataset.studyLessonEdge = "first"; });
@@ -1026,6 +1116,7 @@ async function inspectLessonResources() {
       }));
       await page.locator(".study-lesson-navigation > a:last-child").click();
       await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-middle", { timeout: 5_000 });
+      await page.locator(".lesson-resource-picker .lesson-resource-choice").first().click();
       await page.locator('.lesson-video[title="Video khảo sát hàm số"]').waitFor({ state: "visible", timeout: 10_000 });
       Object.assign(lessonEdges, await page.evaluate(() => ({
         middlePreviousHref: document.querySelector(".study-lesson-navigation > a:first-child")?.getAttribute("href") ?? "",
@@ -1035,6 +1126,7 @@ async function inspectLessonResources() {
       await page.locator('.lesson-video[title="Video khảo sát hàm số"]').evaluate(element => { element.dataset.studyLessonEdge = "middle"; });
       await page.locator(".study-lesson-navigation > a:last-child").click();
       await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-last", { timeout: 5_000 });
+      await page.locator(".lesson-resource-picker .lesson-resource-choice").first().click();
       await page.locator('.lesson-video[title="Video tích phân cuối khóa"]').waitFor({ state: "visible", timeout: 10_000 });
       Object.assign(lessonEdges, await page.evaluate(() => ({
         lastPreviousHref: document.querySelector(".study-lesson-navigation > a:first-child")?.getAttribute("href") ?? "",
@@ -1069,9 +1161,12 @@ async function inspectLessonResources() {
     await page.screenshot({ path: join(outputDir, `student-lesson-resources-${width}.png`), fullPage: true });
     page.off("request", recordStudyRequest);
     const expectedLessonLoads = width === 1440 ? 5 : 1;
-    const result = { name: "student-lesson-resource-flow", path: "/lessons/mock-lesson", width, ...videoState, presentationStability, pdfVisible, resourceReplacedPlayer, retryVisible, recoveredVideo, lessonEdges, studyRequests, expectedLessonLoads };
+    const result = { name: "student-lesson-resource-flow", path: "/lessons/mock-lesson", width, pickerState, ...videoState, presentationStability, curriculumPresentation, pdfVisible, resourceReplacedPlayer, pdfContext, retryVisible, recoveredVideo, recoveredContext, lessonEdges, studyRequests, expectedLessonLoads };
     report.push(result);
-    if (!videoState.lessonContext.includes("Ôn tập nền tảng") || videoState.lessonContext.includes("NaN") || !videoState.resourceHeading || !videoState.videoVisible || !videoState.curriculumVisible || videoState.horizontalOverflow || !pdfVisible || !resourceReplacedPlayer || !retryVisible || !recoveredVideo
+    if (videoState.lessonContext !== `Bài ${mockLessonRows[0].sort_order + 1}: ${mockLessonRows[0].title}` || videoState.resourceHeading !== mockLessonResources[0].title
+      || !videoState.videoVisible || !videoState.curriculumVisible || videoState.horizontalOverflow || !pdfVisible || !resourceReplacedPlayer
+      || pdfContext.resourceHeading !== mockLessonResources[1].title || pdfContext.lessonSubtitle !== videoState.lessonContext
+      || !retryVisible || !recoveredVideo || recoveredContext.resourceHeading !== mockLessonResources[0].title || recoveredContext.lessonSubtitle !== videoState.lessonContext
       || studyRequests.lesson !== expectedLessonLoads || studyRequests.curriculum !== expectedLessonLoads) {
       throw new Error(`Lesson resource flow failed at ${width}px: ${JSON.stringify(result)}`);
     }
@@ -1164,7 +1259,7 @@ async function inspectCollapsedStudentSidebar() {
     const shell = document.querySelector(".ui-shell.student-app.product-shell");
     const sidebar = shell?.querySelector(":scope > .sidebar");
     const sidebarRect = sidebar?.getBoundingClientRect();
-    const visibleSidebarLogo = [...(sidebar?.querySelectorAll(".student-sidebar-logo-compact, .student-sidebar-logo-full") ?? [])]
+    const visibleSidebarLogo = [...(sidebar?.querySelectorAll(".student-sidebar-logo-compact, .student-sidebar-logo-full, .mobile-sidebar-logo-compact, .mobile-sidebar-logo-full") ?? [])]
       .find(candidate => {
         const style = getComputedStyle(candidate);
         const rect = candidate.getBoundingClientRect();
@@ -1188,7 +1283,7 @@ async function inspectCollapsedStudentSidebar() {
   await page.waitForTimeout(300);
   const expanded = await page.evaluate(() => {
     const shell = document.querySelector(".ui-shell.student-app.product-shell");
-    const logo = shell?.querySelector(":scope > .sidebar .student-sidebar-logo-full");
+    const logo = shell?.querySelector(":scope > .sidebar .student-sidebar-logo-full, :scope > .sidebar .mobile-sidebar-logo-full");
     const rect = logo?.getBoundingClientRect();
     return {
       expanded: Boolean(shell?.classList.contains("sidebar-expanded")),
@@ -1203,6 +1298,51 @@ async function inspectCollapsedStudentSidebar() {
     || result.visibleSidebarLogoRatio !== 1 || result.sidebarLogoCenterOffset == null || result.sidebarLogoCenterOffset > 2
     || !result.expanded || !result.fullLogoVisible || result.fullLogoSource !== "/logo_aeck.svg") {
     throw new Error(`Student sidebar logo states failed: ${JSON.stringify(result)}`);
+  }
+}
+
+async function inspectCourseReferenceStates() {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}/courses`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  await page.locator(".courses-page").waitFor({ state: "visible", timeout: 10_000 });
+  const shell = page.locator(".ui-shell.student-app.product-shell");
+  if (!await shell.evaluate(element => element.classList.contains("sidebar-expanded"))) {
+    await page.locator(".header-sidebar-toggle").click();
+    await page.waitForTimeout(300);
+  }
+  await page.screenshot({ path: join(outputDir, "student-courses-expanded-1440.png"), fullPage: true });
+  await page.locator(".header-sidebar-toggle").click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(outputDir, "student-courses-collapsed-1440.png"), fullPage: true });
+
+  await page.goto(`${baseUrl}/courses/mock-course`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+  await waitForRouteSurface();
+  const detail = page.locator(".course-study-page-reference");
+  const sections = detail.locator(".course-curriculum-panel-reference details");
+  await detail.waitFor({ state: "visible", timeout: 10_000 });
+  await sections.first().waitFor({ state: "visible", timeout: 10_000 });
+  const collapsedCount = await sections.evaluateAll(items => items.filter(item => item.open).length);
+  await page.screenshot({ path: join(outputDir, "student-course-detail-collapsed-1440.png"), fullPage: true });
+  await sections.first().locator("summary").click();
+  const firstPartOpen = await sections.first().evaluate(item => item.open);
+  const geometry = await detail.evaluate(root => {
+    const frame = root.querySelector(".aspect-video");
+    const curriculum = root.querySelector(".course-curriculum-panel-reference")?.parentElement;
+    const frameBox = frame?.getBoundingClientRect();
+    const curriculumBox = curriculum?.getBoundingClientRect();
+    return {
+      frameRatio: frameBox ? Number((frameBox.width / frameBox.height).toFixed(3)) : null,
+      curriculumWidth: curriculumBox ? Math.round(curriculumBox.width) : null,
+      horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    };
+  });
+  await page.screenshot({ path: join(outputDir, "student-course-detail-part-1-open-1440.png"), fullPage: true });
+  const result = { name: "student-course-reference-states", path: "/courses/mock-course", width: 1440, collapsedCount, firstPartOpen, ...geometry };
+  report.push(result);
+  if (collapsedCount !== 0 || !firstPartOpen || geometry.frameRatio == null || Math.abs(geometry.frameRatio - 16 / 9) > .01
+    || geometry.curriculumWidth !== 400 || geometry.horizontalOverflow) {
+    throw new Error(`Course reference states failed: ${JSON.stringify(result)}`);
   }
 }
 
@@ -1276,25 +1416,27 @@ async function inspectStudentSchedule() {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/tkb`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(mockAuth ? 1_200 : 350);
-    const initialLabel = await page.locator(".reference-week-controls strong").textContent();
+    const initialLabel = await page.locator('[aria-label="Điều hướng tuần"] strong').textContent();
     await page.getByRole("button", { name: "Xem tuần sau" }).click();
-    const nextLabel = await page.locator(".reference-week-controls strong").textContent();
-    await page.getByRole("button", { name: "Tuần này" }).click();
+    const nextLabel = await page.locator('[aria-label="Điều hướng tuần"] strong').textContent();
+    await page.getByRole("button", { name: "Hôm nay" }).click();
     const state = await page.evaluate(() => {
       const root = document.documentElement;
-      const panel = document.querySelector(".reference-week-panel")?.getBoundingClientRect();
-      const events = [...document.querySelectorAll(".reference-schedule-event")];
+      const panel = document.querySelector(".student-timetable-page")?.getBoundingClientRect();
+      const scroller = document.querySelector(".student-timetable-scroll");
+      const events = [...document.querySelectorAll('.student-timetable-scroll a[href^="/exam-room/"]')];
       return {
-        weekDays: document.querySelectorAll(".reference-week-grid > li").length,
+        weekDays: document.querySelectorAll(".student-timetable-scroll .sticky > div").length - 1,
         scheduledEvents: events.length,
-        openRooms: document.querySelectorAll(".reference-open-room-grid > a").length,
         panelInsideViewport: Boolean(panel && panel.left >= -1 && panel.right <= innerWidth + 1),
+        timelineHeight: scroller?.querySelector('.relative > .flex')?.getBoundingClientRect().height ?? 0,
+        hasInternalHorizontalScroll: Boolean(scroller && scroller.scrollWidth > scroller.clientWidth),
         horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       };
     });
     await page.screenshot({ path: join(outputDir, `student-schedule-${width}.png`), fullPage: true });
     report.push({ name: "student-schedule-interaction", path: "/tkb", width, initialLabel, nextLabel, ...state });
-    if (!initialLabel || initialLabel === nextLabel || state.weekDays !== 7 || state.scheduledEvents < 1 || state.openRooms < 1 || !state.panelInsideViewport || state.horizontalOverflow) {
+    if (!initialLabel || initialLabel === nextLabel || state.weekDays !== 7 || state.scheduledEvents < 1 || state.timelineHeight !== 1024 || !state.panelInsideViewport || state.horizontalOverflow || (width < 560 && !state.hasInternalHorizontalScroll)) {
       throw new Error(`Student schedule failed at ${width}px: ${JSON.stringify({ initialLabel, nextLabel, ...state })}`);
     }
   }
@@ -1688,6 +1830,7 @@ if (authenticated) {
       await inspectDashboardDotAlignment();
       await inspectAccountMenu();
     }
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-courses") || requestedRoutes.has("student-course-detail"))) await inspectCourseReferenceStates();
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-lesson"))) await inspectLessonResources();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
     if (!focusedAudit || requestedRoutes.has(mockRole === "admin" ? "admin-dashboard" : "student-dashboard")) await inspectNewWorkflowActions();

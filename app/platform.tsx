@@ -1555,19 +1555,24 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
     const nextQuery = nextParams.toString();
     router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
   };
-  return <div className="page-stack courses-page">
-    <div className="courses-toolbar">
-      <div><h1>Khóa học</h1><p>TSA và HSA dùng chung một không gian học tập, được phân loại theo từng tab.</p></div>
-      <div className="course-search-wrap">
-        <label className="course-search"><Search aria-hidden="true" /><input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm khóa học…" aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" /></label>
-        <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch || selectedExamTab !== "ALL" ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
+  return <div className="courses-page w-full min-h-[calc(100vh-120px)] bg-transparent">
+    <div className="courses-toolbar flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div><h1 className="text-2xl md:text-3xl font-bold text-gray-800 m-0">Khóa học</h1><p className="text-gray-500 mt-2">Danh sách khóa học</p></div>
+      <div className="course-search-wrap hidden md:block w-full md:w-80">
+        <label className="course-search ant-input-affix-wrapper ant-input-affix-wrapper-lg ant-input-outlined rounded-full">
+          <span className="ant-input-prefix"><Search className="anticon anticon-search text-gray-400" aria-hidden="true" /></span>
+          <input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm kiếm giáo trình..." aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" className="ant-input ant-input-lg" />
+        </label>
       </div>
     </div>
-    <div className="course-exam-tabs" role="tablist" aria-label="Phân loại khóa học" onKeyDown={handleCourseTabKeyDown}>
-      {([['ALL','Tất cả'],['TSA','TSA'],['HSA','HSA']] as const).map(([value,label])=><button id={`course-exam-tab-${value.toLowerCase()}`} type="button" role="tab" key={value} aria-selected={selectedExamTab===value} aria-controls="course-catalog-panel" tabIndex={selectedExamTab===value?0:-1} onClick={()=>updateCourseExamTab(value)}><span>{label}</span><b>{courseCounts[value]}</b></button>)}
+    <div className="hidden" aria-hidden="true">
+      <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch || selectedExamTab !== "ALL" ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
+      <div className="course-exam-tabs" role="tablist" aria-label="Phân loại khóa học" onKeyDown={handleCourseTabKeyDown}>
+        {([['ALL','Tất cả'],['TSA','TSA'],['HSA','HSA']] as const).map(([value,label])=><button id={`course-exam-tab-${value.toLowerCase()}`} type="button" role="tab" key={value} aria-selected={selectedExamTab===value} aria-controls="course-catalog-panel" tabIndex={selectedExamTab===value?0:-1} onClick={()=>updateCourseExamTab(value)}><span>{label}</span><b>{courseCounts[value]}</b></button>)}
+      </div>
     </div>
     <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0}>
-      {filteredCourses.length ? <div className={`course-grid reference-course-grid ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
+      {filteredCourses.length ? <div className={`grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
     </div>
   </div>;
 }
@@ -1576,7 +1581,7 @@ function CourseCoverVisual({ course, detail = false }: { course: CourseData; det
   const coverUrl = course.cover_url?.trim() ?? "";
   const [failedCoverUrl, setFailedCoverUrl] = useState("");
   if (coverUrl && failedCoverUrl !== coverUrl) {
-    return <img src={coverUrl} alt={course.title} width={detail ? 960 : 640} height={detail ? 540 : 360} loading={detail ? undefined : "lazy"} fetchPriority={detail ? "high" : undefined} decoding="async" onError={() => setFailedCoverUrl(coverUrl)} />;
+    return <img src={coverUrl} alt={course.title} width={detail ? 960 : 640} height={detail ? 540 : 360} loading={detail ? undefined : "lazy"} fetchPriority={detail ? "high" : undefined} decoding="async" className={detail ? "w-full h-full object-cover" : "w-full h-full object-cover transition-transform duration-500 hover:scale-110"} onError={() => setFailedCoverUrl(coverUrl)} />;
   }
   return <div className={`course-cover-fallback${detail ? " course-study-cover-fallback" : ""}`} style={courseColorStyle(course.color)} role="img" aria-label={`Chưa có ảnh bìa: ${course.title}`}>
     <span className="course-cover-fallback-kicker">KHÓA HỌC</span>
@@ -1589,13 +1594,16 @@ function CourseCoverVisual({ course, detail = false }: { course: CourseData; det
 function CourseCard({ course }: { course: CourseData }) {
   const href = `/courses/${encodeURIComponent(String(course.id))}`;
   const group = courseExamGroup(course);
-  return <article className="course-card reference-course-card" style={courseColorStyle(course.color)} data-course-exam-type={group.toLowerCase()}>
-    <Link className="course-card-action" href={href} aria-label={`Vào học ${course.title}`}>
-      <div className="course-cover">
+  return <article className="ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-[350px]" style={courseColorStyle(course.color)} data-course-exam-type={group.toLowerCase()}>
+    <Link className="course-card-action flex flex-col flex-1 text-inherit no-underline" href={href} aria-label={`Vào học ${course.title}`}>
+      <div className="ant-card-cover"><div className="w-full aspect-video overflow-hidden relative bg-gray-200">
         <CourseCoverVisual course={course} />
         {course.published === false && <span className="course-draft-badge">Bản nháp</span>}
+      </div></div>
+      <div className="ant-card-body flex flex-col flex-1 p-5">
+        <div className="ant-card-meta mb-auto"><div className="ant-card-meta-section"><div className="ant-card-meta-title"><span className="text-lg font-bold text-gray-800 whitespace-normal leading-tight">{course.title}</span></div></div></div>
+        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center bg-white"><div className="text-xs text-gray-500 flex items-center gap-1"><CirclePlay className="anticon anticon-play-circle text-[#158a39]" aria-hidden="true" /> {course.lessons} bài học</div><span className="font-semibold transition flex items-center gap-1 text-sm cursor-pointer text-[#158a39] hover:text-[#0f6e2d]">Vào học</span></div>
       </div>
-      <div className="course-body"><span className="course-exam-label">{group === "SHARED" ? "TSA · HSA" : group}</span><h3>{course.title}</h3><div className="course-meta"><span><CirclePlay aria-hidden="true" /> {course.lessons} bài học</span><b>Vào học</b></div></div>
     </Link>
   </article>;
 }
@@ -1635,17 +1643,21 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
 
   if (!course) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
   const firstCourseLesson = courseLessons[0];
-  return <div className="page-stack course-study-page">
-    <Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link>
-    <section className="course-study-hero">
-      <CourseCoverVisual course={course} detail />
-      <div className="course-study-copy"><span className="eyebrow">KHÓA HỌC</span><h1>{course.title}</h1><p>{course.description || "Nội dung khóa học đang được cập nhật."}</p><div className="course-study-facts" aria-label="Tóm tắt khóa học"><span><b>{chapters.length}</b> phần</span><span><b>{courseLessons.length}</b> bài học</span><span><b>{course.published === false ? "Nháp" : "Đang học"}</b> trạng thái</span></div>{firstCourseLesson && <Link className="course-study-primary-action" href={`/lessons/${encodeURIComponent(firstCourseLesson.id)}`}>Bắt đầu học <CirclePlay aria-hidden="true"/></Link>}</div>
-    </section>
-    <section className="course-curriculum-panel">
-      <div className="course-curriculum-head"><h2>Nội dung giáo trình</h2><p>{chapters.length} phần • {courseLessons.length} bài học</p></div>
+  return <div className="course-study-page-reference max-w-[1700px] mx-auto min-h-[calc(100vh-32px)] flex flex-col">
+    <div className="py-2 pb-4 flex items-center justify-between"><div className="flex items-center gap-2 overflow-hidden"><Link className="text-gray-500 hover:text-[#158a39] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2">/</span><span className="font-bold text-gray-800 uppercase tracking-wide truncate max-w-[200px] md:max-w-[400px]">{course.title}</span></div></div>
+    <div className="flex flex-col lg:flex-row flex-1 gap-8 pt-2 items-start">
+      <section className="flex-1 w-full overflow-hidden">
+        <div className="w-full h-auto bg-[#0f172a] rounded-xl shadow-sm relative group"><div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-900 relative flex items-center justify-center shadow-lg"><CourseCoverVisual course={course} detail /></div></div>
+        <div className="hidden"><div className="course-study-facts" aria-label="Tóm tắt khóa học"><span><b>{chapters.length}</b> phần</span><span><b>{courseLessons.length}</b> bài học</span></div>{firstCourseLesson && <Link className="course-study-primary-action" href={`/lessons/${encodeURIComponent(firstCourseLesson.id)}`}>Bắt đầu học <CirclePlay aria-hidden="true"/></Link>}</div>
+      </section>
+      <aside className="w-full lg:w-[400px] shrink-0">
+    <section className="course-curriculum-panel-reference bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-auto lg:max-h-[85vh] lg:sticky lg:top-24">
+      <div className="p-5 border-b border-gray-100"><h2 className="text-lg font-bold text-gray-800 m-0">Nội dung giáo trình</h2><span className="text-gray-500 text-sm mt-1 block">{chapters.length} chương • {courseLessons.length} bài học</span></div>
       {contentError && <div className="student-load-feedback" role="alert"><p>{contentError}</p><button type="button" className="outline-btn" onClick={() => setContentReloadVersion(version => version + 1)}>Thử tải lại</button></div>}
-      {loadingContent ? <CourseCurriculumSkeleton /> : chapters.length ? <div className="course-curriculum-list">{chapters.map((chapter,partIndex)=>{const lessons=courseLessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="course-part-card" key={chapter.id} open={partIndex===0}><summary><strong>{formatPartTitle(chapter.title,chapter.sort_order)}</strong><ChevronRight/></summary>{lessons.length ? <ul className="course-part-lessons">{lessons.map(lesson=><li key={lesson.id}><Link className={lesson.published?"published":"draft"} href={`/lessons/${encodeURIComponent(lesson.id)}`}><b>{formatLessonTitle(lesson.title,lesson.sort_order)}</b></Link></li>)}</ul> : <p className="course-part-lessons-empty">Phần này chưa có bài học {showDrafts?"nào":"được xuất bản"}.</p>}</details>})}</div> : !contentError ? <MiniEmpty text={showDrafts?"Khóa học chưa có phần hoặc bài học.":"Khóa học chưa có phần hoặc bài học được xuất bản."} /> : null}
+      {loadingContent ? <CourseCurriculumSkeleton /> : chapters.length ? <div className="lg:overflow-y-auto flex-1 p-2 lg:custom-scrollbar"><div className="ant-collapse ant-collapse-icon-placement-end ant-collapse-borderless bg-transparent" role="tablist">{chapters.map(chapter=>{const lessons=courseLessons.filter(lesson=>lesson.chapter_id===chapter.id);return <details className="ant-collapse-item bg-gray-50 mb-2 rounded-lg border border-gray-200 overflow-hidden" key={chapter.id}><summary className="ant-collapse-header px-3 py-3 flex items-center cursor-pointer"><span className="ant-collapse-title flex-1 min-w-0"><span className="flex justify-between items-center w-full"><strong className="text-gray-700 truncate">{formatPartTitle(chapter.title,chapter.sort_order)}</strong></span></span><ChevronRight className="ant-collapse-arrow shrink-0" aria-hidden="true" /></summary>{lessons.length ? <div className="ant-collapse-panel"><div className="ant-collapse-body"><ul className="ant-list-items m-0 p-0 list-none">{lessons.map(lesson=><li className="ant-list-item p-0 border-b border-gray-100 last:border-b-0 hover:bg-white" key={lesson.id}><Link className={`w-full px-4 py-3 cursor-pointer block no-underline ${lesson.published?"published":"draft"}`} href={`/lessons/${encodeURIComponent(lesson.id)}`}><span className="flex items-start gap-3"><span className="mt-1 flex-shrink-0 text-gray-400"><span className="w-2 h-2 rounded-full bg-gray-300 block" /></span><span className="flex-1 min-w-0"><span className="font-semibold text-sm leading-tight text-gray-700 block">{formatLessonTitle(lesson.title,lesson.sort_order)}</span></span></span></Link></li>)}</ul></div></div> : <p className="course-part-lessons-empty">Phần này chưa có bài học {showDrafts?"nào":"được xuất bản"}.</p>}</details>})}</div></div> : !contentError ? <MiniEmpty text={showDrafts?"Khóa học chưa có phần hoặc bài học.":"Khóa học chưa có phần hoặc bài học được xuất bản."} /> : null}
     </section>
+      </aside>
+    </div>
   </div>;
 }
 
@@ -1668,12 +1680,25 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
     window.requestAnimationFrame(() => curriculumTriggerRef.current?.focus({ preventScroll: true }));
   }, []);
   const curriculumPanelRef = useAdminDialogFocus<HTMLElement>(curriculumOpen, closeCurriculum);
-  const openCurriculum = useCallback(() => {
-    setCurriculumOpen(true);
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      document.querySelector<HTMLButtonElement>("#lesson-curriculum-panel.mobile-open [data-dialog-autofocus]")?.focus({ preventScroll: true });
-    }));
+  const focusCurriculumClose = useCallback(() => {
+    let attempts = 0;
+    const focus = () => {
+      const close = document.querySelector<HTMLButtonElement>("#lesson-curriculum-panel.mobile-open [data-dialog-autofocus]");
+      if (!close) return;
+      close.focus({ preventScroll: true });
+      if (document.activeElement !== close && attempts < 4) {
+        attempts += 1;
+        window.requestAnimationFrame(focus);
+      }
+    };
+    window.requestAnimationFrame(focus);
   }, []);
+  const openCurriculum = useCallback(() => setCurriculumOpen(true), []);
+
+  useEffect(() => {
+    if (!curriculumOpen) return;
+    focusCurriculumClose();
+  }, [curriculumOpen, focusCurriculumClose]);
 
   useEffect(() => {
     if (!supabase || !lessonId) return;
@@ -1706,7 +1731,7 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
         setCurriculum(nextCurriculum);
         setExpandedChapterId(nextCurriculum.find(section => section.lessons.some(item => item.id === lessonId))?.id ?? nextCurriculum[0]?.id ?? "");
         const requestedResource = new URLSearchParams(window.location.search).get("resource") ?? "";
-        setSelectedResourceId(nextResources.some(resource => resource.id === requestedResource) ? requestedResource : nextResources[0]?.id ?? "");
+        setSelectedResourceId(nextResources.some(resource => resource.id === requestedResource) ? requestedResource : "");
       } catch (value) {
         if (!cancelled) setLessonError(value instanceof Error ? value.message : "Không thể tải nội dung bài học. Hãy thử lại.");
       } finally {
@@ -1719,7 +1744,7 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
 
   useEffect(() => {
     if (!curriculumOpen) return;
-    const compactViewport = window.matchMedia("(max-width: 1199px)");
+    const drawerViewport = window.matchMedia("(min-width: 1024px) and (max-width: 1199px)");
     const previousOverflow = document.body.style.overflow;
     const background = [
       document.querySelector<HTMLElement>(".study-mode > .sidebar"),
@@ -1729,12 +1754,13 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
     const previousInert = background.map(element => element.inert);
     document.body.style.overflow = "hidden";
     background.forEach(element => { element.inert = true; });
-    const closeAtDesktop = (event: MediaQueryListEvent) => {
+    const closeOutsideDrawer = (event: MediaQueryListEvent) => {
       if (!event.matches) setCurriculumOpen(false);
     };
-    compactViewport.addEventListener("change", closeAtDesktop);
+    if (!drawerViewport.matches) return;
+    drawerViewport.addEventListener("change", closeOutsideDrawer);
     return () => {
-      compactViewport.removeEventListener("change", closeAtDesktop);
+      drawerViewport.removeEventListener("change", closeOutsideDrawer);
       document.body.style.overflow = previousOverflow;
       background.forEach((element, index) => { element.inert = previousInert[index]; });
     };
@@ -1754,7 +1780,7 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
     return () => window.cancelAnimationFrame(frame);
   }, [curriculum, curriculumOpen, lessonId]);
 
-  const selectedResource = resources.find(resource=>resource.id===selectedResourceId) ?? resources[0];
+  const selectedResource = resources.find(resource => resource.id === selectedResourceId);
   const lessonCount = curriculum.reduce((total, section) => total + section.lessons.length, 0);
   function selectResource(resourceId: string) {
     setSelectedResourceId(resourceId);
@@ -1792,18 +1818,36 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
     </nav>
     <div className="lesson-layout">
       <div className="study-viewer-column">
-        <section ref={viewerRef} className="viewer-card" aria-label={`Nội dung: ${selectedResource?.title || formatLessonTitle(lesson.title, lesson.sort_order)}`}>
-          <p className="lesson-resource-status" role="status" aria-live="polite">{selectedResource ? `Đang mở: ${selectedResource.title}` : "Bài học chưa có tài nguyên."}</p>
-          <div className={`lesson-viewer-surface ${selectedResourceIsVideo ? "is-video" : "is-document"}`}>{!selectedResource ? <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/> : <VideoPlayer key={selectedResource.id} resource={selectedResource}/>}</div>
-        </section>
-        <section className="study-lesson-context" aria-labelledby="study-lesson-title">
-          <h1 id="study-lesson-title">{formatLessonTitle(lesson.title, lesson.sort_order)}</h1>
-          <p>{formatPartTitle(lesson.chapter_title, lesson.chapter_sort_order)}</p>
-        </section>
-        <nav className="study-lesson-navigation" aria-label="Chuyển bài học">
-          {previousLesson ? <Link href={`/lessons/${encodeURIComponent(previousLesson.id)}`} onClick={closeCurriculum}><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>{formatLessonTitle(previousLesson.title, previousLesson.sort_order)}</b></span></Link> : <span className="disabled" aria-disabled="true"><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>Đây là bài đầu tiên</b></span></span>}
-          {nextLesson ? <Link href={`/lessons/${encodeURIComponent(nextLesson.id)}`} onClick={closeCurriculum}><span><small>Bài tiếp theo</small><b>{formatLessonTitle(nextLesson.title, nextLesson.sort_order)}</b></span><ChevronRight aria-hidden="true"/></Link> : <span className="disabled" aria-disabled="true"><span><small>Bài tiếp theo</small><b>Đã hết khóa học</b></span><ChevronRight aria-hidden="true"/></span>}
-        </nav>
+        {selectedResource ? <>
+          <section ref={viewerRef} className="viewer-card" aria-label={`Nội dung: ${selectedResource.title}`}>
+            <p className="lesson-resource-status" role="status" aria-live="polite">Đang mở: {selectedResource.title}</p>
+            <div className={`lesson-viewer-surface ${selectedResourceIsVideo ? "is-video" : "is-document"}`}><VideoPlayer key={selectedResource.id} resource={selectedResource}/></div>
+          </section>
+          <section className="study-lesson-context" aria-labelledby="study-lesson-title">
+            <h1 id="study-lesson-title">{selectedResource?.title || formatLessonTitle(lesson.title, lesson.sort_order)}</h1>
+            <p>{formatLessonTitle(lesson.title, lesson.sort_order)}</p>
+          </section>
+          <nav className="study-lesson-navigation" aria-label="Chuyển bài học">
+            {previousLesson ? <Link href={`/lessons/${encodeURIComponent(previousLesson.id)}`} onClick={closeCurriculum}><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>{formatLessonTitle(previousLesson.title, previousLesson.sort_order)}</b></span></Link> : <span className="disabled" aria-disabled="true"><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>Đây là bài đầu tiên</b></span></span>}
+            {nextLesson ? <Link href={`/lessons/${encodeURIComponent(nextLesson.id)}`} onClick={closeCurriculum}><span><small>Bài tiếp theo</small><b>{formatLessonTitle(nextLesson.title, nextLesson.sort_order)}</b></span><ChevronRight aria-hidden="true"/></Link> : <span className="disabled" aria-disabled="true"><span><small>Bài tiếp theo</small><b>Đã hết khóa học</b></span><ChevronRight aria-hidden="true"/></span>}
+          </nav>
+        </> : <section ref={viewerRef} className="lesson-resource-picker flex-1 w-full overflow-hidden" aria-labelledby="lesson-resource-picker-title">
+          <div className="w-full h-auto bg-[#0f172a] rounded-xl shadow-sm relative group">
+            <div className="w-full min-h-[50vh] md:min-h-[60vh] rounded-xl bg-white border border-gray-200 shadow-sm p-8 md:p-12 flex flex-col justify-center">
+              <div className="max-w-3xl mx-auto w-full">
+                <h2 id="lesson-resource-picker-title" className="text-3xl font-bold text-gray-800 mb-4">{formatLessonTitle(lesson.title, lesson.sort_order)}</h2>
+                <p className="text-gray-500 mb-8 text-lg">Bài học này bao gồm {resources.length} nội dung. Vui lòng chọn một mục bên dưới để bắt đầu học.</p>
+                {resources.length ? <div className="lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4">{resources.map(resource => {
+                  const resourceIsVideo = ["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type);
+                  return <button type="button" className="lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[#158a39] hover:shadow-md transition-all cursor-pointer group/card" key={resource.id} onClick={() => selectResource(resource.id)}>
+                    <span className="lesson-resource-choice-icon w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover/card:scale-110 transition-transform shrink-0" aria-hidden="true">{resourceIsVideo ? <CirclePlay/> : <FilePlus/>}</span>
+                    <span className="flex-1 min-w-0"><b className="block font-semibold text-slate-700 group-hover/card:text-[#158a39] transition-colors truncate">{resource.title}</b><small className="block text-xs text-gray-500 mt-1 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
+                  </button>;
+                })}</div> : <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/>}
+              </div>
+            </div>
+          </div>
+        </section>}
         <button ref={curriculumTriggerRef} type="button" className="study-curriculum-trigger" aria-controls="lesson-curriculum-panel" aria-expanded={curriculumOpen} onClick={openCurriculum}><BookOpen aria-hidden="true"/><span><b>Nội dung giáo trình</b><small>{curriculum.length} phần • {lessonCount} bài học</small></span><ChevronRight aria-hidden="true"/></button>
       </div>
       <button type="button" className={`curriculum-sheet-shade ${curriculumOpen ? "show" : ""}`} onClick={closeCurriculum} aria-label="Đóng nội dung giáo trình" tabIndex={curriculumOpen ? 0 : -1}/>

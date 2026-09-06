@@ -137,10 +137,10 @@ test("courses use native links and curriculum list semantics", async () => {
     readFile(new URL("../app/product-ui-v2.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(platform, /<Link className="course-card-action" href=\{href\}/);
+  assert.match(platform, /<Link className="course-card-action flex flex-col flex-1 text-inherit no-underline" href=\{href\}/);
   assert.doesNotMatch(platform, /<button className="course-card-action"/);
-  assert.match(platform, /<ul className="course-part-lessons">/);
-  assert.match(platform, /<li key=\{lesson\.id\}><Link/);
+  assert.match(platform, /<ul className="ant-list-items m-0 p-0 list-none">/);
+  assert.match(platform, /<li className="ant-list-item[^"]*" key=\{lesson\.id\}><Link/);
   assert.match(productCss, /\.course-part-lessons > li > a/);
 });
 
@@ -284,7 +284,7 @@ test("browser smoke renders real lesson video and PDF resource states", async ()
   assert.match(smoke, /requestUrl\.pathname === "\/api\/resource-content"/);
   assert.match(smoke, /requestUrl\.pathname === "\/api\/security\/session"/);
   assert.match(smoke, /expectedMockFailureMessages/);
-  assert.match(smoke, /lessonContext\.includes\("Ôn tập nền tảng"\)/);
+  assert.match(smoke, /lessonContext === `Bài \$\{mockLessonRows\[0\]\.sort_order \+ 1\}: \$\{mockLessonRows\[0\]\.title\}`/);
   assert.match(smoke, /inspectLessonResources/);
 });
 

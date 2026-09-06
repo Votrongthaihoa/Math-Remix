@@ -15,7 +15,9 @@ test("public AECK routes use the isolated reference implementation", async () =>
 
   assert.match(home, /<AeckPublicSite\s*\/>/);
   assert.match(catchAll, /<AeckPublicSite route=\{publicRoute\}\s*\/>/);
-  assert.match(catchAll, /slug\[0\] === "portal"\) redirect\("\/courses"\)/);
+  assert.match(catchAll, /targetRouteRedirect\(slug\)/);
+  const aliases = await source("app/target-route-aliases.ts");
+  assert.match(aliases, /slug\[0\] === "portal"\) return "\/profile"/);
   for (const route of [
     "giao-vien",
     "goi-hoc-tap",
@@ -123,4 +125,25 @@ test("public interaction smoke waits for hydration before clicking controls", as
   assert.match(smoke, /async function waitForPublicHydration/);
   assert.match(smoke, /await page\.waitForLoadState\("networkidle"\)/);
   assert.ok((smoke.match(/await waitForPublicHydration\(\)/g) ?? []).length >= 5);
+});
+
+test("public legal route parity covers every visible policy route", async () => {
+  const [routes, catchAll, smoke] = await Promise.all([
+    source("app/aeck-public-routes.ts"),
+    source("app/[...slug]/page.tsx"),
+    source("scripts/public-ui-smoke.mjs"),
+  ]);
+
+  for (const route of [
+    "dieu-kien-han-che-cung-cap",
+    "quyen-va-nghia-vu-hai-ben",
+    "chinh-sach-thanh-toan",
+    "chinh-sach-gia",
+    "chinh-sach-van-chuyen-doi-tra",
+    "chinh-sach-khieu-nai",
+  ]) {
+    assert.ok(routes.includes(`"${route}"`), `missing legal route ${route}`);
+    assert.ok(smoke.includes(`"/${route}"`), `public smoke missing /${route}`);
+  }
+  assert.match(catchAll, /supplementalLegalDocuments/);
 });

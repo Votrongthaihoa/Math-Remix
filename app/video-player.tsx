@@ -226,7 +226,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "youtube") {
     if (!content.youtubeId) return <SecureViewerError message="Liên kết YouTube không hợp lệ."/>;
-    return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen/>;
+    return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"/>;
   }
 
   if (content.type === "hls_vault") {
@@ -240,7 +240,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         src={`/yt-embed-player.html?mode=hls&wm=${encodeURIComponent(watermarkEmail)}`}
         title={content.title}
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        allowFullScreen
         onLoad={() => sendEmbeddedVideoSource(content)}
       />;
     }
@@ -256,7 +255,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       src={`/yt-embed-player.html?mode=native&wm=${encodeURIComponent(watermarkEmail)}`}
       title={content.title}
       allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-      allowFullScreen
       onLoad={() => sendEmbeddedVideoSource(content)}
     />;
   }

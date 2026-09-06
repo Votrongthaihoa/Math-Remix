@@ -48,6 +48,26 @@ test("visual smoke includes the new student discovery routes", async () => {
   assert.match(smoke, /page\.on\("console"/);
 });
 
+test("product-shell overflow audit understands the intentionally scrollable student timetable", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /control\.closest\("\.student-timetable-scroll, \.admin-timetable-week-grid/);
+  assert.match(smoke, /scrollRegionControl.*student-timetable-scroll|classList\.contains\("student-timetable-scroll"\)/);
+});
+
+test("student timetable uses the supplied scrollable hourly calendar markup", async () => {
+  const finder = await readFile(new URL("../app/student-discovery.tsx", import.meta.url), "utf8");
+
+  assert.match(finder, /bg-white rounded-xl shadow-sm border border-gray-100 select-none overflow-hidden/);
+  assert.match(finder, /px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2/);
+  assert.match(finder, /overflow-y-auto overflow-x-auto/);
+  assert.match(finder, /minWidth: 560/);
+  assert.match(finder, /const timetableHeight = \(timetableEndHour - timetableStartHour\) \* timetableHourHeight/);
+  assert.match(finder, /height: timetableHeight/);
+  assert.match(finder, /flex border-b border-gray-200 bg-white sticky top-0 z-10/);
+  assert.match(finder, /absolute overflow-hidden transition-opacity hover:opacity-80/);
+});
+
 test("room bootstrap returns attempt titles for history and search summaries", async () => {
   const route = await readFile(new URL("../app/api/exams/route.ts", import.meta.url), "utf8");
 

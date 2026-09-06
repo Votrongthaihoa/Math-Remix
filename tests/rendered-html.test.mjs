@@ -172,7 +172,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /className="page-stack dashboard-page"/);
   assert.match(platform, /Thống kê làm bài/);
   assert.match(platform, /className="lesson-breadcrumb"/);
-  assert.match(platform, /className="course-curriculum-panel"/);
+  assert.match(platform, /className="course-curriculum-panel-reference bg-white rounded-xl shadow-sm border border-gray-100/);
   assert.match(platform, /function CourseCoverVisual/);
   assert.match(platform, /course-study-cover-fallback/);
   assert.match(platform, /currentView === "lesson" \? "lesson-main-content"/);

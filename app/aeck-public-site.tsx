@@ -24,6 +24,7 @@ import {
 } from "react";
 import articleDocuments from "./aeck-public-articles.json";
 import legalDocuments from "./aeck-public-legal.json";
+import supplementalLegalDocuments from "./aeck-public-legal-secondary";
 import {
   learningPackages,
   publicArticleCards,
@@ -64,14 +65,26 @@ type ArticleDocument = {
 type LegalDocument = {
   slug: string;
   title: string;
+  updated?: string;
   intro: string;
   toc: Array<{ label: string; href: string }>;
   sections: ContentSection[];
 };
 
 const articleBySlug = articleDocuments as Record<string, ArticleDocument>;
-const legalBySlug = legalDocuments as Record<string, LegalDocument>;
+const legalBySlug = { ...legalDocuments, ...supplementalLegalDocuments } as Record<string, LegalDocument>;
 const publicAsset = (path: string) => `/aeck-public/${path}`;
+
+const publicLegalLinks = [
+  ["dieu-khoan-dich-vu", "ĐIỀU KHOẢN", "Điều khoản dịch vụ"],
+  ["chinh-sach-bao-mat", "BẢO MẬT", "Chính sách bảo mật thông tin"],
+  ["chinh-sach-thanh-toan", "THANH TOÁN", "Chính sách thanh toán"],
+  ["chinh-sach-gia", "GIÁ DỊCH VỤ", "Chính sách giá"],
+  ["chinh-sach-van-chuyen-doi-tra", "GIAO NHẬN", "Chính sách vận chuyển - kiểm tra - đổi trả hàng"],
+  ["chinh-sach-khieu-nai", "KHIẾU NẠI", "Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại"],
+  ["dieu-kien-han-che-cung-cap", "ĐIỀU KIỆN", "Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ"],
+  ["quyen-va-nghia-vu-hai-ben", "QUYỀN VÀ NGHĨA VỤ", "Quyền và nghĩa vụ của hai bên"],
+] as const;
 
 const legalLead: Record<string, string> = {
   "dieu-khoan-dich-vu":
@@ -262,8 +275,7 @@ function FullFooter() {
         </section>
         <section>
           <h2>Thông tin</h2>
-          <Link href="/dieu-khoan-dich-vu">Điều khoản dịch vụ</Link>
-          <Link href="/chinh-sach-bao-mat">Chính sách bảo mật</Link>
+          {publicLegalLinks.map(([slug, , title]) => <Link key={slug} href={`/${slug}`}>{title}</Link>)}
         </section>
         <section className={styles.footerFanpages}>
           <h2>Fanpage</h2>
@@ -602,11 +614,10 @@ function ContentBlocks({ blocks }: { blocks: ContentBlock[] }) {
 
 function RelatedReading({ currentSlug, legal = false }: { currentSlug: string; legal?: boolean }) {
   if (legal) {
-    const other = currentSlug === "dieu-khoan-dich-vu" ? "chinh-sach-bao-mat" : "dieu-khoan-dich-vu";
     return (
       <section className={styles.relatedReading}>
         <h2>ĐỌC TIẾP</h2>
-        <Link href={`/${other}`}><span>{other === "chinh-sach-bao-mat" ? "BẢO MẬT" : "THÔNG TIN"}</span><strong>{other === "chinh-sach-bao-mat" ? "Chính sách bảo mật" : "Điều khoản dịch vụ"}</strong></Link>
+        <div>{publicLegalLinks.filter(([slug]) => slug !== currentSlug).map(([slug, label, title]) => <Link key={slug} href={`/${slug}`}><span>{label}</span><strong>{title}</strong></Link>)}</div>
       </section>
     );
   }
@@ -678,8 +689,8 @@ function LegalPage({ document }: { document: LegalDocument }) {
         <header className={styles.contentHero}>
           <nav aria-label="Đường dẫn"><Link href="/">Trang chủ</Link><span>/</span><span>{document.title.replace(" dịch vụ", "")}</span></nav>
           <h1>{document.title}</h1>
-          <strong>CẬP NHẬT LẦN CUỐI: 28/08/2026</strong>
-          <p>{legalLead[document.slug]}</p>
+          <strong>{document.updated || "CẬP NHẬT LẦN CUỐI: 28/08/2026"}</strong>
+          <p>{legalLead[document.slug] || document.intro}</p>
         </header>
         <article className={styles.contentArticle}>
           <nav className={styles.tableOfContents} aria-label="Nội dung chính">

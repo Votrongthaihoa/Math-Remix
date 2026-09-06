@@ -8,6 +8,8 @@ import AeckPublicSite from "../aeck-public-site";
 import { AECK_PUBLIC_ROUTES, type AeckPublicRoute } from "../aeck-public-routes";
 import articleDocuments from "../aeck-public-articles.json";
 import legalDocuments from "../aeck-public-legal.json";
+import supplementalLegalDocuments from "../aeck-public-legal-secondary";
+import { targetRouteRedirect } from "../target-route-aliases";
 
 const staticRoutes = new Set(["login", "dashboard", "exam-room", "courses", "exam-history", "progress", "search", "tkb", "profile", "admin", "forgot-password", "reset-password"]);
 const publicRoutes = new Set<string>(AECK_PUBLIC_ROUTES);
@@ -27,6 +29,7 @@ const publicMetadata: Record<string, { title: string; description: string }> = {
   "dang-ky-minh-chung": { title: "Đăng ký minh chứng | AECK", description: "Đăng ký tham gia và gửi minh chứng cho các chương trình AECK." },
   ...Object.fromEntries(Object.entries(articleDocuments).map(([slug, document]) => [slug, { title: `${document.title} | AECK`, description: document.intro }])),
   ...Object.fromEntries(Object.entries(legalDocuments).map(([slug, document]) => [slug, { title: `${document.title} | AECK`, description: document.title }])),
+  ...Object.fromEntries(Object.entries(supplementalLegalDocuments).map(([slug, document]) => [slug, { title: `${document.title} | AECK`, description: document.intro }])),
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
@@ -37,7 +40,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CatchAllPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
-  if (slug.length === 1 && slug[0] === "portal") redirect("/courses");
+  const targetAlias = targetRouteRedirect(slug);
+  if (targetAlias) redirect(targetAlias);
   const publicRoute = slug.length === 1 && publicRoutes.has(slug[0]) ? slug[0] as AeckPublicRoute : null;
   if (publicRoute) return <AeckPublicSite route={publicRoute} />;
   const validStaticRoute = slug.length === 1 && staticRoutes.has(slug[0]);

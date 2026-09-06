@@ -9,7 +9,7 @@ test("student navigation uses deep links while resource selection remains an act
   const platform = await readFile(platformUrl, "utf8");
 
   assert.match(platform, /href=\{`\/courses\/\$\{encodeURIComponent\(String\(c\.id\)\)\}`\}/);
-  assert.match(platform, /<Link className=\{lesson\.published\?"published":"draft"\} href=\{`\/lessons\//);
+  assert.match(platform, /<Link className=\{`w-full px-4 py-3[\s\S]*?lesson\.published\?"published":"draft"[\s\S]*?href=\{`\/lessons\//);
   assert.match(platform, /className="curriculum-lesson-title" href=\{`\/lessons\//);
   assert.match(platform, /className="curriculum-resource" href=\{`\/lessons\//);
   assert.match(platform, /<button type="button"[^>]*className=\{`curriculum-resource/);

@@ -8,12 +8,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  Clock3,
+  Crosshair,
   History,
   Search,
   X,
 } from "lucide-react";
-import { formatUiDate, formatUiMonthDay, formatUiTime, formatUiWeekday } from "./ui-format";
+import { formatUiDate, formatUiTime, formatUiWeekday } from "./ui-format";
 
 type SearchCourse = {
   id: string | number;
@@ -242,13 +242,24 @@ function dateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function scheduleStatus(room: ScheduledRoom, now: number) {
-  const start = room.exam_start ? Date.parse(room.exam_start) : Number.NaN;
-  const end = room.exam_end ? Date.parse(room.exam_end) : Number.NaN;
-  if (!Number.isFinite(start)) return { label: "Không giới hạn", tone: "neutral" };
-  if (now < start) return { label: "Sắp diễn ra", tone: "upcoming" };
-  if (!Number.isFinite(end) || now <= end) return { label: "Đang mở", tone: "open" };
-  return { label: "Đã kết thúc", tone: "ended" };
+const timetableStartHour = 8;
+const timetableEndHour = 24;
+const timetableHourHeight = 64;
+const timetableHeight = (timetableEndHour - timetableStartHour) * timetableHourHeight;
+const timetablePalettes = [
+  { background: "rgb(254,226,226)", border: "rgb(205,22,39)", text: "rgb(159,18,57)", soft: "rgb(254,242,242)" },
+  { background: "rgb(224,242,254)", border: "rgb(2,132,199)", text: "rgb(7,89,133)", soft: "rgb(240,249,255)" },
+  { background: "rgb(254,243,199)", border: "rgb(217,119,6)", text: "rgb(146,64,14)", soft: "rgb(255,251,235)" },
+  { background: "rgb(209,250,229)", border: "rgb(5,150,105)", text: "rgb(6,95,70)", soft: "rgb(236,253,245)" },
+] as const;
+
+function timetableWeekLabel(start: Date, end: Date) {
+  const two = (value: number) => String(value).padStart(2, "0");
+  return `${two(start.getDate())}-${two(start.getMonth() + 1)} – ${two(end.getDate())}/${two(end.getMonth() + 1)}/${end.getFullYear()}`;
+}
+
+function timetableMinutes(date: Date) {
+  return date.getHours() * 60 + date.getMinutes();
 }
 
 export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
@@ -260,7 +271,6 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
     () => rooms.filter(room => room.exam_start && Number.isFinite(Date.parse(room.exam_start))).sort((left, right) => Date.parse(left.exam_start!) - Date.parse(right.exam_start!)),
     [rooms],
   );
-  const unscheduledRooms = rooms.filter(room => !room.exam_start || !Number.isFinite(Date.parse(room.exam_start)));
   const roomsByDate = useMemo(() => {
     const grouped = new Map<string, ScheduledRoom[]>();
     for (const day of days) grouped.set(dateKey(day), []);
@@ -272,72 +282,75 @@ export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
   }, [days, scheduledRooms]);
   const weekEnd = days[6];
   const todayKey = dateKey(referenceNow);
-  const now = referenceNow.getTime();
-  const weekLabel = `${formatUiMonthDay(weekStart)} - ${formatUiDate(weekEnd)}`;
+  const weekLabel = timetableWeekLabel(weekStart, weekEnd);
+  const examTypes = [...new Set(scheduledRooms.map(room => room.exam_type?.trim() || "Phòng khảo thí"))].slice(0, timetablePalettes.length);
+  const paletteForRoom = (room: ScheduledRoom) => {
+    const type = room.exam_type?.trim() || "Phòng khảo thí";
+    const index = Math.max(0, examTypes.indexOf(type));
+    return timetablePalettes[index % timetablePalettes.length];
+  };
+  const currentMinutes = timetableMinutes(referenceNow);
+  const currentLineTop = (currentMinutes - timetableStartHour * 60) / 60 * timetableHourHeight;
 
   return (
-    <div className="reference-schedule-page">
-      <header className="reference-page-heading reference-schedule-heading">
-        <div>
-          <span className="reference-page-kicker">Lịch học và thi</span>
-          <h1>Thời khóa biểu của bạn</h1>
-          <p>Lịch được tổng hợp từ các phòng khảo thí mà tài khoản của bạn có quyền truy cập.</p>
-        </div>
-        <div className="reference-week-controls" aria-label="Điều hướng tuần">
-          <button type="button" onClick={() => setWeekOffset(value => value - 1)} aria-label="Xem tuần trước"><ChevronLeft aria-hidden="true" /></button>
-          <strong aria-live="polite">{weekLabel}</strong>
-          <button type="button" onClick={() => setWeekOffset(value => value + 1)} aria-label="Xem tuần sau"><ChevronRight aria-hidden="true" /></button>
-          {weekOffset !== 0 ? <button type="button" className="reference-current-week" onClick={() => setWeekOffset(0)}>Tuần này</button> : null}
-        </div>
-      </header>
-
-      <section className="reference-week-panel" aria-labelledby="weekly-schedule-title">
-        <div className="reference-week-panel-head">
-          <span><CalendarClock aria-hidden="true" /></span>
-          <div><h2 id="weekly-schedule-title">Lịch trong tuần</h2><p>{scheduledRooms.length} lịch thi có thời gian cụ thể</p></div>
-        </div>
-        <ol className="reference-week-grid">
-          {days.map(day => {
-            const key = dateKey(day);
-            const dayRooms = roomsByDate.get(key) ?? [];
-            const isToday = key === todayKey;
-            return (
-              <li key={key} className={isToday ? "is-today" : undefined}>
-                <header><span>{formatUiWeekday(day)}</span><b>{day.getDate()}</b><small>tháng {day.getMonth() + 1}</small></header>
-                <div className="reference-day-events">
-                  {dayRooms.length ? dayRooms.map(room => {
-                    const status = scheduleStatus(room, now);
-                    const start = new Date(room.exam_start!);
-                    const end = room.exam_end ? new Date(room.exam_end) : null;
-                    return (
-                      <Link href={`/exam-room/${encodeURIComponent(room.id)}`} key={room.id} className={`reference-schedule-event tone-${status.tone}`}>
-                        <span className="reference-event-status">{status.label}</span>
-                        <b>{room.title}</b>
-                        <span><Clock3 aria-hidden="true" />{formatUiTime(start)}{end && Number.isFinite(end.getTime()) ? ` - ${formatUiTime(end)}` : ""}</span>
-                        <small>{room.exam_type || "Đánh giá năng lực"} - {room.examCount} đề</small>
-                      </Link>
-                    );
-                  }) : <span className="reference-day-empty">Chưa có lịch</span>}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      </section>
-
-      <section className="reference-open-rooms" aria-labelledby="open-room-title">
-        <div className="reference-result-head"><span><ClipboardCheck aria-hidden="true" /></span><div><h2 id="open-room-title">Phòng mở không giới hạn</h2><p>Có thể truy cập bất cứ lúc nào khi phòng còn xuất bản.</p></div></div>
-        {unscheduledRooms.length ? (
-          <div className="reference-open-room-grid">
-            {unscheduledRooms.map(room => (
-              <Link key={room.id} href={`/exam-room/${encodeURIComponent(room.id)}`}>
-                <span><ClipboardCheck aria-hidden="true" /></span>
-                <span><b>{room.title}</b><small>{room.exam_type || "Phòng luyện"} - {room.examCount} đề</small></span>
-                <ChevronRight aria-hidden="true" />
-              </Link>
-            ))}
+    <div className="student-timetable-page w-full">
+      <section className="bg-white rounded-xl shadow-sm border border-gray-100 select-none overflow-hidden" aria-labelledby="student-timetable-title">
+        <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+          <h1 id="student-timetable-title" className="text-base font-semibold text-gray-800 flex items-center gap-2 m-0"><CalendarClock className="text-[#cd1627]" aria-hidden="true" />Thời Khóa Biểu</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="hidden sm:flex items-center gap-2" aria-label="Loại lịch">
+              {examTypes.map((type, index) => {
+                const palette = timetablePalettes[index % timetablePalettes.length];
+                return <span key={type} className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: palette.soft, color: palette.text }}><ClipboardCheck className="w-[11px] h-[11px]" aria-hidden="true" />{type}</span>;
+              })}
+            </div>
+            <div className="flex items-center gap-1" aria-label="Điều hướng tuần">
+              <button type="button" className="ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value - 1)} aria-label="Xem tuần trước"><ChevronLeft aria-hidden="true" /></button>
+              <strong className="text-xs font-medium text-gray-600 px-1 min-w-[140px] text-center" aria-live="polite">{weekLabel}</strong>
+              <button type="button" className="ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value + 1)} aria-label="Xem tuần sau"><ChevronRight aria-hidden="true" /></button>
+            </div>
+            <button type="button" className="ant-btn ant-btn-default ant-btn-sm" onClick={() => setWeekOffset(0)}><Crosshair aria-hidden="true" /><span>Hôm nay</span></button>
           </div>
-        ) : <p className="reference-inline-empty">Không có phòng mở không giới hạn.</p>}
+        </div>
+        <div className="student-timetable-scroll overflow-y-auto overflow-x-auto" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
+          <div style={{ minWidth: 560 }}>
+            <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
+              <div className="flex-shrink-0 border-r border-gray-100" style={{ width: 52 }} />
+              {days.map(day => {
+                const key = dateKey(day);
+                const isToday = key === todayKey;
+                return <div key={key} className={`flex-1 text-center py-2 border-l border-gray-100 min-w-[72px]${isToday ? " bg-red-50/40" : ""}`}><div className="text-[10px] leading-none" style={{ color: isToday ? "rgb(205,22,39)" : "rgb(156,163,175)" }}><span className="hidden sm:block">{formatUiWeekday(day)}</span><span className="block sm:hidden">{["CN", "T2", "T3", "T4", "T5", "T6", "T7"][day.getDay()]}</span></div><div className="text-[12px] font-semibold leading-tight mt-0.5" style={{ color: isToday ? "rgb(205,22,39)" : "rgb(107,114,128)" }}>{day.getDate()}/{day.getMonth() + 1}</div>{isToday ? <div className="w-1 h-1 rounded-full mx-auto mt-1 bg-[#cd1627]" /> : null}</div>;
+              })}
+            </div>
+            <div className="relative">
+              <div className="flex" style={{ height: timetableHeight }}>
+                <div className="flex-shrink-0 relative border-r border-gray-100 bg-white" style={{ width: 52 }}>
+                  {Array.from({ length: timetableEndHour - timetableStartHour }, (_, index) => timetableStartHour + index + 1).map(hour => <div key={hour} className="absolute right-2 text-[11px] text-gray-400 leading-none" style={{ top: (hour - timetableStartHour) * timetableHourHeight - 5 }}>{String(hour).padStart(2, "0")}:00</div>)}
+                </div>
+                {days.map(day => {
+                  const key = dateKey(day);
+                  const isToday = key === todayKey;
+                  const dayRooms = roomsByDate.get(key) ?? [];
+                  return <div key={key} className="flex-1 relative border-l border-gray-100 min-w-[72px]" style={isToday ? { background: "rgba(205,22,39,0.016)" } : undefined}>
+                    {Array.from({ length: timetableEndHour - timetableStartHour + 1 }, (_, index) => <span key={index} className="absolute left-0 right-0 border-t border-dashed border-gray-100" style={{ top: index * timetableHourHeight }} />)}
+                    {dayRooms.map(room => {
+                      const start = new Date(room.exam_start!);
+                      const parsedEnd = room.exam_end ? new Date(room.exam_end) : null;
+                      const startMinutes = Math.max(timetableStartHour * 60, Math.min(timetableEndHour * 60, timetableMinutes(start)));
+                      const rawEndMinutes = parsedEnd && Number.isFinite(parsedEnd.getTime()) && dateKey(parsedEnd) === key ? timetableMinutes(parsedEnd) : startMinutes + 60;
+                      const endMinutes = Math.max(startMinutes + 30, Math.min(timetableEndHour * 60, rawEndMinutes));
+                      const top = (startMinutes - timetableStartHour * 60) / 60 * timetableHourHeight;
+                      const height = Math.max(30, (endMinutes - startMinutes) / 60 * timetableHourHeight - 2);
+                      const palette = paletteForRoom(room);
+                      return <Link href={`/exam-room/${encodeURIComponent(room.id)}`} key={room.id} className="absolute overflow-hidden transition-opacity hover:opacity-80" style={{ top, height, left: 2, right: 2, borderRadius: 5, background: palette.background, borderLeft: `3px solid ${palette.border}`, boxShadow: "rgba(0,0,0,0.06) 0px 1px 3px", color: palette.text }} title={`${room.title} · ${formatUiTime(start)}`}><span className="block p-[3px_6px] min-w-0"><b className="block text-[11px] leading-[1.25] overflow-hidden text-ellipsis whitespace-nowrap">{room.title}</b><span className="block text-[10px] leading-[1.3] opacity-80 overflow-hidden text-ellipsis whitespace-nowrap">{formatUiTime(start)}{parsedEnd && Number.isFinite(parsedEnd.getTime()) ? `–${formatUiTime(parsedEnd)}` : ""}</span><span className="block text-[10px] leading-[1.3] opacity-65 overflow-hidden text-ellipsis whitespace-nowrap">{room.exam_type || "Phòng khảo thí"} · {room.examCount} đề</span></span></Link>;
+                    })}
+                    {isToday && currentMinutes >= timetableStartHour * 60 && currentMinutes <= timetableEndHour * 60 ? <div className="absolute left-0 right-0 z-10 pointer-events-none flex items-center" style={{ top: currentLineTop }}><span className="w-2 h-2 rounded-full bg-[#cd1627] -ml-1" /><span className="flex-1 h-0.5 bg-[#cd1627] opacity-85" /></div> : null}
+                  </div>;
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );
