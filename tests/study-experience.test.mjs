@@ -182,12 +182,12 @@ test("compact course navigation opens the reference-style flyout", async () => {
   assert.match(css, /\.compact-nav-popover\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?inset-inline-start:\s*104px;[\s\S]*?width:\s*224px;[\s\S]*?padding:\s*8px 0;[\s\S]*?border-radius:\s*8px;/);
 });
 
-test("study video affordances keep the reference picker circle and compact curriculum icon", async () => {
+test("study video affordances keep the supplied reference icons", async () => {
   const source = await readFile(platformUrl, "utf8");
   const studySource = source.slice(source.indexOf("function LessonViewer"), source.indexOf("function ExamHistory"));
 
-  assert.match(studySource, /<CirclePlay\b/);
-  assert.match(studySource, /<Play\b/);
+  assert.match(studySource, /<ReferencePlayCircleIcon\b/);
+  assert.match(studySource, /<ReferenceFilePdfIcon\b/);
 });
 
 test("phone study context names the selected resource and its lesson", async () => {
@@ -217,6 +217,17 @@ test("the initial lesson state uses the picker markup copied from the HTML refer
   assert.match(studySource, /Bài học này bao gồm \{resources\.length\} nội dung\. Vui lòng chọn một mục bên dưới để bắt đầu học\./);
   assert.match(studySource, /lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4/);
   assert.match(studySource, /lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-\[#158a39\] hover:shadow-md transition-all cursor-pointer group\/card/);
+});
+
+test("lesson resources use the exact play-circle and file-pdf icons from the HTML reference", async () => {
+  const source = await readFile(platformUrl, "utf8");
+  const studySource = source.slice(source.indexOf("function LessonViewer"), source.indexOf("function ExamHistory"));
+
+  assert.match(source, /data-icon="play-circle"/);
+  assert.match(source, /data-icon="file-pdf"/);
+  assert.match(studySource, /resourceIsVideo \? <ReferencePlayCircleIcon\/> : <ReferenceFilePdfIcon\/>/);
+  assert.match(studySource, /isVideoResource\(resource\.resource_type\) \? <ReferencePlayCircleIcon\/> : <ReferenceFilePdfIcon\/>/);
+  assert.doesNotMatch(studySource, /resourceIsVideo \? <CirclePlay\/> : <FilePlus\/>/);
 });
 
 test("the copied resource picker does not have a second hand-written CSS implementation", async () => {

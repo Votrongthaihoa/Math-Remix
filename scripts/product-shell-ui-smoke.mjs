@@ -855,6 +855,8 @@ async function inspectLessonResources() {
         pickerVisible: Boolean(picker && picker.getBoundingClientRect().width > 0),
         choiceCount: document.querySelectorAll(".lesson-resource-choice").length,
         expectedCount,
+        choiceIcons: [...document.querySelectorAll(".lesson-resource-choice svg")].map(icon => icon.getAttribute("data-icon")),
+        curriculumIcons: [...document.querySelectorAll(".curriculum-resource svg")].map(icon => icon.getAttribute("data-icon")),
         playerAbsentBeforeSelection: !document.querySelector(".lesson-video, .lesson-document"),
         gridColumns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
         horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
@@ -862,7 +864,9 @@ async function inspectLessonResources() {
     }, mockLessonResources.length);
     await page.screenshot({ path: join(outputDir, `student-lesson-picker-${width}.png`), fullPage: true });
     if (!pickerState.pickerVisible || pickerState.choiceCount !== pickerState.expectedCount || !pickerState.playerAbsentBeforeSelection
-      || pickerState.horizontalOverflow || pickerState.gridColumns !== (width >= 768 ? 2 : 1)) {
+      || pickerState.horizontalOverflow || pickerState.gridColumns !== (width >= 768 ? 2 : 1)
+      || JSON.stringify(pickerState.choiceIcons) !== JSON.stringify(["play-circle", "file-pdf"])
+      || !pickerState.curriculumIcons.includes("play-circle") || !pickerState.curriculumIcons.includes("file-pdf")) {
       throw new Error(`Study resource picker failed at ${width}px: ${JSON.stringify(pickerState)}`);
     }
     await resourcePicker.locator(".lesson-resource-choice").first().click();

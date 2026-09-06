@@ -38,7 +38,7 @@ import StudentDashboard from "./student-dashboard";
 import { formatUiActivityDate, formatUiDate, formatUiShortDateTime } from "./ui-format";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
-  Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Play, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
+  Search, ShieldCheck, Users, Library, ListChecks, Plus, CirclePlay, Trash2, Save, FolderPlus, FilePlus, Link2, ImagePlus,
   ArrowLeft, LockKeyhole, Mail, BadgeCheck, Eye, EyeOff, X, ChevronDown, ChevronLeft, FileVideo, Activity, BarChart3,
   LayoutGrid, List as ListIcon, Server
 } from "lucide-react";
@@ -192,6 +192,24 @@ function formatLessonTitle(title: string, index: number) {
 
 function resourceTypeLabel(type: ResourceData["resource_type"]) {
   return type === "youtube" ? "Video YouTube" : type === "onedrive_video" ? "Video Microsoft" : type === "hls_vault" ? "Video HLS Vault" : type === "storage_pdf" ? "PDF trên R2 private" : "PDF / Google Drive";
+}
+
+function isVideoResource(type: ResourceData["resource_type"]) {
+  return type === "youtube" || type === "onedrive_video" || type === "hls_vault";
+}
+
+function ReferencePlayCircleIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="64 64 896 896" focusable="false" data-icon="play-circle" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+    <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+    <path d="M719.4 499.1l-296.1-215A15.9 15.9 0 00398 297v430c0 13.1 14.8 20.5 25.3 12.9l296.1-215a15.9 15.9 0 000-25.8zm-257.6 134V390.9L628.5 512 461.8 633.1z" />
+  </svg>;
+}
+
+function ReferenceFilePdfIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="64 64 896 896" focusable="false" data-icon="file-pdf" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+    <path d="M531.3 574.4l.3-1.4c5.8-23.9 13.1-53.7 7.4-80.7-3.8-21.3-19.5-29.6-32.9-30.2-15.8-.7-29.9 8.3-33.4 21.4-6.6 24-.7 56.8 10.1 98.6-13.6 32.4-35.3 79.5-51.2 107.5-29.6 15.3-69.3 38.9-75.2 68.7-1.2 5.5.2 12.5 3.5 18.8 3.7 7 9.6 12.4 16.5 15 3 1.1 6.6 2 10.8 2 17.6 0 46.1-14.2 84.1-79.4 5.8-1.9 11.8-3.9 17.6-5.9 27.2-9.2 55.4-18.8 80.9-23.1 28.2 15.1 60.3 24.8 82.1 24.8 21.6 0 30.1-12.8 33.3-20.5 5.6-13.5 2.9-30.5-6.2-39.6-13.2-13-45.3-16.4-95.3-10.2-24.6-15-40.7-35.4-52.4-65.8zM421.6 726.3c-13.9 20.2-24.4 30.3-30.1 34.7 6.7-12.3 19.8-25.3 30.1-34.7zm87.6-235.5c5.2 8.9 4.5 35.8.5 49.4-4.9-19.9-5.6-48.1-2.7-51.4.8.1 1.5.7 2.2 2zm-1.6 120.5c10.7 18.5 24.2 34.4 39.1 46.2-21.6 4.9-41.3 13-58.9 20.2-4.2 1.7-8.3 3.4-12.3 5 13.3-24.1 24.4-51.4 32.1-71.4zm155.6 65.5c.1.2.2.5-.4.9h-.2l-.2.3c-.8.5-9 5.3-44.3-8.6 40.6-1.9 45 7.3 45.1 7.4z" />
+    <path d="M854.6 288.6L639.4 73.4c-6-6-14.1-9.4-22.6-9.4H192c-17.7 0-32 14.3-32 32v832c0 17.7 14.3 32 32 32h640c17.7 0 32-14.3 32-32V311.3c0-8.5-3.4-16.7-9.4-22.7zM790.2 326H602V137.8L790.2 326zM792 888H232V136h302v216a42 42 0 0042 42h216v494z" />
+  </svg>;
 }
 
 function authModeFromLocation(pathname: string, searchParams: { get(name: string): string | null }): AuthMode {
@@ -1602,7 +1620,7 @@ function CourseCard({ course }: { course: CourseData }) {
       </div></div>
       <div className="ant-card-body flex flex-col flex-1 p-5">
         <div className="ant-card-meta mb-auto"><div className="ant-card-meta-section"><div className="ant-card-meta-title"><span className="text-lg font-bold text-gray-800 whitespace-normal leading-tight">{course.title}</span></div></div></div>
-        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center bg-white"><div className="text-xs text-gray-500 flex items-center gap-1"><CirclePlay className="anticon anticon-play-circle text-[#158a39]" aria-hidden="true" /> {course.lessons} bài học</div><span className="font-semibold transition flex items-center gap-1 text-sm cursor-pointer text-[#158a39] hover:text-[#0f6e2d]">Vào học</span></div>
+        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center bg-white"><div className="text-xs text-gray-500 flex items-center gap-1"><ReferencePlayCircleIcon className="anticon anticon-play-circle text-[#158a39]" /> {course.lessons} bài học</div><span className="font-semibold transition flex items-center gap-1 text-sm cursor-pointer text-[#158a39] hover:text-[#0f6e2d]">Vào học</span></div>
       </div>
     </Link>
   </article>;
@@ -1838,9 +1856,9 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
                 <h2 id="lesson-resource-picker-title" className="text-3xl font-bold text-gray-800 mb-4">{formatLessonTitle(lesson.title, lesson.sort_order)}</h2>
                 <p className="text-gray-500 mb-8 text-lg">Bài học này bao gồm {resources.length} nội dung. Vui lòng chọn một mục bên dưới để bắt đầu học.</p>
                 {resources.length ? <div className="lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4">{resources.map(resource => {
-                  const resourceIsVideo = ["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type);
+                  const resourceIsVideo = isVideoResource(resource.resource_type);
                   return <button type="button" className="lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[#158a39] hover:shadow-md transition-all cursor-pointer group/card" key={resource.id} onClick={() => selectResource(resource.id)}>
-                    <span className="lesson-resource-choice-icon w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover/card:scale-110 transition-transform shrink-0" aria-hidden="true">{resourceIsVideo ? <CirclePlay/> : <FilePlus/>}</span>
+                    <span className="lesson-resource-choice-icon w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover/card:scale-110 transition-transform shrink-0" aria-hidden="true">{resourceIsVideo ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span>
                     <span className="flex-1 min-w-0"><b className="block font-semibold text-slate-700 group-hover/card:text-[#158a39] transition-colors truncate">{resource.title}</b><small className="block text-xs text-gray-500 mt-1 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
                   </button>;
                 })}</div> : <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/>}
@@ -1860,8 +1878,8 @@ function LessonViewer({ lessonId, onCourseResolved, onOpenAppMenu }: { lessonId:
             <div className="lesson-curriculum-lessons">{section.lessons.map(item => <div ref={item.id === lessonId ? currentLessonRef : undefined} className={`curriculum-lesson ${item.id === lessonId ? "current" : ""}`} key={item.id}>
               {item.id === lessonId ? <span className="curriculum-lesson-title" aria-current="page"><span className="curriculum-status-dot" aria-hidden="true"/><b>{formatLessonTitle(item.title, item.sort_order)}</b></span> : <Link className="curriculum-lesson-title" href={`/lessons/${encodeURIComponent(item.id)}`} onClick={closeCurriculum}><span className="curriculum-status-dot" aria-hidden="true"/><b>{formatLessonTitle(item.title, item.sort_order)}</b></Link>}
               {item.resources.map(resource => item.id === lessonId
-                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => selectResource(resource.id)}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <Play aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></button>
-                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`} onClick={closeCurriculum}><span>{["youtube", "onedrive_video", "hls_vault"].includes(resource.resource_type) ? <Play aria-hidden="true"/> : <BookOpen aria-hidden="true"/>}</span><span><b>{resource.title}</b></span></Link>)}
+                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => selectResource(resource.id)}><span>{isVideoResource(resource.resource_type) ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span><span><b>{resource.title}</b></span></button>
+                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`} onClick={closeCurriculum}><span>{isVideoResource(resource.resource_type) ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span><span><b>{resource.title}</b></span></Link>)}
             </div>)}</div>
           </details>;
         })}</div> : <MiniEmpty text="Chưa có nội dung giáo trình."/>}
