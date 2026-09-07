@@ -2,27 +2,30 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-test("learner reference fidelity layer follows the supplied red and green route themes without touching protected exam UI", async () => {
-  const [platform, styles, redWordmark, redCompact] = await Promise.all([
+test("learner reference fidelity layer uses one red-white theme without touching protected exam UI", async () => {
+  const [platform, styles, finalTheme, redWordmark, redCompact] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/red-white-theme.css", import.meta.url), "utf8"),
     readFile(new URL("../public/logo_aeck_red.svg", import.meta.url), "utf8"),
     readFile(new URL("../public/logo_aeck_compact_red.svg", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /import "\.\/student-reference-fidelity\.css";/);
-  assert.match(platform, /learner-red-theme/);
-  assert.match(platform, /learner-green-theme/);
+  assert.match(platform, /import "\.\/red-white-theme\.css";/);
+  assert.doesNotMatch(platform, /learner-green-theme/);
   assert.match(platform, /\/logo_aeck_red\.svg/);
   assert.match(platform, /\/logo_aeck_compact_red\.svg/);
   assert.match(styles, /\.ui-shell\.student-app\.product-shell:not\(\.protected-exam-surface\)/);
   assert.match(styles, /--learner-accent:\s*#cd1627;/i);
-  assert.match(styles, /\.learner-green-theme[^\{]*\{[^}]*--learner-accent:\s*#158a39;/is);
+  assert.doesNotMatch(styles, /\.learner-green-theme/);
+  assert.match(finalTheme, /--brand-red:\s*#cd1627;/i);
   assert.match(redWordmark, /#cd1627/i);
   assert.match(redCompact, /#cd1627/i);
   assert.doesNotMatch(redWordmark, /#158a39/i);
   assert.doesNotMatch(redCompact, /#158a39/i);
   assert.doesNotMatch(styles, /(?:exam-shell|question-|answer-|exam-result|review-|solution-)/i);
+  assert.doesNotMatch(finalTheme, /(?:exam-shell|question-|answer-|exam-result|review-|solution-)/i);
 });
 
 test("profile renders the supplied portal structure with URL-backed information and course tabs", async () => {

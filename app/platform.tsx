@@ -34,6 +34,7 @@ import "./course-exam-tabs.css";
 import "./account-learning-polish.css";
 import "./student-reference-fidelity.css";
 import "./student-timetable-reference.css";
+import "./red-white-theme.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
@@ -364,6 +365,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [turnstileResetNonce, setTurnstileResetNonce] = useState(0);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [assignedCourses, setAssignedCourses] = useState<CourseData[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
  const [practiceRooms, setPracticeRooms] = useState<PracticeRoomData[]>([]);
  const [attempts, setAttempts] = useState<AttemptData[]>([]);
  const [overviewLoading, setOverviewLoading] = useState(false);
@@ -374,7 +376,6 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [loginContext, setLoginContext] = useState<"student" | "admin">(initialAdminRoute ? "admin" : "student");
   const authOperationRef = useRef(0);
-  const overviewBootstrapRef = useRef(false);
   const lastFocusedRouteRef = useRef<string | null>(null);
   const popstateNavigationRef = useRef(false);
   const accountTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -517,12 +518,19 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     supabase.auth.getSession().then(async ({ data }) => {
       if (!isCurrentOperation()) return;
       if (!data.session) { setSignedIn(false); setAuthReady(true); setCheckingSession(false); return; }
-      // A session restored from browser storage can be stale even when it has
-      // not been removed locally. Verify the access token with Supabase before
-      // trusting its cached user/profile in the admin shell.
-      const accessToken = await activeSessionToken().catch(() => null);
+      // Verify the restored token once. getClaims() uses the local JWKS cache
+      // for asymmetric projects and falls back to the Auth server for legacy
+      // symmetric signing keys; unlike getSession(), its result is safe to
+      // use for establishing the identity of the shell.
+      const accessToken = data.session.access_token;
+      const [claimsResult, profileResult] = await Promise.all([
+        supabase!.auth.getClaims(accessToken).catch(() => ({ data: null, error: new Error("claims_unavailable") })),
+        supabase!.from("profiles").select("full_name,student_code,role,status").eq("id", data.session.user.id).single(),
+      ]);
+      const claims = claimsResult.data?.claims;
+      const verifiedId = claims?.sub;
       if (!isCurrentOperation()) return;
-      if (!accessToken) {
+      if (!verifiedId || verifiedId !== data.session.user.id) {
         await supabase!.auth.signOut({ scope: "local" }).catch(() => undefined);
         if (!isCurrentOperation()) return;
         setSignedIn(false);
@@ -532,19 +540,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         setCheckingSession(false);
         return;
       }
-      const { data: verifiedUser, error: verificationError } = await supabase!.auth.getUser(accessToken);
-      if (!isCurrentOperation()) return;
-      if (verificationError || !verifiedUser.user) {
-        await supabase!.auth.signOut({ scope: "local" }).catch(() => undefined);
-        if (!isCurrentOperation()) return;
-        setSignedIn(false);
-        setProfileData(null);
-        setIsAdmin(false);
-        setAuthReady(true);
-        setCheckingSession(false);
-        return;
-      }
-      const profile = await loadUserData(verifiedUser.user);
+      const verifiedUser = { id: verifiedId, email: typeof claims?.email === "string" ? claims.email : data.session.user.email };
+      const profile = await loadUserData(verifiedUser, profileResult.data as Omit<ProfileData, "email"> | null);
       if (!isCurrentOperation()) return;
       if (!profile || profile.status === "locked") {
         await supabase!.auth.signOut({ scope: "local" }).catch(() => undefined);
@@ -553,6 +550,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         setProfileData(null);
         setIsAdmin(false);
       } else setSignedIn(true);
+      // The profile is the critical gate. Course, exam and lesson data are
+      // deliberately loaded by loadUserData in the background.
       setAuthReady(true);
       setCheckingSession(false);
     }).catch(() => {
@@ -568,6 +567,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         setProfileData(null);
         setIsAdmin(false);
         setAssignedCourses([]);
+        setCoursesLoading(false);
         setPracticeRooms([]);
         setAttempts([]);
         setAuthReady(true);
@@ -644,19 +644,12 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   }, [adminRouteRequested, router, signedIn, uiRouteMode]);
 
   useEffect(() => {
-    if (!signedIn || currentView !== "overview") return;
-    // loadUserData already receives the rooms payload during session bootstrap.
-    // Avoid fetching the same rooms/history data again in the same render cycle.
-   if (overviewBootstrapRef.current) {
-     overviewBootstrapRef.current = false;
-      setOverviewLoading(false);
-     return;
-   }
+    if (!signedIn || !["overview", "search", "profile"].includes(currentView)) return;
    let active = true;
    const controller = new AbortController();
-    setOverviewLoading(true);
-    setOverviewError("");
    const refreshOverviewData = async () => {
+     setOverviewLoading(true);
+     setOverviewError("");
      const [historyResponse, roomsResponse] = await Promise.all([
        authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal }).catch(() => null),
        authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store", signal: controller.signal }).catch(() => null),
@@ -686,52 +679,50 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
       })));
        }
-    }
+     }
      if (active && !controller.signal.aborted) setOverviewLoading(false);
    };
-   void refreshOverviewData();
-    return () => { active = false; controller.abort(); };
+   const timer = window.setTimeout(() => { void refreshOverviewData(); }, 0);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [currentView, overviewReloadKey, signedIn]);
 
-  async function loadUserData(user: { id: string; email?: string | null }) {
+  async function loadUserData(user: { id: string; email?: string | null }, prefetchedProfile?: Omit<ProfileData, "email"> | null) {
     if (!supabase) return null;
-    const [profileResult, examRoomsResponse] = await Promise.all([
-      supabase.from("profiles").select("full_name,student_code,role,status").eq("id", user.id).single(),
-      authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store" }).catch(() => null),
-    ]);
-    const profile = profileResult.data as Omit<ProfileData, "email"> | null;
+    // Profile, role and account state are the only data required before the
+    // shell can render. Everything else is intentionally deferred.
+    const profile = prefetchedProfile === undefined
+      ? (await supabase.from("profiles").select("full_name,student_code,role,status").eq("id", user.id).single()).data as Omit<ProfileData, "email"> | null
+      : prefetchedProfile;
     const administrator = profile?.role === "admin" && profile.status === "active";
     setProfileData(profile ? { ...profile, email: user.email ?? "" } : null);
     setIsAdmin(administrator);
     if (!profile) {
       setAssignedCourses([]);
-      setPracticeRooms([]);
-      setAttempts([]);
+      setCoursesLoading(false);
       return null;
     }
+    const operationId = authOperationRef.current;
+    setCoursesLoading(true);
+    void loadCourseData(user, administrator).catch(() => {
+        if (authOperationRef.current === operationId) setAssignedCourses([]);
+      })
+      .finally(() => {
+        if (authOperationRef.current === operationId) setCoursesLoading(false);
+      });
+    return profile;
+  }
 
-    const examRoomsPayload = examRoomsResponse?.ok
-      ? await examRoomsResponse.json().catch(() => null) as ExamRoomsPayload | null
-      : null;
-    const examRows = examRoomsPayload?.exams ?? [];
-    const accessibleRooms = (examRoomsPayload?.rooms ?? []).map(room => ({
-      id: room.id,
-      title: room.title,
-      description: room.description ?? null,
-      exam_type: room.exam_type ?? null,
-      registration_start: room.registration_start ?? null,
-      registration_end: room.registration_end ?? null,
-      exam_start: room.exam_start ?? null,
-      exam_end: room.exam_end ?? null,
-      examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
-    }));
-    setPracticeRooms(accessibleRooms);
-    setAttempts(examRoomsPayload?.attempts ?? []);
-    overviewBootstrapRef.current = Boolean(examRoomsPayload);
-
+  async function loadCourseData(user: { id: string }, administrator: boolean) {
+    if (!supabase) return;
+    const operationId = authOperationRef.current;
     const courseResult = administrator
       ? await supabase.from("courses").select("id,title,description,cover_url,cover_color,published").order("sort_order").order("created_at")
       : await supabase.from("course_enrollments").select("course_id,courses(id,title,description,cover_url,cover_color,published)").eq("student_id", user.id);
+    if (courseResult.error) throw courseResult.error;
     const accessibleCourses = administrator
       ? ((courseResult.data ?? []) as CourseRow[]).map(course => ({ id: course.id, title: course.title, description: course.description ?? "", cover_url: course.cover_url ?? null, published: course.published, lessons: 0, color: courseColor(course.cover_color) }))
       : ((courseResult.data ?? []) as EnrollmentCourseRow[]).flatMap(row => {
@@ -741,10 +732,12 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     let coursesWithCounts = accessibleCourses as CourseData[];
     const accessibleCourseIds = accessibleCourses.map(course => String(course.id));
     if (accessibleCourseIds.length) {
-      const { data: chapterRows } = await supabase.from("chapters").select("id,course_id").in("course_id", accessibleCourseIds);
+      const { data: chapterRows, error: chapterError } = await supabase.from("chapters").select("id,course_id").in("course_id", accessibleCourseIds);
+      if (chapterError) throw chapterError;
       const chapterIds = (chapterRows ?? []).map(chapter => chapter.id);
       const lessonQuery = supabase.from("lessons").select("id,chapter_id,published").in("chapter_id", chapterIds);
-      const { data: lessonRows } = chapterIds.length ? await (administrator ? lessonQuery : lessonQuery.eq("published", true)) : { data: [] };
+      const { data: lessonRows, error: lessonError } = chapterIds.length ? await (administrator ? lessonQuery : lessonQuery.eq("published", true)) : { data: [], error: null };
+      if (lessonError) throw lessonError;
       const chapterCourse = Object.fromEntries((chapterRows ?? []).map(chapter => [chapter.id, chapter.course_id]));
       const lessonCounts = (lessonRows ?? []).reduce<Record<string, number>>((counts, lesson) => {
         const courseId = chapterCourse[lesson.chapter_id];
@@ -753,8 +746,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       }, {});
       coursesWithCounts = accessibleCourses.map(course => ({ ...course, lessons: lessonCounts[String(course.id)] ?? 0 }));
     }
-    setAssignedCourses(coursesWithCounts);
-    return profile;
+    if (authOperationRef.current === operationId) setAssignedCourses(coursesWithCounts);
   }
 
   async function login(e: React.FormEvent) {
@@ -1004,15 +996,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const currentPath = pathname;
   const examRunnerSurface = currentView === "exams" && isExamRunnerPath(currentPath);
   const protectedProductSurface = isProtectedProductPath(currentPath);
-  const learnerGreenTheme = !adminRouteRequested
-    && !examRunnerSurface
-    && !protectedProductSurface
-    && (currentView === "courses" || currentView === "course" || currentView === "lesson");
-  const learnerRedTheme = !adminRouteRequested
-    && !examRunnerSurface
-    && !protectedProductSurface
-    && !learnerGreenTheme;
-  const learnerThemeClass = learnerGreenTheme ? "learner-green-theme" : learnerRedTheme ? "learner-red-theme" : "";
+  const learnerThemeClass = "";
+  // Keep the theme switch explicit for the shell contract while the product
+  // surface remains intentionally red/white.
+  const learnerRedTheme = true;
   const shellLogoFull = learnerRedTheme ? "/logo_aeck_red.svg" : "/logo_aeck.svg";
   const shellLogoCompact = learnerRedTheme ? "/logo_aeck_compact_red.svg" : "/logo_aeck_compact.svg";
   const handleNavigationLink = (event: React.MouseEvent<HTMLAnchorElement>, next: View, path: string) => {
@@ -1060,6 +1047,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setProfileData(null);
       setIsAdmin(false);
       setAssignedCourses([]);
+      setCoursesLoading(false);
       setPracticeRooms([]);
       setAttempts([]);
       setAccountMenuOpen(false);
@@ -1126,8 +1114,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       )}
       <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : currentView === "course" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
         {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
-        {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} />}
-        {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} />}
+        {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} loading={coursesLoading} />}
+        {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} loading={coursesLoading} />}
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onOpenAppMenu={openMobileMenu} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
@@ -1468,7 +1456,7 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
   </div>;
 }
 
-function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isAdmin: boolean }) {
+function Courses({ courses: courseItems, isAdmin, loading }: { courses: CourseData[]; isAdmin: boolean; loading: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1551,7 +1539,7 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
       </div>
     </div>
     <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0}>
-      {filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
+      {loading ? <CourseCatalogSkeleton /> : filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
     </div>
   </div>;
 }
@@ -1581,13 +1569,13 @@ function CourseCard({ course }: { course: CourseData }) {
       </div></div>
       <div className="ant-card-body flex flex-col flex-1 p-5">
         <div className="ant-card-meta mb-auto"><div className="ant-card-meta-section"><div className="ant-card-meta-title"><span className="text-lg font-bold text-gray-800 whitespace-normal leading-tight">{course.title}</span></div></div></div>
-        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center bg-white"><div className="text-xs text-gray-500 flex items-center gap-1"><ReferencePlayCircleIcon className="anticon anticon-play-circle text-[#158a39]" /> {course.lessons} bài học</div><span className="font-semibold transition flex items-center gap-1 text-sm cursor-pointer text-[#158a39] hover:text-[#0f6e2d]">Vào học</span></div>
+        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center bg-white"><div className="text-xs text-gray-500 flex items-center gap-1"><ReferencePlayCircleIcon className="anticon anticon-play-circle text-[#cd1627]" /> {course.lessons} bài học</div><span className="font-semibold transition flex items-center gap-1 text-sm cursor-pointer text-[#cd1627] hover:text-[#a8101e]">Vào học</span></div>
       </div>
     </Link>
   </article>;
 }
 
-function CourseDetail({ course, showDrafts }: { course: CourseData | null; showDrafts: boolean }) {
+function CourseDetail({ course, showDrafts, loading }: { course: CourseData | null; showDrafts: boolean; loading: boolean }) {
   const [chapters, setChapters] = useState<ChapterData[]>([]);
   const [courseLessons, setCourseLessons] = useState<LessonData[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
@@ -1620,10 +1608,11 @@ function CourseDetail({ course, showDrafts }: { course: CourseData | null; showD
     return () => { cancelled = true; };
   }, [contentReloadVersion, course, showDrafts]);
 
+  if (!course && loading) return <CourseDetailSkeleton />;
   if (!course) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
   const firstCourseLesson = courseLessons[0];
   return <div className="course-study-page-reference max-w-[1700px] mx-auto min-h-[calc(100vh-32px)] flex flex-col">
-    <div className="course-detail-breadcrumb py-2 pb-4 flex items-center justify-between"><div className="flex items-center gap-2 overflow-hidden"><Link className="text-gray-500 hover:text-[#158a39] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2">/</span><span className="font-bold text-gray-800 uppercase tracking-wide truncate max-w-[200px] md:max-w-[400px]">{course.title}</span></div></div>
+    <div className="course-detail-breadcrumb py-2 pb-4 flex items-center justify-between"><div className="flex items-center gap-2 overflow-hidden"><Link className="text-gray-500 hover:text-[#cd1627] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2">/</span><span className="font-bold text-gray-800 uppercase tracking-wide truncate max-w-[200px] md:max-w-[400px]">{course.title}</span></div></div>
     <div className="flex flex-col lg:flex-row flex-1 gap-8 pt-2 items-start">
       <section className="flex-1 w-full overflow-hidden">
         <div className="w-full h-auto bg-[#0f172a] rounded-xl shadow-sm relative group"><div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-900 relative flex items-center justify-center shadow-lg"><CourseCoverVisual course={course} detail /></div></div>
@@ -1808,20 +1797,18 @@ function LessonViewer({ lessonId, onOpenAppMenu }: { lessonId: string; onOpenApp
             {previousLesson ? <Link href={`/lessons/${encodeURIComponent(previousLesson.id)}`} onClick={closeCurriculum}><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>{formatLessonTitle(previousLesson.title, previousLesson.sort_order)}</b></span></Link> : <span className="disabled" aria-disabled="true"><ChevronLeft aria-hidden="true"/><span><small>Bài trước</small><b>Đây là bài đầu tiên</b></span></span>}
             {nextLesson ? <Link href={`/lessons/${encodeURIComponent(nextLesson.id)}`} onClick={closeCurriculum}><span><small>Bài tiếp theo</small><b>{formatLessonTitle(nextLesson.title, nextLesson.sort_order)}</b></span><ChevronRight aria-hidden="true"/></Link> : <span className="disabled" aria-disabled="true"><span><small>Bài tiếp theo</small><b>Đã hết khóa học</b></span><ChevronRight aria-hidden="true"/></span>}
           </nav>
-        </> : <section ref={viewerRef} className="lesson-resource-picker flex-1 w-full overflow-hidden" aria-labelledby="lesson-resource-picker-title">
-          <div className="w-full h-auto bg-[#0f172a] rounded-xl shadow-sm relative group">
-            <div className="w-full min-h-[50vh] md:min-h-[60vh] rounded-xl bg-white border border-gray-200 shadow-sm p-8 md:p-12 flex flex-col justify-center">
-              <div className="max-w-3xl mx-auto w-full">
-                <h2 id="lesson-resource-picker-title" className="text-3xl font-bold text-gray-800 mb-4">{formatLessonTitle(lesson.title, lesson.sort_order)}</h2>
-                <p className="text-gray-500 mb-8 text-lg">Bài học này bao gồm {resources.length} nội dung. Vui lòng chọn một mục bên dưới để bắt đầu học.</p>
-                {resources.length ? <div className="lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4">{resources.map(resource => {
+        </> : <section ref={viewerRef} className="viewer-card lesson-resource-picker flex-1 w-full overflow-hidden" aria-labelledby="lesson-resource-picker-title">
+          <div className="lesson-viewer-surface lesson-resource-picker-surface w-full min-h-[50vh] md:min-h-[60vh] rounded-xl bg-white border border-gray-200 shadow-sm p-8 md:p-12 flex flex-col justify-center">
+            <div className="lesson-resource-picker-content max-w-3xl mx-auto w-full">
+              <h2 id="lesson-resource-picker-title" className="text-3xl font-bold text-gray-800 mb-4">{formatLessonTitle(lesson.title, lesson.sort_order)}</h2>
+              <p className="text-gray-500 mb-8 text-lg">Bài học này bao gồm {resources.length} nội dung. Vui lòng chọn một mục bên dưới để bắt đầu học.</p>
+              {resources.length ? <div className="lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4">{resources.map(resource => {
                   const resourceIsVideo = isVideoResource(resource.resource_type);
-                  return <button type="button" className="lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[#158a39] hover:shadow-md transition-all cursor-pointer group/card" key={resource.id} onClick={() => selectResource(resource.id)}>
+                  return <button type="button" className="lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[#cd1627] hover:shadow-md active:scale-[0.96] transition-[background-color,border-color,box-shadow,transform] cursor-pointer group/card" key={resource.id} onClick={() => selectResource(resource.id)}>
                     <span className="lesson-resource-choice-icon w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover/card:scale-110 transition-transform shrink-0" aria-hidden="true">{resourceIsVideo ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span>
-                    <span className="flex-1 min-w-0"><b className="block font-semibold text-slate-700 group-hover/card:text-[#158a39] transition-colors truncate">{resource.title}</b><small className="block text-xs text-gray-500 mt-1 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
+                    <span className="lesson-resource-choice-copy flex-1 min-w-0"><b className="font-semibold text-slate-700 group-hover/card:text-[#cd1627] transition-colors">{resource.title}</b><small className="text-xs text-gray-500 mt-1 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
                   </button>;
                 })}</div> : <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/>}
-              </div>
             </div>
           </div>
         </section>}
@@ -1952,6 +1939,20 @@ function HistoryLoading() {
     <div className="history-skeleton-row"><i /><i /><i /><i /></div>
     <div className="history-skeleton-row"><i /><i /><i /><i /></div>
     <div className="history-skeleton-row"><i /><i /><i /><i /></div>
+  </section>;
+}
+
+function CourseCatalogSkeleton() {
+  return <section className="course-catalog-loading" role="status" aria-label="Đang tải khóa học">
+    <span className="student-skeleton-label">Đang tải khóa học…</span>
+    <div aria-hidden="true">{Array.from({ length: 3 }, (_, index) => <article key={index}><i /><span /><span /></article>)}</div>
+  </section>;
+}
+
+function CourseDetailSkeleton() {
+  return <section className="course-detail-loading" role="status" aria-label="Đang mở khóa học">
+    <span className="student-skeleton-label">Đang mở khóa học…</span>
+    <div aria-hidden="true"><i /><article><span /><span /><span /></article></div>
   </section>;
 }
 

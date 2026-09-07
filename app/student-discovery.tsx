@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { formatUiDate } from "./ui-format";
+import { authenticatedFetch } from "../lib/auth-client";
 
 type SearchCourse = {
   id: string | number;
@@ -229,11 +230,29 @@ export type TimetableEntry = {
   startTime: string;
   endTime: string;
   title: string;
+  courseTitle?: string;
+  eventKind?: "live" | "lesson";
   format: TimetableFormat;
   instructor?: string | null;
   hasLink?: boolean;
   joinUrl?: string | null;
 };
+
+type TimetableApiEvent = {
+  id: string;
+  courseTitle: string;
+  lessonId?: string | null;
+  title: string;
+  startAt: string;
+  endAt: string;
+  instructor?: string | null;
+  deliveryMode: "online" | "offline" | "hybrid" | "self_study";
+  eventKind: "live" | "lesson";
+  canJoin: boolean;
+  joinPath?: string | null;
+};
+
+type TimetableApiPayload = { events?: TimetableApiEvent[]; error?: string };
 
 type TimetableIconName = "calendar" | "left" | "right" | "aim" | "read" | "lock" | "video-camera" | "play-circle" | "link";
 
@@ -261,11 +280,51 @@ const timetableAccent = "#cd1627";
 const timetableDayNames = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
 const timetableShortDayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 const timetablePalettes: Record<TimetableFormat, { label: string; background: string; border: string; text: string; pillBackground: string; pillText: string; icon: TimetableIconName }> = {
-  ilearn: { label: "Lớp iLearn", background: "#fee2e2", border: "#cd1627", text: "#9f1239", pillBackground: "#fef2f2", pillText: "#9f1239", icon: "read" },
-  zoom: { label: "Zoom kín", background: "#d6ebf7", border: "#0072b2", text: "#075985", pillBackground: "#f0f9ff", pillText: "#075985", icon: "lock" },
-  live: { label: "Live Page", background: "#fcefd6", border: "#e69f00", text: "#92400e", pillBackground: "#fffbeb", pillText: "#92400e", icon: "video-camera" },
-  video: { label: "Video", background: "#d4f0e7", border: "#009e73", text: "#065f46", pillBackground: "#ecfdf5", pillText: "#065f46", icon: "play-circle" },
+  ilearn: { label: "Tại lớp", background: "#f9fafb", border: "#9ca3af", text: "#374151", pillBackground: "#f3f4f6", pillText: "#374151", icon: "read" },
+  zoom: { label: "Trực tuyến", background: "#fee2e2", border: "#cd1627", text: "#991b1b", pillBackground: "#fef2f2", pillText: "#991b1b", icon: "lock" },
+  live: { label: "Kết hợp", background: "#fff1f2", border: "#a8101e", text: "#881337", pillBackground: "#fff1f2", pillText: "#881337", icon: "video-camera" },
+  video: { label: "Tự học", background: "#ffffff", border: "#cd1627", text: "#4b5563", pillBackground: "#ffffff", pillText: "#4b5563", icon: "play-circle" },
 };
+
+function timetableParts(value: string) {
+  const date = new Date(value);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const read = (type: Intl.DateTimeFormatPartTypes) => parts.find(part => part.type === type)?.value ?? "";
+  return { date: `${read("year")}-${read("month")}-${read("day")}`, time: `${read("hour")}:${read("minute")}` };
+}
+
+function timetableEntryFromApi(event: TimetableApiEvent): TimetableEntry {
+  const start = timetableParts(event.startAt);
+  const end = timetableParts(event.endAt);
+  const format: TimetableFormat = event.eventKind === "lesson"
+    ? "video"
+    : event.deliveryMode === "offline"
+      ? "ilearn"
+      : event.deliveryMode === "hybrid"
+        ? "live"
+        : "zoom";
+  return {
+    id: event.id,
+    date: start.date,
+    startTime: start.time,
+    endTime: end.time,
+    title: event.title,
+    courseTitle: event.courseTitle,
+    eventKind: event.eventKind,
+    format,
+    instructor: event.instructor,
+    hasLink: event.eventKind === "lesson" ? Boolean(event.lessonId) : event.canJoin,
+    joinUrl: event.eventKind === "lesson" && event.lessonId ? `/lessons/${encodeURIComponent(event.lessonId)}` : event.joinPath,
+  };
+}
 
 function timetableStartOfWeek(offset = 0) {
   const today = new Date();
@@ -300,31 +359,31 @@ function TimetableEventCard({ entry, top, height, joining, onJoin }: { entry: Ti
   const palette = timetablePalettes[entry.format] ?? timetablePalettes.zoom;
   const canJoin = Boolean(entry.hasLink && entry.joinUrl);
   const activate = () => { if (canJoin && !joining) onJoin(entry); };
+  const content = <>
+    <div className="student-timetable-event-copy">
+      <div className="student-timetable-event-title" style={{ color: palette.text }}><TimetableIcon name={palette.icon} />{entry.title}</div>
+      {height >= 38 ? <div className="student-timetable-event-time" style={{ color: palette.text }}>{entry.startTime}–{entry.endTime}</div> : null}
+      {height >= 56 && entry.instructor ? <div className="student-timetable-event-instructor" style={{ color: palette.text }}>{entry.instructor}</div> : null}
+    </div>
+    {canJoin ? <span className="student-timetable-event-link" style={{ color: palette.text }}><TimetableIcon name="link" size={9} /></span> : null}
+  </>;
   return <div className="student-timetable-event-anchor" style={{ top, height, left: 2, right: 2 }}>
-    <div
-      className={`student-timetable-event absolute overflow-hidden transition-opacity hover:opacity-80${canJoin ? " is-joinable" : ""}`}
-      role={canJoin ? "button" : undefined}
-      tabIndex={0}
+    {canJoin ? <button
+      type="button"
+      className="student-timetable-event absolute overflow-hidden transition-opacity hover:opacity-80 is-joinable"
       aria-describedby={tooltipId}
       aria-label={`${entry.title}, ${palette.label}, ${entry.startTime} đến ${entry.endTime}${entry.instructor ? `, ${entry.instructor}` : ""}`}
       onClick={activate}
-      onKeyDown={event => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          activate();
-        }
-      }}
-      style={{ background: palette.background, borderLeft: `3px solid ${palette.border}`, cursor: canJoin ? "pointer" : "default" }}
-    >
-      <div className="student-timetable-event-copy">
-        <div className="student-timetable-event-title" style={{ color: palette.text }}><TimetableIcon name={palette.icon} />{entry.title}</div>
-        {height >= 38 ? <div className="student-timetable-event-time" style={{ color: palette.text }}>{entry.startTime}–{entry.endTime}</div> : null}
-        {height >= 56 && entry.instructor ? <div className="student-timetable-event-instructor" style={{ color: palette.text }}>{entry.instructor}</div> : null}
-      </div>
-      {canJoin ? <span className="student-timetable-event-link" style={{ color: palette.text }}><TimetableIcon name="link" size={9} /></span> : null}
-    </div>
+      disabled={joining}
+      style={{ background: palette.background, borderLeft: `3px solid ${palette.border}` }}
+    >{content}</button> : <div
+      className="student-timetable-event absolute overflow-hidden"
+      aria-describedby={tooltipId}
+      style={{ background: palette.background, borderLeft: `3px solid ${palette.border}` }}
+    >{content}</div>}
     <div className="student-timetable-tooltip" id={tooltipId} role="tooltip">
       <strong>{entry.title}</strong>
+      {entry.courseTitle ? <span>{entry.courseTitle}</span> : null}
       <span><TimetableIcon name={palette.icon} size={12} />{palette.label}</span>
       <span>{entry.startTime} – {entry.endTime} (dự kiến)</span>
       {entry.instructor ? <span>{entry.instructor}</span> : null}
@@ -334,8 +393,12 @@ function TimetableEventCard({ entry, top, height, joining, onJoin }: { entry: Ti
   </div>;
 }
 
-export function StudentSchedulePage({ entries = [] }: { entries?: TimetableEntry[] }) {
+export function StudentSchedulePage({ entries: suppliedEntries }: { entries?: TimetableEntry[] }) {
   const [weekOffset, setWeekOffset] = useState(0);
+  const [loadedEntries, setLoadedEntries] = useState<TimetableEntry[]>([]);
+  const [loading, setLoading] = useState(suppliedEntries === undefined);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [joinError, setJoinError] = useState("");
   const [referenceNow] = useState(() => new Date());
@@ -346,6 +409,37 @@ export function StudentSchedulePage({ entries = [] }: { entries?: TimetableEntry
   const todayKey = timetableDateKey(referenceNow);
   const weekStart = useMemo(() => timetableStartOfWeek(weekOffset), [weekOffset]);
   const days = useMemo(() => timetableDays(weekStart), [weekStart]);
+  const entries = suppliedEntries ?? loadedEntries;
+  const loadWeek = useCallback(async (signal: AbortSignal) => {
+    if (suppliedEntries !== undefined) return;
+    setLoading(true);
+    setLoadError("");
+    const from = new Date(weekStart);
+    const to = new Date(weekStart);
+    to.setDate(to.getDate() + 7);
+    try {
+      const response = await authenticatedFetch(`/api/timetable?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`, { cache: "no-store", signal });
+      const payload = await response.json().catch(() => null) as TimetableApiPayload | null;
+      if (signal.aborted) return;
+      if (!response.ok) throw new Error(payload?.error ?? "Không thể tải thời khóa biểu.");
+      setLoadedEntries((payload?.events ?? []).map(timetableEntryFromApi));
+    } catch (value) {
+      if (signal.aborted) return;
+      setLoadedEntries([]);
+      setLoadError(value instanceof Error ? value.message : "Không thể tải thời khóa biểu.");
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
+  }, [suppliedEntries, weekStart]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => { void loadWeek(controller.signal); }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [loadWeek, reloadKey]);
   const entriesByDate = useMemo(() => {
     const result = new Map(days.map(day => [timetableDateKey(day), [] as TimetableEntry[]]));
     for (const entry of entries) {
@@ -381,14 +475,20 @@ export function StudentSchedulePage({ entries = [] }: { entries?: TimetableEntry
     if (!entry.hasLink || !entry.joinUrl || joiningId) return;
     setJoinError("");
     setJoiningId(entry.id);
-    const popup = window.open("about:blank", "_blank");
-    if (popup) popup.opener = null;
     try {
-      if (popup) popup.location.href = entry.joinUrl;
-      else window.location.href = entry.joinUrl;
-    } catch {
-      popup?.close();
-      setJoinError("Chưa vào lớp được lúc này");
+      if (entry.eventKind === "lesson") {
+        window.location.href = entry.joinUrl;
+        return;
+      }
+      const response = await authenticatedFetch(entry.joinUrl, { cache: "no-store" });
+      const payload = await response.json().catch(() => null) as { url?: string; path?: string; error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Chưa vào lớp được lúc này.");
+      const destination = payload?.url ?? payload?.path;
+      if (!destination) throw new Error("Buổi học chưa có đường dẫn hợp lệ.");
+      if (payload?.url) window.open(destination, "_blank", "noopener,noreferrer");
+      else window.location.href = destination;
+    } catch (value) {
+      setJoinError(value instanceof Error ? value.message : "Chưa vào lớp được lúc này.");
     } finally {
       setJoiningId(null);
     }
@@ -410,6 +510,7 @@ export function StudentSchedulePage({ entries = [] }: { entries?: TimetableEntry
           {weekOffset !== 0 || currentTimeVisible ? <button type="button" className="student-timetable-button student-timetable-today ant-btn ant-btn-default ant-btn-sm" onClick={() => { if (weekOffset !== 0) setWeekOffset(0); else scrollToNow(); }}>{weekOffset === 0 ? <TimetableIcon name="aim" /> : null}<span>{returnLabel}</span></button> : null}
         </div>
       </div>
+      {loadError ? <p className="student-timetable-notice" role="alert">{loadError}<button type="button" onClick={() => setReloadKey(value => value + 1)}>Thử lại</button></p> : null}
       {joinError ? <p className="student-timetable-notice" role="alert">{joinError}</p> : null}
       <div ref={scrollRef} className="student-timetable-scroll overflow-y-auto overflow-x-auto" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
         <div className="student-timetable-canvas" style={{ minWidth: 560 }}>
@@ -426,7 +527,7 @@ export function StudentSchedulePage({ entries = [] }: { entries?: TimetableEntry
             })}
           </div>
           <div className="student-timetable-grid relative">
-            {!hasEntries ? <div className="student-timetable-empty">Không có lịch học trong tuần này</div> : null}
+            {loading ? <div className="student-timetable-empty" role="status">Đang tải lịch học…</div> : !loadError && !hasEntries ? <div className="student-timetable-empty">Không có lịch học trong tuần này</div> : null}
             <div className="student-timetable-grid-row flex" style={{ height: timetableHeight }}>
               <div className="student-timetable-axis flex-shrink-0 relative border-r border-gray-100 bg-white" style={{ width: 52 }}>
                 {Array.from({ length: timetableEndHour - timetableStartHour }, (_, index) => timetableStartHour + index + 1).map(hour => <div className="student-timetable-hour absolute right-2 text-[11px] text-gray-400 leading-none" style={{ top: (hour - timetableStartHour) * timetableHourHeight - 7 }} key={hour}>{String(hour).padStart(2, "0")}:00</div>)}

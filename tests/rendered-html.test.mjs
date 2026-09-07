@@ -117,7 +117,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /"\/exam-history"/);
   assert.match(platform, /supabase\.from\("profiles"\)/);
   assert.match(platform, /authenticatedFetch\("\/api\/exams\?scope=rooms"/);
-  assert.match(platform, /setAttempts\(examRoomsPayload\?\.attempts \?\? \[\]\)/);
+  assert.match(platform, /authenticatedFetch\("\/api\/exams\?scope=history"/);
+  assert.match(platform, /setAttempts\(payload\.attempts\)/);
   assert.doesNotMatch(platform, /supabase\.from\("exam_attempts"\)/);
   assert.match(platform, /<Profile profile=\{activeProfile\} attempts=\{attempts\}/);
   assert.match(platform, /supabase\.from\("profiles"\)\.update\(\{ full_name: nextName/);

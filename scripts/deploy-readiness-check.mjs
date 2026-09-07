@@ -32,6 +32,8 @@ const requiredTables = [
   "chapters",
   "course_enrollments",
   "courses",
+  "course_schedule_rules",
+  "course_schedule_events",
   "device_verification_challenges",
   "exam_access_slots",
   "exam_admin_audit_logs",
@@ -84,7 +86,7 @@ async function run(command, commandArgs, env) {
 async function assertHeadSchema(admin) {
   const failures = [];
   for (const table of requiredTables) {
-    const result = await admin.from(table).select("*", { head: true, count: "exact" });
+    const result = await admin.from(table).select("*").limit(0);
     if (!result.error) continue;
     if (!result.error.code || /abort|fetch|network|timeout/i.test(result.error.message ?? "")) {
       throw new Error(`REMOTE_REQUEST_FAILED ${table}: ${result.error.message ?? "network error"}`);
@@ -95,8 +97,8 @@ async function assertHeadSchema(admin) {
 
   const graphResourceColumns = await admin
     .from("lesson_resources")
-    .select("provider,provider_drive_id,provider_item_id,provider_metadata", { head: true })
-    .limit(1);
+    .select("provider,provider_drive_id,provider_item_id,provider_metadata")
+    .limit(0);
   if (graphResourceColumns.error) {
     const status = graphResourceColumns.status ?? 0;
     if (status === 0 || status >= 500 || /abort|fetch|network|timeout/i.test(graphResourceColumns.error.message ?? "")) {
@@ -104,26 +106,39 @@ async function assertHeadSchema(admin) {
     }
     throw new Error(`REMOTE_SCHEMA_NOT_HEAD: lesson_resources Graph columns (HTTP ${status})`);
   }
+
+  const courseScheduleColumns = await admin
+    .from("course_schedule_events")
+    .select("id,course_id,lesson_id,title,description,start_at,end_at,instructor,delivery_mode,event_kind,source,status,published,created_by")
+    .limit(0);
+  if (courseScheduleColumns.error) {
+    const status = courseScheduleColumns.status ?? 0;
+    if (status === 0 || status >= 500 || /abort|fetch|network|timeout/i.test(courseScheduleColumns.error.message ?? "")) {
+      throw new Error(`REMOTE_REQUEST_FAILED course_schedule_events: ${courseScheduleColumns.error.message ?? "network error"}`);
+    }
+    throw new Error(`REMOTE_SCHEMA_NOT_HEAD: course_schedule_events (HTTP ${status})`);
+  }
 }
 
 async function assertSmokeFixture(admin) {
-  const exam = await admin.from("exams").select("id").limit(1).maybeSingle();
-  assert.equal(exam.error, null, exam.error?.message ?? "cannot read exams");
-  assert.ok(exam.data?.id, "REMOTE_FIXTURE_MISSING: no exam");
-
-  const section = await admin.from("exam_sections")
-    .select("id")
-    .eq("exam_id", exam.data.id)
-    .limit(1)
-    .maybeSingle();
-  assert.equal(section.error, null, section.error?.message ?? "cannot read exam sections");
-  assert.ok(section.data?.id, "REMOTE_FIXTURE_MISSING: no section");
-
-  const questions = await admin.from("exam_questions")
-    .select("id", { count: "exact", head: true })
-    .eq("section_id", section.data.id);
-  assert.equal(questions.error, null, questions.error?.message ?? "cannot read exam questions");
-  assert.ok((questions.count ?? 0) >= 3, "REMOTE_FIXTURE_MISSING: smoke fixture needs at least 3 questions");
+  const exams = await admin.from("exams").select("id").limit(100);
+  assert.equal(exams.error, null, exams.error?.message ?? "cannot read exams");
+  for (const exam of exams.data ?? []) {
+    const sections = await admin.from("exam_sections")
+      .select("id")
+      .eq("exam_id", exam.id)
+      .order("sort_order")
+      .limit(100);
+    assert.equal(sections.error, null, sections.error?.message ?? "cannot read exam sections");
+    for (const section of sections.data ?? []) {
+      const questions = await admin.from("exam_questions")
+        .select("id", { count: "exact", head: true })
+        .eq("section_id", section.id);
+      assert.equal(questions.error, null, questions.error?.message ?? "cannot read exam questions");
+      if ((questions.count ?? 0) >= 3) return;
+    }
+  }
+  throw new Error("REMOTE_FIXTURE_MISSING: no exam section has at least 3 questions");
 }
 
 async function assertCleanup(admin) {
@@ -185,7 +200,10 @@ async function main() {
   console.log("REMOTE_READ_ONLY_PREFLIGHT_OK");
 
   assert.ok(process.env.npm_execpath, "LOCAL_NPM_EXEC_PATH_MISSING: run this gate through npm");
-  await run(process.execPath, [process.env.npm_execpath, "run", "release:check"], env);
+  await run(process.execPath, [process.env.npm_execpath, "run", "release:check"], {
+    ...env,
+    WRANGLER_ENV_FILE: resolve(repoRoot, envFile),
+  });
   console.log("LOCAL_RELEASE_GATES_OK");
 
   assert.equal(

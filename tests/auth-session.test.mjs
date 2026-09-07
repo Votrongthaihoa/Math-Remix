@@ -22,6 +22,25 @@ test("the product shell waits for the initial Supabase session before rendering 
   assert.match(platform, /if \(checkingSession && !initialGuestToken\) return <LoadingIndicator[^>]*fullPage \/>/);
 });
 
+test("course data loads in the background without flashing false empty states", async () => {
+  const platform = await source("app/platform.tsx");
+
+  assert.match(platform, /const \[coursesLoading, setCoursesLoading\] = useState\(false\)/);
+  assert.match(platform, /void loadCourseData\(user, administrator\)\.catch/);
+  assert.match(platform, /<Courses courses=\{visibleCourses\} isAdmin=\{isAdmin\} loading=\{coursesLoading\}/);
+  assert.match(platform, /<CourseDetail course=\{selectedCourse\} showDrafts=\{isAdmin\} loading=\{coursesLoading\}/);
+});
+
+test("restored-session claims and profile are fetched in parallel", async () => {
+  const platform = await source("app/platform.tsx");
+  const bootstrap = platform.slice(platform.indexOf("supabase.auth.getSession().then"), platform.indexOf("const { data } = supabase.auth.onAuthStateChange"));
+
+  assert.match(bootstrap, /Promise\.all\(\[/);
+  assert.match(bootstrap, /supabase!\.auth\.getClaims\(accessToken\)/);
+  assert.match(bootstrap, /supabase!\.from\("profiles"\)/);
+  assert.match(bootstrap, /loadUserData\(verifiedUser, profileResult\.data/);
+});
+
 test("a route 401 does not clear a session that Supabase Auth still validates", async () => {
   const auth = await source("lib/auth-client.ts");
   assert.match(auth, /supabase\.auth\.getUser\(refreshedToken\)/);

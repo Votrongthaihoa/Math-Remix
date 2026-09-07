@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
 import { formatUiDate, formatUiTime, formatUiWeekday } from "./ui-format";
+import AdminCourseTimetable from "./admin-course-timetable";
 
 type AdminTimetableRoom = {
   id: string;
@@ -196,7 +197,7 @@ function TimetableEditor({
   );
 }
 
-export default function AdminTimetable() {
+function ExamRoomTimetable() {
   const [rooms, setRooms] = useState<AdminTimetableRoom[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -276,8 +277,8 @@ export default function AdminTimetable() {
     <div className="admin-timetable-page">
       <header className="admin-timetable-header">
         <div>
-          <h1>Lịch vận hành</h1>
-          <p>Sắp xếp thời gian mở phòng thi theo tuần và đồng bộ lịch cho học viên.</p>
+          <h1>Lịch phòng thi</h1>
+          <p>Sắp xếp thời gian mở phòng thi theo tuần, tách biệt với lịch khóa học.</p>
         </div>
         <button type="button" className="admin-timetable-refresh" onClick={() => void loadTimetable()} disabled={loading}>
           <RefreshCw className={loading ? "is-spinning" : undefined} aria-hidden="true" />Làm mới
@@ -357,4 +358,15 @@ export default function AdminTimetable() {
       </section>
     </div>
   );
+}
+
+export default function AdminTimetable() {
+  const [activeView, setActiveView] = useState<"courses" | "exams">("courses");
+  return <div className="admin-timetable-hub">
+    <div className="admin-timetable-tabs" role="tablist" aria-label="Loại thời khóa biểu">
+      <button type="button" role="tab" aria-selected={activeView === "courses"} onClick={() => setActiveView("courses")}>Lịch khóa học</button>
+      <button type="button" role="tab" aria-selected={activeView === "exams"} onClick={() => setActiveView("exams")}>Lịch phòng thi</button>
+    </div>
+    <div role="tabpanel">{activeView === "courses" ? <AdminCourseTimetable /> : <ExamRoomTimetable />}</div>
+  </div>;
 }

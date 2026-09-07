@@ -1,0 +1,292 @@
+/* Final product-shell contract. Protected exam surfaces intentionally do not
+ * inherit this layer; their visual boundary is governed by the exam files. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) {
+  --brand-red: #cd1627;
+  --brand-red-hover: #a8101e;
+  --brand-red-pressed: #8f0f1a;
+  --brand-red-soft: #fef2f2;
+  --brand-red-selected: #fee2e2;
+  --brand-white: #ffffff;
+  --brand-ink: #111827;
+  --brand-body: #374151;
+  --brand-muted: #6b7280;
+  --brand-subtle: #9ca3af;
+  --brand-line: #e5e7eb;
+  --brand-page: #f9fafb;
+  --red: var(--brand-red);
+  --red-dark: var(--brand-red-hover);
+  --alpha-accent: var(--brand-red);
+  --alpha-accent-hover: var(--brand-red-hover);
+  --alpha-accent-pressed: var(--brand-red-pressed);
+  --alpha-accent-soft: var(--brand-red-soft);
+  --alpha-accent-selected: var(--brand-red-selected);
+  --alpha-green: var(--brand-red);
+  --alpha-green-dark: var(--brand-red-hover);
+  --alpha-green-soft: var(--brand-red-soft);
+  --alpha-green-pale: var(--brand-red-soft);
+  --alpha-focus: 0 0 0 3px rgba(205, 22, 39, .18);
+  --reference-accent: var(--brand-red);
+  --reference-accent-strong: var(--brand-red-hover);
+  --reference-accent-soft: var(--brand-red-soft);
+  --student-progress-accent: var(--brand-red);
+  --student-progress-accent-strong: var(--brand-red-hover);
+  --student-progress-accent-soft: var(--brand-red-soft);
+  --aeck-logo: var(--brand-red);
+  --aeck-logo-dark: var(--brand-red-hover);
+  --aeck-logo-soft: var(--brand-red-soft);
+  --aeck-logo-selected: var(--brand-red-selected);
+  --study-accent: var(--brand-red);
+  --study-accent-hover: var(--brand-red-hover);
+  --study-accent-soft: var(--brand-red-soft);
+  --study-accent-selected: var(--brand-red-selected);
+  --study-ink: var(--brand-ink);
+  --study-body: var(--brand-body);
+  --study-muted: var(--brand-muted);
+  --study-subtle: var(--brand-subtle);
+  --study-line: var(--brand-line);
+  --study-line-soft: var(--brand-page);
+  --learning-danger: var(--brand-red);
+  --learning-video-surface: var(--brand-ink);
+  --admin-primary: var(--brand-red);
+  --admin-primary-strong: var(--brand-red-hover);
+  --admin-primary-soft: var(--brand-red-soft);
+  --admin-accent: var(--brand-red);
+  --admin-accent-hover: var(--brand-red-hover);
+  --admin-bg: var(--brand-page);
+  --admin-surface: var(--brand-white);
+  --admin-surface-solid: var(--brand-white);
+  --admin-surface-muted: var(--brand-page);
+  --admin-ink: var(--brand-ink);
+  --admin-body: var(--brand-body);
+  --admin-muted: var(--brand-muted);
+  --admin-subtle: var(--brand-subtle);
+  --admin-line: var(--brand-line);
+  --admin-border: var(--brand-line);
+  --admin-border-strong: #d1d5db;
+  --admin-danger: var(--brand-red);
+  --admin-success: var(--brand-red);
+  --admin-warning: var(--brand-red-hover);
+  --admin-focus: 0 0 0 3px rgba(205, 22, 39, .18);
+  color: var(--brand-ink);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) > .main-content,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) > .main-content {
+  background: var(--brand-page);
+  background-image: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-nav-primary.active,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-nav-primary:hover,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-topbar-search:hover,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .text-btn,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-type,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-study-primary-action,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .breadcrumb-current {
+  color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-nav-primary.active {
+  background: var(--brand-red-soft);
+  border-inline-end-color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-cover.blue,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .tiny-cover.blue,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-cover.amber,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .tiny-cover.amber {
+  background: linear-gradient(135deg, var(--brand-red), var(--brand-red-hover));
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-cover.coral,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .tiny-cover.coral {
+  background: linear-gradient(135deg, var(--brand-red-hover), var(--brand-red));
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading {
+  min-width: 0;
+  color: var(--brand-muted);
+}
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 24px;
+  margin-block-start: 16px;
+}
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading article {
+  display: grid;
+  min-height: 350px;
+  grid-template-rows: 178px auto auto;
+  gap: 16px;
+  padding: 0 20px 20px;
+  border-radius: 16px;
+  background: var(--brand-white);
+  box-shadow: 0 1px 3px rgba(17, 24, 39, .08);
+}
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading article i {
+  margin-inline: -20px;
+  border-radius: 16px 16px 0 0;
+  background: var(--brand-line);
+}
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading article span,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading :where(i, article, article span) {
+  display: block;
+  border-radius: 8px;
+  background: var(--brand-line);
+}
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading article span:first-of-type { width: 72%; height: 20px; }
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-catalog-loading article span:last-of-type { width: 42%; height: 14px; }
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+  gap: 32px;
+  margin-block-start: 16px;
+}
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading > div > i { aspect-ratio: 16 / 9; }
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading article { display: grid; min-height: 300px; align-content: start; gap: 14px; padding: 20px; background: var(--brand-white); }
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading article span { height: 44px; }
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-sidebar-nav-item.active,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-sidebar-nav-item:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-topbar-context a,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-quick-action:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-copy > span,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-tabs button[aria-selected="true"] {
+  color: var(--brand-red);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-sidebar-nav-item.active,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-tabs button[aria-selected="true"] {
+  background: var(--brand-red-soft);
+  border-color: var(--brand-red);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .primary-btn,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions button:not(:last-child),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions button[type="submit"] {
+  background: var(--brand-red);
+  border-color: var(--brand-red);
+  color: var(--brand-white);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .primary-btn:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions button:not(:last-child):hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions button[type="submit"]:hover {
+  background: var(--brand-red-hover);
+  border-color: var(--brand-red-hover);
+}
+
+.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .real-lesson-page .viewer-card {
+  overflow: hidden;
+  border: 1px solid var(--brand-line);
+  border-radius: 12px;
+  background: var(--brand-white);
+  box-shadow: 0 10px 15px -3px rgba(17, 24, 39, .1), 0 4px 6px -4px rgba(17, 24, 39, .1);
+}
+
+/* Preserve the supplied lesson-picker frame against older, more specific
+ * lesson-viewer minimums. All other picker geometry stays in the copied
+ * utility classes in platform.tsx. */
+.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-picker .lesson-resource-picker-surface {
+  min-height: 60vh;
+  background: var(--brand-white);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event button { font: inherit; }
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event:focus-visible,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-hub,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable { min-width: 0; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-tabs { display: flex; gap: 8px; margin-block-end: 18px; border-block-end: 1px solid var(--brand-line); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-tabs button { min-height: 42px; padding: 10px 14px; border: 1px solid transparent; border-block-end: 2px solid transparent; border-radius: 8px 8px 0 0; background: transparent; color: var(--brand-muted); font-weight: 700; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-block-end: 18px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-head h2 { margin: 0; color: var(--brand-ink); font-size: 25px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-head p { margin: 6px 0 0; color: var(--brand-muted); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions button { display: inline-flex; min-height: 40px; align-items: center; gap: 7px; padding: 9px 12px; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-white); color: var(--brand-body); font-weight: 700; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions button:last-child { width: 40px; justify-content: center; padding: 9px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(150px, 1fr));
+  gap: 12px;
+  margin-block-end: 16px;
+}
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-filters > label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: var(--brand-body);
+  font-size: 12px;
+  font-weight: 700;
+}
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-filters :where(select, input),
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form select,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form input,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form textarea { min-width: 0; min-height: 42px; padding: 9px 11px; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-white); color: var(--brand-body); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form textarea { min-height: 92px; resize: vertical; line-height: 1.5; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form :where(input, select, textarea):disabled { background: var(--brand-page); color: var(--brand-subtle); cursor: not-allowed; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-block-end: 18px; padding: 18px; border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-white); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form > label { display: grid; min-width: 0; gap: 6px; color: var(--brand-body); font-size: 12px; font-weight: 700; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form .wide { grid-column: 1 / -1; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-head { display: flex; grid-column: 1 / -1; align-items: flex-start; gap: 10px; color: var(--brand-red); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-close { display: grid; width: 40px; height: 40px; margin-inline-start: auto; padding: 0; place-items: center; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-white); color: var(--brand-body); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-head h3 { margin: 0; color: var(--brand-ink); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-head p { margin: 4px 0 0; color: var(--brand-muted); font-weight: 400; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-days { display: flex; flex-wrap: wrap; gap: 8px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-days label,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-check { display: flex; align-items: center; gap: 7px; color: var(--brand-body); font-weight: 400; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-days input,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-check input { min-height: 16px; accent-color: var(--brand-red); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions button { min-height: 40px; padding: 9px 14px; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-white); color: var(--brand-body); font-weight: 700; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list { display: grid; gap: 8px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list article { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px auto; gap: 14px; align-items: center; min-width: 0; padding: 14px; border: 1px solid var(--brand-line); border-radius: 10px; background: var(--brand-white); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list article.is-cancelled { opacity: .62; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list article[aria-busy="true"] { opacity: .72; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-date { display: grid; gap: 4px; color: var(--brand-body); font-size: 12px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-date svg { width: 16px; color: var(--brand-red); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-date span { display: inline-flex; align-items: center; gap: 5px; color: var(--brand-muted); font-variant-numeric: tabular-nums; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-copy { min-width: 0; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-copy h3 { margin: 3px 0; overflow-wrap: anywhere; color: var(--brand-ink); font-size: 14px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-copy p { margin: 0; overflow-wrap: anywhere; color: var(--brand-muted); font-size: 12px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-copy > span { font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-state { display: grid; gap: 4px; color: var(--brand-body); font-size: 12px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-state small { color: var(--brand-muted); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions :where(a, button) { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-white); color: var(--brand-red); }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions svg { width: 16px; height: 16px; }
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions :where(a, button):active,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions button:active,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions button:active { transform: scale(.96); }
+
+@media (max-width: 760px) {
+  .ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-picker .lesson-resource-picker-surface { min-height: 50vh; }
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-detail-loading > div { grid-template-columns: 1fr; gap: 20px; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-head { flex-direction: column; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-filters { grid-template-columns: 1fr; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form { grid-template-columns: 1fr; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form .wide { grid-column: auto; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list article { grid-template-columns: 1fr auto; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-state { grid-column: 1; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+@media (max-width: 480px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions { width: 100%; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-actions button:not(:last-child) { flex: 1 1 150px; justify-content: center; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form { padding: 14px; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions { flex-wrap: wrap; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions button { flex: 1 1 130px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) *,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

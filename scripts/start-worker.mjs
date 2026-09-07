@@ -8,6 +8,9 @@ const WORKER_CONFIG_RELATIVE_PATH = "dist/server/wrangler.json";
 const workerConfig = resolve(repoRoot, ...WORKER_CONFIG_RELATIVE_PATH.split("/"));
 const wranglerCli = resolve(repoRoot, "node_modules", "wrangler", "wrangler-dist", "cli.js");
 const localEnv = resolve(repoRoot, ".env.local");
+const requestedEnvFile = process.env.WRANGLER_ENV_FILE
+  ? resolve(repoRoot, process.env.WRANGLER_ENV_FILE)
+  : localEnv;
 const wranglerState = resolve(repoRoot, ".wrangler");
 
 if (!existsSync(workerConfig)) {
@@ -21,7 +24,8 @@ if (!existsSync(wranglerCli)) {
 }
 
 const args = ["--no-warnings", "--experimental-vm-modules", wranglerCli, "dev", "--config", workerConfig, ...process.argv.slice(2)];
-if (existsSync(localEnv)) args.push("--env-file", localEnv);
+const hasEnvFileArgument = process.argv.some(argument => argument === "--env-file" || argument.startsWith("--env-file="));
+if (!hasEnvFileArgument && existsSync(requestedEnvFile)) args.push("--env-file", requestedEnvFile);
 
 const worker = spawn(process.execPath, args, {
   cwd: repoRoot,

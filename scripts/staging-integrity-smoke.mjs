@@ -25,20 +25,34 @@ async function requireNoError(result, message) {
   return result.data;
 }
 
-const exam = await requireNoError(
-  await admin.from("exams").select("id").limit(1).maybeSingle(),
-  "could not find staging exam",
+let exam = null;
+let section = null;
+let questions = null;
+const exams = await requireNoError(
+  await admin.from("exams").select("id").limit(100),
+  "could not find staging exams",
 );
-const section = await requireNoError(
-  await admin.from("exam_sections").select("id").eq("exam_id", exam.id).order("sort_order").limit(1).maybeSingle(),
-  "could not find staging section",
-);
-const questions = await requireNoError(
-  await admin.from("exam_questions").select("id").eq("section_id", section.id).order("sort_order").limit(3),
-  "could not find staging questions",
-);
+for (const candidate of exams ?? []) {
+  const sections = await requireNoError(
+    await admin.from("exam_sections").select("id").eq("exam_id", candidate.id).order("sort_order").limit(100),
+    "could not find staging sections",
+  );
+  for (const candidateSection of sections ?? []) {
+    const candidateQuestions = await requireNoError(
+      await admin.from("exam_questions").select("id").eq("section_id", candidateSection.id).order("sort_order").limit(3),
+      "could not find staging questions",
+    );
+    if ((candidateQuestions?.length ?? 0) >= 3) {
+      exam = candidate;
+      section = candidateSection;
+      questions = candidateQuestions;
+      break;
+    }
+  }
+  if (exam) break;
+}
 const question = questions?.[0];
-assert.ok(exam?.id && section?.id && questions?.length >= 3 && question?.id);
+assert.ok(exam?.id && section?.id && questions?.length >= 3 && question?.id, "REMOTE_FIXTURE_MISSING: no exam section has at least 3 questions");
 
 try {
   const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });

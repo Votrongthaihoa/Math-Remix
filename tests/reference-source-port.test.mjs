@@ -74,14 +74,14 @@ test("student timetable ports the supplied TKB bundle contract and fixed palette
   assert.match(timetable, /const timetableStartHour = 8/);
   assert.match(timetable, /const timetableEndHour = 24/);
   assert.match(timetable, /const timetableHourHeight = 64/);
-  assert.match(timetable, /ilearn:[\s\S]*?background: "#fee2e2"[\s\S]*?border: "#cd1627"[\s\S]*?text: "#9f1239"/);
-  assert.match(timetable, /zoom:[\s\S]*?background: "#d6ebf7"[\s\S]*?border: "#0072b2"[\s\S]*?text: "#075985"/);
-  assert.match(timetable, /live:[\s\S]*?background: "#fcefd6"[\s\S]*?border: "#e69f00"[\s\S]*?text: "#92400e"/);
-  assert.match(timetable, /video:[\s\S]*?background: "#d4f0e7"[\s\S]*?border: "#009e73"[\s\S]*?text: "#065f46"/);
-  assert.match(timetable, /Lớp iLearn/);
-  assert.match(timetable, /Zoom kín/);
-  assert.match(timetable, /Live Page/);
-  assert.match(timetable, /label: "Video"/);
+  assert.match(timetable, /ilearn:[\s\S]*?background: "#f9fafb"[\s\S]*?border: "#9ca3af"[\s\S]*?text: "#374151"/);
+  assert.match(timetable, /zoom:[\s\S]*?background: "#fee2e2"[\s\S]*?border: "#cd1627"[\s\S]*?text: "#991b1b"/);
+  assert.match(timetable, /live:[\s\S]*?background: "#fff1f2"[\s\S]*?border: "#a8101e"[\s\S]*?text: "#881337"/);
+  assert.match(timetable, /video:[\s\S]*?background: "#ffffff"[\s\S]*?border: "#cd1627"[\s\S]*?text: "#4b5563"/);
+  assert.match(timetable, /label: "Tại lớp"/);
+  assert.match(timetable, /label: "Trực tuyến"/);
+  assert.match(timetable, /label: "Kết hợp"/);
+  assert.match(timetable, /label: "Tự học"/);
 });
 
 test("student timetable keeps source interactions, scrolling and truthful empty state", async () => {

@@ -14,4 +14,6 @@ test("production start launches the generated Cloudflare Worker", async () => {
   assert.match(packageConfig.scripts["start:node"], /vinext start/);
   assert.match(launcher, /dist[\\/]server[\\/]wrangler\.json/);
   assert.match(launcher, /\.env\.local/);
+  assert.match(launcher, /WRANGLER_ENV_FILE/);
+  assert.match(launcher, /hasEnvFileArgument/);
 });

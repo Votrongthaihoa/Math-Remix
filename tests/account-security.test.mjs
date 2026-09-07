@@ -255,14 +255,24 @@ test("deploy readiness command locks production and runs every release gate", as
   for (const gate of ["release:check", "staging-rate-limit-smoke.mjs", "staging-rls-matrix.mjs", "staging-integrity-smoke.mjs", "staging-auth-route-smoke.mjs"]) {
     assert.match(script, new RegExp(gate.replaceAll(".", "\\.")));
   }
-  for (const table of ["exam_attempts", "guest_exam_attempts", "request_rate_limits", "question_banks", "user_sessions"]) {
+  for (const table of ["exam_attempts", "guest_exam_attempts", "request_rate_limits", "question_banks", "user_sessions", "course_schedule_rules", "course_schedule_events"]) {
     assert.match(script, new RegExp(`"${table}"`));
   }
+  assert.match(script, /select\("\*"\)\.limit\(0\)/);
   assert.match(script, /DEPLOY_READY/);
   assert.match(script, /DEPLOY_CHECK_STARTED/);
   assert.match(script, /AbortSignal\.timeout/);
   assert.match(script, /beforeExit/);
   assert.match(script, /FINAL_MARKER_MISSING/);
+});
+
+test("deploy readiness selects a usable exam fixture instead of trusting row order", async () => {
+  const script = await source("scripts/deploy-readiness-check.mjs");
+  assert.match(script, /for \(const exam of exams\.data \?\? \[\]\)/);
+  assert.match(script, /for \(const section of sections\.data \?\? \[\]\)/);
+  assert.match(script, /questions\.count \?\? 0\) >= 3/);
+  assert.match(script, /no exam section has at least 3 questions/);
+  assert.doesNotMatch(script, /exams\.select\("id"\)\.limit\(1\)\.maybeSingle/);
 });
 
 test("RLS matrix exits cleanly when the target has no exam fixture", async () => {

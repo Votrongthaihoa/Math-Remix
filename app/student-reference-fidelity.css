@@ -11,7 +11,7 @@
   --learner-accent-hover: #a8101e;
   --learner-accent-soft: rgba(205, 22, 39, .08);
   --learner-accent-selected: rgba(205, 22, 39, .14);
-  --learner-on-accent: #111827;
+  --learner-on-accent: #ffffff;
   --alpha-accent: var(--learner-accent);
   --alpha-accent-hover: var(--learner-accent-hover);
   --alpha-accent-pressed: #8f0f1a;
@@ -34,20 +34,6 @@
   --aeck-logo-dark: #a8101e;
   --aeck-logo-soft: #fef2f2;
   --aeck-logo-selected: #fee2e2;
-}
-
-.ui-shell.student-app.product-shell.learner-green-theme:not(.protected-exam-surface) {
-  --learner-accent: #158a39;
-  --learner-accent-hover: #0f6e2d;
-  --learner-accent-soft: rgba(21, 138, 57, .08);
-  --learner-accent-selected: rgba(21, 138, 57, .14);
-  --alpha-accent-pressed: #0b5f28;
-  --alpha-green-pale: rgba(21, 138, 57, .045);
-  --alpha-focus: 0 0 0 3px rgba(21, 138, 57, .16);
-  --aeck-logo: #158a39;
-  --aeck-logo-dark: #0f6e2d;
-  --aeck-logo-soft: #f0fdf4;
-  --aeck-logo-selected: #dcfce7;
 }
 
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) > .sidebar {

@@ -54,12 +54,16 @@ test("study mode preserves the measured HTML player and curriculum geometry", as
   assert.match(css, /\.study-mode:not\(\.protected-exam-surface\) \.real-lesson-page \.curriculum-panel\s*\{[^}]*position:\s*sticky;[^}]*top:\s*96px;[^}]*width:\s*var\(--study-curriculum-width\);[^}]*max-height:\s*85dvh;[^}]*border-radius:\s*12px;[^}]*box-shadow:\s*0 1px 2px rgba\(0,\s*0,\s*0,\s*\.05\);/);
 });
 
-test("study shell remaps legacy brand red aliases to the green study palette", async () => {
-  const css = await readFile(learningCssUrl, "utf8");
+test("study shell remaps legacy aliases to the final red study palette", async () => {
+  const [css, finalTheme] = await Promise.all([
+    readFile(learningCssUrl, "utf8"),
+    readFile(new URL("../app/red-white-theme.css", import.meta.url), "utf8"),
+  ]);
   const studyRoot = css.slice(css.indexOf(".app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) {"));
 
   assert.match(studyRoot, /--red:\s*var\(--study-accent\);/);
   assert.match(studyRoot, /--red-dark:\s*var\(--study-accent-hover\);/);
+  assert.match(finalTheme, /--study-accent:\s*var\(--brand-red\);/);
 });
 
 test("tablet study layout keeps an accessible global navigation trigger", async () => {
@@ -163,12 +167,15 @@ test("only study mode renders a dedicated sidebar brand beneath the hidden topba
 });
 
 test("expanded product sidebar follows the flat Alpha reference geometry", async () => {
-  const css = await readFile(learningCssUrl, "utf8");
+  const [css, fidelityCss] = await Promise.all([
+    readFile(learningCssUrl, "utf8"),
+    readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+  ]);
 
   assert.match(css, /\.alpha-reference-surface:not\(\.protected-exam-surface\)[\s\S]*?\.student-sidebar-nav\s*>\s*\.student-nav-primary,\s*[\s\S]*?\.student-sidebar-nav\s*>\s*\.student-nav-disclosure\s*>\s*summary\s*\{[^}]*padding:\s*12px 16px 12px 24px;[^}]*border-inline-end:\s*3px solid transparent;[^}]*border-radius:\s*0;/);
   assert.match(css, /\.student-sidebar-nav\s*>\s*\.student-nav-disclosure\s*>\s*summary\s*\{[^}]*padding:\s*12px 16px 12px 24px;[^}]*border-inline-end:\s*3px solid transparent;[^}]*font-weight:\s*400;/);
   assert.match(css, /\.student-sidebar-nav\s*>\s*\.student-nav-disclosure\s*>\s*summary\s*\{[^}]*min-height:\s*48px;/);
-  assert.match(css, /\.student-nav-primary\.active,\s*[\s\S]*?\.student-nav-disclosure\.active-parent\s*>\s*summary\s*\{[^}]*border-inline-end-color:\s*#158a39;[^}]*background:\s*#f0fdf4;[^}]*color:\s*#158a39;/);
+  assert.match(fidelityCss, /\.student-sidebar-nav\s*>\s*\.student-nav-primary\.active,[\s\S]*?border-inline-end-color:\s*var\(--learner-accent\)\s*!important;[^}]*background:\s*var\(--learner-accent-soft\)\s*!important;[^}]*color:\s*var\(--learner-accent-hover\)\s*!important;/);
   assert.match(css, /\.student-nav-children\s*\{[^}]*margin:\s*0;[^}]*padding:\s*8px 0;[^}]*border-inline-start:\s*0;[^}]*background:\s*rgba\(249,\s*250,\s*251,\s*\.5\);/);
 });
 
@@ -213,7 +220,7 @@ test("the initial lesson state uses the picker markup copied from the HTML refer
   assert.match(studySource, /w-full min-h-\[50vh\] md:min-h-\[60vh\] rounded-xl bg-white border border-gray-200 shadow-sm p-8 md:p-12 flex flex-col justify-center/);
   assert.match(studySource, /Bài học này bao gồm \{resources\.length\} nội dung\. Vui lòng chọn một mục bên dưới để bắt đầu học\./);
   assert.match(studySource, /lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4/);
-  assert.match(studySource, /lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-\[#158a39\] hover:shadow-md transition-all cursor-pointer group\/card/);
+  assert.match(studySource, /lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-\[#cd1627\] hover:shadow-md active:scale-\[0\.96\] transition-\[background-color,border-color,box-shadow,transform\] cursor-pointer group\/card/);
 });
 
 test("lesson resources use the exact play-circle and file-pdf icons from the HTML reference", async () => {
