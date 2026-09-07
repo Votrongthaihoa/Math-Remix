@@ -194,6 +194,150 @@
   background: var(--brand-white);
 }
 
+/* account-learning-polish.css predates the final learner palette and uses a
+ * more specific study selector. Keep the override equally local: it applies
+ * only to the non-exam learner shell, while preserving the supplied lesson
+ * layout and its protected exam boundary. */
+.app-shell.ui-shell.student-app.product-shell.learner-red-theme.study-mode:not(.protected-exam-surface) {
+  --study-accent: var(--brand-red);
+  --study-accent-hover: var(--brand-red-hover);
+  --study-accent-soft: var(--brand-red-soft);
+  --study-accent-selected: var(--brand-red-selected);
+  --aeck-logo: var(--brand-red);
+  --aeck-logo-dark: var(--brand-red-hover);
+  --aeck-logo-soft: var(--brand-red-soft);
+  --aeck-logo-selected: var(--brand-red-selected);
+  --alpha-accent: var(--brand-red);
+  --alpha-accent-hover: var(--brand-red-hover);
+  --alpha-accent-soft: var(--brand-red-soft);
+  --alpha-accent-selected: var(--brand-red-selected);
+  --alpha-green-pale: var(--brand-red-soft);
+  --red: var(--brand-red);
+  --red-dark: var(--brand-red-hover);
+}
+
+.app-shell.ui-shell.student-app.product-shell.learner-red-theme.study-mode:not(.protected-exam-surface) > .student-global-bg {
+  background: rgba(205, 22, 39, .045);
+}
+
+/* The supplied reference shell paints a green ambient field independently of
+ * the component accent tokens. Replace that field only on the opted-in
+ * red/white product shells; the protected exam boundary remains untouched. */
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) > .student-global-bg,
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) > .student-global-bg {
+  background: rgba(205, 22, 39, .035);
+}
+
+/* The supplied product references contained blue/green semantic aliases.
+ * The approved product language is red and white, so resolve every shared
+ * alias here instead of allowing a route-specific legacy stylesheet to leak
+ * an alternate accent back into the normal learner/admin shell. */
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface),
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) {
+  --learner-accent: var(--brand-red);
+  --learner-accent-hover: var(--brand-red-hover);
+  --learner-accent-soft: rgba(205, 22, 39, .08);
+  --learner-accent-selected: rgba(205, 22, 39, .14);
+  --learner-on-accent: var(--brand-white);
+  --alpha-accent: var(--brand-red);
+  --alpha-accent-hover: var(--brand-red-hover);
+  --alpha-accent-pressed: var(--brand-red-pressed);
+  --alpha-accent-soft: var(--brand-red-soft);
+  --alpha-accent-selected: var(--brand-red-selected);
+  --alpha-green: var(--brand-red);
+  --alpha-green-dark: var(--brand-red-hover);
+  --alpha-green-soft: var(--brand-red-soft);
+  --alpha-green-pale: var(--brand-red-soft);
+  --mac-blue: var(--brand-red);
+  --mac-blue-strong: var(--brand-red-hover);
+  --mac-blue-soft: var(--brand-red-soft);
+  --mac-green: var(--brand-red);
+  --mac-orange: var(--brand-red-hover);
+  --ui-info: var(--brand-red);
+  --ui-success: var(--brand-red-hover);
+  --ui-success-soft: var(--brand-red-soft);
+  --admin-success: var(--brand-red);
+  --admin-warning: var(--brand-red-hover);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-summary-avatar,
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-dashboard-error {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red-hover);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-list-dot-course,
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-list-dot-room {
+  background: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-heatmap .level-1,
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-legend .level-1 {
+  background: var(--brand-red-selected);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-heatmap .level-2,
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-legend .level-2 {
+  background: rgba(205, 22, 39, .32);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-heatmap .level-3,
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-legend .level-3 {
+  background: rgba(205, 22, 39, .62);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-heatmap .level-4,
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface) .alpha-activity-legend .level-4 {
+  background: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .history-date-frame .history-status > span,
+.profile-portal-reference.ui-shell.student-app.product-shell.learner-red-theme .profile-portal-status {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red-hover);
+}
+
+.profile-portal-reference.ui-shell.student-app.product-shell.learner-red-theme .profile-portal-status :where(svg, b) {
+  color: var(--brand-red-hover);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) .form-success,
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) .form-success,
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) .admin-session-notice,
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) .admin-timetable-notice,
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) .admin-hls-vault-notice {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red-hover);
+}
+
+/* product-design-system.css also scopes these notices to the optimized
+ * content wrapper, so repeat that wrapper in the final selector to win the
+ * cascade at runtime. */
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface.ui-optimized-surface:not(.protected-exam-surface) > .main-content.product-content-surface :where(.form-success, .student-load-feedback),
+.ui-shell.admin-app.product-shell.learner-red-theme.alpha-reference-surface.ui-optimized-surface:not(.protected-exam-surface) > .main-content.product-content-surface :where(.form-success, .admin-session-notice, .admin-timetable-notice, .admin-hls-vault-notice) {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red-hover);
+}
+
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) :where(
+  .admin-hls-vault-agent-pill.agent-ready,
+  .admin-hls-vault-state.state-done,
+  .lesson-card-copy small i.published,
+  .microsoft-video-check.ready
+) {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red-hover);
+}
+
+.ui-shell.admin-app.product-shell.learner-red-theme:not(.protected-exam-surface) .lesson-card-copy small i.published {
+  background: var(--brand-red);
+}
+
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event,
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event button { font: inherit; }
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event:focus-visible,
@@ -276,6 +420,16 @@
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list article { grid-template-columns: 1fr auto; }
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-state { grid-column: 1; }
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+/* The expanded admin rail leaves a compact content column on tablet. Collapse
+ * the three-course filters before their two date fields force page-level
+ * scrolling; the individual fields retain their native date/time controls. */
+@media (max-width: 920px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-head { flex-direction: column; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-filters { grid-template-columns: 1fr; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form { grid-template-columns: 1fr; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form .wide { grid-column: auto; }
 }
 
 @media (max-width: 480px) {

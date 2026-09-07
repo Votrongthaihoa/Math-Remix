@@ -61,6 +61,10 @@ const StudentProgress = lazy(() => import("./student-progress"));
 const GuestExamModule = lazy(() => import("./guest-exam"));
 
 type View = "overview" | "exams" | "courses" | "history" | "progress" | "search" | "schedule" | "profile" | "admin" | "course" | "lesson";
+// These product surfaces derive visible state from the same lightweight
+// history/room snapshot. Keep direct route visits consistent with dashboard
+// navigation so progress filters never render against an empty cache.
+const viewsRequiringOverviewData: View[] = ["overview", "search", "profile", "progress"];
 type AuthMode = "login" | "signup" | "forgot" | "reset";
 type SignupErrorField = "name" | "password" | "confirmPassword" | null;
 type ProfileData = { full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
@@ -162,6 +166,50 @@ function courseColor(value: string | null | undefined) {
 
 function courseColorStyle(value: string | null | undefined) {
   return { "--course-color": courseColor(value) } as React.CSSProperties;
+}
+
+const courseCoverAssets = {
+  default: "/aeck-public/courses/nen-tang-toan.png",
+  tsaMath: "/aeck-public/courses/tsa-nang-cao-toan.png",
+  tsaReading: "/aeck-public/courses/tsa-doc-hieu-khoa-hoc.png",
+  dgnlMath: "/aeck-public/courses/dgnl-nang-cao-toan.png",
+  hsaLiterature: "/aeck-public/courses/ngu-van-hsa.png",
+  bcaLiterature: "/aeck-public/courses/ngu-van-bca.png",
+  qdaLiterature: "/aeck-public/courses/ngu-van-qda.png",
+  geography: "/aeck-public/courses/chuyen-de-dia-ly.png",
+  chemistry: "/aeck-public/courses/chuyen-de-hoa-hoc.png",
+  history: "/aeck-public/courses/chuyen-de-lich-su.png",
+  biology: "/aeck-public/courses/chuyen-de-sinh-hoc.png",
+  english: "/aeck-public/courses/chuyen-de-tieng-anh.png",
+  physics: "/aeck-public/courses/chuyen-de-vat-ly.png",
+} as const;
+
+function normalizedCourseCoverText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .toLocaleLowerCase("vi");
+}
+
+function courseFallbackCoverAsset(course: Pick<CourseData, "title" | "description">) {
+  const content = normalizedCourseCoverText(`${course.title} ${course.description}`);
+  const has = (...terms: string[]) => terms.some(term => content.includes(term));
+
+  if (has("ngu van", "van hoc")) {
+    if (has("bca", "bo cong an")) return courseCoverAssets.bcaLiterature;
+    if (has("qda")) return courseCoverAssets.qdaLiterature;
+    if (has("hsa", "dgnl", "danh gia nang luc")) return courseCoverAssets.hsaLiterature;
+  }
+  if (has("tsa", "tu duy")) return has("doc hieu", "khoa hoc") ? courseCoverAssets.tsaReading : courseCoverAssets.tsaMath;
+  if (has("hsa", "dgnl", "danh gia nang luc")) return courseCoverAssets.dgnlMath;
+  if (has("dia ly")) return courseCoverAssets.geography;
+  if (has("hoa hoc")) return courseCoverAssets.chemistry;
+  if (has("lich su")) return courseCoverAssets.history;
+  if (has("sinh hoc")) return courseCoverAssets.biology;
+  if (has("tieng anh", "english")) return courseCoverAssets.english;
+  if (has("vat ly")) return courseCoverAssets.physics;
+  return courseCoverAssets.default;
 }
 
 type CourseExamTab = "ALL" | "TSA" | "HSA";
@@ -644,7 +692,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   }, [adminRouteRequested, router, signedIn, uiRouteMode]);
 
   useEffect(() => {
-    if (!signedIn || !["overview", "search", "profile"].includes(currentView)) return;
+    if (!signedIn || !viewsRequiringOverviewData.includes(currentView)) return;
    let active = true;
    const controller = new AbortController();
    const refreshOverviewData = async () => {
@@ -996,9 +1044,11 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const currentPath = pathname;
   const examRunnerSurface = currentView === "exams" && isExamRunnerPath(currentPath);
   const protectedProductSurface = isProtectedProductPath(currentPath);
-  const learnerThemeClass = "";
-  // Keep the theme switch explicit for the shell contract while the product
-  // surface remains intentionally red/white.
+  // The supplied learner references use one red/white product language across
+  // the overview, catalogue, course, lesson and timetable surfaces. Keep an
+  // explicit class on that shell so visual QA and future local styles do not
+  // infer a legacy per-route green palette.
+  const learnerThemeClass = "learner-red-theme";
   const learnerRedTheme = true;
   const shellLogoFull = learnerRedTheme ? "/logo_aeck_red.svg" : "/logo_aeck.svg";
   const shellLogoCompact = learnerRedTheme ? "/logo_aeck_compact_red.svg" : "/logo_aeck_compact.svg";
@@ -1545,16 +1595,17 @@ function Courses({ courses: courseItems, isAdmin, loading }: { courses: CourseDa
 }
 
 function CourseCoverVisual({ course, detail = false }: { course: CourseData; detail?: boolean }) {
-  const coverUrl = course.cover_url?.trim() ?? "";
+  const requestedCoverUrl = course.cover_url?.trim() ?? "";
   const [failedCoverUrl, setFailedCoverUrl] = useState("");
-  if (coverUrl && failedCoverUrl !== coverUrl) {
-    return <img src={coverUrl} alt={course.title} width={detail ? 960 : 640} height={detail ? 540 : 360} loading={detail ? undefined : "lazy"} fetchPriority={detail ? "high" : undefined} decoding="async" className={detail ? "w-full h-full object-cover" : "w-full h-full object-cover transition-transform duration-500 hover:scale-110"} onError={() => setFailedCoverUrl(coverUrl)} />;
+  const fallbackCoverUrl = courseFallbackCoverAsset(course);
+  const resolvedCoverUrl = requestedCoverUrl && failedCoverUrl !== requestedCoverUrl ? requestedCoverUrl : courseFallbackCoverAsset(course);
+
+  if (failedCoverUrl !== fallbackCoverUrl) {
+    return <img src={resolvedCoverUrl} alt={course.title} width={detail ? 960 : 640} height={detail ? 540 : 360} loading={detail ? undefined : "lazy"} fetchPriority={detail ? "high" : undefined} decoding="async" className={detail ? "w-full h-full object-cover" : "w-full h-full object-cover transition-transform duration-500 hover:scale-110"} onError={() => setFailedCoverUrl(resolvedCoverUrl)} />;
   }
-  return <div className={`course-cover-fallback${detail ? " course-study-cover-fallback" : ""}`} style={courseColorStyle(course.color)} role="img" aria-label={`Chưa có ảnh bìa: ${course.title}`}>
-    <span className="course-cover-fallback-kicker">KHÓA HỌC</span>
+  return <div className={`course-cover-fallback${detail ? " course-study-cover-fallback" : ""}`} style={courseColorStyle(course.color)} role="img" aria-label={`Không thể tải ảnh bìa: ${course.title}`}>
     <span className="course-cover-fallback-icon"><BookOpen aria-hidden="true" /></span>
-    {!detail && <strong>{course.title}</strong>}
-    <small>Chưa có ảnh bìa</small>
+    <small>Không thể tải ảnh bìa</small>
   </div>;
 }
 
@@ -1806,7 +1857,7 @@ function LessonViewer({ lessonId, onOpenAppMenu }: { lessonId: string; onOpenApp
                   const resourceIsVideo = isVideoResource(resource.resource_type);
                   return <button type="button" className="lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[#cd1627] hover:shadow-md active:scale-[0.96] transition-[background-color,border-color,box-shadow,transform] cursor-pointer group/card" key={resource.id} onClick={() => selectResource(resource.id)}>
                     <span className="lesson-resource-choice-icon w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover/card:scale-110 transition-transform shrink-0" aria-hidden="true">{resourceIsVideo ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span>
-                    <span className="lesson-resource-choice-copy flex-1 min-w-0"><b className="font-semibold text-slate-700 group-hover/card:text-[#cd1627] transition-colors">{resource.title}</b><small className="text-xs text-gray-500 mt-1 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
+                    <span className="lesson-resource-choice-copy flex flex-col min-w-0 gap-1"><b className="block font-semibold text-slate-700 group-hover/card:text-[#cd1627] transition-colors">{resource.title}</b><small className="block text-xs text-gray-500 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
                   </button>;
                 })}</div> : <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/>}
             </div>
@@ -2050,7 +2101,7 @@ function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signi
   };
   const profileInitial = (profile.full_name.trim()[0] || profile.email[0] || "A").toLocaleUpperCase("vi");
 
-  return <div className="profile-portal-reference ui-shell student-app product-shell">
+  return <div className="profile-portal-reference ui-shell student-app product-shell learner-red-theme">
     <header className="profile-portal-header bg-white sm:bg-white/80 sm:backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 w-full shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
       <div className="profile-portal-header-inner">
         <Link className="profile-portal-brand" href="/" aria-label="Trang chủ AECK"><img src="/aeck-public/logo-wordmark-red.svg" alt="AECK" width={180} height={49}/></Link>

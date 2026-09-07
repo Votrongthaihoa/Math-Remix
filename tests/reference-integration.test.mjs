@@ -48,11 +48,25 @@ test("visual smoke includes the new student discovery routes", async () => {
   assert.match(smoke, /page\.on\("console"/);
 });
 
+test("the global search shortcut smoke check waits for SPA state rather than a document reload", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /await page\.waitForFunction\(\(\) => location\.pathname === "\/search"/);
+});
+
 test("product-shell overflow audit understands the intentionally scrollable student timetable", async () => {
   const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
 
   assert.match(smoke, /control\.closest\("\.student-timetable-scroll, \.admin-timetable-week-grid/);
   assert.match(smoke, /scrollRegionControl.*student-timetable-scroll|classList\.contains\("student-timetable-scroll"\)/);
+});
+
+test("student-only interaction checks do not run during an admin audit", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /if \(mockRole === "student" && \(!focusedAudit \|\| requestedRoutes\.has\("student-search"\)\)\) await inspectStudentSearch\(\);/);
+  assert.match(smoke, /if \(mockRole === "student" && \(!focusedAudit \|\| requestedRoutes\.has\("student-schedule"\)\)\) await inspectStudentSchedule\(\);/);
+  assert.match(smoke, /if \(mockRole === "student" && \(!focusedAudit \|\| requestedRoutes\.has\("student-progress"\)\)\) await inspectStudentProgress\(\);/);
 });
 
 test("student timetable uses the supplied scrollable hourly calendar markup", async () => {

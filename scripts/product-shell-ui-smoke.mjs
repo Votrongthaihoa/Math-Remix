@@ -721,8 +721,7 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
     && !state.shell.includes("protected-exam-surface")
     && !state.shell.includes("profile-portal-reference");
   if (learnerReferenceProduct) {
-    const greenTheme = path.startsWith("/courses") || path.startsWith("/lessons");
-    const expectedTheme = greenTheme ? "learner-green-theme" : "learner-red-theme";
+    const expectedTheme = "learner-red-theme";
     const studyMode = state.shell.includes("study-mode");
     const failures = [];
     if (!state.shell.includes(expectedTheme)) failures.push(`theme=${state.shell}`);
@@ -738,7 +737,7 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       const expectedPadding = width <= 767 ? "16px" : "48px";
       if (state.referenceMainPaddingInlineStart !== expectedPadding) failures.push(`main-padding=${state.referenceMainPaddingInlineStart}/${expectedPadding}`);
     }
-    const expectedLogoFragment = greenTheme ? "logo_aeck" : "_red";
+    const expectedLogoFragment = "_red";
     if ((!studyMode || width >= 1200) && !state.referenceVisibleLogoSources.some(source => source?.includes(expectedLogoFragment))) failures.push(`logo=${state.referenceVisibleLogoSources.join(",")}`);
     if (path.startsWith("/exam-room") && state.referencePrimaryActionBackground !== "rgb(205, 22, 39)") failures.push(`action=${state.referencePrimaryActionBackground}`);
     if (failures.length) throw new Error(`Learner reference contract failed for ${path} at ${width}px: ${failures.join("; ")}`);
@@ -819,7 +818,9 @@ async function inspectDrawer(path) {
   await page.waitForTimeout(100);
   const restored = await page.evaluate(() => document.activeElement?.classList.contains("mobile-menu") ?? false);
   report.push({ name: `${mockRole}-drawer-keyboard`, path, width: 390, ...skipLink, ...opened, restoredFocus: restored });
-  const expectedDrawerLogo = mockRole === "student" ? "/logo_aeck_red.svg" : "/logo_aeck.svg";
+  // The signed-in learner and admin shells share the approved red/white
+  // identity, including the narrow-screen drawer.
+  const expectedDrawerLogo = "/logo_aeck_red.svg";
   if (!opened.drawerFullLogoVisible || opened.drawerFullLogoSource !== expectedDrawerLogo || opened.drawerCompactLogoVisible) {
     throw new Error(`${mockRole} drawer logo variant failed: ${JSON.stringify(opened)}`);
   }
@@ -1270,7 +1271,7 @@ async function inspectCollapsedAdminSidebar() {
   await page.screenshot({ path: join(outputDir, "admin-sidebar-collapsed-1440.png"), fullPage: true });
   report.push({ name: "admin-sidebar-collapsed", path: "/admin/enrollments", width: 1440, ...state });
   if (!state.collapsed || state.visibleSectionLabels !== 0 || state.namedLinks !== state.navLinks
-    || state.visibleSidebarLogoSource !== "/logo_aeck_compact.svg" || state.visibleSidebarLogoRatio !== 1
+    || state.visibleSidebarLogoSource !== "/logo_aeck_compact_red.svg" || state.visibleSidebarLogoRatio !== 1
     || state.sidebarLogoCenterOffset == null || state.sidebarLogoCenterOffset > 2) {
     throw new Error(`Admin collapsed sidebar alignment failed: ${JSON.stringify(state)}`);
   }
@@ -1435,7 +1436,11 @@ async function inspectStudentSearch() {
   await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded", timeout: 30_000 });
   await page.waitForTimeout(mockAuth ? 1_200 : 350);
   await page.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K");
-  await page.waitForURL(url => url.pathname === "/search", { timeout: 5_000 });
+  // The global command uses client-side routing, so a document `load` event
+  // is neither required nor guaranteed. Assert the navigation state and the
+  // rendered destination rather than treating an SPA transition as a reload.
+  await page.waitForFunction(() => location.pathname === "/search", null, { timeout: 5_000 });
+  await page.locator(".reference-search-page").waitFor({ state: "visible", timeout: 5_000 });
   report.push({ name: "student-search-shortcut", path: "/dashboard", width: 1440, destination: new URL(page.url()).pathname });
 }
 
@@ -1501,7 +1506,7 @@ async function inspectStudentProgress() {
 }
 
 async function inspectAdminTimetable() {
-  for (const width of [1440, 390, 320]) {
+  for (const width of [1440, 768, 390, 320]) {
     const editableRoom = mockRooms.find(room => room.id === "mock-open-room");
     if (editableRoom) {
       editableRoom.exam_start = null;
@@ -1510,6 +1515,8 @@ async function inspectAdminTimetable() {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/admin/timetable`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(1_200);
+    await page.getByRole("tab", { name: "Lịch phòng thi" }).click();
+    await page.locator(".admin-timetable-page").waitFor({ state: "visible", timeout: 5_000 });
     await page.getByRole("button", { name: /Thiết lập/ }).first().click();
     await page.getByLabel("Bắt đầu").fill("2026-08-28T09:00");
     await page.getByLabel("Kết thúc").fill("2026-08-28T11:00");
@@ -1915,13 +1922,13 @@ if (authenticated) {
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-profile"))) await inspectProfilePortalTabs();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-dashboard"))) await inspectAdminQuickFinder();
     if (!focusedAudit || requestedRoutes.has(mockRole === "admin" ? "admin-dashboard" : "student-dashboard")) await inspectNewWorkflowActions();
-    if (!focusedAudit || requestedRoutes.has("student-search")) await inspectStudentSearch();
-    if (!focusedAudit || requestedRoutes.has("student-schedule")) await inspectStudentSchedule();
-    if (!focusedAudit || requestedRoutes.has("student-progress")) await inspectStudentProgress();
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-search"))) await inspectStudentSearch();
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-schedule"))) await inspectStudentSchedule();
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-progress"))) await inspectStudentProgress();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-timetable"))) await inspectAdminTimetable();
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-audit"))) await inspectAdminAudit();
     if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
-    if (!focusedAudit || requestedRoutes.has("student-exam-list")) await inspectExamHistoryDialog();
+    if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-exam-list"))) await inspectExamHistoryDialog();
     if (protectedAuditRequested) {
       const catalogRoutes = [["student-exam-catalog-shell", "/exam-room"]];
       if (!focusedAudit || requestedRoutes.has("student-exam-catalog") || requestedRoutes.has("student-exam-list")) {

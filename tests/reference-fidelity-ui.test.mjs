@@ -33,7 +33,7 @@ test("profile renders the supplied portal structure with URL-backed information 
   const profileSource = platform.slice(platform.indexOf("function Profile"), platform.indexOf("function Detail"));
 
   assert.match(platform, /<Profile profile=\{activeProfile\} courses=\{visibleCourses\} attempts=\{attempts\}/);
-  assert.match(profileSource, /className="profile-portal-reference ui-shell student-app product-shell"/);
+  assert.match(profileSource, /className="profile-portal-reference ui-shell student-app product-shell learner-red-theme"/);
   assert.match(profileSource, /const activeTab = searchParams\.get\("tab"\) === "courses" \? "courses" : "info"/);
   assert.match(profileSource, /className="profile-portal-sidebar lg:w-72 lg:shrink-0"/);
   assert.match(profileSource, /className="profile-portal-content min-w-0 flex-1"/);
@@ -101,13 +101,20 @@ test("study browser QA expects the supplied compact navigation inset", async () 
   assert.match(smoke, /directNavigation\.paddingTop === "4px"/);
 });
 
-test("browser QA expects the route-specific learner logo", async () => {
+test("browser QA expects the shared red product logo in both learner and admin drawers", async () => {
   const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
 
-  assert.match(smoke, /expectedDrawerLogo = mockRole === "student" \? "\/logo_aeck_red\.svg" : "\/logo_aeck\.svg"/);
+  assert.match(smoke, /expectedDrawerLogo = "\/logo_aeck_red\.svg"/);
   assert.match(smoke, /opened\.drawerFullLogoSource !== expectedDrawerLogo/);
   assert.match(smoke, /result\.visibleSidebarLogoSource !== "\/logo_aeck_compact_red\.svg"/);
   assert.match(smoke, /result\.fullLogoSource !== "\/logo_aeck_red\.svg"/);
+});
+
+test("browser QA expects the red compact mark after the admin rail collapses", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+  const adminRailCheck = smoke.slice(smoke.indexOf("async function inspectCollapsedAdminSidebar"), smoke.indexOf("async function inspectCollapsedStudentSidebar"));
+
+  assert.match(adminRailCheck, /state\.visibleSidebarLogoSource !== "\/logo_aeck_compact_red\.svg"/);
 });
 
 test("browser QA locks the supplied learner theme, shell geometry, padding and exam action color", async () => {

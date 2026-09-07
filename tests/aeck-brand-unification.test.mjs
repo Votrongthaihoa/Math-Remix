@@ -99,7 +99,9 @@ test("visual smoke measures the rendered rail logo and native Alpha dashboard", 
 
   assert.match(smoke, /visibleSidebarLogo/);
   assert.match(smoke, /visibleSidebarLogoSource/);
-  assert.match(smoke, /logo_aeck_compact\.svg/);
+  // The approved product language is red/white for both learner and admin
+  // shells, so the collapsed admin rail must inspect the red compact asset.
+  assert.match(smoke, /logo_aeck_compact_red\.svg/);
   assert.match(smoke, /inspectCollapsedStudentSidebar/);
   assert.match(smoke, /sidebarLogoCenterOffset/);
   assert.match(smoke, /\[data-testid="student-dashboard"\]/);

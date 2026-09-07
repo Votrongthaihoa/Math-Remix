@@ -72,6 +72,28 @@ test("admin timetable supports a bounded date window and complete event manageme
   assert.doesNotMatch(courseUi, /setMonth\(to\.getMonth\(\) \+ 6\)/);
 });
 
+test("course timetable filters collapse before the tablet admin shell clips date controls", async () => {
+  const theme = await source("app/red-white-theme.css");
+
+  const compactStart = theme.indexOf("@media (max-width: 920px)");
+  const phoneStart = theme.indexOf("@media (max-width: 480px)", compactStart);
+  const compactCss = theme.slice(compactStart, phoneStart);
+
+  assert.ok(compactStart >= 0, "missing the compact admin timetable breakpoint");
+  assert.match(compactCss, /\.admin-course-timetable-filters\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
+  assert.match(compactCss, /\.admin-course-timetable-form\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
+  assert.match(compactCss, /\.admin-course-timetable-head\s*\{[\s\S]*?flex-direction:\s*column;/);
+});
+
+test("admin timetable smoke enters the exam-room tab before exercising its schedule editor", async () => {
+  const smoke = await source("scripts/product-shell-ui-smoke.mjs");
+  const inspection = smoke.slice(smoke.indexOf("async function inspectAdminTimetable"), smoke.indexOf("async function inspectAdminAudit"));
+
+  assert.match(inspection, /for \(const width of \[1440, 768, 390, 320\]\)/);
+  assert.match(inspection, /getByRole\("tab", \{ name: "Lịch phòng thi" \}\)\.click\(\)/);
+  assert.match(inspection, /getByRole\("button", \{ name: \/Thiết lập\/ \}\)\.first\(\)\.click\(\)/);
+});
+
 test("admin capability center documents both course and exam schedules", async () => {
   const capability = await source("app/admin-capability-center.tsx");
 

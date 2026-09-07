@@ -15,6 +15,13 @@ test("course, lesson, and schedule routes expose their isolated product shells",
   );
 });
 
+test("direct progress visits hydrate history data before exposing progress filters", async () => {
+  const source = await readFile(platformUrl, "utf8");
+
+  assert.match(source, /const viewsRequiringOverviewData: View\[\] = \["overview", "search", "profile", "progress"\];/);
+  assert.match(source, /!viewsRequiringOverviewData\.includes\(currentView\)/);
+});
+
 test("lesson curriculum exposes an accessible compact drawer trigger", async () => {
   const source = await readFile(platformUrl, "utf8");
 
@@ -64,6 +71,32 @@ test("study shell remaps legacy aliases to the final red study palette", async (
   assert.match(studyRoot, /--red:\s*var\(--study-accent\);/);
   assert.match(studyRoot, /--red-dark:\s*var\(--study-accent-hover\);/);
   assert.match(finalTheme, /--study-accent:\s*var\(--brand-red\);/);
+});
+
+test("the final red-white layer wins over the supplied legacy green study state", async () => {
+  const css = await readFile(new URL("../app/red-white-theme.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.app-shell\.ui-shell\.student-app\.product-shell\.learner-red-theme\.study-mode:not\(\.protected-exam-surface\)/);
+  assert.match(css, /--study-accent:\s*var\(--brand-red\);/);
+  assert.match(css, /--study-accent-selected:\s*var\(--brand-red-selected\);/);
+  assert.match(css, /> \.student-global-bg\s*\{[\s\S]*?rgba\(205, 22, 39, \.045\)/);
+});
+
+test("the final learner layer replaces legacy blue and green dashboard feedback with the red scale", async () => {
+  const css = await readFile(new URL("../app/red-white-theme.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.alpha-list-dot-course,[\s\S]*?\.alpha-list-dot-room\s*\{[\s\S]*?background:\s*var\(--brand-red\);/);
+  assert.match(css, /\.alpha-activity-heatmap \.level-1,[\s\S]*?\.alpha-activity-legend \.level-1\s*\{[\s\S]*?background:\s*var\(--brand-red-selected\);/);
+  assert.match(css, /\.alpha-activity-heatmap \.level-4,[\s\S]*?\.alpha-activity-legend \.level-4\s*\{[\s\S]*?background:\s*var\(--brand-red\);/);
+  assert.match(css, /\.history-date-frame \.history-status > span,[\s\S]*?\.profile-portal-status\s*\{[\s\S]*?background:\s*var\(--brand-red-soft\);/);
+  assert.match(css, /\.form-success,[\s\S]*?\.admin-hls-vault-notice\s*\{[\s\S]*?color:\s*var\(--brand-red-hover\);/);
+});
+
+test("the standalone profile portal opts into the final learner palette", async () => {
+  const source = await readFile(platformUrl, "utf8");
+  const profileSource = source.slice(source.indexOf("function Profile({"), source.indexOf("function Detail"));
+
+  assert.match(profileSource, /className="profile-portal-reference ui-shell student-app product-shell learner-red-theme"/);
 });
 
 test("tablet study layout keeps an accessible global navigation trigger", async () => {
@@ -239,6 +272,27 @@ test("the copied resource picker does not have a second hand-written CSS impleme
 
   assert.doesNotMatch(css, /\.lesson-resource-picker(?:-copy|-grid)?\s*\{/);
   assert.doesNotMatch(css, /\.lesson-resource-choice(?:-icon)?(?:\s|:|>)*\{/);
+});
+
+test("course covers use the supplied 16:9 course artwork before a visual placeholder", async () => {
+  const source = await readFile(platformUrl, "utf8");
+  const coverSource = source.slice(source.indexOf("const courseCoverAssets"), source.indexOf("function CourseCard"));
+
+  assert.match(coverSource, /function courseFallbackCoverAsset/);
+  assert.match(coverSource, /\/aeck-public\/courses\/nen-tang-toan\.png/);
+  assert.match(coverSource, /\/aeck-public\/courses\/tsa-nang-cao-toan\.png/);
+  assert.match(coverSource, /\/aeck-public\/courses\/dgnl-nang-cao-toan\.png/);
+  assert.match(coverSource, /const resolvedCoverUrl = requestedCoverUrl && failedCoverUrl !== requestedCoverUrl \? requestedCoverUrl : courseFallbackCoverAsset\(course\)/);
+  assert.match(coverSource, /<img src=\{resolvedCoverUrl\}/);
+});
+
+test("the resource picker keeps each resource name and media category on separate lines", async () => {
+  const source = await readFile(platformUrl, "utf8");
+  const studySource = source.slice(source.indexOf("function LessonViewer"), source.indexOf("function ExamHistory"));
+
+  assert.match(studySource, /lesson-resource-choice-copy flex flex-col min-w-0 gap-1/);
+  assert.match(studySource, /<b className="block font-semibold text-slate-700 group-hover\/card:text-\[#cd1627\] transition-colors">\{resource\.title\}<\/b>/);
+  assert.match(studySource, /<small className="block text-xs text-gray-500 group-hover\/card:text-gray-600 transition-colors">/);
 });
 
 test("course catalogue and detail use the supplied HTML reference classes", async () => {
