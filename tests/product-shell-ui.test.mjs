@@ -245,12 +245,15 @@ test("account menu opens from arrow keys and closes when focus leaves", async ()
   assert.match(smoke, /if \(mockRole === "admin"[\s\S]*?await inspectAccountMenu\(\)/);
 });
 
-test("account avatar remains visible above the legacy Alpha cascade", async () => {
-  const css = await readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8");
+test("learner reference topbar uses the supplied name-only trigger while admin keeps its avatar", async () => {
+  const [learningCss, referenceCss] = await Promise.all([
+    readFile(new URL("../app/account-learning-polish.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+  ]);
 
-  assert.match(css, /\.app-shell\.ui-shell\.student-app\.product-shell\.alpha-reference-surface \.account-trigger > \.account-avatar/);
-  assert.match(css, /\.app-shell\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface \.account-trigger > \.account-avatar/);
-  assert.match(css, /display:\s*grid/);
+  assert.match(referenceCss, /> \.topbar \.account-trigger > \.account-avatar\s*\{[^}]*display:\s*none;/s);
+  assert.match(learningCss, /\.app-shell\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface \.account-trigger > \.account-avatar/);
+  assert.match(learningCss, /display:\s*grid/);
 });
 
 test("account menu stacking context stays above product content", async () => {

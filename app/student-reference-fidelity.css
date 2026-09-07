@@ -7,21 +7,21 @@
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) {
   --reference-sidebar-expanded: 288px;
   --reference-sidebar-collapsed: 80px;
-  --learner-accent: #778cf7;
-  --learner-accent-hover: #655fdc;
-  --learner-accent-soft: rgba(119, 140, 247, .10);
-  --learner-accent-selected: rgba(119, 140, 247, .17);
+  --learner-accent: #cd1627;
+  --learner-accent-hover: #a8101e;
+  --learner-accent-soft: rgba(205, 22, 39, .08);
+  --learner-accent-selected: rgba(205, 22, 39, .14);
   --learner-on-accent: #111827;
   --alpha-accent: var(--learner-accent);
   --alpha-accent-hover: var(--learner-accent-hover);
-  --alpha-accent-pressed: #5751c7;
+  --alpha-accent-pressed: #8f0f1a;
   --alpha-accent-soft: var(--learner-accent-soft);
   --alpha-accent-selected: var(--learner-accent-selected);
   --alpha-green: var(--learner-accent);
   --alpha-green-dark: var(--learner-accent-hover);
   --alpha-green-soft: var(--learner-accent-soft);
-  --alpha-green-pale: rgba(119, 140, 247, .055);
-  --alpha-focus: 0 0 0 3px rgba(119, 140, 247, .22);
+  --alpha-green-pale: rgba(205, 22, 39, .045);
+  --alpha-focus: 0 0 0 3px rgba(205, 22, 39, .18);
   --reference-accent: var(--learner-accent);
   --reference-accent-strong: var(--learner-accent-hover);
   --reference-accent-soft: var(--learner-accent-soft);
@@ -30,6 +30,24 @@
   --student-progress-accent-soft: var(--learner-accent-soft);
   --red: var(--learner-accent);
   --red-dark: var(--learner-accent-hover);
+  --aeck-logo: #cd1627;
+  --aeck-logo-dark: #a8101e;
+  --aeck-logo-soft: #fef2f2;
+  --aeck-logo-selected: #fee2e2;
+}
+
+.ui-shell.student-app.product-shell.learner-green-theme:not(.protected-exam-surface) {
+  --learner-accent: #158a39;
+  --learner-accent-hover: #0f6e2d;
+  --learner-accent-soft: rgba(21, 138, 57, .08);
+  --learner-accent-selected: rgba(21, 138, 57, .14);
+  --alpha-accent-pressed: #0b5f28;
+  --alpha-green-pale: rgba(21, 138, 57, .045);
+  --alpha-focus: 0 0 0 3px rgba(21, 138, 57, .16);
+  --aeck-logo: #158a39;
+  --aeck-logo-dark: #0f6e2d;
+  --aeck-logo-soft: #f0fdf4;
+  --aeck-logo-selected: #dcfce7;
 }
 
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) > .sidebar {
@@ -203,7 +221,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 16px;
-  border-right: 1px solid rgba(119, 140, 247, .20);
+  border-right: 1px solid var(--learner-accent-soft);
   background: #fff;
 }
 
@@ -227,6 +245,12 @@
 
 .ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) > .main-content {
   padding: 0 24px 56px;
+}
+
+/* The reference shell leaves one 48px content gutter on desktop. Study mode
+ * owns its compact 24px inset above, so this rule only covers product pages. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface):not(.study-mode) > .main-content.product-view-content {
+  padding: 48px;
 }
 
 .ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) .course-study-page-reference {
@@ -335,6 +359,10 @@
     margin-left: 80px;
   }
 
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface):not(.study-mode) > .main-content.product-view-content {
+    padding: 16px;
+  }
+
   .ui-shell.student-app.product-shell:not(.protected-exam-surface) > .mobile-shade.show {
     z-index: 89;
   }
@@ -428,9 +456,9 @@
 
 /* Standalone profile portal: structure and geometry mirror portal/*.htm. */
 .profile-portal-reference {
-  --learner-accent: #778cf7;
-  --learner-accent-hover: #655fdc;
-  --learner-accent-soft: rgba(119, 140, 247, .10);
+  --learner-accent: #cd1627;
+  --learner-accent-hover: #a8101e;
+  --learner-accent-soft: rgba(205, 22, 39, .08);
   min-height: 100dvh;
   background: #fff !important;
   color: #1f2937;
@@ -966,7 +994,7 @@
 }
 
 .profile-course-row:hover {
-  border-color: rgba(119, 140, 247, .35);
+  border-color: rgba(205, 22, 39, .28);
   box-shadow: 0 4px 12px rgba(17, 24, 39, .08);
 }
 

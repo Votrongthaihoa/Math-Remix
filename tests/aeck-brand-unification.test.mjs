@@ -18,10 +18,11 @@ test("public auth and product chrome use the canonical AECK identity", async () 
   ]);
 
   assert.match(platform, /src="\/logo_aeck_full\.svg"/);
-  assert.match(platform, /src="\/logo_aeck\.svg"/);
-  assert.match(platform, /student-sidebar-logo-compact" src="\/logo_aeck_compact\.svg"/);
-  assert.match(platform, /mobile-sidebar-logo-compact" src="\/logo_aeck_compact\.svg"/);
-  assert.match(platform, /header-brand-logo-compact" src="\/logo_aeck_compact\.svg"/);
+  assert.match(platform, /const shellLogoFull = learnerRedTheme \? "\/logo_aeck_red\.svg" : "\/logo_aeck\.svg"/);
+  assert.match(platform, /const shellLogoCompact = learnerRedTheme \? "\/logo_aeck_compact_red\.svg" : "\/logo_aeck_compact\.svg"/);
+  assert.match(platform, /student-sidebar-logo-compact" src=\{shellLogoCompact\}/);
+  assert.match(platform, /mobile-sidebar-logo-compact" src=\{shellLogoCompact\}/);
+  assert.match(platform, /header-brand-logo-compact" src=\{shellLogoCompact\}/);
   assert.doesNotMatch(platform, /src="\/logo_tsa\.svg"/);
   assert.match(layout, /title:\s*"AECK"/);
   assert.match(layout, /icon:\s*\[/);

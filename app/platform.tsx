@@ -33,6 +33,7 @@ import "./account-auth-reference.css";
 import "./course-exam-tabs.css";
 import "./account-learning-polish.css";
 import "./student-reference-fidelity.css";
+import "./student-timetable-reference.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
@@ -1003,6 +1004,17 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const currentPath = pathname;
   const examRunnerSurface = currentView === "exams" && isExamRunnerPath(currentPath);
   const protectedProductSurface = isProtectedProductPath(currentPath);
+  const learnerGreenTheme = !adminRouteRequested
+    && !examRunnerSurface
+    && !protectedProductSurface
+    && (currentView === "courses" || currentView === "course" || currentView === "lesson");
+  const learnerRedTheme = !adminRouteRequested
+    && !examRunnerSurface
+    && !protectedProductSurface
+    && !learnerGreenTheme;
+  const learnerThemeClass = learnerGreenTheme ? "learner-green-theme" : learnerRedTheme ? "learner-red-theme" : "";
+  const shellLogoFull = learnerRedTheme ? "/logo_aeck_red.svg" : "/logo_aeck.svg";
+  const shellLogoCompact = learnerRedTheme ? "/logo_aeck_compact_red.svg" : "/logo_aeck_compact.svg";
   const handleNavigationLink = (event: React.MouseEvent<HTMLAnchorElement>, next: View, path: string) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -1060,15 +1072,15 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     return <Profile profile={activeProfile} courses={visibleCourses} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />;
   }
   return (
-    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${currentView === "course" ? "study-mode course-study-mode" : currentView === "lesson" ? "study-mode" : currentView === "schedule" ? "schedule-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
+    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${learnerThemeClass} ${currentView === "course" ? "study-mode course-study-mode" : currentView === "lesson" ? "study-mode" : currentView === "schedule" ? "schedule-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
       {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
       <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={closeMobileMenu} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
       {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
       {!examRunnerSurface && (
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
-           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="mobile-sidebar-logo mobile-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="mobile-sidebar-logo mobile-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
-          {!adminRouteRequested && currentView === "lesson" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link>}
-          {!adminRouteRequested && currentView === "course" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src="/logo_aeck.svg" alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/></Link>}
+           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="mobile-sidebar-logo mobile-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><img className="mobile-sidebar-logo mobile-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
+          {!adminRouteRequested && currentView === "lesson" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link>}
+          {!adminRouteRequested && currentView === "course" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link>}
           <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
@@ -1093,7 +1105,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       )}
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
-          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src="/logo_aeck_compact.svg" alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src="/logo_aeck.svg" alt="" width={180} height={48}/></Link>
+          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src={shellLogoFull} alt="" width={180} height={48}/></Link>
           <button type="button" className="header-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={event => openMobileMenu(event.currentTarget)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu aria-hidden="true" /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
@@ -1121,7 +1133,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
         {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
-        {currentView === "schedule" && <StudentSchedulePage rooms={practiceRooms} />}
+        {currentView === "schedule" && <StudentSchedulePage />}
         {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} courses={visibleCourses} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />}
         {currentView === "admin" && isAdmin && <RealAdminDashboard pathname={pathname} />}
       </main>
@@ -1539,7 +1551,7 @@ function Courses({ courses: courseItems, isAdmin }: { courses: CourseData[]; isA
       </div>
     </div>
     <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0}>
-      {filteredCourses.length ? <div className={`grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
+      {filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
     </div>
   </div>;
 }

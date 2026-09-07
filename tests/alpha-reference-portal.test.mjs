@@ -26,8 +26,8 @@ test("admin alpha rail has a project-owned compact logo variant", async () => {
   const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/alpha-reference-portal.css", import.meta.url), "utf8");
 
-  assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-full"[\s\S]*src="\/logo_aeck\.svg"/);
-  assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-compact"[\s\S]*src="\/logo_aeck_compact\.svg"/);
+  assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-full"[\s\S]*src=\{shellLogoFull\}/);
+  assert.match(platform, /className="mobile-sidebar-logo[^\"]*mobile-sidebar-logo-compact"[\s\S]*src=\{shellLogoCompact\}/);
   assert.match(css, /\.ui-shell\.student-app\.product-shell\.alpha-reference-surface \.mobile-sidebar-logo-compact,[\s\S]*?\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface \.mobile-sidebar-logo-compact\s*\{[\s\S]*?display:\s*none/);
   assert.match(css, /\.ui-shell\.admin-app\.product-shell\.alpha-reference-surface:not\(\.sidebar-expanded\)[\s\S]*?\.mobile-sidebar-logo-compact/);
 });
@@ -110,7 +110,8 @@ test("account authentication has one final isolated visual source", async () => 
   ]);
 
   assert.ok((platform.match(/className="login-project-logo"/g) ?? []).length >= 3);
-  assert.ok((platform.match(/src="\/logo_aeck(?:_full)?\.svg"/g) ?? []).length >= 6);
+  assert.ok((platform.match(/src="\/logo_aeck_full\.svg"/g) ?? []).length >= 5);
+  assert.match(platform, /const shellLogoFull = learnerRedTheme \? "\/logo_aeck_red\.svg" : "\/logo_aeck\.svg"/);
   assert.doesNotMatch(platform, /<span>R<\/span>/);
   assert.doesNotMatch(platform, /import "\.\/auth-ui-v2\.css"/);
   assert.doesNotMatch(productCss, /\.login-page\.ui-auth-surface/);

@@ -1,19 +1,16 @@
 "use client";
 
-import { useDeferredValue, useEffect, useId, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   BookOpen,
-  CalendarClock,
-  ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  Crosshair,
   History,
   Search,
   X,
 } from "lucide-react";
-import { formatUiDate, formatUiTime, formatUiWeekday } from "./ui-format";
+import { formatUiDate } from "./ui-format";
 
 type SearchCourse = {
   id: string | number;
@@ -224,137 +221,239 @@ export function StudentSearchPage({
   );
 }
 
-function startOfWeek(date: Date) {
-  const result = new Date(date);
-  const day = result.getDay();
-  result.setDate(result.getDate() + (day === 0 ? -6 : 1 - day));
-  result.setHours(0, 0, 0, 0);
-  return result;
-}
+export type TimetableFormat = "ilearn" | "zoom" | "live" | "video";
 
-function addDays(date: Date, amount: number) {
-  const result = new Date(date);
-  result.setDate(result.getDate() + amount);
-  return result;
-}
+export type TimetableEntry = {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  title: string;
+  format: TimetableFormat;
+  instructor?: string | null;
+  hasLink?: boolean;
+  joinUrl?: string | null;
+};
 
-function dateKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+type TimetableIconName = "calendar" | "left" | "right" | "aim" | "read" | "lock" | "video-camera" | "play-circle" | "link";
+
+const timetableIconPaths: Record<TimetableIconName, string[]> = {
+  calendar: ["M880 184H712v-64c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v64H384v-64c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v64H144c-17.7 0-32 14.3-32 32v664c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V216c0-17.7-14.3-32-32-32zm-40 656H184V460h656v380zM184 392V256h128v48c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8v-48h256v48c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8v-48h128v136H184z"],
+  left: ["M724 218.3V141c0-6.7-7.7-10.4-12.9-6.3L260.3 486.8a31.86 31.86 0 000 50.3l450.8 352.1c5.3 4.1 12.9.4 12.9-6.3v-77.3c0-4.9-2.3-9.6-6.1-12.6l-360-281 360-281.1c3.8-3 6.1-7.7 6.1-12.6z"],
+  right: ["M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"],
+  aim: ["M952 474H829.8C812.5 327.6 696.4 211.5 550 194.2V72c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v122.2C327.6 211.5 211.5 327.6 194.2 474H72c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h122.2C211.5 696.4 327.6 812.5 474 829.8V952c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V829.8C696.4 812.5 812.5 696.4 829.8 550H952c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8zM512 756c-134.8 0-244-109.2-244-244s109.2-244 244-244 244 109.2 244 244-109.2 244-244 244z", "M512 392c-32.1 0-62.1 12.4-84.8 35.2-22.7 22.7-35.2 52.7-35.2 84.8s12.5 62.1 35.2 84.8C449.9 619.4 480 632 512 632s62.1-12.5 84.8-35.2C619.4 574.1 632 544 632 512s-12.5-62.1-35.2-84.8A118.57 118.57 0 00512 392z"],
+  read: ["M928 161H699.2c-49.1 0-97.1 14.1-138.4 40.7L512 233l-48.8-31.3A255.2 255.2 0 00324.8 161H96c-17.7 0-32 14.3-32 32v568c0 17.7 14.3 32 32 32h228.8c49.1 0 97.1 14.1 138.4 40.7l44.4 28.6c1.3.8 2.8 1.3 4.3 1.3s3-.4 4.3-1.3l44.4-28.6C602 807.1 650.1 793 699.2 793H928c17.7 0 32-14.3 32-32V193c0-17.7-14.3-32-32-32zM324.8 721H136V233h188.8c35.4 0 69.8 10.1 99.5 29.2l48.8 31.3 6.9 4.5v462c-47.6-25.6-100.8-39-155.2-39zm563.2 0H699.2c-54.4 0-107.6 13.4-155.2 39V298l6.9-4.5 48.8-31.3c29.7-19.1 64.1-29.2 99.5-29.2H888v488zM396.9 361H211.1c-3.9 0-7.1 3.4-7.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c.1-4.1-3.1-7.5-7-7.5zm223.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c0-4.1-3.2-7.5-7.1-7.5H627.1c-3.9 0-7.1 3.4-7.1 7.5zM396.9 501H211.1c-3.9 0-7.1 3.4-7.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c.1-4.1-3.1-7.5-7-7.5zm416 0H627.1c-3.9 0-7.1 3.4-7.1 7.5v45c0 4.1 3.2 7.5 7.1 7.5h185.7c3.9 0 7.1-3.4 7.1-7.5v-45c.1-4.1-3.1-7.5-7-7.5z"],
+  lock: ["M832 464h-68V240c0-70.7-57.3-128-128-128H388c-70.7 0-128 57.3-128 128v224h-68c-17.7 0-32 14.3-32 32v384c0 17.7 14.3 32 32 32h640c17.7 0 32-14.3 32-32V496c0-17.7-14.3-32-32-32zM332 240c0-30.9 25.1-56 56-56h248c30.9 0 56 25.1 56 56v224H332V240zm460 600H232V536h560v304zM484 701v53c0 4.4 3.6 8 8 8h40c4.4 0 8-3.6 8-8v-53a48.01 48.01 0 10-56 0z"],
+  "video-camera": ["M912 302.3L784 376V224c0-35.3-28.7-64-64-64H128c-35.3 0-64 28.7-64 64v576c0 35.3 28.7 64 64 64h592c35.3 0 64-28.7 64-64V648l128 73.7c21.3 12.3 48-3.1 48-27.6V330c0-24.6-26.7-40-48-27.7zM712 792H136V232h576v560zm176-167l-104-59.8V458.9L888 399v226zM208 360h112c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H208c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8z"],
+  "play-circle": ["M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z", "M719.4 499.1l-296.1-215A15.9 15.9 0 00398 297v430c0 13.1 14.8 20.5 25.3 12.9l296.1-215a15.9 15.9 0 000-25.8zm-257.6 134V390.9L628.5 512 461.8 633.1z"],
+  link: ["M574 665.4a8.03 8.03 0 00-11.3 0L446.5 781.6c-53.8 53.8-144.6 59.5-204 0-59.5-59.5-53.8-150.2 0-204l116.2-116.2c3.1-3.1 3.1-8.2 0-11.3l-39.8-39.8a8.03 8.03 0 00-11.3 0L191.4 526.5c-84.6 84.6-84.6 221.5 0 306s221.5 84.6 306 0l116.2-116.2c3.1-3.1 3.1-8.2 0-11.3L574 665.4zm258.6-474c-84.6-84.6-221.5-84.6-306 0L410.3 307.6a8.03 8.03 0 000 11.3l39.7 39.7c3.1 3.1 8.2 3.1 11.3 0l116.2-116.2c53.8-53.8 144.6-59.5 204 0 59.5 59.5 53.8 150.2 0 204L665.3 562.6a8.03 8.03 0 000 11.3l39.8 39.8c3.1 3.1 8.2 3.1 11.3 0l116.2-116.2c84.5-84.6 84.5-221.5 0-306.1zM610.1 372.3a8.03 8.03 0 00-11.3 0L372.3 598.7a8.03 8.03 0 000 11.3l39.6 39.6c3.1 3.1 8.2 3.1 11.3 0l226.4-226.4c3.1-3.1 3.1-8.2 0-11.3l-39.5-39.6z"],
+};
+
+function TimetableIcon({ name, size = 11 }: { name: TimetableIconName; size?: number }) {
+  return <svg className="student-timetable-ant-icon" data-icon={name} viewBox="64 64 896 896" width="1em" height="1em" fill="currentColor" style={{ fontSize: size }} aria-hidden="true">{timetableIconPaths[name].map(path => <path d={path} key={path} />)}</svg>;
 }
 
 const timetableStartHour = 8;
 const timetableEndHour = 24;
 const timetableHourHeight = 64;
 const timetableHeight = (timetableEndHour - timetableStartHour) * timetableHourHeight;
-const timetableAccent = "#778CF7";
-const timetablePalettes = [
-  { background: "rgba(119,140,247,.16)", border: timetableAccent, text: "rgb(75,69,181)", soft: "rgba(119,140,247,.10)" },
-  { background: "rgb(224,242,254)", border: "rgb(2,132,199)", text: "rgb(7,89,133)", soft: "rgb(240,249,255)" },
-  { background: "rgb(254,243,199)", border: "rgb(217,119,6)", text: "rgb(146,64,14)", soft: "rgb(255,251,235)" },
-  { background: "rgb(209,250,229)", border: "rgb(5,150,105)", text: "rgb(6,95,70)", soft: "rgb(236,253,245)" },
-] as const;
+const timetableAccent = "#cd1627";
+const timetableDayNames = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+const timetableShortDayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+const timetablePalettes: Record<TimetableFormat, { label: string; background: string; border: string; text: string; pillBackground: string; pillText: string; icon: TimetableIconName }> = {
+  ilearn: { label: "Lớp iLearn", background: "#fee2e2", border: "#cd1627", text: "#9f1239", pillBackground: "#fef2f2", pillText: "#9f1239", icon: "read" },
+  zoom: { label: "Zoom kín", background: "#d6ebf7", border: "#0072b2", text: "#075985", pillBackground: "#f0f9ff", pillText: "#075985", icon: "lock" },
+  live: { label: "Live Page", background: "#fcefd6", border: "#e69f00", text: "#92400e", pillBackground: "#fffbeb", pillText: "#92400e", icon: "video-camera" },
+  video: { label: "Video", background: "#d4f0e7", border: "#009e73", text: "#065f46", pillBackground: "#ecfdf5", pillText: "#065f46", icon: "play-circle" },
+};
 
-function timetableWeekLabel(start: Date, end: Date) {
-  const two = (value: number) => String(value).padStart(2, "0");
-  return `${two(start.getDate())}-${two(start.getMonth() + 1)} – ${two(end.getDate())}/${two(end.getMonth() + 1)}/${end.getFullYear()}`;
+function timetableStartOfWeek(offset = 0) {
+  const today = new Date();
+  const day = today.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const result = new Date(today);
+  result.setDate(today.getDate() + mondayOffset + offset * 7);
+  result.setHours(0, 0, 0, 0);
+  return result;
 }
 
-function timetableMinutes(date: Date) {
-  return date.getHours() * 60 + date.getMinutes();
+function timetableDays(start: Date) {
+  return Array.from({ length: 7 }, (_, index) => {
+    const result = new Date(start);
+    result.setDate(start.getDate() + index);
+    return result;
+  });
 }
 
-export function StudentSchedulePage({ rooms }: { rooms: ScheduledRoom[] }) {
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [referenceNow] = useState(() => new Date());
-  const weekStart = useMemo(() => addDays(startOfWeek(referenceNow), weekOffset * 7), [referenceNow, weekOffset]);
-  const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
-  const scheduledRooms = useMemo(
-    () => rooms.filter(room => room.exam_start && Number.isFinite(Date.parse(room.exam_start))).sort((left, right) => Date.parse(left.exam_start!) - Date.parse(right.exam_start!)),
-    [rooms],
-  );
-  const roomsByDate = useMemo(() => {
-    const grouped = new Map<string, ScheduledRoom[]>();
-    for (const day of days) grouped.set(dateKey(day), []);
-    for (const room of scheduledRooms) {
-      const key = dateKey(new Date(room.exam_start!));
-      grouped.get(key)?.push(room);
-    }
-    return grouped;
-  }, [days, scheduledRooms]);
-  const weekEnd = days[6];
-  const todayKey = dateKey(referenceNow);
-  const weekLabel = timetableWeekLabel(weekStart, weekEnd);
-  const examTypes = [...new Set(scheduledRooms.map(room => room.exam_type?.trim() || "Phòng khảo thí"))].slice(0, timetablePalettes.length);
-  const paletteForRoom = (room: ScheduledRoom) => {
-    const type = room.exam_type?.trim() || "Phòng khảo thí";
-    const index = Math.max(0, examTypes.indexOf(type));
-    return timetablePalettes[index % timetablePalettes.length];
-  };
-  const currentMinutes = timetableMinutes(referenceNow);
-  const currentLineTop = (currentMinutes - timetableStartHour * 60) / 60 * timetableHourHeight;
+function timetableDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
-  return (
-    <div className="student-timetable-page w-full">
-      <section className="bg-white rounded-xl shadow-sm border border-gray-100 select-none overflow-hidden" aria-labelledby="student-timetable-title">
-        <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-          <h1 id="student-timetable-title" className="text-base font-semibold text-gray-800 flex items-center gap-2 m-0"><CalendarClock style={{ color: timetableAccent }} aria-hidden="true" />Thời Khóa Biểu</h1>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="hidden sm:flex items-center gap-2" aria-label="Loại lịch">
-              {examTypes.map((type, index) => {
-                const palette = timetablePalettes[index % timetablePalettes.length];
-                return <span key={type} className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: palette.soft, color: palette.text }}><ClipboardCheck className="w-[11px] h-[11px]" aria-hidden="true" />{type}</span>;
-              })}
-            </div>
-            <div className="flex items-center gap-1" aria-label="Điều hướng tuần">
-              <button type="button" className="ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value - 1)} aria-label="Xem tuần trước"><ChevronLeft aria-hidden="true" /></button>
-              <strong className="text-xs font-medium text-gray-600 px-1 min-w-[140px] text-center" aria-live="polite">{weekLabel}</strong>
-              <button type="button" className="ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value + 1)} aria-label="Xem tuần sau"><ChevronRight aria-hidden="true" /></button>
-            </div>
-            <button type="button" className="ant-btn ant-btn-default ant-btn-sm" onClick={() => setWeekOffset(0)}><Crosshair aria-hidden="true" /><span>Hôm nay</span></button>
-          </div>
-        </div>
-        <div className="student-timetable-scroll overflow-y-auto overflow-x-auto" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
-          <div style={{ minWidth: 560 }}>
-            <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
-              <div className="flex-shrink-0 border-r border-gray-100" style={{ width: 52 }} />
-              {days.map(day => {
-                const key = dateKey(day);
-                const isToday = key === todayKey;
-                return <div key={key} className="flex-1 text-center py-2 border-l border-gray-100 min-w-[72px]" style={isToday ? { background: "rgba(119,140,247,.06)" } : undefined}><div className="text-[10px] leading-none" style={{ color: isToday ? timetableAccent : "rgb(156,163,175)" }}><span className="hidden sm:block">{formatUiWeekday(day)}</span><span className="block sm:hidden">{["CN", "T2", "T3", "T4", "T5", "T6", "T7"][day.getDay()]}</span></div><div className="text-[12px] font-semibold leading-tight mt-0.5" style={{ color: isToday ? timetableAccent : "rgb(107,114,128)" }}>{day.getDate()}/{day.getMonth() + 1}</div>{isToday ? <div className="w-1 h-1 rounded-full mx-auto mt-1" style={{ background: timetableAccent }} /> : null}</div>;
-              })}
-            </div>
-            <div className="relative">
-              <div className="flex" style={{ height: timetableHeight }}>
-                <div className="flex-shrink-0 relative border-r border-gray-100 bg-white" style={{ width: 52 }}>
-                  {Array.from({ length: timetableEndHour - timetableStartHour }, (_, index) => timetableStartHour + index + 1).map(hour => <div key={hour} className="absolute right-2 text-[11px] text-gray-400 leading-none" style={{ top: (hour - timetableStartHour) * timetableHourHeight - 5 }}>{String(hour).padStart(2, "0")}:00</div>)}
-                </div>
-                {days.map(day => {
-                  const key = dateKey(day);
-                  const isToday = key === todayKey;
-                  const dayRooms = roomsByDate.get(key) ?? [];
-                  return <div key={key} className="flex-1 relative border-l border-gray-100 min-w-[72px]" style={isToday ? { background: "rgba(119,140,247,.025)" } : undefined}>
-                    {Array.from({ length: timetableEndHour - timetableStartHour + 1 }, (_, index) => <span key={index} className="absolute left-0 right-0 border-t border-dashed border-gray-100" style={{ top: index * timetableHourHeight }} />)}
-                    {dayRooms.map(room => {
-                      const start = new Date(room.exam_start!);
-                      const parsedEnd = room.exam_end ? new Date(room.exam_end) : null;
-                      const startMinutes = Math.max(timetableStartHour * 60, Math.min(timetableEndHour * 60, timetableMinutes(start)));
-                      const rawEndMinutes = parsedEnd && Number.isFinite(parsedEnd.getTime()) && dateKey(parsedEnd) === key ? timetableMinutes(parsedEnd) : startMinutes + 60;
-                      const endMinutes = Math.max(startMinutes + 30, Math.min(timetableEndHour * 60, rawEndMinutes));
-                      const top = (startMinutes - timetableStartHour * 60) / 60 * timetableHourHeight;
-                      const height = Math.max(30, (endMinutes - startMinutes) / 60 * timetableHourHeight - 2);
-                      const palette = paletteForRoom(room);
-                      return <Link href={`/exam-room/${encodeURIComponent(room.id)}`} key={room.id} className="absolute overflow-hidden transition-opacity hover:opacity-80" style={{ top, height, left: 2, right: 2, borderRadius: 5, background: palette.background, borderLeft: `3px solid ${palette.border}`, boxShadow: "rgba(0,0,0,0.06) 0px 1px 3px", color: palette.text }} title={`${room.title} · ${formatUiTime(start)}`}><span className="block p-[3px_6px] min-w-0"><b className="block text-[11px] leading-[1.25] overflow-hidden text-ellipsis whitespace-nowrap">{room.title}</b><span className="block text-[10px] leading-[1.3] opacity-80 overflow-hidden text-ellipsis whitespace-nowrap">{formatUiTime(start)}{parsedEnd && Number.isFinite(parsedEnd.getTime()) ? `–${formatUiTime(parsedEnd)}` : ""}</span><span className="block text-[10px] leading-[1.3] opacity-65 overflow-hidden text-ellipsis whitespace-nowrap">{room.exam_type || "Phòng khảo thí"} · {room.examCount} đề</span></span></Link>;
-                    })}
-                    {isToday && currentMinutes >= timetableStartHour * 60 && currentMinutes <= timetableEndHour * 60 ? <div className="absolute left-0 right-0 z-10 pointer-events-none flex items-center" style={{ top: currentLineTop }}><span className="w-2 h-2 rounded-full -ml-1" style={{ background: timetableAccent }} /><span className="flex-1 h-0.5 opacity-85" style={{ background: timetableAccent }} /></div> : null}
-                  </div>;
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+function timetableTimeMinutes(value = "") {
+  const [hour, minute] = value.split(":").map(Number);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return timetableStartHour * 60;
+  return hour * 60 + minute;
+}
+
+function TimetableEventCard({ entry, top, height, joining, onJoin }: { entry: TimetableEntry; top: number; height: number; joining: boolean; onJoin: (entry: TimetableEntry) => void }) {
+  const tooltipId = useId();
+  const palette = timetablePalettes[entry.format] ?? timetablePalettes.zoom;
+  const canJoin = Boolean(entry.hasLink && entry.joinUrl);
+  const activate = () => { if (canJoin && !joining) onJoin(entry); };
+  return <div className="student-timetable-event-anchor" style={{ top, height, left: 2, right: 2 }}>
+    <div
+      className={`student-timetable-event absolute overflow-hidden transition-opacity hover:opacity-80${canJoin ? " is-joinable" : ""}`}
+      role={canJoin ? "button" : undefined}
+      tabIndex={0}
+      aria-describedby={tooltipId}
+      aria-label={`${entry.title}, ${palette.label}, ${entry.startTime} đến ${entry.endTime}${entry.instructor ? `, ${entry.instructor}` : ""}`}
+      onClick={activate}
+      onKeyDown={event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activate();
+        }
+      }}
+      style={{ background: palette.background, borderLeft: `3px solid ${palette.border}`, cursor: canJoin ? "pointer" : "default" }}
+    >
+      <div className="student-timetable-event-copy">
+        <div className="student-timetable-event-title" style={{ color: palette.text }}><TimetableIcon name={palette.icon} />{entry.title}</div>
+        {height >= 38 ? <div className="student-timetable-event-time" style={{ color: palette.text }}>{entry.startTime}–{entry.endTime}</div> : null}
+        {height >= 56 && entry.instructor ? <div className="student-timetable-event-instructor" style={{ color: palette.text }}>{entry.instructor}</div> : null}
+      </div>
+      {canJoin ? <span className="student-timetable-event-link" style={{ color: palette.text }}><TimetableIcon name="link" size={9} /></span> : null}
     </div>
-  );
+    <div className="student-timetable-tooltip" id={tooltipId} role="tooltip">
+      <strong>{entry.title}</strong>
+      <span><TimetableIcon name={palette.icon} size={12} />{palette.label}</span>
+      <span>{entry.startTime} – {entry.endTime} (dự kiến)</span>
+      {entry.instructor ? <span>{entry.instructor}</span> : null}
+      {canJoin ? <b>{joining ? "Đang mở lớp…" : "Vào lớp học"}</b> : null}
+      {canJoin ? <small>Link mở trước giờ học 30 phút</small> : null}
+    </div>
+  </div>;
+}
+
+export function StudentSchedulePage({ entries = [] }: { entries?: TimetableEntry[] }) {
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState("");
+  const [referenceNow] = useState(() => new Date());
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const currentMinutes = referenceNow.getHours() * 60 + referenceNow.getMinutes();
+  const currentLineTop = (currentMinutes - timetableStartHour * 60) / 60 * timetableHourHeight;
+  const currentTimeVisible = currentMinutes >= timetableStartHour * 60 && currentMinutes <= timetableEndHour * 60;
+  const todayKey = timetableDateKey(referenceNow);
+  const weekStart = useMemo(() => timetableStartOfWeek(weekOffset), [weekOffset]);
+  const days = useMemo(() => timetableDays(weekStart), [weekStart]);
+  const entriesByDate = useMemo(() => {
+    const result = new Map(days.map(day => [timetableDateKey(day), [] as TimetableEntry[]]));
+    for (const entry of entries) {
+      const key = entry.date?.split("T")[0];
+      result.get(key)?.push(entry);
+    }
+    result.forEach(dayEntries => dayEntries.sort((left, right) => timetableTimeMinutes(left.startTime) - timetableTimeMinutes(right.startTime)));
+    return result;
+  }, [days, entries]);
+  const hasEntries = [...entriesByDate.values()].some(dayEntries => dayEntries.length > 0);
+  const weekLabel = `${days[0].toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })} – ${days[6].toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  const returnLabel = weekOffset !== 0 ? "Tuần này" : "Hôm nay";
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, []);
+
+  useEffect(() => {
+    if (!scrollRef.current || !currentTimeVisible || weekOffset !== 0) return;
+    const timeout = window.setTimeout(() => {
+      if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, currentLineTop - 120);
+    }, 150);
+    return () => window.clearTimeout(timeout);
+  }, [currentLineTop, currentTimeVisible, entries, weekOffset]);
+
+  function scrollToNow() {
+    if (scrollRef.current && currentTimeVisible) scrollRef.current.scrollTop = Math.max(0, currentLineTop - 120);
+  }
+
+  async function openClass(entry: TimetableEntry) {
+    if (!entry.hasLink || !entry.joinUrl || joiningId) return;
+    setJoinError("");
+    setJoiningId(entry.id);
+    const popup = window.open("about:blank", "_blank");
+    if (popup) popup.opener = null;
+    try {
+      if (popup) popup.location.href = entry.joinUrl;
+      else window.location.href = entry.joinUrl;
+    } catch {
+      popup?.close();
+      setJoinError("Chưa vào lớp được lúc này");
+    } finally {
+      setJoiningId(null);
+    }
+  }
+
+  return <div className="student-timetable-page w-full">
+    <section className="student-timetable-card bg-white rounded-xl shadow-sm border border-gray-100 select-none overflow-hidden" aria-labelledby="student-timetable-title">
+      <div className="student-timetable-toolbar px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+        <h1 id="student-timetable-title" className="student-timetable-title text-base font-semibold text-gray-800 flex items-center gap-2"><TimetableIcon name="calendar" size={16} />Thời Khóa Biểu</h1>
+        <div className="student-timetable-tools flex items-center gap-2 flex-wrap">
+          <div className="student-timetable-legends hidden sm:flex items-center gap-2" aria-label="Loại lịch học">
+            {(Object.entries(timetablePalettes) as Array<[TimetableFormat, typeof timetablePalettes[TimetableFormat]]>).map(([format, palette]) => <span className="student-timetable-legend inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: palette.pillBackground, color: palette.pillText }} key={format}><TimetableIcon name={palette.icon} />{palette.label}</span>)}
+          </div>
+          <div className="student-timetable-week-controls flex items-center gap-1" aria-label="Điều hướng tuần">
+            <button type="button" className="student-timetable-button ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value - 1)} aria-label="Xem tuần trước"><TimetableIcon name="left" /></button>
+            <span className="student-timetable-week-label text-xs font-medium text-gray-600 px-1 min-w-[140px] text-center" aria-live="polite">{weekLabel}</span>
+            <button type="button" className="student-timetable-button ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value + 1)} aria-label="Xem tuần sau"><TimetableIcon name="right" /></button>
+          </div>
+          {weekOffset !== 0 || currentTimeVisible ? <button type="button" className="student-timetable-button student-timetable-today ant-btn ant-btn-default ant-btn-sm" onClick={() => { if (weekOffset !== 0) setWeekOffset(0); else scrollToNow(); }}>{weekOffset === 0 ? <TimetableIcon name="aim" /> : null}<span>{returnLabel}</span></button> : null}
+        </div>
+      </div>
+      {joinError ? <p className="student-timetable-notice" role="alert">{joinError}</p> : null}
+      <div ref={scrollRef} className="student-timetable-scroll overflow-y-auto overflow-x-auto" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
+        <div className="student-timetable-canvas" style={{ minWidth: 560 }}>
+          <div className="student-timetable-days flex border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div className="student-timetable-axis-head flex-shrink-0 border-r border-gray-100" style={{ width: 52 }} />
+            {days.map(day => {
+              const key = timetableDateKey(day);
+              const isToday = key === todayKey;
+              return <div className={`student-timetable-day flex-1 text-center py-2 border-l border-gray-100 min-w-[72px]${isToday ? " is-today" : ""}`} key={key}>
+                <div className="student-timetable-day-name text-[10px] leading-none" style={{ color: isToday ? timetableAccent : "#9ca3af" }}><span className="student-timetable-day-long hidden sm:block">{timetableDayNames[day.getDay()]}</span><span className="student-timetable-day-short block sm:hidden">{timetableShortDayNames[day.getDay()]}</span></div>
+                <div className="student-timetable-day-date text-[12px] font-semibold leading-tight mt-0.5" style={{ color: isToday ? timetableAccent : "#6b7280" }}>{day.getDate()}/{day.getMonth() + 1}</div>
+                {isToday ? <span className="student-timetable-today-dot" /> : null}
+              </div>;
+            })}
+          </div>
+          <div className="student-timetable-grid relative">
+            {!hasEntries ? <div className="student-timetable-empty">Không có lịch học trong tuần này</div> : null}
+            <div className="student-timetable-grid-row flex" style={{ height: timetableHeight }}>
+              <div className="student-timetable-axis flex-shrink-0 relative border-r border-gray-100 bg-white" style={{ width: 52 }}>
+                {Array.from({ length: timetableEndHour - timetableStartHour }, (_, index) => timetableStartHour + index + 1).map(hour => <div className="student-timetable-hour absolute right-2 text-[11px] text-gray-400 leading-none" style={{ top: (hour - timetableStartHour) * timetableHourHeight - 7 }} key={hour}>{String(hour).padStart(2, "0")}:00</div>)}
+              </div>
+              {days.map(day => {
+                const key = timetableDateKey(day);
+                const isToday = key === todayKey;
+                const dayEntries = entriesByDate.get(key) ?? [];
+                return <div className={`student-timetable-column flex-1 relative border-l border-gray-100 min-w-[72px]${isToday ? " is-today" : ""}`} key={key}>
+                  {Array.from({ length: timetableEndHour - timetableStartHour + 1 }, (_, index) => <span className="student-timetable-hour-line" style={{ top: index * timetableHourHeight }} key={index} />)}
+                  {Array.from({ length: timetableEndHour - timetableStartHour }, (_, index) => <span className="student-timetable-half-line" style={{ top: index * timetableHourHeight + timetableHourHeight / 2 }} key={`half-${index}`} />)}
+                  {isToday && currentTimeVisible ? <div className="student-timetable-now-line" style={{ top: currentLineTop }}><span /><i /></div> : null}
+                  {dayEntries.map(entry => {
+                    const startMinutes = timetableTimeMinutes(entry.startTime);
+                    const endMinutes = timetableTimeMinutes(entry.endTime);
+                    const top = (startMinutes - timetableStartHour * 60) / 60 * timetableHourHeight;
+                    const height = Math.max((endMinutes - startMinutes) / 60 * timetableHourHeight - 2, 22);
+                    return <TimetableEventCard entry={entry} top={top} height={height} joining={joiningId === entry.id} onJoin={item => void openClass(item)} key={entry.id} />;
+                  })}
+                </div>;
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>;
 }
 
 export type AdminFinderItem = {

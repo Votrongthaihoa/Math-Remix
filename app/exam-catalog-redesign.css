@@ -744,3 +744,604 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Exact learner catalog geometry ported from the supplied AECK snapshots. */
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"],
+.ui-shell.student-app.product-shell[data-ui-mode="optimized-chrome-only"]
+  > .main-content.product-view-content {
+  background: transparent;
+}
+
+.exam-room-page,
+.exam-list-page {
+  --catalog-primary: #cd1627;
+  --catalog-primary-hover: #b91c2b;
+  --catalog-primary-soft: #fff1f2;
+  --catalog-line: #e5e7eb;
+  --catalog-muted: #6b7280;
+  --catalog-ink: #111827;
+  width: 100%;
+  max-width: 1536px;
+  margin: 0;
+  color: var(--catalog-ink);
+}
+
+.exam-room-page {
+  gap: 0;
+}
+
+.exam-room-page .reference-room-heading {
+  margin: 0 0 32px;
+  padding: 0;
+  border: 0;
+}
+
+.exam-room-page .reference-room-heading h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 36px;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.exam-room-page .reference-room-heading p {
+  max-width: none;
+  margin: 8px 0 0;
+  color: #4b5563;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.exam-room-page .exam-room-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.exam-room-page .reference-room-card {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.exam-room-page .reference-room-card:hover {
+  border-color: #e5e7eb;
+  box-shadow: 0 12px 24px -7px rgba(15, 23, 42, 0.2);
+  transform: translateY(-4px);
+}
+
+.exam-room-page .reference-room-card-title {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  padding: 24px 24px 16px;
+  text-align: start;
+}
+
+.exam-room-page .reference-room-card-title h2 {
+  width: auto;
+  margin: 0;
+  color: #111827;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 23px;
+  overflow-wrap: break-word;
+  text-align: start;
+  word-break: normal;
+}
+
+.exam-room-page .reference-room-card-body {
+  flex: none;
+  min-width: 0;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.exam-room-page .reference-room-fact {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.exam-room-page .reference-room-fact + .reference-room-fact {
+  margin-top: 12px;
+}
+
+.exam-room-page .reference-room-fact > span {
+  flex: 0 0 auto;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.exam-room-page .reference-room-fact > b {
+  min-width: 0;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  overflow-wrap: break-word;
+  text-align: end;
+  word-break: normal;
+}
+
+.exam-room-page .reference-room-card-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 24px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.exam-room-page .reference-room-completion {
+  width: 224px;
+  max-width: calc(100% - 112px);
+}
+
+.exam-room-page .reference-room-completion > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.exam-room-page .reference-room-completion span,
+.exam-room-page .reference-room-completion b {
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.exam-room-page .reference-room-completion span {
+  color: #4b5563;
+}
+
+.exam-room-page .reference-room-completion b {
+  color: #cd1627;
+  font-weight: 600;
+}
+
+.exam-room-page .reference-room-card .exam-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.exam-room-page .reference-room-card .exam-progress > span {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #cd1627;
+  transition: width 0.5s;
+}
+
+.exam-room-page .reference-room-card-footer > .reference-room-start {
+  display: inline-flex;
+  width: auto;
+  min-width: 88px;
+  min-height: 36px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #cd1627;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.3s;
+}
+
+.exam-room-page .reference-room-card-footer > .reference-room-start:hover {
+  border: 0;
+  background: #b91c2b;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  .exam-room-page .exam-room-grid {
+    gap: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .exam-room-page .exam-room-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1536px) {
+  .exam-room-page .exam-room-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575px) {
+  .exam-room-page .reference-room-heading h1 {
+    font-size: 26px;
+    line-height: 32px;
+  }
+
+  .exam-room-page .reference-room-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .exam-room-page .reference-room-completion {
+    width: 100%;
+    max-width: none;
+  }
+
+  .exam-room-page .reference-room-card-footer > .reference-room-start {
+    width: 100%;
+  }
+}
+
+/* Keep the source brand color above the older shared product overrides. */
+.ui-shell.student-app.product-shell.learner-red-theme[data-ui-mode="optimized-chrome-only"]
+  .exam-room-page .reference-room-card-footer > .reference-room-start,
+.ui-shell.student-app.product-shell.learner-red-theme[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-exam-start {
+  border-color: #cd1627;
+  background: #cd1627;
+  color: #fff;
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme[data-ui-mode="optimized-chrome-only"]
+  .exam-room-page .reference-room-card-footer > .reference-room-start:hover,
+.ui-shell.student-app.product-shell.learner-red-theme[data-ui-mode="optimized-chrome-only"]
+  .exam-list-page .reference-exam-start:hover {
+  border-color: #a8101e;
+  background: #a8101e;
+}
+
+/* Exact room-detail state from the supplied /exam-rooms snapshot. */
+.exam-list-page {
+  width: 100%;
+  max-width: 1536px;
+  margin: 0;
+}
+
+.exam-list-page .reference-room-detail-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 32px;
+  padding: 24px;
+  border: 1px solid #f3f4f6;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.exam-list-page .reference-room-detail-title {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.exam-list-page .reference-room-detail-title > button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4b5563;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.exam-list-page .reference-room-detail-title > button:hover {
+  background: #f3f4f6;
+  color: #cd1627;
+}
+
+.exam-list-page .reference-room-detail-title > button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.exam-list-page .reference-room-detail-title > div {
+  min-width: 0;
+}
+
+.exam-list-page .reference-room-detail-title h1 {
+  min-width: 0;
+  margin: 0 0 4px;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-list-page .reference-room-detail-title p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-list-page .reference-room-detail-progress {
+  width: 224px;
+  flex: 0 0 224px;
+}
+
+.exam-list-page .reference-room-detail-progress > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.exam-list-page .reference-room-detail-progress span,
+.exam-list-page .reference-room-detail-progress b {
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.exam-list-page .reference-room-detail-progress span {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.exam-list-page .reference-room-detail-progress b {
+  color: #cd1627;
+  font-weight: 700;
+}
+
+.exam-list-page .reference-room-detail-progress .exam-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.exam-list-page .reference-room-detail-progress .exam-progress > span {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #cd1627;
+  transition: width 0.5s;
+}
+
+.exam-list-page .exam-list-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin: 0;
+  align-items: start;
+}
+
+.exam-list-page .reference-exam-card {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  background: #fff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
+  transition: box-shadow 0.3s, transform 0.3s !important;
+}
+
+.exam-list-page .reference-exam-card:hover {
+  border-color: #e5e7eb !important;
+  box-shadow: 0 12px 24px -7px rgba(15, 23, 42, 0.2) !important;
+  transform: translateY(-2px) !important;
+}
+
+.exam-list-page .reference-exam-card-head {
+  min-width: 0;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.exam-list-page .reference-exam-card-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 23px;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.exam-list-page .reference-exam-card-body {
+  flex: none;
+  min-width: 0;
+  padding: 16px 24px;
+}
+
+.exam-list-page .reference-exam-fact {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.exam-list-page .reference-exam-fact + .reference-exam-fact {
+  margin-top: 12px;
+}
+
+.exam-list-page .reference-exam-fact > span {
+  flex: 0 0 auto;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.exam-list-page .reference-exam-fact > strong {
+  min-width: 0;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  overflow-wrap: break-word;
+  text-align: end;
+  word-break: normal;
+}
+
+.exam-list-page .reference-exam-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 12px;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.exam-list-page .reference-exam-card-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.exam-list-page .reference-exam-history {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.exam-list-page .reference-exam-history:not(:disabled):hover {
+  color: #cd1627;
+  text-decoration: underline;
+}
+
+.exam-list-page .reference-exam-history:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.exam-list-page .reference-exam-start {
+  display: inline-flex;
+  min-width: 88px;
+  min-height: 36px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #cd1627;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  transition: background-color 0.3s;
+}
+
+.exam-list-page .reference-exam-start:hover {
+  background: #b91c2b;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  .exam-list-page .exam-list-grid {
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .exam-list-page .exam-list-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1536px) {
+  .exam-list-page .exam-list-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .exam-list-page .reference-room-detail-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .exam-list-page .reference-room-detail-progress {
+    width: 100%;
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 575px) {
+  .exam-list-page .reference-exam-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .exam-list-page .reference-exam-history,
+  .exam-list-page .reference-exam-start {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}

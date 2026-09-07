@@ -2,15 +2,26 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-test("learner reference fidelity layer owns the approved accent without touching protected exam UI", async () => {
-  const [platform, styles] = await Promise.all([
+test("learner reference fidelity layer follows the supplied red and green route themes without touching protected exam UI", async () => {
+  const [platform, styles, redWordmark, redCompact] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+    readFile(new URL("../public/logo_aeck_red.svg", import.meta.url), "utf8"),
+    readFile(new URL("../public/logo_aeck_compact_red.svg", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /import "\.\/student-reference-fidelity\.css";/);
+  assert.match(platform, /learner-red-theme/);
+  assert.match(platform, /learner-green-theme/);
+  assert.match(platform, /\/logo_aeck_red\.svg/);
+  assert.match(platform, /\/logo_aeck_compact_red\.svg/);
   assert.match(styles, /\.ui-shell\.student-app\.product-shell:not\(\.protected-exam-surface\)/);
-  assert.match(styles, /--learner-accent:\s*#778cf7;/i);
+  assert.match(styles, /--learner-accent:\s*#cd1627;/i);
+  assert.match(styles, /\.learner-green-theme[^\{]*\{[^}]*--learner-accent:\s*#158a39;/is);
+  assert.match(redWordmark, /#cd1627/i);
+  assert.match(redCompact, /#cd1627/i);
+  assert.doesNotMatch(redWordmark, /#158a39/i);
+  assert.doesNotMatch(redCompact, /#158a39/i);
   assert.doesNotMatch(styles, /(?:exam-shell|question-|answer-|exam-result|review-|solution-)/i);
 });
 
@@ -41,9 +52,9 @@ test("timetable keeps the supplied geometry and uses the approved learner accent
   const discovery = await readFile(new URL("../app/student-discovery.tsx", import.meta.url), "utf8");
   const timetableSource = discovery.slice(discovery.indexOf("const timetableStartHour"), discovery.indexOf("export type AdminFinderItem"));
 
-  assert.match(timetableSource, /const timetableAccent = "#778CF7"/);
+  assert.match(timetableSource, /const timetableAccent = "#cd1627"/);
   assert.match(timetableSource, /student-timetable-scroll overflow-y-auto overflow-x-auto/);
-  assert.doesNotMatch(timetableSource, /#cd1627|205,\s*22,\s*39/i);
+  assert.doesNotMatch(timetableSource, /#778CF7|119,\s*140,\s*247/i);
 });
 
 test("legacy portal alias preserves the requested profile tab", async () => {
@@ -65,6 +76,14 @@ test("learner shell preserves the fixed 288/80 rail and sticky reference header 
   assert.match(styles, /@media \(max-width: 767px\)[\s\S]*?> \.sidebar\.mobile-open\s*\{[^}]*width:\s*288px(?:\s*!important)?;/);
 });
 
+test("learner content uses the supplied 48px desktop and 16px narrow insets", async () => {
+  const styles = await readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8");
+
+  assert.match(styles, /:not\(\.study-mode\)[^\{]*> \.main-content\.product-view-content\s*\{[^}]*padding:\s*48px;/s);
+  assert.match(styles, /@media \(max-width: 767px\)[\s\S]*?:not\(\.study-mode\)[^\{]*> \.main-content\.product-view-content\s*\{[^}]*padding:\s*16px;/s);
+  assert.match(styles, /\.course-study-mode[^\{]*> \.main-content\s*\{[^}]*padding:\s*0 24px 56px;/s);
+});
+
 test("course detail and lesson share the supplied compact study shell", async () => {
   const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
 
@@ -73,12 +92,65 @@ test("course detail and lesson share the supplied compact study shell", async ()
   assert.match(platform, /currentView === "lesson" \? "lesson-main-content" : currentView === "course" \? "lesson-main-content" : ""/);
 });
 
+test("study browser QA expects the supplied compact navigation inset", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /directNavigation\.paddingTop === "4px"/);
+});
+
+test("browser QA expects the route-specific learner logo", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /expectedDrawerLogo = mockRole === "student" \? "\/logo_aeck_red\.svg" : "\/logo_aeck\.svg"/);
+  assert.match(smoke, /opened\.drawerFullLogoSource !== expectedDrawerLogo/);
+  assert.match(smoke, /result\.visibleSidebarLogoSource !== "\/logo_aeck_compact_red\.svg"/);
+  assert.match(smoke, /result\.fullLogoSource !== "\/logo_aeck_red\.svg"/);
+});
+
+test("browser QA locks the supplied learner theme, shell geometry, padding and exam action color", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /referenceSidebarWidth/);
+  assert.match(smoke, /referenceTopbarHeight/);
+  assert.match(smoke, /referenceMainPaddingInlineStart/);
+  assert.match(smoke, /referenceVisibleLogoSources/);
+  assert.match(smoke, /referencePrimaryActionBackground/);
+  assert.match(smoke, /\.reference-room-start, \.reference-exam-start/);
+  assert.match(smoke, /Learner reference contract failed/);
+  assert.match(smoke, /!state\.shell\.includes\("profile-portal-reference"\)/);
+  assert.match(smoke, /rgb\(205, 22, 39\)/);
+});
+
+test("course catalog keeps the supplied grid while allowing the 280px source card to shrink at narrow widths", async () => {
+  const [platform, styles] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/aeck-reference-ui.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /className=\{`grid reference-course-grid grid-cols-\[repeat\(auto-fill,minmax\(280px,1fr\)\)\]/);
+  assert.match(styles, /\.course-grid\.reference-course-grid\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fill, minmax\(min\(100%, 280px\), 1fr\)\);/s);
+});
+
 test("browser QA verifies both supplied profile portal tabs", async () => {
   const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
 
   assert.match(smoke, /async function inspectProfilePortalTabs\(\)/);
   assert.match(smoke, /student-profile-courses-1440\.png/);
   assert.match(smoke, /profileTab === "courses"/);
+});
+
+test("browser QA treats the supplied history table as an intentional internal scroll region", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /\.history-date-frame/);
+  assert.match(smoke, /"history-date-frame"/);
+});
+
+test("browser QA follows the visible supplied course card instead of the hidden legacy view toggle", async () => {
+  const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
+
+  assert.match(smoke, /locator\("a\.course-card-action"\)\.first\(\)\.click\(\)/);
+  assert.doesNotMatch(smoke, /getByRole\("button", \{ name: "Danh s/);
 });
 
 test("learner sidebar uses direct routes and the original filled reference icons", async () => {

@@ -580,12 +580,30 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       await page.reload({ waitUntil: "domcontentloaded", timeout: 30_000 });
     }
   }
+  if (mockAuth && targetUrl.pathname.startsWith("/exam-room")) {
+    await page.locator(".reference-room-start, .reference-exam-start").first().waitFor({ state: "visible", timeout: 10_000 });
+  }
   let state;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       state = await page.evaluate(() => {
     const root = document.documentElement;
     const shell = document.querySelector(".ui-shell");
+    const referenceSidebar = shell?.querySelector(":scope > .sidebar");
+    const referenceTopbar = shell?.querySelector(":scope > .topbar");
+    const referenceMain = shell?.querySelector(":scope > .main-content");
+    const referenceSidebarRect = referenceSidebar?.getBoundingClientRect();
+    const referenceTopbarRect = referenceTopbar?.getBoundingClientRect();
+    const referenceMainStyle = referenceMain ? getComputedStyle(referenceMain) : null;
+    const referenceVisibleLogoSources = [...(shell?.querySelectorAll("img[src*='logo_aeck']") ?? [])]
+      .filter(logo => {
+        const rect = logo.getBoundingClientRect();
+        const style = getComputedStyle(logo);
+        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+      })
+      .map(logo => logo.getAttribute("src"));
+    const referencePrimaryAction = document.querySelector(".reference-room-start, .reference-exam-start");
+    const referencePrimaryActionStyle = referencePrimaryAction ? getComputedStyle(referencePrimaryAction) : null;
     const controls = [...document.querySelectorAll("button, a, input, select, textarea")];
     const visibleControls = controls.filter(control => {
       const rect = control.getBoundingClientRect();
@@ -619,7 +637,7 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
     }).map(control => {
       const rect = control.getBoundingClientRect();
-      const scrollContainer = control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .exam-part-sidebar, .access-table-wrap");
+      const scrollContainer = control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .history-date-frame, .exam-part-sidebar, .access-table-wrap");
       return {
         tag: control.tagName.toLowerCase(),
         className: control.className,
@@ -630,6 +648,8 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
           ? "student-timetable-scroll"
           : scrollContainer?.classList.contains("admin-timetable-week-grid")
             ? "admin-timetable-week-grid"
+          : scrollContainer?.classList.contains("history-date-frame")
+            ? "history-date-frame"
           : scrollContainer?.classList.contains("exam-part-sidebar")
             ? "exam-part-sidebar"
             : scrollContainer?.classList.contains("access-table-wrap")
@@ -644,6 +664,11 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       clientWidth: root.clientWidth,
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       shell: shell?.className ?? null,
+      referenceSidebarWidth: referenceSidebarRect ? Math.round(referenceSidebarRect.width) : null,
+      referenceTopbarHeight: referenceTopbarRect && getComputedStyle(referenceTopbar).display !== "none" ? Math.round(referenceTopbarRect.height) : null,
+      referenceMainPaddingInlineStart: referenceMainStyle?.paddingInlineStart ?? null,
+      referenceVisibleLogoSources,
+      referencePrimaryActionBackground: referencePrimaryActionStyle?.backgroundColor ?? null,
       guestExam: Boolean(document.querySelector(".guest-exam-page")),
       login: Boolean(document.querySelector("main.login-page")),
       adminNavItems: adminNavItems.length,
@@ -690,6 +715,34 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
   )) {
     throw new Error(`Admin sidebar icon/label geometry failed at ${width}px: ${JSON.stringify(state)}`);
   }
+  const learnerReferenceProduct = mockRole === "student"
+    && state.shell?.includes("student-app")
+    && state.shell.includes("product-shell")
+    && !state.shell.includes("protected-exam-surface")
+    && !state.shell.includes("profile-portal-reference");
+  if (learnerReferenceProduct) {
+    const greenTheme = path.startsWith("/courses") || path.startsWith("/lessons");
+    const expectedTheme = greenTheme ? "learner-green-theme" : "learner-red-theme";
+    const studyMode = state.shell.includes("study-mode");
+    const failures = [];
+    if (!state.shell.includes(expectedTheme)) failures.push(`theme=${state.shell}`);
+    if (width >= 768) {
+      const expectedSidebarWidth = state.shell.includes("sidebar-expanded") ? 288 : 80;
+      if (state.referenceSidebarWidth !== expectedSidebarWidth) failures.push(`sidebar=${state.referenceSidebarWidth}/${expectedSidebarWidth}`);
+      if (!studyMode) {
+        const expectedTopbarHeight = path.startsWith("/tkb") ? 73 : 81;
+        if (state.referenceTopbarHeight !== expectedTopbarHeight) failures.push(`topbar=${state.referenceTopbarHeight}/${expectedTopbarHeight}`);
+      }
+    }
+    if (!studyMode) {
+      const expectedPadding = width <= 767 ? "16px" : "48px";
+      if (state.referenceMainPaddingInlineStart !== expectedPadding) failures.push(`main-padding=${state.referenceMainPaddingInlineStart}/${expectedPadding}`);
+    }
+    const expectedLogoFragment = greenTheme ? "logo_aeck" : "_red";
+    if ((!studyMode || width >= 1200) && !state.referenceVisibleLogoSources.some(source => source?.includes(expectedLogoFragment))) failures.push(`logo=${state.referenceVisibleLogoSources.join(",")}`);
+    if (path.startsWith("/exam-room") && state.referencePrimaryActionBackground !== "rgb(205, 22, 39)") failures.push(`action=${state.referencePrimaryActionBackground}`);
+    if (failures.length) throw new Error(`Learner reference contract failed for ${path} at ${width}px: ${failures.join("; ")}`);
+  }
   if (screenshot) await page.screenshot({ path: join(outputDir, `${name}-${width}.png`), fullPage: true });
   report.push({ name, path, width, ...state });
 }
@@ -717,8 +770,8 @@ async function inspectStress(name, path, width) {
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       scrollWidth: root.scrollWidth,
       clientWidth: root.clientWidth,
-      controlsOutsideViewport: outsideViewportControls.filter(control => !control.closest(".student-timetable-scroll, .admin-timetable-week-grid")).length,
-      scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.closest(".student-timetable-scroll, .admin-timetable-week-grid")).length,
+      controlsOutsideViewport: outsideViewportControls.filter(control => !control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .history-date-frame")).length,
+      scrollRegionControlsOutsideViewport: outsideViewportControls.filter(control => control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .history-date-frame")).length,
       outsideViewportControls: outsideViewportControls.map(control => {
         const rect = control.getBoundingClientRect();
         return { tag: control.tagName.toLowerCase(), className: control.className, text: control.textContent?.trim().slice(0, 80) ?? "", left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
@@ -766,7 +819,8 @@ async function inspectDrawer(path) {
   await page.waitForTimeout(100);
   const restored = await page.evaluate(() => document.activeElement?.classList.contains("mobile-menu") ?? false);
   report.push({ name: `${mockRole}-drawer-keyboard`, path, width: 390, ...skipLink, ...opened, restoredFocus: restored });
-  if (!opened.drawerFullLogoVisible || opened.drawerFullLogoSource !== "/logo_aeck.svg" || opened.drawerCompactLogoVisible) {
+  const expectedDrawerLogo = mockRole === "student" ? "/logo_aeck_red.svg" : "/logo_aeck.svg";
+  if (!opened.drawerFullLogoVisible || opened.drawerFullLogoSource !== expectedDrawerLogo || opened.drawerCompactLogoVisible) {
     throw new Error(`${mockRole} drawer logo variant failed: ${JSON.stringify(opened)}`);
   }
 }
@@ -806,7 +860,8 @@ async function inspectAccountMenu() {
     await page.screenshot({ path: join(outputDir, `${mockRole}-account-menu-${width}.png`), fullPage: true });
     const result = { name: `${mockRole}-account-menu-keyboard`, path: accountMenuPath, width, ...opened, secondItemFocused, escapeRestoredTrigger, focusOutsideClosed };
     report.push(result);
-    if (!opened.firstItemFocused || !opened.avatarVisible || !opened.menuInsideViewport || opened.horizontalOverflow || !secondItemFocused || !escapeRestoredTrigger || !focusOutsideClosed) {
+    const avatarMatchesReference = mockRole === "admin" ? opened.avatarVisible : !opened.avatarVisible;
+    if (!opened.firstItemFocused || !avatarMatchesReference || !opened.menuInsideViewport || opened.horizontalOverflow || !secondItemFocused || !escapeRestoredTrigger || !focusOutsideClosed) {
       throw new Error(`Account menu keyboard flow failed at ${width}px: ${JSON.stringify(result)}`);
     }
   }
@@ -906,7 +961,7 @@ async function inspectLessonResources() {
         && !directNavigation.labels.some(label => label?.startsWith("Đánh giá năng lực -"))
         && directNavigation.icons.includes("read")
         && directNavigation.icons.includes("play-square")
-        && directNavigation.paddingTop === "12px";
+        && directNavigation.paddingTop === "4px";
       const chapterToggle = page.locator(".lesson-curriculum-list summary").first();
       await chapterToggle.click();
       const chapterCollapsedStable = await stablePlayer();
@@ -1085,7 +1140,9 @@ async function inspectLessonResources() {
       }));
       await page.locator(".study-lesson-navigation > a:last-child").click();
       await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-middle", { timeout: 5_000 });
-      await page.locator(".lesson-resource-picker .lesson-resource-choice").first().click();
+      const middleResourceChoice = page.locator(".lesson-resource-picker .lesson-resource-choice").filter({ hasText: mockMiddleLessonResources[0].title });
+      await middleResourceChoice.waitFor({ state: "visible", timeout: 10_000 });
+      await middleResourceChoice.click();
       await page.locator('.lesson-video[title="Video khảo sát hàm số"]').waitFor({ state: "visible", timeout: 10_000 });
       Object.assign(lessonEdges, await page.evaluate(() => ({
         middlePreviousHref: document.querySelector(".study-lesson-navigation > a:first-child")?.getAttribute("href") ?? "",
@@ -1095,7 +1152,9 @@ async function inspectLessonResources() {
       await page.locator('.lesson-video[title="Video khảo sát hàm số"]').evaluate(element => { element.dataset.studyLessonEdge = "middle"; });
       await page.locator(".study-lesson-navigation > a:last-child").click();
       await page.waitForURL(url => url.pathname === "/lessons/mock-lesson-last", { timeout: 5_000 });
-      await page.locator(".lesson-resource-picker .lesson-resource-choice").first().click();
+      const lastResourceChoice = page.locator(".lesson-resource-picker .lesson-resource-choice").filter({ hasText: mockLastLessonResources[0].title });
+      await lastResourceChoice.waitFor({ state: "visible", timeout: 10_000 });
+      await lastResourceChoice.click();
       await page.locator('.lesson-video[title="Video tích phân cuối khóa"]').waitFor({ state: "visible", timeout: 10_000 });
       Object.assign(lessonEdges, await page.evaluate(() => ({
         lastPreviousHref: document.querySelector(".study-lesson-navigation > a:first-child")?.getAttribute("href") ?? "",
@@ -1263,9 +1322,9 @@ async function inspectCollapsedStudentSidebar() {
   await page.screenshot({ path: join(outputDir, "student-sidebar-expanded-1440.png"), fullPage: true });
   const result = { name: "student-sidebar-logo-states", path: "/dashboard", width: 1440, ...collapsed, ...expanded };
   report.push(result);
-  if (!result.collapsed || result.visibleSidebarLogoSource !== "/logo_aeck_compact.svg"
+  if (!result.collapsed || result.visibleSidebarLogoSource !== "/logo_aeck_compact_red.svg"
     || result.visibleSidebarLogoRatio !== 1 || result.sidebarLogoCenterOffset == null || result.sidebarLogoCenterOffset > 2
-    || !result.expanded || !result.fullLogoVisible || result.fullLogoSource !== "/logo_aeck.svg") {
+    || !result.expanded || !result.fullLogoVisible || result.fullLogoSource !== "/logo_aeck_red.svg") {
     throw new Error(`Student sidebar logo states failed: ${JSON.stringify(result)}`);
   }
 }
@@ -1385,27 +1444,28 @@ async function inspectStudentSchedule() {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/tkb`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(mockAuth ? 1_200 : 350);
-    const initialLabel = await page.locator('[aria-label="Điều hướng tuần"] strong').textContent();
+    const initialLabel = await page.locator('[aria-label="Điều hướng tuần"] .student-timetable-week-label').textContent();
     await page.getByRole("button", { name: "Xem tuần sau" }).click();
-    const nextLabel = await page.locator('[aria-label="Điều hướng tuần"] strong').textContent();
-    await page.getByRole("button", { name: "Hôm nay" }).click();
+    const nextLabel = await page.locator('[aria-label="Điều hướng tuần"] .student-timetable-week-label').textContent();
+    await page.getByRole("button", { name: "Tuần này" }).click();
     const state = await page.evaluate(() => {
       const root = document.documentElement;
       const panel = document.querySelector(".student-timetable-page")?.getBoundingClientRect();
       const scroller = document.querySelector(".student-timetable-scroll");
-      const events = [...document.querySelectorAll('.student-timetable-scroll a[href^="/exam-room/"]')];
+      const events = [...document.querySelectorAll(".student-timetable-event")];
       return {
-        weekDays: document.querySelectorAll(".student-timetable-scroll .sticky > div").length - 1,
+        weekDays: document.querySelectorAll(".student-timetable-day").length,
         scheduledEvents: events.length,
+        emptyWeekVisible: Boolean(document.querySelector(".student-timetable-empty")),
         panelInsideViewport: Boolean(panel && panel.left >= -1 && panel.right <= innerWidth + 1),
-        timelineHeight: scroller?.querySelector('.relative > .flex')?.getBoundingClientRect().height ?? 0,
+        timelineHeight: scroller?.querySelector(".student-timetable-grid-row")?.getBoundingClientRect().height ?? 0,
         hasInternalHorizontalScroll: Boolean(scroller && scroller.scrollWidth > scroller.clientWidth),
         horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       };
     });
     await page.screenshot({ path: join(outputDir, `student-schedule-${width}.png`), fullPage: true });
     report.push({ name: "student-schedule-interaction", path: "/tkb", width, initialLabel, nextLabel, ...state });
-    if (!initialLabel || initialLabel === nextLabel || state.weekDays !== 7 || state.scheduledEvents < 1 || state.timelineHeight !== 1024 || !state.panelInsideViewport || state.horizontalOverflow || (width < 560 && !state.hasInternalHorizontalScroll)) {
+    if (!initialLabel || initialLabel === nextLabel || state.weekDays !== 7 || state.scheduledEvents !== 0 || !state.emptyWeekVisible || state.timelineHeight !== 1024 || !state.panelInsideViewport || state.horizontalOverflow || (width < 560 && !state.hasInternalHorizontalScroll)) {
       throw new Error(`Student schedule failed at ${width}px: ${JSON.stringify({ initialLabel, nextLabel, ...state })}`);
     }
   }
@@ -1607,25 +1667,26 @@ async function inspectNewWorkflowActions() {
       await page.locator('[data-testid="student-dashboard"] .alpha-dashboard-resource-grid a[href="/courses"]').first().click();
       await page.waitForURL(url => url.pathname === "/courses", { timeout: 5_000 });
       await page.waitForTimeout(1_200);
-      await page.getByRole("button", { name: "Danh sách" }).click();
-      await page.waitForURL(url => url.pathname === "/courses" && url.searchParams.get("view") === "list", { timeout: 5_000 });
-      const listMode = await page.locator(".course-list-view").count();
+      await page.locator("a.course-card-action").first().click();
+      await page.waitForURL(url => url.pathname === "/courses/mock-course", { timeout: 5_000 });
+      await page.locator(".course-study-page-reference").waitFor({ state: "visible", timeout: 10_000 });
+      const courseDetail = await page.locator(".course-study-page-reference").count();
       await page.goBack();
-      await page.waitForURL(url => url.pathname === "/courses" && !url.searchParams.has("view"), { timeout: 5_000 });
+      await page.waitForURL(url => url.pathname === "/courses", { timeout: 5_000 });
       await page.waitForTimeout(1_200);
-      const gridModeAfterBack = await page.locator(".course-grid-view").count();
+      const gridModeAfterBack = await page.locator(".reference-course-grid.course-grid-view").count();
       const afterBackUrl = page.url();
       const afterBackClasses = await page.locator(".reference-course-grid").getAttribute("class").catch(() => null);
       await page.goForward();
-      await page.waitForURL(url => url.pathname === "/courses" && url.searchParams.get("view") === "list", { timeout: 5_000 });
+      await page.waitForURL(url => url.pathname === "/courses/mock-course", { timeout: 5_000 });
       await page.waitForTimeout(1_200);
-      const gridModeAfterForward = await page.locator(".course-grid-view").count();
+      const gridModeAfterForward = await page.locator(".course-study-page-reference").count();
       const afterForwardUrl = page.url();
-      const afterForwardClasses = await page.locator(".reference-course-grid").getAttribute("class").catch(() => null);
-      const result = { name: "student-new-workflow-actions", path: "/dashboard", width, ...dashboardState, listMode, gridModeAfterBack, afterBackUrl, afterBackClasses, gridModeAfterForward, afterForwardUrl, afterForwardClasses };
+      const afterForwardClasses = await page.locator(".course-study-page-reference").getAttribute("class").catch(() => null);
+      const result = { name: "student-new-workflow-actions", path: "/dashboard", width, ...dashboardState, courseDetail, gridModeAfterBack, afterBackUrl, afterBackClasses, gridModeAfterForward, afterForwardUrl, afterForwardClasses };
       report.push(result);
-      if (listMode !== 1 || gridModeAfterBack !== 1 || gridModeAfterForward !== 0) {
-        throw new Error(`Student course view history failed at ${width}px: ${JSON.stringify(result)}`);
+      if (courseDetail !== 1 || gridModeAfterBack !== 1 || gridModeAfterForward !== 1) {
+        throw new Error(`Student course navigation history failed at ${width}px: ${JSON.stringify(result)}`);
       }
     }
     return;

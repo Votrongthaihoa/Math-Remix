@@ -5,9 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import {
-  ArrowLeft, BarChart3, BookOpenCheck, Check, ChevronLeft, ChevronRight, ClipboardList,
+  ArrowLeft, BarChart3, BookOpenCheck, Check, ChevronLeft, ChevronRight,
   CircleAlert, Clock3, FileText, Fingerprint, Flag, GripVertical, Grid3X3,
-  Maximize2, Play, RotateCcw, Search, Send, Timer, UserRound, X
+  Maximize2, RotateCcw, Send, Timer, UserRound, X
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
 import { preloadAuthenticatedExamImages } from "../lib/exam-image-client";
@@ -20,7 +20,7 @@ import {
   exportExamPublicKey,
   type EncryptedExamEnvelope,
 } from "../lib/exam-content-crypto";
-import { EXAM_ROOM_TYPE_OPTIONS, isIndependentSubjectExamType, normalizeExamType, roomTypeLabel } from "../lib/exam-config";
+import { isIndependentSubjectExamType, normalizeExamType, roomTypeLabel } from "../lib/exam-config";
 import { getHsaCombination, HSA_PART3_SELECTION_PENDING_KEY, HSA_SELECTION_ANSWER_KEY, resolveHsaCombination } from "../lib/hsa-exam";
 import { loadCandidateIdentity } from "../lib/exam-identity";
 import type { ExamPolicy } from "../lib/exam-policy";
@@ -43,7 +43,7 @@ import "./exam-catalog-redesign.css";
 import "./exam-result-product.css";
 
 type Room = { id: string; title: string; description: string; exam_type: string; access_mode: string; registration_start: string | null; registration_end: string | null; exam_start: string | null; exam_end: string | null; published: boolean; sort_order: number };
-type Exam = { id: string; room_id: string; title: string; description: string; dashboard_title?: string | null; exam_type: string; mode: string; duration_minutes: number; published: boolean; sort_order: number; created_at?: string | null };
+type Exam = { id: string; room_id: string; title: string; description: string; dashboard_title?: string | null; exam_type: string; mode: string; duration_minutes: number; published: boolean; sort_order: number; created_at?: string | null; section_count?: number; max_attempts?: number };
 type Section = { id: string; exam_id: string; title: string; duration_minutes: number | null; sort_order: number; subject_code?: string | null };
 type OptionValue = string | { id?: string; value?: string; label?: string; text?: string; slot?: string };
 type QuestionType = "single" | "multiple" | "text" | "inline" | "true_false" | "ordering" | "drag_drop";
@@ -163,6 +163,27 @@ function examSectionPath(examId: string, sectionId: string, mode: "practice" | "
 function formatDate(value: string | null, includeTime = false) {
   if (!value) return "Không giới hạn";
   return new Intl.DateTimeFormat("vi-VN", includeTime ? { dateStyle: "short", timeStyle: "short" } : { dateStyle: "short" }).format(new Date(value));
+}
+
+function formatReferenceDate(value: string | null, includeTime = false) {
+  if (!value) return "Không giới hạn";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Không giới hạn";
+  return new Intl.DateTimeFormat("vi-VN", includeTime
+    ? { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }
+    : { day: "2-digit", month: "2-digit", year: "numeric" })
+    .format(date)
+    .replace(",", "");
+}
+
+function roomCatalogTitle(rooms: Room[]) {
+  const types = [...new Set(rooms.map(room => normalizeExamType(room.exam_type)))];
+  if (types.length !== 1) return "Phòng khảo thí";
+  if (types[0] === "TSA") return "Đánh giá tư duy - TSA";
+  if (types[0] === "HSA") return "Đánh giá năng lực - HSA";
+  if (types[0] === "VSAT") return "Đánh giá đầu vào - V-SAT";
+  if (types[0] === "THPTQG") return "Tốt nghiệp THPT";
+  return "Phòng khảo thí";
 }
 
 function formatDuration(seconds: number) {
@@ -298,7 +319,6 @@ function PageState({ loading, error, empty, onRetry }: { loading?: boolean; erro
 
 function ExamRoomCatalog() {
   const [data, setData] = useState<{ rooms: Room[]; exams: Exam[]; attempts: Attempt[] } | null>(null);
-  const [typeFilter, setTypeFilter] = useState("ALL");
   const [error, setError] = useState("");
   const load = useCallback(async () => { setError(""); setData(null); try { setData(await examApi("/api/exams?scope=rooms")); } catch (value) { setError(value instanceof Error ? value.message : "Không thể tải phòng thi."); } }, []);
   useEffect(() => {
@@ -306,71 +326,40 @@ function ExamRoomCatalog() {
     void load();
   }, [load]);
 
-  const availableTypes = useMemo(() => {
-    if (!data) return [];
-    return Array.from(new Set(data.rooms.map(room => normalizeExamType(room.exam_type)))).sort((left, right) => {
-      const leftIndex = EXAM_ROOM_TYPE_OPTIONS.findIndex(option => option.value === left);
-      const rightIndex = EXAM_ROOM_TYPE_OPTIONS.findIndex(option => option.value === right);
-      return (leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex) - (rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex);
-    });
-  }, [data]);
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const filters = ["ALL", ...availableTypes];
-    const activeIndex = filters.indexOf(typeFilter);
-    let nextIndex = activeIndex;
-    if (event.key === "ArrowRight") {
-      nextIndex = (activeIndex + 1) % filters.length;
-    } else if (event.key === "ArrowLeft") {
-      nextIndex = (activeIndex - 1 + filters.length) % filters.length;
-    } else {
-      return;
-    }
-    event.preventDefault();
-    const nextFilter = filters[nextIndex];
-    setTypeFilter(nextFilter);
-    const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>("button");
-    buttons[nextIndex]?.focus();
-  };
-
   if (!data) return <PageState loading={!error} error={error} onRetry={load} />;
   if (!data.rooms.length) return <PageState empty="Phòng thi sẽ xuất hiện sau khi quản trị viên xuất bản và cấp quyền cho bạn." />;
-  const visibleRooms = data.rooms.filter(room => typeFilter === "ALL" || normalizeExamType(room.exam_type) === typeFilter);
+  const requestedType = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("examType")?.trim().toUpperCase() ?? "";
+  const visibleRooms = requestedType ? data.rooms.filter(room => normalizeExamType(room.exam_type) === requestedType) : data.rooms;
 
   return <div className="exam-page exam-room-page">
-    <header className="exam-page-heading reference-room-heading"><span>PHÒNG KHẢO THÍ</span><h1>Chọn loại phòng và đề thi</h1><p>Mỗi phòng có nhiều đề; chọn đúng loại kỳ thi trước khi bắt đầu.</p></header>
-    <div className="exam-room-type-filters" role="tablist" aria-label="Loại phòng khảo thí" onKeyDown={handleKeyDown}>
-      <button type="button" role="tab" tabIndex={typeFilter === "ALL" ? 0 : -1} aria-selected={typeFilter === "ALL"} className={typeFilter === "ALL" ? "active" : ""} onClick={() => setTypeFilter("ALL")}>Tất cả</button>
-      {availableTypes.map(type => <button type="button" role="tab" tabIndex={typeFilter === type ? 0 : -1} aria-selected={typeFilter === type} key={type} className={typeFilter === type ? "active" : ""} onClick={() => setTypeFilter(type)}>{roomTypeLabel(type)}</button>)}
-    </div>
-    {!visibleRooms.length ? <PageState empty="Chưa có phòng thuộc loại này." /> : <div className="exam-room-grid">{visibleRooms.map(room => {
+    <header className="reference-room-heading"><h1>{roomCatalogTitle(visibleRooms)}</h1><p>Chọn phòng thi để bắt đầu làm bài</p></header>
+    {!visibleRooms.length ? <PageState empty="Chưa có phòng thi phù hợp." /> : <div className="exam-room-grid">{visibleRooms.map(room => {
       const exams = data.exams.filter(exam => exam.room_id === room.id);
       const examIds = exams.map(exam => exam.id);
       const completed = new Set(data.attempts.filter(attempt => examIds.includes(attempt.exam_id) && attempt.status !== "in_progress").map(attempt => attempt.exam_id)).size;
-      return <article className={`exam-room-card reference-room-card exam-theme-${normalizeExamType(room.exam_type).toLowerCase()}`} data-exam-type={normalizeExamType(room.exam_type).toLowerCase()} key={room.id}>
-        <div className="reference-room-card-title"><span className="exam-type-badge">{roomTypeLabel(room.exam_type)}</span><h2>{room.title}</h2></div>
+      const paperCount = exams.reduce((count, exam) => count + Math.max(1, Number(exam.section_count) || 1), 0);
+      return <article className="reference-room-card" key={room.id}>
+        <div className="reference-room-card-title"><h2>{room.title}</h2></div>
         <div className="reference-room-card-body">
-          {room.description && <p className="reference-room-description">{room.description}</p>}
-          <Meta icon={Clock3} label="Đăng ký" value={`${formatDate(room.registration_start, true)} - ${formatDate(room.registration_end, true)}`} />
-          <Meta icon={Timer} label="Thời gian thi" value={`${formatDate(room.exam_start, true)} - ${formatDate(room.exam_end, true)}`} />
-          <Meta icon={ClipboardList} label="Số lượng đề" value={`${exams.length} đề`} />
-          <Meta icon={FileText} label="Cấu trúc" value={exams.length ? (isIndependentSubjectExamType(room.exam_type) ? "Các môn độc lập / đề" : "Các phần / đề") : "Chưa có đề"} />
+          <ReferenceRoomFact label="Đăng ký" value={`${formatReferenceDate(room.registration_start, true)} - ${formatReferenceDate(room.registration_end, true)}`} />
+          <ReferenceRoomFact label="Thời gian thi" value={`${formatReferenceDate(room.exam_start, true)} - ${formatReferenceDate(room.exam_end, true)}`} />
+          <ReferenceRoomFact label="Số lượng bài thi" value={`${exams.length} bài thi`} />
+          <ReferenceRoomFact label="Số lượng đề thi" value={`${paperCount} đề thi`} />
         </div>
-        <div className="reference-room-card-footer"><div className="reference-room-completion"><div><span>Hoàn thành</span><b>{completed}/{exams.length} đề</b></div><div className="exam-progress"><span style={{ width: `${exams.length ? completed / exams.length * 100 : 0}%` }} /></div></div><a href={`/exam-room/${encodeURIComponent(room.id)}`}>Xem các đề trong gói</a></div>
+        <div className="reference-room-card-footer"><div className="reference-room-completion"><div><span>Hoàn thành</span><b>{completed}/{exams.length} bài</b></div><div className="exam-progress"><span style={{ width: `${exams.length ? completed / exams.length * 100 : 0}%` }} /></div></div><a className="reference-room-start" href={`/exam-room/${encodeURIComponent(room.id)}`}>Bắt đầu</a></div>
       </article>;
     })}</div>}
   </div>;
 }
 
-function Meta({ icon: Icon, label, value }: { icon: typeof Clock3; label: string; value: string }) {
-  return <div className="exam-meta-item"><span><Icon/><small>{label}</small></span><b>{value}</b></div>;
+function ReferenceRoomFact({ label, value }: { label: string; value: string }) {
+  return <div className="reference-room-fact"><span>{label}</span><b>{value}</b></div>;
 }
 
 function ExamList({ roomId, navigate }: { roomId: string; navigate: (path: string) => void }) {
   const [data, setData] = useState<{ room: Room; exams: Exam[]; sections: Section[]; attempts: Attempt[] } | null>(null);
   const [modeExam, setModeExam] = useState<Exam | null>(null);
   const [historyExam, setHistoryExam] = useState<Exam | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const historyTriggerRef = useRef<HTMLButtonElement | null>(null);
   const load = useCallback(async () => { setError(""); setData(null); try { setData(await examApi(`/api/exams?scope=room&roomId=${encodeURIComponent(roomId)}`)); } catch (value) { setError(value instanceof Error ? value.message : "Không thể tải danh sách đề thi."); } }, [roomId]);
@@ -379,30 +368,34 @@ function ExamList({ roomId, navigate }: { roomId: string; navigate: (path: strin
     void load();
   }, [load]);
   if (!data) return <PageState loading={!error} error={error} onRetry={load} />;
-  const visibleExams = data.exams.filter(exam => `${exam.title} ${exam.description}`.toLowerCase().includes(searchTerm.trim().toLowerCase()));
-  return <div className={`exam-page exam-list-page exam-theme-${normalizeExamType(data.room.exam_type).toLowerCase()}`} data-exam-type={normalizeExamType(data.room.exam_type).toLowerCase()}>
-    <button className="exam-back" onClick={() => navigate("/exam-room")}><ArrowLeft/>Quay lại phòng thi</button>
-    <div className="exam-package-toolbar"><header className="exam-page-heading compact"><span>{roomTypeLabel(data.room.exam_type)} · GÓI ĐỀ</span><h1>Gói đề: {data.room.title}</h1><p>{data.exams.length} đề trong phòng · {isIndependentSubjectExamType(data.room.exam_type) ? "mỗi đề có các môn được cấu hình riêng." : "mỗi đề có thể gồm một hoặc nhiều phần thi."}</p></header><label className="exam-package-search"><Search/><input value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Tìm kiếm đề thi..." aria-label="Tìm kiếm đề thi"/></label></div>
-    {!data.exams.length ? <PageState empty="Phòng này chưa có đề thi đã xuất bản." /> : !visibleExams.length ? <PageState empty="Không tìm thấy đề phù hợp với từ khóa." /> : <div className="exam-list-grid">{visibleExams.map(exam => {
+  const completedExamIds = new Set(data.attempts.filter(attempt => attempt.status !== "in_progress").map(attempt => attempt.exam_id));
+  return <div className="exam-page exam-list-page">
+    <header className="reference-room-detail-header">
+      <div className="reference-room-detail-title">
+        <button type="button" onClick={() => navigate("/exam-room")} title="Quay lại" aria-label="Quay lại phòng khảo thí"><ArrowLeft aria-hidden="true" /></button>
+        <div><h1 title={data.room.title}>{data.room.title}</h1><p>Chọn bài thi để bắt đầu làm bài</p></div>
+      </div>
+      <div className="reference-room-detail-progress"><div><span>Hoàn thành</span><b>{completedExamIds.size}/{data.exams.length} bài</b></div><div className="exam-progress"><span style={{ width: `${data.exams.length ? completedExamIds.size / data.exams.length * 100 : 0}%` }} /></div></div>
+    </header>
+    {!data.exams.length ? <PageState empty="Phòng này chưa có đề thi đã xuất bản." /> : <div className="exam-list-grid">{data.exams.map(exam => {
       const attempts = data.attempts.filter(attempt => attempt.exam_id === exam.id);
       const history = completedAttempts(attempts);
       const active = attempts.filter(attempt => attempt.status === "in_progress").sort((left, right) => new Date(right.started_at ?? 0).getTime() - new Date(left.started_at ?? 0).getTime())[0];
-      return <article className={`exam-paper-card reference-exam-card${active ? " has-active-attempt" : ""}`} key={exam.id}>
-        <div className="reference-paper-label"><span className="exam-type-badge">{roomTypeLabel(data.room.exam_type)}</span></div>
+      return <article className={`reference-exam-card${active ? " has-active-attempt" : ""}`} key={exam.id}>
         <div className="reference-exam-card-head"><h3 title={exam.title}>{exam.title}</h3></div>
         <div className="reference-exam-card-body">
           {active && <div className="reference-exam-resume-banner">⚠️ Có bài làm chưa nộp</div>}
-          <div><span>Trạng thái:</span><b className="reference-exam-status">{exam.published ? "Đang mở" : "Chưa mở"}</b></div>
-          <div><span>{isIndependentSubjectExamType(data.room.exam_type) ? "Môn thi:" : "Số phần thi:"}</span><strong>{data.sections.filter(section => section.exam_id === exam.id).length} {isIndependentSubjectExamType(data.room.exam_type) ? "môn" : "phần"}</strong></div>
-          <div><span>Hình thức:</span><strong>{exam.mode === "scheduled" ? "Theo lịch" : "Miễn phí"}</strong></div>
-          <div><span>Ngày tạo:</span><strong>{exam.created_at ? formatDate(exam.created_at) : "—"}</strong></div>
+          <ReferenceExamFact label="Hình thức thi:" value={<b className="reference-exam-status">{exam.mode === "scheduled" ? "Theo lịch" : "Tự do"}</b>} />
+          <ReferenceExamFact label="Thời gian đăng kí:" value={`${formatReferenceDate(data.room.registration_start)} - ${formatReferenceDate(data.room.registration_end)}`} />
+          <ReferenceExamFact label="Thời gian thi:" value={`${formatReferenceDate(data.room.exam_start)} - ${formatReferenceDate(data.room.exam_end)}`} />
+          <ReferenceExamFact label="Số lượt thi:" value={Number(exam.max_attempts) > 0 ? `${exam.max_attempts} lượt` : "Không giới hạn"} />
         </div>
         <div className="reference-exam-card-footer">
           <button type="button" className="reference-exam-history" disabled={!history.length} onClick={event => { historyTriggerRef.current = event.currentTarget; setHistoryExam(exam); }}>
-            {history.length ? `Xem lịch sử (${history.length})` : "Chưa có lịch sử"}
+            Xem đáp án
           </button>
           <button type="button" className={`reference-exam-start ${active ? "is-resume" : ""}`} onClick={() => active ? navigate(`/exam/${encodeURIComponent(exam.id)}?mode=practice`) : setModeExam(exam)}>
-            {active ? "Tiếp tục làm bài" : "Bắt đầu làm bài"}<Play aria-hidden="true"/>
+            {active ? "Tiếp tục" : "Bắt đầu"}
           </button>
         </div>
       </article>;
@@ -410,6 +403,10 @@ function ExamList({ roomId, navigate }: { roomId: string; navigate: (path: strin
     {modeExam && <ModeDialog exam={modeExam} onClose={() => setModeExam(null)} onChoose={mode => navigate(`/exam/${encodeURIComponent(modeExam.id)}?mode=${mode}`)} />}
     {historyExam && <ExamAttemptHistoryDialog exam={historyExam} attempts={completedAttempts(data.attempts.filter(attempt => attempt.exam_id === historyExam.id))} onClose={() => { setHistoryExam(null); requestAnimationFrame(() => historyTriggerRef.current?.focus()); }} onOpen={attemptId => navigate(`/exam/result/${encodeURIComponent(attemptId)}`)} />}
   </div>;
+}
+
+function ReferenceExamFact({ label, value }: { label: string; value: React.ReactNode }) {
+  return <div className="reference-exam-fact"><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function ExamAttemptHistoryDialog({ exam, attempts, onClose, onOpen }: { exam: Exam; attempts: Attempt[]; onClose: () => void; onOpen: (attemptId: string) => void }) {

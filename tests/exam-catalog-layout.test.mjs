@@ -2,13 +2,13 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-test("learner catalog shares the scoped neutral-crimson product language", async () => {
+test("learner catalog uses the exact supplied crimson product language", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
   assert.match(css, /\.ui-shell\.student-app\.product-shell\[data-ui-mode="optimized-chrome-only"\]/);
-  assert.match(css, /--catalog-primary:\s*#b5122b/);
-  assert.match(css, /--catalog-primary-hover:\s*#981025/);
-  assert.match(css, /--catalog-primary-soft:\s*#fff1f3/);
+  assert.match(css, /--catalog-primary:\s*#cd1627/);
+  assert.match(css, /--catalog-primary-hover:\s*#b91c2b/);
+  assert.match(css, /--catalog-primary-soft:\s*#fff1f2/);
   assert.match(css, /:where\(a, button, input\):focus-visible/);
   assert.doesNotMatch(css, /--catalog-blue|#(?:007aff|0066d6|1d4ed8|1e40af|eff6ff|dbeafe)/i);
   assert.doesNotMatch(css, /rgba\((?:0,\s*122,\s*255|29,\s*78,\s*216|30,\s*64,\s*175|0,\s*102,\s*214|88,\s*86,\s*214)/i);
@@ -16,72 +16,56 @@ test("learner catalog shares the scoped neutral-crimson product language", async
   assert.doesNotMatch(css, /(?:-webkit-)?backdrop-filter/);
 });
 
-test("exam-list start action keeps the catalog color over shared shell styles", async () => {
+test("exam catalog start actions keep the exact supplied red over shared shell styles", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
   assert.match(
     css,
-    /\.ui-shell\.student-app\.product-shell\[data-ui-mode="optimized-chrome-only"\]\s+\.exam-list-page \.reference-exam-start\s*\{[^}]*background:\s*var\(--catalog-primary\)/,
+    /\.ui-shell\.student-app\.product-shell\.learner-red-theme\[data-ui-mode="optimized-chrome-only"\][^\{]*\.reference-room-start,[\s\S]*?\.reference-exam-start\s*\{[^}]*border-color:\s*#cd1627[^}]*background:\s*#cd1627[^}]*color:\s*#fff/s,
   );
 });
 
-test("exam-list footer stacks actions before narrow labels become cramped", async () => {
+test("exam-list footer follows the supplied narrow card stack", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
   assert.match(
     css,
-    /@media\s*\(max-width:\s*420px\)[\s\S]*?\.exam-list-page \.reference-exam-card-footer\s*\{[^}]*align-items:\s*stretch;[^}]*flex-direction:\s*column;/,
+    /@media\s*\(max-width:\s*575px\)[\s\S]*?\.exam-list-page \.reference-exam-card-footer\s*\{[^}]*align-items:\s*stretch;[^}]*flex-direction:\s*column;/,
   );
   assert.match(
     css,
-    /@media\s*\(max-width:\s*420px\)[\s\S]*?\.exam-list-page \.reference-exam-start\s*\{[^}]*width:\s*100%;/,
+    /@media\s*\(max-width:\s*575px\)[\s\S]*?\.exam-list-page \.reference-exam-start\s*\{[^}]*width:\s*100%;/,
   );
 });
 
-test("learner room catalog fills each row before wrapping cards", async () => {
+test("learner room catalog follows the supplied one-two-three column breakpoints", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
-  assert.match(css, /\.exam-room-page \.exam-room-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 340px\), 1fr\)\);[\s\S]*?align-items:\s*stretch;/);
-  assert.doesNotMatch(css, /@media\s*\(max-width:\s*1100px\)[\s\S]*?\.exam-room-page \.exam-room-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
-  assert.match(css, /@media\s*\(max-width:\s*767px\)[\s\S]*?\.exam-room-page \.exam-room-grid[\s\S]*?grid-template-columns:\s*1fr;/);
+  assert.match(css, /\.exam-room-page \.exam-room-grid\s*\{[^}]*grid-template-columns:\s*1fr;[^}]*gap:\s*20px;/s);
+  assert.match(css, /@media \(min-width:\s*1024px\)[\s\S]*?\.exam-room-page \.exam-room-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(css, /@media \(min-width:\s*1536px\)[\s\S]*?\.exam-room-page \.exam-room-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/);
 });
 
-test("room catalog tags and titles share a centered, long-text-safe axis", async () => {
-  const [studentCss, adminCss, overflowCss] = await Promise.all([
-    readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8"),
-    readFile(new URL("../app/admin-macos.css", import.meta.url), "utf8"),
-    readFile(new URL("../app/text-overflow-polish.css", import.meta.url), "utf8"),
-  ]);
-
-  assert.match(studentCss, /\.exam-room-page \.reference-room-card-title\s*\{[^}]*align-items:\s*center;[^}]*justify-content:\s*center;[^}]*text-align:\s*center;/);
-  assert.match(studentCss, /\.exam-room-page \.reference-room-card-title \.exam-type-badge,[\s\S]*?\.exam-list-page \.reference-paper-label \.exam-type-badge\s*\{[^}]*align-self:\s*center;[^}]*white-space:\s*nowrap;[^}]*word-break:\s*normal;/);
-  assert.match(adminCss, /\.workspace-page:has\(\.room-catalog-grid\) \.reference-room-card-title\s*\{[^}]*align-items:\s*center;[^}]*justify-content:\s*center;[^}]*text-align:\s*center;/);
-  assert.match(overflowCss, /\.reference-room-card-title h2\s*\{[^}]*overflow-wrap:\s*break-word;[^}]*text-align:\s*center;[^}]*word-break:\s*normal;/);
-});
-
-test("room and exam cards share one restrained crimson type badge", async () => {
+test("room catalog titles keep the supplied left alignment and long-text safety", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
-  assert.match(
-    css,
-    /\.exam-room-page \.reference-room-card-title \.exam-type-badge,\s*[\s\S]*?\.exam-list-page \.reference-paper-label \.exam-type-badge\s*\{[^}]*min-height:\s*24px;[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--catalog-primary-soft\);[^}]*color:\s*var\(--catalog-primary\);[^}]*font-weight:\s*800;[^}]*white-space:\s*nowrap;/,
-  );
-  assert.match(
-    css,
-    /\.exam-list-page \.reference-paper-label\s*\{[^}]*padding:\s*18px 20px 0;/,
-  );
-  assert.match(
-    css,
-    /\.exam-list-page \.reference-exam-card-head\s*\{[^}]*padding:\s*10px 20px 19px;/,
-  );
+  assert.match(css, /\.exam-room-page \.reference-room-card-title\s*\{[^}]*display:\s*block;[^}]*text-align:\s*start;/s);
+  assert.match(css, /\.exam-room-page \.reference-room-card-title h2\s*\{[^}]*overflow-wrap:\s*break-word;[^}]*text-align:\s*start;[^}]*word-break:\s*normal;/s);
 });
 
-test("exam package cards fill a row before wrapping", async () => {
+test("learner room and exam cards do not render invented type badges", async () => {
+  const source = await readFile(new URL("../app/exam-room.tsx", import.meta.url), "utf8");
+  const catalog = source.slice(source.indexOf("function ExamRoomCatalog"), source.indexOf("function ExamAttemptHistoryDialog"));
+
+  assert.doesNotMatch(catalog, /exam-type-badge|reference-paper-label/);
+});
+
+test("exam package cards follow the supplied one-two-three column breakpoints", async () => {
   const css = await readFile(new URL("../app/exam-catalog-redesign.css", import.meta.url), "utf8");
 
-  assert.match(css, /\.exam-list-page \.exam-list-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 480px\), 1fr\)\);[\s\S]*?justify-content:\s*start;/);
-  assert.doesNotMatch(css, /\.exam-list-page \.exam-list-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 520px\);/);
-  assert.match(css, /@media\s*\(max-width:\s*767px\)[\s\S]*?\.exam-list-page \.exam-list-grid[\s\S]*?grid-template-columns:\s*1fr;/);
+  assert.match(css, /\.exam-list-page \.exam-list-grid\s*\{[^}]*grid-template-columns:\s*1fr;[^}]*gap:\s*24px;/s);
+  assert.match(css, /@media \(min-width:\s*1024px\)[\s\S]*?\.exam-list-page \.exam-list-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(css, /@media \(min-width:\s*1536px\)[\s\S]*?\.exam-list-page \.exam-list-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/);
 });
 
 test("attempt history dialog exposes real result links and responsive summaries", async () => {
@@ -93,7 +77,7 @@ test("attempt history dialog exposes real result links and responsive summaries"
   assert.match(source, /function ExamAttemptHistoryDialog/);
   assert.match(source, /role="dialog" aria-modal="true"/);
   assert.match(source, /href=\{`\/exam\/result\/\$\{encodeURIComponent\(attempt\.id\)\}`\}/);
-  assert.match(source, /history\.length \? `Xem lịch sử \(\$\{history\.length\}\)` : "Chưa có lịch sử"/);
+  assert.match(source, />\s*Xem đáp án\s*</);
   assert.match(source, /disabled=\{!history\.length\}/);
   assert.match(css, /\.exam-attempt-history-list\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
   assert.match(css, /@media\s*\(max-width:\s*767px\)[\s\S]*?\.exam-attempt-history-list\s*\{[^}]*grid-template-columns:\s*1fr;/);
@@ -108,13 +92,11 @@ test("independent-subject results return to the room package instead of the subj
   assert.match(resultBranch, /onRetake=\{\(\) => subjectSection && navigate\(examSectionPath\(data\.exam\.id, subjectSection\.id, "practice", "confirm"\)\)\}/);
 });
 
-test("pre-exam enhancements: roving tabindex, ModeDialog access, Escape, inert cleanup, and resume button label", async () => {
+test("pre-exam enhancements keep the reference catalog and accessible mode dialog", async () => {
   const source = await readFile(new URL("../app/exam-room.tsx", import.meta.url), "utf8");
 
-  // 1. Roving tabindex arrow behavior:
-  assert.match(source, /onKeyDown=\{handleKeyDown\}/);
-  assert.match(source, /tabIndex=\{typeFilter === "ALL" \? 0 : -1\}/);
-  assert.match(source, /tabIndex=\{typeFilter === type \? 0 : -1\}/);
+  // 1. The supplied catalog has no invented type-filter rail:
+  assert.doesNotMatch(source, /typeFilter|exam-room-type-filters|availableTypes/);
 
   // 2. ModeDialog accessible name / describedby:
   assert.match(source, /aria-labelledby="exam-mode-title"/);
@@ -127,8 +109,8 @@ test("pre-exam enhancements: roving tabindex, ModeDialog access, Escape, inert c
   assert.match(source, /const original = element\.inert;/);
   assert.match(source, /element\.inert = original;/);
 
-  // 5. Active attempt resume label:
-  assert.match(source, /active \? "Tiếp tục làm bài" : "Bắt đầu làm bài"/);
+  // 5. Active attempt keeps the compact reference action label:
+  assert.match(source, /active \? "Tiếp tục" : "Bắt đầu"/);
   assert.match(source, /className=\{`reference-exam-start \$\{active \? "is-resume" : ""\}\`/);
 
   // 6. Valid HTML semantic structuring of options cards:

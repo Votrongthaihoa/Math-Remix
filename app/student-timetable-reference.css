@@ -1,0 +1,407 @@
+/* The learner timetable is an intentionally isolated port of the supplied
+ * TKB page.  It does not reuse exam-room colors or the protected runner UI. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-page {
+  --timetable-accent: #cd1627;
+  --timetable-line: #f3f4f6;
+  --timetable-border: #e5e7eb;
+  --timetable-muted: #9ca3af;
+  color: #1f2937;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-card {
+  position: relative;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-toolbar {
+  min-height: 49px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--timetable-border);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-title .student-timetable-ant-icon {
+  color: var(--timetable-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tools,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-legends,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-week-controls {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-legend {
+  min-height: 20px;
+  border-radius: 999px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-ant-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -.125em;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-button {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 16px;
+  white-space: nowrap;
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-button:hover {
+  border-color: var(--timetable-accent);
+  color: var(--timetable-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-button:focus-visible {
+  outline: 2px solid rgba(205, 22, 39, .3);
+  outline-offset: 2px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-button .student-timetable-ant-icon {
+  font-size: 14px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-week-label {
+  display: inline-block;
+  min-width: 140px;
+  color: #4b5563;
+  font-variant-numeric: tabular-nums;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-notice {
+  margin: 0;
+  padding: 8px 20px;
+  border-bottom: 1px solid #fee2e2;
+  background: #fff7f7;
+  color: #9f1239;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-canvas {
+  position: relative;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-days {
+  min-height: 52px;
+  background: #fff;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-axis-head,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-axis {
+  width: 52px;
+  flex: 0 0 52px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day {
+  position: relative;
+  min-width: 72px;
+  border-left: 1px solid #f3f4f6;
+  text-align: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day.is-today {
+  background: rgba(205, 22, 39, .025);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day-name,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day-name {
+  color: var(--timetable-muted);
+  font-size: 10px;
+  line-height: 12px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day-date {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day.is-today .student-timetable-day-name,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day.is-today .student-timetable-day-date {
+  color: var(--timetable-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-today-dot {
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 4px auto 0;
+  border-radius: 50%;
+  background: var(--timetable-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-grid {
+  position: relative;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-grid-row {
+  min-height: 1024px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-axis {
+  position: relative;
+  border-right: 1px solid #f3f4f6;
+  background: #fff;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-hour {
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-column {
+  position: relative;
+  min-width: 72px;
+  border-left: 1px solid #f3f4f6;
+  background: #fff;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-column.is-today {
+  background: rgba(205, 22, 39, .015);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-hour-line,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-half-line {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-hour-line {
+  border-top: 1px solid #f3f4f6;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-half-line {
+  border-top: 1px dashed #f9fafb;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-empty {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-now-line {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-now-line span {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--timetable-accent);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-now-line i {
+  height: 2px;
+  flex: 1 1 auto;
+  background: var(--timetable-accent);
+  opacity: .85;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-anchor {
+  position: absolute;
+  z-index: 2;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+  transition: opacity .15s ease;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event:focus-visible {
+  outline: 2px solid var(--timetable-accent);
+  outline-offset: 1px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-copy {
+  min-width: 0;
+  padding: 3px 6px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-title,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-time,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-instructor {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-time {
+  font-size: 10px;
+  line-height: 13px;
+  opacity: .75;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-instructor {
+  font-size: 10px;
+  line-height: 13px;
+  opacity: .65;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event-link {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  font-size: 9px;
+  line-height: 10px;
+  opacity: .45;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tooltip {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: calc(100% + 8px);
+  display: none;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 12px;
+  line-height: 17px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .18);
+  pointer-events: none;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tooltip > * {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tooltip strong {
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tooltip small {
+  font-size: 11px;
+  opacity: .55;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tooltip b {
+  margin-top: 4px;
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event:hover + .student-timetable-tooltip,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event:focus-visible + .student-timetable-tooltip {
+  display: grid;
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tools {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day-long {
+    display: none;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-day-short {
+    display: block;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-tooltip {
+    position: fixed;
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-button,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event {
+    transition-duration: .01ms;
+  }
+}

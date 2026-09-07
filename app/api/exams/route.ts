@@ -282,6 +282,38 @@ async function questionCountsForSnapshot(admin: SupabaseClient, sections: Array<
 
 const privateHeaders = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
+function examPolicyMode(mode: unknown): ExamPolicyMode {
+  return mode === "scheduled" ? "official" : "practice";
+}
+
+type ExamSummaryRow = Record<string, unknown> & {
+  id: string;
+  published?: boolean;
+  exam_type?: string | null;
+  mode?: string | null;
+  duration_minutes?: number | null;
+  settings?: unknown;
+};
+
+type PublicExamSummary = Omit<ExamSummaryRow, "settings"> & {
+  section_count: number;
+  max_attempts: number;
+};
+
+function publicExamSummary(exam: ExamSummaryRow, sectionCount: number): PublicExamSummary {
+  const { settings: _settings, ...safeExam } = exam;
+  const policy = policyFromExamSettings(exam.settings, {
+    examType: exam.exam_type,
+    mode: examPolicyMode(exam.mode),
+    durationMinutes: exam.duration_minutes,
+  });
+  return {
+    ...safeExam,
+    section_count: Math.max(0, sectionCount),
+    max_attempts: policy.access.maxAttempts,
+  };
+}
+
 function publicAttemptWithPolicy(attempt: Record<string, unknown> | null | undefined, fallback: ExamPolicy) {
   if (!attempt) return attempt;
   const policy = resolveAttemptPolicy(attempt.policy_snapshot, fallback);
@@ -353,13 +385,19 @@ export async function GET(request: Request) {
     const roomIds = rooms.map(room => room.id);
     const exams = roomIds.length ? (await admin.from("exams").select("id,room_id,title,exam_type,mode,duration_minutes,published,results_released_at,sort_order,settings").in("room_id", roomIds).order("sort_order")).data ?? [] : [];
     const examIds = exams.map(exam => exam.id);
+    const sectionRows = examIds.length
+      ? (await admin.from("exam_sections").select("exam_id").in("exam_id", examIds)).data ?? []
+      : [];
+    const sectionCounts = new Map<string, number>();
+    for (const section of sectionRows) sectionCounts.set(section.exam_id, (sectionCounts.get(section.exam_id) ?? 0) + 1);
+    const safeExams = exams.map(exam => publicExamSummary(exam, sectionCounts.get(exam.id) ?? 0));
     const attempts = examIds.length ? (await admin.from("exam_attempts").select("id,exam_id,section_id,title,status,score,correct_answers,total_questions,submitted_at,started_at,duration_seconds,mode,policy_snapshot").eq("student_id", user.id).in("exam_id", examIds).order("started_at", { ascending: false })).data ?? [] : [];
     const examById = new Map(exams.map(exam => [exam.id, exam]));
     const safeAttempts = attempts.map(attempt => {
       const exam = examById.get(attempt.exam_id);
       return publicResultAttempt(attempt, policyFromExamSettings(exam?.settings, { examType: exam?.exam_type, mode: attempt.mode === "exam" ? "official" : "practice", durationMinutes: exam?.duration_minutes }), exam?.results_released_at);
     });
-    return Response.json({ rooms, exams: user.role === "admin" ? exams : exams.filter(exam => exam.published).map(({ settings: _settings, ...exam }) => exam), attempts: safeAttempts }, { headers: privateHeaders });
+    return Response.json({ rooms, exams: user.role === "admin" ? safeExams : safeExams.filter(exam => exam.published), attempts: safeAttempts }, { headers: privateHeaders });
   }
 
   if (scope === "room") {
@@ -367,18 +405,22 @@ export async function GET(request: Request) {
     const room = await canAccessRoom(admin, user, roomId);
     if (!room) return Response.json({ error: "Không tìm thấy phòng thi hoặc bạn chưa được cấp quyền." }, { status: 404 });
     const { data: examRows } = await admin.from("exams").select("id,room_id,title,description,exam_type,mode,duration_minutes,published,results_released_at,sort_order,created_at,settings").eq("room_id", roomId).order("sort_order");
-    const exams = user.role === "admin" ? examRows ?? [] : (examRows ?? []).filter(exam => exam.published).map(({ settings: _settings, ...exam }) => exam);
-    const examIds = exams.map(exam => exam.id);
+    const rawExams = examRows ?? [];
+    const examIds = rawExams.map(exam => exam.id);
     const sections = examIds.length
       ? (await admin.from("exam_sections").select("id,exam_id,title,duration_minutes,sort_order,subject_code").in("exam_id", examIds).order("sort_order")).data ?? []
       : [];
+    const sectionCounts = new Map<string, number>();
+    for (const section of sections) sectionCounts.set(section.exam_id, (sectionCounts.get(section.exam_id) ?? 0) + 1);
+    const projectedExams = rawExams.map(exam => publicExamSummary(exam, sectionCounts.get(exam.id) ?? 0));
+    const visibleProjectedExams = user.role === "admin" ? projectedExams : projectedExams.filter(exam => exam.published);
     const attempts = examIds.length ? (await admin.from("exam_attempts").select("id,exam_id,section_id,status,score,correct_answers,total_questions,submitted_at,started_at,duration_seconds,mode,policy_snapshot").eq("student_id", user.id).in("exam_id", examIds).order("started_at", { ascending: false })).data ?? [] : [];
     const examById = new Map((examRows ?? []).map(exam => [exam.id, exam]));
     const safeAttempts = attempts.map(attempt => {
       const exam = examById.get(attempt.exam_id);
       return publicResultAttempt(attempt, policyFromExamSettings(exam?.settings, { examType: exam?.exam_type, mode: attempt.mode === "exam" ? "official" : "practice", durationMinutes: exam?.duration_minutes }), exam?.results_released_at);
     });
-    return Response.json({ room, exams, sections, attempts: safeAttempts }, { headers: privateHeaders });
+    return Response.json({ room, exams: visibleProjectedExams, sections, attempts: safeAttempts }, { headers: privateHeaders });
   }
 
   if (scope === "exam") {
