@@ -131,7 +131,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   }, [watermarkEmail]);
 
   function initializeViewer(frame: HTMLIFrameElement | null) {
-    const targetOrigin = content?.type === "hls_vault" ? window.location.origin : MEDIA_VIEWER_ORIGIN;
+    const targetOrigin = content?.type === "hls_vault" || content?.type === "youtube" ? window.location.origin : MEDIA_VIEWER_ORIGIN;
     frame?.contentWindow?.postMessage({ type: "remix:viewer-init", channel: viewerChannelRef.current }, targetOrigin);
   }
 
@@ -306,7 +306,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "youtube") {
     if (!content.youtubeId) return <SecureViewerError message="Liên kết YouTube không hợp lệ."/>;
-    return <iframe ref={videoFrameRef} key={`${resource.id}:${resolutionNonce}`} className="lesson-frame lesson-video" src={`${MEDIA_VIEWER_ORIGIN}/viewer/video?mode=youtube`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" sandbox="allow-scripts allow-same-origin" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/>;
+    return <iframe ref={videoFrameRef} key={`${resource.id}:${resolutionNonce}`} className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/>;
   }
 
   if (content.type === "hls_vault") {
