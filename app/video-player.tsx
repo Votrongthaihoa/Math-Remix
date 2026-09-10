@@ -48,6 +48,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const [videoPlaybackError, setVideoPlaybackError] = useState("");
   const [resolutionNonce, setResolutionNonce] = useState(0);
   const videoFrameRef = useRef<HTMLIFrameElement>(null);
+  const hlsVideoRef = useRef<HTMLVideoElement>(null);
+  const hlsInstanceRef = useRef<{ destroy: () => void } | null>(null);
   const hlsFrameRef = useRef<HTMLIFrameElement>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
   const viewerChannelRef = useRef(crypto.randomUUID());
@@ -60,6 +62,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       URL.revokeObjectURL(url);
     }
     pendingDownloadUrlsRef.current.clear();
+    hlsInstanceRef.current?.destroy();
+    hlsInstanceRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -109,6 +113,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     }
     if (!resolved.playbackUrl || !["onedrive_video", "hls_vault"].includes(resolved.type)) return;
     const frameRef = resolved.type === "hls_vault" ? hlsFrameRef : videoFrameRef;
+    const targetOrigin = resolved.type === "hls_vault" ? window.location.origin : MEDIA_VIEWER_ORIGIN;
     const configuredPlaybackUrl = resolved.type === "hls_vault" ? apiRequestUrl(resolved.playbackUrl) : resolved.playbackUrl;
     const playbackUrl = typeof configuredPlaybackUrl === "string"
       ? configuredPlaybackUrl
@@ -122,25 +127,72 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       title: resolved.title,
       watermark: watermarkEmail,
       channel: viewerChannelRef.current,
-    }, MEDIA_VIEWER_ORIGIN);
+    }, targetOrigin);
   }, [watermarkEmail]);
 
   function initializeViewer(frame: HTMLIFrameElement | null) {
-    frame?.contentWindow?.postMessage({ type: "remix:viewer-init", channel: viewerChannelRef.current }, MEDIA_VIEWER_ORIGIN);
+    const targetOrigin = content?.type === "hls_vault" ? window.location.origin : MEDIA_VIEWER_ORIGIN;
+    frame?.contentWindow?.postMessage({ type: "remix:viewer-init", channel: viewerChannelRef.current }, targetOrigin);
   }
 
   useEffect(() => {
     if (!content || (content.type === "youtube" ? !content.youtubeId : !content.playbackUrl || !["onedrive_video", "hls_vault"].includes(content.type))) return;
     const frameRef = content.type === "hls_vault" ? hlsFrameRef : videoFrameRef;
     const frameWindow = frameRef.current?.contentWindow;
+    const viewerOrigin = content.type === "hls_vault" ? window.location.origin : MEDIA_VIEWER_ORIGIN;
     function handleVideoPlayerMessage(event: MessageEvent) {
-      if (event.origin !== MEDIA_VIEWER_ORIGIN || event.source !== frameWindow || event.data?.channel !== viewerChannelRef.current) return;
+      if (event.origin !== viewerOrigin || event.source !== frameWindow || event.data?.channel !== viewerChannelRef.current) return;
       if (event.data?.type === "remix:video-player-ready") sendEmbeddedVideoSource(content);
       if (event.data?.type === "remix:video-player-error") setVideoPlaybackError(typeof event.data.message === "string" ? event.data.message : "Không thể phát video này.");
     }
     window.addEventListener("message", handleVideoPlayerMessage);
     return () => window.removeEventListener("message", handleVideoPlayerMessage);
   }, [content, sendEmbeddedVideoSource]);
+
+  useEffect(() => {
+    if (content?.type !== "hls_vault" || content.playbackMode !== "hls-vault" || !content.playbackUrl || !hlsVideoRef.current) return;
+    const resolved = content;
+    const playbackSource = resolved.playbackUrl;
+    if (!playbackSource) return;
+    const video = hlsVideoRef.current;
+    let cancelled = false;
+    let localHls: { destroy: () => void } | null = null;
+    const destroy = () => {
+      localHls?.destroy();
+      if (hlsInstanceRef.current === localHls) hlsInstanceRef.current = null;
+      localHls = null;
+    };
+    destroy();
+    video.removeAttribute("src");
+    video.load();
+    async function mount() {
+      try {
+        const source = apiRequestUrl(playbackSource!);
+        const playbackUrl = source instanceof URL ? source.toString() : typeof source === "string" ? source : source.url;
+        const supportsNative = Boolean(video.canPlayType("application/vnd.apple.mpegurl"));
+        if (supportsNative) {
+          video.src = playbackUrl;
+        } else {
+          const { default: Hls } = await import("hls.js");
+          if (cancelled) return;
+          if (!Hls.isSupported()) throw new Error("Trình duyệt này không hỗ trợ HLS/MSE.");
+          const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+          localHls = hls;
+          hlsInstanceRef.current = hls;
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (data.fatal && !cancelled) setVideoPlaybackError("Không thể phát HLS. Hãy thử lấy nguồn phát mới.");
+          });
+          hls.loadSource(playbackUrl);
+          hls.attachMedia(video);
+        }
+      } catch (value) {
+        destroy();
+        if (!cancelled) setVideoPlaybackError(value instanceof Error ? value.message : "Không thể khởi tạo trình phát HLS.");
+      }
+    }
+    void mount();
+    return () => { cancelled = true; destroy(); video.removeAttribute("src"); video.load(); };
+  }, [content]);
 
   useEffect(() => {
     if (!content || content.protectedContent !== "pdf" || !pdfBytes) return;
@@ -261,17 +313,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     if (!content.playbackUrl) return <SecureViewerError message="Không lấy được nguồn phát HLS." onRetry={retryVideoSource}/>;
     if (content.playbackMode === "hls-vault") {
       if (videoPlaybackError) return <SecureViewerError message={videoPlaybackError} onRetry={retryVideoSource}/>;
-      return <iframe
-        ref={hlsFrameRef}
-        key={`${resource.id}:${resolutionNonce}`}
-        className="lesson-frame lesson-video"
-        src={`${MEDIA_VIEWER_ORIGIN}/viewer/video?mode=hls`}
-        title={content.title}
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        sandbox="allow-scripts allow-same-origin"
-        referrerPolicy="no-referrer"
-        onLoad={event => initializeViewer(event.currentTarget)}
-      />;
+      return <iframe ref={hlsFrameRef} key={`${resource.id}:${resolutionNonce}`} className="lesson-frame lesson-video" src="/yt-embed-player.html?mode=hls" title={content.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/>;
     }
 
   }

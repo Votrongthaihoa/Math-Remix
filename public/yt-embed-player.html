@@ -21,6 +21,7 @@
     const start = Math.max(0, Number(query.get("start") || 0) || 0);
     const watermarkOwner = (query.get("wm") || "Học viên AECK").trim().slice(0, 120);
     const target = document.querySelector("#player");
+    let viewerChannel = "";
     const allowedMicrosoftHostSuffixes = ["files.1drv.com", "1drv.com", "sharepoint.com", "sharepointonline.com"];
     const allowedHlsApiOrigin = "https://api.mathremix.pro.vn";
 
@@ -89,7 +90,7 @@
       if (options.start > 0) player.addEventListener("can-play", () => { player.currentTime = options.start; }, { once: true });
       player.addEventListener("error", () => {
         const message = "Không thể phát nguồn video này. Hãy lấy nguồn phát mới.";
-        window.parent.postMessage({ type: "remix:video-player-error", message }, location.origin);
+        window.parent.postMessage({ type: "remix:video-player-error", message, channel: viewerChannel }, location.origin);
       });
 
       const watermark = document.createElement("div");
@@ -131,13 +132,19 @@
     } else {
       showState("Đang chuẩn bị video…", "loading");
       window.addEventListener("message", event => {
-        if (event.origin !== location.origin || event.source !== window.parent || event.data?.type !== "remix:set-video-source") return;
+        if (event.origin !== location.origin || event.source !== window.parent) return;
+        if (event.data?.type === "remix:viewer-init" && typeof event.data.channel === "string") {
+          viewerChannel = event.data.channel;
+          window.parent.postMessage({ type: "remix:video-player-ready", channel: viewerChannel }, location.origin);
+          return;
+        }
+        if (event.data?.type !== "remix:set-video-source") return;
         const source = typeof event.data.src === "string" ? event.data.src : "";
         const isHls = mode === "hls";
         if (!(isHls ? allowedHlsSource(source) : allowedMicrosoftSource(source))) {
           const message = isHls ? "Nguồn HLS không hợp lệ." : "Nguồn video Microsoft không hợp lệ.";
           showState(message);
-          window.parent.postMessage({ type: "remix:video-player-error", message }, location.origin);
+          window.parent.postMessage({ type: "remix:video-player-error", message, channel: viewerChannel }, location.origin);
           return;
         }
         const title = typeof event.data.title === "string" ? event.data.title.slice(0, 240) : "Video bài giảng";
@@ -146,7 +153,6 @@
           : typeof event.data.mimeType === "string" && /^video\/[a-z0-9.+-]+$/i.test(event.data.mimeType) ? event.data.mimeType : "video/mp4";
         mountPlayer(source, title, { hls: isHls, mimeType });
       });
-      window.parent.postMessage({ type: "remix:video-player-ready" }, location.origin);
     }
   </script>
 </body>
