@@ -19,7 +19,7 @@
     const mode = ["native", "hls"].includes(query.get("mode")) ? query.get("mode") : "youtube";
     const videoId = (query.get("v") || "").trim();
     const start = Math.max(0, Number(query.get("start") || 0) || 0);
-    const watermarkOwner = (query.get("wm") || "Học viên AECK").trim().slice(0, 120);
+    const watermarkOwner = (query.get("wm") || "").trim().slice(0, 120);
     const target = document.querySelector("#player");
     let viewerChannel = "";
     const allowedMicrosoftHostSuffixes = ["files.1drv.com", "1drv.com", "sharepoint.com", "sharepointonline.com"];

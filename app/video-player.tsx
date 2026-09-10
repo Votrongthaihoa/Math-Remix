@@ -76,7 +76,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         const accessToken = await activeSessionToken();
         const { data: userData } = await supabase.auth.getUser(accessToken);
         if (cancelled) return;
-        setWatermarkEmail(userData.user?.email || "Học viên AECK");
+        const accountEmail = userData.user?.email?.trim();
+        if (!accountEmail) throw new Error("Tài khoản chưa có email để gắn watermark.");
+        setWatermarkEmail(accountEmail);
         const response = await authenticatedFetch("/api/video-token", {
           method: "POST",
           headers: { "content-type": "application/json" },
