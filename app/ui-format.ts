@@ -57,9 +57,22 @@ function parsedDate(value: string | Date | null | undefined) {
   return Number.isFinite(date.getTime()) ? date : null;
 }
 
+function datePart(date: Date, type: Intl.DateTimeFormatPartTypes) {
+  return dateFormatter.formatToParts(date).find(part => part.type === type)?.value ?? "";
+}
+
 export function formatUiDate(value: string | Date | null | undefined, fallback = "Chưa rõ thời gian") {
   const date = parsedDate(value);
   return date ? dateFormatter.format(date) : fallback;
+}
+
+export function formatUiWeekRange(start: string | Date | null | undefined, end: string | Date | null | undefined, fallback = "Chưa rõ thời gian") {
+  const startDate = parsedDate(start);
+  const endDate = parsedDate(end);
+  if (!startDate || !endDate) return fallback;
+  const startLabel = `${datePart(startDate, "day")}/${datePart(startDate, "month")}`;
+  const endLabel = `${datePart(endDate, "day")}/${datePart(endDate, "month")}/${datePart(endDate, "year")}`;
+  return `${startLabel} – ${endLabel}`;
 }
 
 export function formatUiDateTime(value: string | Date | null | undefined, fallback = "Chưa rõ thời gian") {

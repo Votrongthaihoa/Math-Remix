@@ -1,0 +1,79 @@
+[
+  {
+    "action": "type search",
+    "source": "bundle",
+    "state": "debounced after 500ms",
+    "request": "GET /bags/public with search in bag mode",
+    "dom": "cards/rows and result count update"
+  },
+  {
+    "action": "select bag",
+    "source": "bundle",
+    "state": "bag -> parts, loading",
+    "request": "GET /bags/:id",
+    "dom": "package heading and part rows replace the bag grid"
+  },
+  {
+    "action": "Vào làm",
+    "source": "bundle + observed list DOM",
+    "state": "start request",
+    "request": "POST /parts/:id/start",
+    "dom": "navigate to /phan-thi-tsa/:attempt.id"
+  },
+  {
+    "action": "confirm candidate information",
+    "source": "supplied confirmation DOM + bundle",
+    "state": "confirmation -> question interface",
+    "request": "not captured",
+    "dom": "Bắt đầu thi action is replaced by exam content/sidebar"
+  },
+  {
+    "action": "select single answer",
+    "source": "bundle + supplied unselected DOM",
+    "state": "answers[questionId]=[optionIndex]",
+    "request": "not proven at selection time",
+    "dom": "marker changes from #E8E8E8 to bundle-defined #1980FF"
+  },
+  {
+    "action": "enter blank",
+    "source": "supplied DOM + bundle",
+    "state": "text answer changes",
+    "request": "not proven at input time",
+    "dom": "inline underlined input value changes; values are redacted in audit"
+  },
+  {
+    "action": "drag answer",
+    "source": "supplied DOM + bundle",
+    "state": "ordered/matched answer changes",
+    "request": "not proven at drag time",
+    "dom": "draggable gray item moves between/order within drop areas"
+  },
+  {
+    "action": "select true/false row",
+    "source": "supplied DOM + bundle",
+    "state": "row answer changes",
+    "request": "not proven at selection time",
+    "dom": "28px/32px circular control changes selection state"
+  },
+  {
+    "action": "open submit modal",
+    "source": "bundle",
+    "state": "local isOpen=true",
+    "request": "none",
+    "dom": "fixed black 50% overlay and confirmation panel mount"
+  },
+  {
+    "action": "confirm submit",
+    "source": "bundle",
+    "state": "modal closes then finish handler",
+    "request": "POST /attempts/:id/submit",
+    "dom": "result or next-part state"
+  },
+  {
+    "action": "responsive layout",
+    "source": "bundle + serialized responsive classes",
+    "state": "viewport-dependent",
+    "request": "none",
+    "dom": "base/sm/md/lg utilities alter dimensions and sidebar visibility; capture viewport itself is unknown"
+  }
+]

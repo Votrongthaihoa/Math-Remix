@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
 import {
   Check,
   CircleCheck,
@@ -18,7 +18,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import MacAlert from "../components/macos/MacAlert";
+import AeckConfirmDialog from "../components/aeck/AeckConfirmDialog";
 import { adminImageFetch, prepareImageFile } from "../lib/exam-image-client";
 import { formatUiDate, formatUiTime } from "./ui-format";
 import "./admin-upload.css";
@@ -43,6 +43,7 @@ type LibraryTab = "public" | "private";
 
 const MAX_SOURCE_BYTES = 12 * 1024 * 1024;
 const LIBRARY_PAGE_SIZE = 12;
+const libraryTabs: LibraryTab[] = ["public", "private"];
 
 function positivePage(value: string | null) {
   const parsed = Number(value);
@@ -126,8 +127,10 @@ export default function AdminUploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [deletingAsset, setDeletingAsset] = useState("");
   const [pendingImage, setPendingImage] = useState<UploadedImage | null>(null);
+  const [imageDeletionError, setImageDeletionError] = useState("");
   const [pendingExamImage, setPendingExamImage] = useState<ExamUploadedImage | null>(null);
   const [deletingExamAsset, setDeletingExamAsset] = useState("");
+  const [examImageDeletionError, setExamImageDeletionError] = useState("");
   const [copiedAsset, setCopiedAsset] = useState("");
   const [copyAnnouncement, setCopyAnnouncement] = useState("");
   const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
@@ -141,6 +144,7 @@ export default function AdminUploadPage() {
   const copyResetTimeoutRef = useRef<number | null>(null);
   const libraryAbortControllerRef = useRef<AbortController | null>(null);
   const examLibraryAbortControllerRef = useRef<AbortController | null>(null);
+  const libraryTabRefs = useRef<Record<LibraryTab, HTMLButtonElement | null>>({ public: null, private: null });
 
   const readUrlState = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
@@ -331,15 +335,31 @@ export default function AdminUploadPage() {
     }
   }
 
+  function handleLibraryTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const currentTab = event.currentTarget.dataset.library === "private" ? "private" : "public";
+    const currentIndex = libraryTabs.indexOf(currentTab);
+    const nextIndex = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? libraryTabs.length - 1
+        : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + libraryTabs.length) % libraryTabs.length;
+    const nextTab = libraryTabs[nextIndex];
+    setActiveLibrary(nextTab);
+    libraryTabRefs.current[nextTab]?.focus();
+  }
+
   function requestImageRemoval(image: UploadedImage) {
-    if (image.used) return;
+    if (image.used || deletingAsset) return;
+    setImageDeletionError("");
     setPendingImage(image);
   }
 
   async function removeImage(image: UploadedImage) {
-    setPendingImage(null);
+    if (deletingAsset) return;
     setDeletingAsset(image.assetName);
-    setError("");
+    setImageDeletionError("");
     setNotice("");
     try {
       const response = await adminImageFetch("/api/admin/images", {
@@ -352,28 +372,31 @@ export default function AdminUploadPage() {
       if (!response.ok) throw new Error(payload?.error || "Không thể xóa ảnh trên R2.");
       setImages((current) => current.filter((item) => item.assetName !== image.assetName));
       setNotice("Đã xóa ảnh khỏi kho công khai.");
+      setPendingImage(null);
     } catch (value) {
-      setError(value instanceof Error ? value.message : "Không thể xóa ảnh trên R2.");
+      setImageDeletionError(value instanceof Error ? value.message : "Không thể xóa ảnh trên R2.");
     } finally {
       setDeletingAsset("");
     }
   }
 
   function requestExamImageRemoval(image: ExamUploadedImage) {
-    if (image.used) return;
+    if (image.used || deletingExamAsset) return;
+    setExamImageDeletionError("");
     setPendingExamImage(image);
   }
 
   function closeExamImageRemoval() {
+    if (deletingExamAsset) return;
+    setExamImageDeletionError("");
     setPendingExamImage(null);
   }
 
   async function removeExamImage(image: ExamUploadedImage) {
-    if (image.used) return;
-    setPendingExamImage(null);
+    if (image.used || deletingExamAsset) return;
     const key = examImageKey(image);
     setDeletingExamAsset(key);
-    setExamError("");
+    setExamImageDeletionError("");
     setNotice("");
     try {
       const response = await adminImageFetch("/api/admin/exam-images", {
@@ -386,8 +409,9 @@ export default function AdminUploadPage() {
       if (!response.ok) throw new Error(payload?.error || "Không thể xoá ảnh đề thi trên R2.");
       setExamImages((current) => current.filter((item) => examImageKey(item) !== key));
       setNotice("Đã xoá ảnh đề thi không còn được sử dụng khỏi R2.");
+      setPendingExamImage(null);
     } catch (value) {
-      setExamError(value instanceof Error ? value.message : "Không thể xoá ảnh đề thi trên R2.");
+      setExamImageDeletionError(value instanceof Error ? value.message : "Không thể xoá ảnh đề thi trên R2.");
     } finally {
       setDeletingExamAsset("");
     }
@@ -422,7 +446,11 @@ export default function AdminUploadPage() {
 
   const usedCount = images.filter((image) => image.used).length;
   const examBytes = examImages.reduce((total, image) => total + image.size, 0);
-  const closeImageRemoval = () => setPendingImage(null);
+  function closeImageRemoval() {
+    if (deletingAsset) return;
+    setImageDeletionError("");
+    setPendingImage(null);
+  }
 
   return <div className="admin-upload-page">
     <header className="admin-upload-hero">
@@ -511,12 +539,12 @@ export default function AdminUploadPage() {
       <p className="admin-upload-public-note"><ShieldCheck /> Khi chưa có domain public, URL sao chép là link R2 tạm thời và hết hạn sau 7 ngày. Không tải dữ liệu nhạy cảm hoặc thông tin cá nhân lên đây.</p>
     </section>
 
-    <nav className="admin-upload-library-tabs" aria-label="Chọn thư viện ảnh">
-      <button type="button" aria-pressed={activeLibrary === "public"} className={activeLibrary === "public" ? "active" : ""} onClick={() => setActiveLibrary("public")}><Images aria-hidden="true" />Kho công khai</button>
-      <button type="button" aria-pressed={activeLibrary === "private"} className={activeLibrary === "private" ? "active" : ""} onClick={() => setActiveLibrary("private")}><FolderOpen aria-hidden="true" />Ảnh đề thi</button>
-    </nav>
+    <div className="admin-upload-library-tabs" role="tablist" aria-label="Chọn thư viện ảnh">
+      <button id="admin-upload-library-tab-public" role="tab" type="button" data-library="public" aria-selected={activeLibrary === "public"} aria-controls="admin-upload-library-panel-public" tabIndex={activeLibrary === "public" ? 0 : -1} className={activeLibrary === "public" ? "active" : ""} ref={element => { libraryTabRefs.current.public = element; }} onClick={() => setActiveLibrary("public")} onKeyDown={handleLibraryTabKeyDown}><Images aria-hidden="true" />Kho công khai</button>
+      <button id="admin-upload-library-tab-private" role="tab" type="button" data-library="private" aria-selected={activeLibrary === "private"} aria-controls="admin-upload-library-panel-private" tabIndex={activeLibrary === "private" ? 0 : -1} className={activeLibrary === "private" ? "active" : ""} ref={element => { libraryTabRefs.current.private = element; }} onClick={() => setActiveLibrary("private")} onKeyDown={handleLibraryTabKeyDown}><FolderOpen aria-hidden="true" />Ảnh đề thi</button>
+    </div>
 
-    {activeLibrary === "public" && <section className="admin-upload-library" aria-busy={loading}>
+    {activeLibrary === "public" && <section className="admin-upload-library" role="tabpanel" id="admin-upload-library-panel-public" aria-labelledby="admin-upload-library-tab-public" aria-busy={loading}>
       <div className="admin-upload-library-head">
         <div>
           <span className="eyebrow">PUBLIC ASSET LIBRARY</span>
@@ -591,25 +619,27 @@ export default function AdminUploadPage() {
       {filteredImages.length > LIBRARY_PAGE_SIZE && <nav className="admin-upload-pagination" aria-label="Phân trang kho ảnh công khai"><button type="button" disabled={publicPage <= 1} onClick={() => setPublicPage(page => Math.max(1, page - 1))}>Trang trước</button><span>Trang <b>{Math.min(publicPage, publicPageCount)}</b> / {publicPageCount}</span><button type="button" disabled={publicPage >= publicPageCount} onClick={() => setPublicPage(page => Math.min(publicPageCount, page + 1))}>Trang sau</button></nav>}
     </section>}
 
-    {pendingImage ? <MacAlert
+    {pendingImage ? <AeckConfirmDialog
       open
       title="Xóa ảnh này?"
       description={`Xóa “${pendingImage.assetName}” khỏi kho công khai và R2? Thao tác này không thể hoàn tác.`}
-      secondaryAction={{ label: "Hủy", onClick: closeImageRemoval }}
-      primaryAction={{ label: "Xóa ảnh", onClick: () => void removeImage(pendingImage) }}
+      errorMessage={imageDeletionError}
+      secondaryAction={{ label: "Hủy", onClick: closeImageRemoval, disabled: Boolean(deletingAsset) }}
+      primaryAction={{ label: deletingAsset ? "Đang xóa…" : "Xóa ảnh", onClick: () => void removeImage(pendingImage), disabled: Boolean(deletingAsset) }}
       onClose={closeImageRemoval}
     /> : null}
 
-    {pendingExamImage ? <MacAlert
+    {pendingExamImage ? <AeckConfirmDialog
       open
       title="Xóa ảnh riêng tư?"
       description={`Xóa “${pendingExamImage.assetName}” khỏi ${pendingExamImage.examTitle} / ${pendingExamImage.sectionTitle}? Thao tác này không thể hoàn tác.`}
-      secondaryAction={{ label: "Hủy", onClick: closeExamImageRemoval }}
-      primaryAction={{ label: "Xóa ảnh", onClick: () => void removeExamImage(pendingExamImage) }}
+      errorMessage={examImageDeletionError}
+      secondaryAction={{ label: "Hủy", onClick: closeExamImageRemoval, disabled: Boolean(deletingExamAsset) }}
+      primaryAction={{ label: deletingExamAsset ? "Đang xoá…" : "Xóa ảnh", onClick: () => void removeExamImage(pendingExamImage), disabled: Boolean(deletingExamAsset) }}
       onClose={closeExamImageRemoval}
     /> : null}
 
-    {activeLibrary === "private" && <section className="admin-upload-library admin-upload-private-library" aria-busy={examLoading}>
+    {activeLibrary === "private" && <section className="admin-upload-library admin-upload-private-library" role="tabpanel" id="admin-upload-library-panel-private" aria-labelledby="admin-upload-library-tab-private" aria-busy={examLoading}>
       <div className="admin-upload-library-head">
         <div>
           <span className="eyebrow">PRIVATE EXAM ASSET LIBRARY</span>

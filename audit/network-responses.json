@@ -1,0 +1,32 @@
+{
+  "redactionPolicy": "No cookie, Authorization value, credential, session identifier, password, personal account text or form answer is stored.",
+  "actualBodiesStored": false,
+  "reason": "Attaching developer tooling activated the site's protection redirect before a clean origin response capture completed; no bypass was attempted.",
+  "schemasInferredFromReferenceBundle": {
+    "publicBags": {
+      "status": "boolean",
+      "data": {
+        "bags": "array",
+        "total": "number",
+        "total_pages": "number"
+      }
+    },
+    "bagDetail": {
+      "status": "boolean",
+      "data": {
+        "id": "string",
+        "name": "string",
+        "description": "string|null",
+        "metadata": "object|null",
+        "parts": "array"
+      }
+    },
+    "startPart": {
+      "status": "boolean",
+      "attempt": {
+        "id": "[REDACTED_SESSION_IDENTIFIER]"
+      },
+      "message": "string?"
+    }
+  }
+}

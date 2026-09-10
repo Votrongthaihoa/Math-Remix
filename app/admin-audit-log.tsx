@@ -130,6 +130,7 @@ export default function AdminAuditLog() {
 
   useEffect(() => {
     const controller = new AbortController();
+    let active = true;
     const params = new URLSearchParams({ page: String(page), limit: "20" });
     if (deferredQuery) params.set("q", deferredQuery);
     if (source !== "all") params.set("source", source);
@@ -142,16 +143,20 @@ export default function AdminAuditLog() {
         const response = await authenticatedFetch(`/api/admin/audit?${params.toString()}`, { cache: "no-store", signal: controller.signal });
         const result = await response.json().catch(() => null) as AuditPayload | null;
         if (!response.ok) throw new Error(result?.error ?? "Không thể tải nhật ký quản trị.");
+        if (!active || controller.signal.aborted) return;
         setPayload(result ?? {});
       } catch (value) {
-        if (controller.signal.aborted) return;
+        if (!active || controller.signal.aborted) return;
         setError(value instanceof Error ? value.message : "Không thể tải nhật ký quản trị.");
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (active && !controller.signal.aborted) setLoading(false);
       }
     }
     void load();
-    return () => controller.abort();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [deferredQuery, page, reloadKey, source, status]);
 
   const items = payload.items ?? [];
@@ -206,17 +211,20 @@ export default function AdminAuditLog() {
         <section className="admin-audit-list-panel" aria-labelledby="admin-audit-list-title" aria-busy={loading}>
           <div className="admin-audit-list-heading"><div><h2 id="admin-audit-list-title">Dòng thời gian thao tác</h2><p>Hiển thị mới nhất trước.</p></div><span>{payload.total ?? 0} bản ghi</span></div>
           {loading ? <div className="admin-audit-loading" role="status"><RefreshCw className="is-spinning" aria-hidden="true" />Đang tải nhật ký…</div> : items.length ? (
-            <div className="admin-audit-table" role="table" aria-label="Nhật ký thao tác quản trị">
-              <div className="admin-audit-row admin-audit-row-head" role="row"><span role="columnheader">Thao tác</span><span role="columnheader">Nguồn</span><span role="columnheader">Người thực hiện</span><span role="columnheader">Đối tượng</span><span role="columnheader">Thời gian</span><span role="columnheader">Trạng thái</span></div>
-              {items.map(item => <article className="admin-audit-row" role="row" key={item.id}>
-                <span role="cell" className="admin-audit-action"><i className={`tone-${item.status}`} aria-hidden="true">{item.source === "exam" ? <FileClock /> : <ShieldCheck />}</i><span><strong>{actionLabel(item.action)}</strong>{item.reason ? <small title={item.reason}>{item.reason}</small> : <small>{item.context}</small>}</span></span>
-                <span role="cell"><em className={`admin-audit-source source-${item.source}`}>{item.source === "exam" ? "Kỳ thi" : "Tài khoản"}</em></span>
-                <span role="cell" className="admin-audit-person"><strong>{item.admin_name}</strong><small>{item.admin_id?.slice(0, 12) || "Tự động"}</small></span>
-                <span role="cell" className="admin-audit-person"><strong>{item.target_name}</strong><small>{item.target_code || "Không có mã"}</small></span>
-                <span role="cell" className="admin-audit-time"><Clock3 aria-hidden="true" />{dateTime(item.created_at)}</span>
-                <span role="cell"><em className={`admin-audit-status status-${item.status}`}>{item.status === "succeeded" || item.status === "recorded" ? <CheckCircle2 aria-hidden="true" /> : item.status === "started" ? <Clock3 aria-hidden="true" /> : <CircleAlert aria-hidden="true" />}{statusCopy(item.status)}</em></span>
-              </article>)}
-            </div>
+            <table className="admin-audit-table">
+              <caption className="admin-audit-visually-hidden">Nhật ký thao tác quản trị</caption>
+              <thead><tr className="admin-audit-row admin-audit-row-head"><th scope="col">Thao tác</th><th scope="col">Nguồn</th><th scope="col">Người thực hiện</th><th scope="col">Đối tượng</th><th scope="col">Thời gian</th><th scope="col">Trạng thái</th></tr></thead>
+              <tbody>
+                {items.map(item => <tr className="admin-audit-row" key={item.id}>
+                  <td className="admin-audit-action"><span className="admin-audit-cell-label">Thao tác</span><i className={`tone-${item.status}`} aria-hidden="true">{item.source === "exam" ? <FileClock /> : <ShieldCheck />}</i><span><strong>{actionLabel(item.action)}</strong>{item.reason ? <small title={item.reason}>{item.reason}</small> : <small>{item.context}</small>}</span></td>
+                  <td><span className="admin-audit-cell-label">Nguồn</span><em className={`admin-audit-source source-${item.source}`}>{item.source === "exam" ? "Kỳ thi" : "Tài khoản"}</em></td>
+                  <td className="admin-audit-person"><span className="admin-audit-cell-label">Người thực hiện</span><strong>{item.admin_name}</strong><small>{item.admin_id?.slice(0, 12) || "Tự động"}</small></td>
+                  <td className="admin-audit-person"><span className="admin-audit-cell-label">Đối tượng</span><strong>{item.target_name}</strong><small>{item.target_code || "Không có mã"}</small></td>
+                  <td className="admin-audit-time"><span className="admin-audit-cell-label">Thời gian</span><Clock3 aria-hidden="true" />{dateTime(item.created_at)}</td>
+                  <td><span className="admin-audit-cell-label">Trạng thái</span><em className={`admin-audit-status status-${item.status}`}>{item.status === "succeeded" || item.status === "recorded" ? <CheckCircle2 aria-hidden="true" /> : item.status === "started" ? <Clock3 aria-hidden="true" /> : <CircleAlert aria-hidden="true" />}{statusCopy(item.status)}</em></td>
+                </tr>)}
+              </tbody>
+            </table>
           ) : <div className="admin-audit-empty" role="status"><Search aria-hidden="true" /><h2>Không có bản ghi phù hợp</h2><p>Thử thay đổi từ khóa hoặc xóa bộ lọc hiện tại.</p><button type="button" onClick={clearFilters}>Xóa bộ lọc</button></div>}
 
           {!loading && items.length ? <nav className="admin-audit-pagination" aria-label="Phân trang nhật ký"><span>Trang {page} / {totalPages}</span><div><button type="button" aria-label="Trang trước" disabled={page <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}><ChevronLeft aria-hidden="true" /></button><button type="button" aria-label="Trang sau" disabled={!payload.hasNextPage} onClick={() => setPage(value => value + 1)}><ChevronRight aria-hidden="true" /></button></div></nav> : null}

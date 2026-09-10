@@ -12,6 +12,7 @@ const MAX_MANIFEST_BYTES = 4 * 1024 * 1024;
 const PRODUCTION_WEB_ORIGINS = new Set([
   "https://mathremix.pro.vn",
   "https://www.mathremix.pro.vn",
+  "https://media.mathremix.pro.vn",
 ]);
 
 function isProductionRequest() {

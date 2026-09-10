@@ -1,0 +1,26 @@
+{
+  "status": "public-recon-complete-local-shell-validated",
+  "target": {
+    "public": ["PublicHeader", "PublicNav", "Hero", "TeacherCarousel", "StudentHonors", "CourseRail", "ExamArticleCard", "PublicFooter", "FloatingContactRail"],
+    "app": ["AppSidebar", "NavItem", "NavGroup", "SidebarToggle", "AppTopbar", "UserDropdown", "AppMain", "CourseSearch", "CourseCard"]
+  },
+  "localMapping": {
+    "public": [
+      "app/aeck-public-site.tsx",
+      "app/aeck-public-legal-secondary.ts",
+      "app/[...slug]/page.tsx",
+      "app/aeck-public-routes.ts"
+    ],
+    "studentShell": [
+      "app/platform.tsx",
+      "app/account-learning-polish.css",
+      "app/alpha-reference-portal.css",
+      "app/video-player.tsx"
+    ],
+    "smoke": [
+      "scripts/public-ui-smoke.mjs",
+      "scripts/product-shell-ui-smoke.mjs"
+    ],
+    "protectedBoundary": "Protected exam/question/result components remain outside general product-shell styling."
+  }
+}

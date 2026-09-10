@@ -1,0 +1,1513 @@
+/*
+ * Neutral AECK teacher/admin workspace.
+ *
+ * This layer is deliberately scoped to the normal product shell. Standalone
+ * exam/answer previews use .admin-exam-preview-host and candidate runners use
+ * their own shell, so neither receives these product-surface overrides.
+ */
+
+.ui-shell.admin-app.product-shell {
+  --admin-primary: #007aff;
+  --admin-primary-strong: #0066d6;
+  --admin-primary-soft: rgba(0, 122, 255, 0.1);
+  --admin-bg: #f5f5f7;
+  --admin-surface: rgba(255, 255, 255, 0.78);
+  --admin-surface-solid: #ffffff;
+  --admin-surface-muted: rgba(255, 255, 255, 0.58);
+  --admin-ink: #1d1d1f;
+  --admin-body: #424245;
+  --admin-muted: #6e6e73;
+  --admin-subtle: #8e8e93;
+  --admin-line: rgba(60, 60, 67, 0.16);
+  --admin-border: rgba(60, 60, 67, 0.16);
+  --admin-border-strong: rgba(60, 60, 67, 0.28);
+  --admin-danger: #ff3b30;
+  --admin-success: #248a41;
+  --admin-warning: #b86b00;
+  --admin-radius-sm: 10px;
+  --admin-radius-md: 15px;
+  --admin-radius-lg: 22px;
+  --admin-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 5px 18px rgba(24, 32, 48, 0.045);
+  --admin-shadow-md: 0 16px 42px rgba(24, 32, 48, 0.09);
+  --admin-focus: 0 0 0 4px rgba(0, 122, 255, 0.12);
+  color: var(--admin-ink);
+  background: var(--admin-bg);
+  font-family: Lato, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.ui-shell.admin-app.product-shell .main-content {
+  min-height: calc(100vh - 76px);
+  margin-left: 84px;
+  padding: 38px 42px 72px;
+  background:
+    radial-gradient(circle at 86% 0%, rgba(88, 86, 214, 0.08), transparent 28rem),
+    radial-gradient(circle at 12% 28%, rgba(0, 122, 255, 0.045), transparent 24rem),
+    var(--admin-bg);
+}
+
+.ui-shell.admin-app.product-shell.sidebar-expanded .main-content {
+  margin-left: 280px;
+}
+
+.ui-shell.admin-app.product-shell .topbar {
+  height: 76px;
+  margin-left: 84px;
+  padding: 0 34px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.1);
+  background: rgba(250, 250, 252, 0.78);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  transition: margin-left 0.24s ease;
+}
+
+.ui-shell.admin-app.product-shell.sidebar-expanded .topbar {
+  margin-left: 280px;
+}
+
+.ui-shell.admin-app.product-shell .sidebar {
+  width: 84px;
+  border-right: 1px solid rgba(60, 60, 67, 0.1);
+  background: rgba(250, 250, 252, 0.72);
+  box-shadow: 6px 0 26px rgba(40, 40, 50, 0.035);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  transition: width 0.24s ease;
+}
+
+.ui-shell.admin-app.product-shell.sidebar-expanded .sidebar {
+  width: 280px;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav {
+  padding: 90px 12px 18px;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  gap: 13px;
+  margin: 4px 0;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--admin-muted);
+  text-decoration: none;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item:hover,
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item:focus-visible {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav a.admin-sidebar-nav-item.active {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+  font-weight: 800;
+}
+
+.ui-shell.admin-app.product-shell:not(.sidebar-expanded) .sidebar nav a.admin-sidebar-nav-item {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.sidebar-expanded) .sidebar nav a.admin-sidebar-nav-item > span {
+  display: none;
+}
+
+.ui-shell.admin-app.product-shell.sidebar-expanded .sidebar nav a.admin-sidebar-nav-item > span {
+  display: block;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav button,
+.ui-shell.admin-app.product-shell .sidebar-toggle {
+  height: 46px;
+  gap: 13px;
+  margin: 4px 0;
+  padding: 0 15px;
+  border-radius: 12px;
+  color: var(--admin-muted);
+  transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav button:hover,
+.ui-shell.admin-app.product-shell .sidebar-toggle:hover {
+  color: var(--admin-primary);
+  background: rgba(0, 122, 255, 0.07);
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav button.active {
+  color: var(--admin-primary);
+  background: rgba(0, 122, 255, 0.11);
+  font-weight: 800;
+}
+
+.ui-shell.admin-app.product-shell .sidebar nav button.active::after {
+  display: none;
+}
+
+.ui-shell.admin-app.product-shell .admin-sidebar-section-label {
+  margin: 0 14px 8px;
+  color: var(--admin-subtle);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface):not(.sidebar-expanded) > .sidebar:not(.mobile-open) .admin-sidebar-section-label {
+  display: none;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) > .sidebar.mobile-open .admin-sidebar-section-label {
+  display: block;
+}
+
+.ui-shell.admin-app.product-shell .mobile-sidebar-account {
+  margin: 0 12px 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.ui-shell.admin-app.product-shell .header-brand {
+  height: 56px;
+  border-radius: 14px;
+}
+
+@media (min-width: 768px) {
+  .ui-shell.admin-app.product-shell:not(.sidebar-expanded) .header-brand {
+    width: 84px;
+    margin-inline-start: -34px;
+    justify-content: center;
+    /* The compact logo lives in the topbar while the rail is collapsed.
+     * Move its visual/hit area back over the 84px rail so its center is 42px. */
+    transform: translateX(-28px);
+  }
+}
+
+.ui-shell.admin-app.product-shell .header-brand:hover {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.ui-shell.admin-app.product-shell .header-brand-logo-full {
+  width: 146px;
+  height: 48px;
+}
+
+.ui-shell.admin-app.product-shell .header-sidebar-toggle {
+  color: var(--admin-subtle);
+  border-radius: 10px;
+}
+
+.ui-shell.admin-app.product-shell .header-sidebar-toggle:hover {
+  color: var(--admin-body);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.ui-shell.admin-app.product-shell .admin-topbar-context {
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+.ui-shell.admin-app.product-shell .admin-topbar-context span {
+  color: var(--admin-subtle);
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+
+.ui-shell.admin-app.product-shell .admin-topbar-context b {
+  color: var(--admin-body);
+  font-size: 13px;
+}
+
+.ui-shell.admin-app.product-shell .account-trigger {
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--admin-body);
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .account-trigger:hover,
+.ui-shell.admin-app.product-shell .account-menu-wrap.open .account-trigger {
+  border-color: var(--admin-line);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.ui-shell.admin-app.product-shell .account-dropdown {
+  top: calc(100% + 9px);
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--admin-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--admin-shadow-md);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.ui-shell.admin-app.product-shell .account-dropdown button {
+  min-height: 38px;
+  border-radius: 9px;
+  color: var(--admin-body);
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .account-dropdown button:hover {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell :where(h1, h2, h3, h4, p) {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell :where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.3);
+  outline-offset: 3px;
+}
+
+.ui-shell.admin-app.product-shell :where(.admin-page, .admin-dashboard-v2, .admin-exam-manager, .admin-session-page, .admin-upload-page, .admin-security-page, .assignment-page, .workspace-page, .policy-page, .admin-access-page) {
+  width: min(1240px, 100%);
+  margin-inline: auto;
+}
+
+.ui-shell.admin-app.product-shell .admin-page {
+  gap: 22px;
+}
+
+.ui-shell.admin-app.product-shell .admin-dashboard-v2 {
+  gap: 20px;
+}
+
+.ui-shell.admin-app.product-shell .admin-dash-header,
+.ui-shell.admin-app.product-shell .admin-exam-header,
+.ui-shell.admin-app.product-shell .admin-session-header,
+.ui-shell.admin-app.product-shell .assignment-page-head,
+.ui-shell.admin-app.product-shell .security-admin-head {
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.ui-shell.admin-app.product-shell :where(.admin-dash-header h1, .admin-exam-header h2, .admin-session-header h1, .assignment-page-head h2, .security-admin-head h2) {
+  color: var(--admin-ink);
+  letter-spacing: -0.65px;
+}
+
+.ui-shell.admin-app.product-shell :where(.admin-dash-header p, .admin-exam-header p, .admin-session-header p, .assignment-page-head p, .security-admin-head p) {
+  color: var(--admin-muted);
+  line-height: 1.6;
+}
+
+.ui-shell.admin-app.product-shell .admin-dash-actions,
+.ui-shell.admin-app.product-shell .admin-session-header-actions,
+.ui-shell.admin-app.product-shell .workspace-header-actions {
+  gap: 10px;
+}
+
+.ui-shell.admin-app.product-shell :where(.section-card, .admin-kpi-card, .admin-action-panel, .admin-session-list, .admin-exam-room-list, .admin-exam-workspace, .policy-card, .access-panel, .admin-upload-upload-card, .admin-upload-library, .security-detail-panel, .workspace-form-card, .room-workspace-hero, .room-exam-catalog) {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ui-shell.admin-app.product-shell .section-card {
+  padding: 24px;
+}
+
+.ui-shell.admin-app.product-shell :where(.section-head h2, .admin-action-panel-head h2, .policy-card h2, .access-panel-head h2) {
+  color: var(--admin-ink);
+  letter-spacing: -0.25px;
+}
+
+.ui-shell.admin-app.product-shell :where(.section-head p, .muted, .student-search-hint, .policy-help, .admin-session-meta, .admin-upload-hero p) {
+  color: var(--admin-muted);
+}
+
+/* Dashboard and workflow */
+.ui-shell.admin-app.product-shell .admin-kpi-row {
+  gap: 14px;
+  margin: 0;
+}
+
+.ui-shell.admin-app.product-shell .admin-kpi-card {
+  min-height: 124px;
+  padding: 19px 20px;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--admin-shadow);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell button.admin-kpi-card:hover {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-2px);
+}
+
+.ui-shell.admin-app.product-shell .admin-kpi-label {
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+
+.ui-shell.admin-app.product-shell .admin-kpi-value {
+  margin-top: 13px;
+  color: var(--admin-ink);
+  font-size: 29px;
+}
+
+.ui-shell.admin-app.product-shell .admin-kpi-sub {
+  color: var(--admin-subtle);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-strip {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: var(--admin-shadow);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-intro {
+  background: rgba(0, 122, 255, 0.055);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-intro span,
+.ui-shell.admin-app.product-shell .admin-workflow-strip > button > i {
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-strip > button {
+  border-color: var(--admin-line);
+  background: transparent;
+  color: var(--admin-body);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-strip > button:hover,
+.ui-shell.admin-app.product-shell .admin-action-item:hover,
+.ui-shell.admin-app.product-shell .admin-log-item:hover {
+  background: rgba(0, 122, 255, 0.045);
+}
+
+.ui-shell.admin-app.product-shell .admin-workflow-strip > button > i {
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .admin-action-panel-head {
+  border-bottom-color: var(--admin-line);
+}
+
+.ui-shell.admin-app.product-shell .admin-action-item,
+.ui-shell.admin-app.product-shell .admin-log-item {
+  border-bottom-color: var(--admin-line);
+}
+
+.ui-shell.admin-app.product-shell .admin-action-dot.warn {
+  background: var(--admin-warning);
+}
+
+.ui-shell.admin-app.product-shell .admin-action-dot.neutral,
+.ui-shell.admin-app.product-shell .admin-log-dot {
+  background: var(--admin-primary);
+}
+
+/* Common controls and form fields */
+.ui-shell.admin-app.product-shell :where(.primary-btn, .outline-btn, .workspace-button, .workspace-text-button, .admin-session-primary, .admin-session-refresh, .admin-session-action, .admin-upload-refresh, .admin-upload-clear, .icon-btn) {
+  min-height: 40px;
+  border-radius: 11px;
+  font-family: inherit;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell :where(.primary-btn, .workspace-button.primary, .admin-session-primary) {
+  border: 1px solid var(--admin-primary);
+  background: var(--admin-primary);
+  box-shadow: 0 7px 16px rgba(0, 122, 255, 0.16);
+}
+
+.ui-shell.admin-app.product-shell :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled) {
+  border-color: var(--admin-primary-strong);
+  background: var(--admin-primary-strong);
+  box-shadow: 0 9px 20px rgba(0, 102, 214, 0.2);
+  transform: translateY(-1px);
+}
+
+.ui-shell.admin-app.product-shell :where(.outline-btn, .workspace-button.ghost, .admin-session-refresh, .admin-session-action) {
+  border: 1px solid var(--admin-line);
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--admin-body);
+}
+
+.ui-shell.admin-app.product-shell :where(.outline-btn, .workspace-button.ghost, .admin-session-refresh, .admin-session-action):hover:not(:disabled) {
+  border-color: rgba(0, 122, 255, 0.32);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+  transform: translateY(-1px);
+}
+
+.ui-shell.admin-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  min-height: 42px;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--admin-ink);
+  font-family: inherit;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):hover {
+  border-color: rgba(0, 122, 255, 0.38);
+}
+
+.ui-shell.admin-app.product-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(0, 122, 255, 0.72);
+  background: #fff;
+  box-shadow: var(--admin-focus);
+  outline: 0;
+}
+
+.ui-shell.admin-app.product-shell :where(.form-error, .admin-route-error, .admin-access-error) {
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  border-radius: 11px;
+  background: rgba(255, 59, 48, 0.08);
+  color: #b42318;
+  line-height: 1.5;
+}
+
+.ui-shell.admin-app.product-shell :where(.form-success, .admin-route-notice, .admin-access-notice) {
+  border: 1px solid rgba(52, 199, 89, 0.22);
+  border-radius: 11px;
+  background: rgba(52, 199, 89, 0.09);
+  color: var(--admin-success);
+  line-height: 1.5;
+}
+
+.ui-shell.admin-app.product-shell .modal-shade {
+  background: rgba(28, 28, 30, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ui-shell.admin-app.product-shell .modal {
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options {
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options legend {
+  margin-bottom: 8px;
+  color: var(--admin-body);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options > label {
+  min-width: 0;
+  min-height: 58px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options > label.selected {
+  border-color: rgba(0, 122, 255, 0.48);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options b,
+.ui-shell.admin-app.product-shell .resource-source-options small {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell .resource-source-options small {
+  color: var(--admin-subtle);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Students, courses, assignments and content builder */
+.ui-shell.admin-app.product-shell .student-manager,
+.ui-shell.admin-app.product-shell .assignment-page .section-card,
+.ui-shell.admin-app.product-shell .admin-course-builder .section-card {
+  border-radius: var(--admin-radius-md);
+}
+
+.ui-shell.admin-app.product-shell .student-search,
+.ui-shell.admin-app.product-shell .admin-upload-search {
+  border-color: var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell :where(.student-search, .admin-upload-search):focus-within {
+  border-color: rgba(0, 122, 255, 0.7);
+  background: #fff;
+  box-shadow: var(--admin-focus);
+}
+
+.ui-shell.admin-app.product-shell .admin-table {
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.ui-shell.admin-app.product-shell .table-row {
+  min-height: 58px;
+  border-top-color: var(--admin-line);
+  color: var(--admin-body);
+}
+
+.ui-shell.admin-app.product-shell .table-title {
+  min-height: 44px;
+  border-top: 0;
+  background: rgba(245, 245, 247, 0.66);
+  color: var(--admin-subtle);
+}
+
+.ui-shell.admin-app.product-shell .student-password-btn {
+  border-color: var(--admin-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--admin-body);
+}
+
+.ui-shell.admin-app.product-shell .student-password-btn:hover {
+  border-color: rgba(0, 122, 255, 0.34);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .content-admin-grid article,
+.ui-shell.admin-app.product-shell .enrollment-list > article {
+  border-top-color: var(--admin-line);
+}
+
+.ui-shell.admin-app.product-shell .content-admin-grid .tiny-cover {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.ui-shell.admin-app.product-shell .builder-header {
+  align-items: flex-end;
+  gap: 18px;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.ui-shell.admin-app.product-shell .builder-header h2,
+.ui-shell.admin-app.product-shell .builder-tree-head h3 {
+  color: var(--admin-ink);
+  letter-spacing: -0.45px;
+}
+
+.ui-shell.admin-app.product-shell .builder-layout {
+  gap: 18px;
+}
+
+.ui-shell.admin-app.product-shell .builder-settings {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ui-shell.admin-app.product-shell .builder-tree {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.ui-shell.admin-app.product-shell .hierarchy-guide {
+  border-color: var(--admin-line);
+  border-radius: 12px;
+  background: rgba(0, 122, 255, 0.055);
+}
+
+.ui-shell.admin-app.product-shell .admin-part-card,
+.ui-shell.admin-app.product-shell .admin-lesson-card,
+.ui-shell.admin-app.product-shell .lesson-resource-list .resource-row {
+  border-color: var(--admin-line);
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+.ui-shell.admin-app.product-shell .admin-part-card > summary {
+  border-left-color: var(--admin-primary);
+  background: linear-gradient(90deg, rgba(0, 122, 255, 0.06), rgba(255, 255, 255, 0.82));
+}
+
+.ui-shell.admin-app.product-shell .admin-part-card .admin-lesson-list,
+.ui-shell.admin-app.product-shell .lesson-resource-list {
+  border-top-color: var(--admin-line);
+  background: rgba(245, 245, 247, 0.56);
+}
+
+.ui-shell.admin-app.product-shell .admin-part-card .add-child,
+.ui-shell.admin-app.product-shell .lesson-actions .add-resource-action {
+  border-color: rgba(0, 122, 255, 0.2);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .resource-kind {
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+/* Admin exam/content management surfaces. Preview and answer screens are not
+ * selected here; they render outside .product-shell. */
+.ui-shell.admin-app.product-shell .workspace-page-header {
+  align-items: flex-end;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.ui-shell.admin-app.product-shell .workspace-heading-wrap h1,
+.ui-shell.admin-app.product-shell .admin-exam-header h2,
+.ui-shell.admin-app.product-shell .policy-page-header h1,
+.ui-shell.admin-app.product-shell .room-workspace-page h1 {
+  color: var(--admin-ink);
+  letter-spacing: -0.65px;
+}
+
+.ui-shell.admin-app.product-shell .editor-eyebrow,
+.ui-shell.admin-app.product-shell .admin-kicker,
+.ui-shell.admin-app.product-shell .editor-overview-title .editor-eyebrow {
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .workspace-back,
+.ui-shell.admin-app.product-shell .workspace-text-button,
+.ui-shell.admin-app.product-shell .workspace-danger-link {
+  border-radius: 9px;
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .workspace-back:hover,
+.ui-shell.admin-app.product-shell .workspace-text-button:hover {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .workspace-filter-row,
+.ui-shell.admin-app.product-shell .policy-toolbar,
+.ui-shell.admin-app.product-shell .exam-workflow,
+.ui-shell.admin-app.product-shell .workspace-form-card,
+.ui-shell.admin-app.product-shell .inline-settings-card,
+.ui-shell.admin-app.product-shell .structure-preview-card {
+  border-color: var(--admin-line);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--admin-shadow);
+}
+
+.ui-shell.admin-app.product-shell .workspace-pills button:hover,
+.ui-shell.admin-app.product-shell .workspace-pills button.active,
+.ui-shell.admin-app.product-shell .exam-workflow > button.active {
+  border-color: rgba(0, 122, 255, 0.3);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .admin-reference-room-card,
+.ui-shell.admin-app.product-shell .admin-reference-exam-card,
+.ui-shell.admin-app.product-shell .exam-paper-card,
+.ui-shell.admin-app.product-shell .room-exam-catalog {
+  border-color: var(--admin-line);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: var(--admin-shadow);
+}
+
+.ui-shell.admin-app.product-shell .admin-reference-room-card:hover,
+.ui-shell.admin-app.product-shell .admin-reference-exam-card:hover {
+  border-color: rgba(0, 122, 255, 0.3);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.ui-shell.admin-app.product-shell :where(.exam-type-badge, .exam-admin-badge, .reference-exam-status, .slot-state-open) {
+  border-color: rgba(0, 122, 255, 0.16);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .room-workspace-hero {
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(239, 244, 255, 0.74));
+}
+
+.ui-shell.admin-app.product-shell .room-hero-stats > span,
+.ui-shell.admin-app.product-shell .admin-exam-summary > span,
+.ui-shell.admin-app.product-shell .operation-stats > span {
+  border-color: var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.ui-shell.admin-app.product-shell .admin-exam-tree,
+.ui-shell.admin-app.product-shell .admin-format-guide,
+.ui-shell.admin-app.product-shell .policy-preflight,
+.ui-shell.admin-app.product-shell .access-result-policy-note {
+  border-color: var(--admin-line);
+  border-radius: 12px;
+  background: rgba(0, 122, 255, 0.045);
+}
+
+.ui-shell.admin-app.product-shell .question-board-row,
+.ui-shell.admin-app.product-shell .question-editor-context,
+.ui-shell.admin-app.product-shell .question-board-empty,
+.ui-shell.admin-app.product-shell .parts-warning {
+  border-color: var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Sessions, access, policy, operations and security */
+.ui-shell.admin-app.product-shell .admin-session-summary {
+  gap: 12px;
+}
+
+.ui-shell.admin-app.product-shell .admin-session-summary > span,
+.ui-shell.admin-app.product-shell .admin-upload-stat-card {
+  border-color: var(--admin-line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: none;
+}
+
+.ui-shell.admin-app.product-shell .admin-session-list-head {
+  border-bottom-color: var(--admin-line);
+  background: rgba(245, 245, 247, 0.56);
+}
+
+.ui-shell.admin-app.product-shell .admin-session-row {
+  border-top-color: var(--admin-line);
+  transition: background-color 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .admin-session-row:hover {
+  background: rgba(0, 122, 255, 0.045);
+}
+
+.ui-shell.admin-app.product-shell .admin-progress-track > span,
+.ui-shell.admin-app.product-shell .exam-progress > span {
+  background: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .access-switch,
+.ui-shell.admin-app.product-shell .access-check-grid,
+.ui-shell.admin-app.product-shell .share-url-box,
+.ui-shell.admin-app.product-shell .slot-card,
+.ui-shell.admin-app.product-shell .operation-monitor-details {
+  border-color: var(--admin-line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.ui-shell.admin-app.product-shell .slot-card:hover,
+.ui-shell.admin-app.product-shell .security-user-grid > button:hover {
+  border-color: rgba(0, 122, 255, 0.3);
+  box-shadow: var(--admin-shadow);
+}
+
+.ui-shell.admin-app.product-shell .slot-state-upcoming {
+  background: rgba(255, 149, 0, 0.12);
+  color: var(--admin-warning);
+}
+
+.ui-shell.admin-app.product-shell .slot-state-disabled {
+  background: rgba(60, 60, 67, 0.08);
+  color: var(--admin-muted);
+}
+
+.ui-shell.admin-app.product-shell .policy-card,
+.ui-shell.admin-app.product-shell .security-detail-panel > section {
+  border-color: var(--admin-line);
+  border-radius: var(--admin-radius-md);
+}
+
+.ui-shell.admin-app.product-shell .security-user-search input,
+.ui-shell.admin-app.product-shell .security-user-grid > button,
+.ui-shell.admin-app.product-shell .security-profile-summary > div {
+  border-color: var(--admin-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ui-shell.admin-app.product-shell .security-user-grid > button.flagged {
+  border-left-color: var(--admin-danger);
+}
+
+.ui-shell.admin-app.product-shell .security-account-status {
+  background: rgba(52, 199, 89, 0.1);
+  color: var(--admin-success);
+}
+
+.ui-shell.admin-app.product-shell .security-account-status.temporarily_banned,
+.ui-shell.admin-app.product-shell .security-account-status.permanently_banned {
+  background: rgba(255, 59, 48, 0.1);
+  color: #b42318;
+}
+
+.ui-shell.admin-app.product-shell .security-detail-shade {
+  background: rgba(28, 28, 30, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Upload library */
+.ui-shell.admin-app.product-shell .admin-upload-hero,
+.ui-shell.admin-app.product-shell .admin-upload-upload-card,
+.ui-shell.admin-app.product-shell .admin-upload-library {
+  border-color: var(--admin-line);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: var(--admin-shadow);
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-hero {
+  padding: 26px;
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-hero h1,
+.ui-shell.admin-app.product-shell .admin-upload-library h2 {
+  color: var(--admin-ink);
+  letter-spacing: -0.45px;
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-storage-pill,
+.ui-shell.admin-app.product-shell .admin-upload-status-badge {
+  border-color: rgba(0, 122, 255, 0.16);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-dropzone {
+  border-color: rgba(0, 122, 255, 0.32);
+  border-radius: 15px;
+  background: rgba(0, 122, 255, 0.045);
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-dropzone:hover,
+.ui-shell.admin-app.product-shell .admin-upload-dropzone.is-dragging {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+  box-shadow: var(--admin-focus);
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-drop-icon {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-image-card {
+  border-color: var(--admin-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--admin-shadow);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-image-card:hover {
+  border-color: rgba(0, 122, 255, 0.3);
+  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-2px);
+}
+
+.ui-shell.admin-app.product-shell .admin-upload-preview {
+  background: rgba(245, 245, 247, 0.72);
+}
+
+/* Admin login is product/auth UI, not an exam surface. */
+.admin-login-page {
+  /* Admin auth is rendered outside .ui-shell.admin-app. Keep the same
+   * semantic tokens available without widening selectors globally. */
+  --admin-primary: #d25362;
+  --admin-primary-strong: #b5122b;
+  --admin-primary-soft: #fff1f3;
+  --admin-accent: #d25362;
+  --admin-accent-hover: #b5122b;
+  --admin-ink: #1d1d1f;
+  --admin-body: #424245;
+  --admin-muted: #6e6e73;
+  --admin-line: rgba(60, 60, 67, 0.16);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(210, 83, 98, 0.14), transparent 28rem),
+    radial-gradient(circle at 90% 88%, rgba(181, 18, 43, 0.1), transparent 30rem),
+    linear-gradient(135deg, #fff8f9, #f8f5f6);
+}
+
+.admin-login-page .admin-login-brand > span {
+  background: linear-gradient(145deg, #d25362, #b5122b);
+  box-shadow: 0 10px 22px rgba(181, 18, 43, 0.18);
+}
+
+.admin-login-page .admin-login-brand small,
+.admin-login-page .login-heading .kicker {
+  color: var(--admin-primary);
+}
+
+.admin-login-page .login-card {
+  border-top: 1px solid rgba(255, 255, 255, 0.78);
+}
+
+@media (max-width: 1100px) {
+  .ui-shell.admin-app.product-shell .main-content,
+  .ui-shell.admin-app.product-shell.sidebar-expanded .main-content {
+    margin-left: 84px;
+    padding-inline: 28px;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-workflow-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell .admin-workflow-intro {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Keep the closed mobile rail icon-only even when the shell retains its
+   * desktop expansion state. The drawer restores the section grouping. */
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) > .sidebar:not(.mobile-open) .admin-sidebar-section-label {
+    display: none !important;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) > .sidebar.mobile-open .admin-sidebar-section-label {
+    display: block !important;
+  }
+
+  .ui-shell.admin-app.product-shell .main-content,
+  .ui-shell.admin-app.product-shell.sidebar-expanded .main-content {
+    margin-left: 0;
+    padding: 24px 16px 50px;
+  }
+
+  .ui-shell.admin-app.product-shell .topbar,
+  .ui-shell.admin-app.product-shell.sidebar-expanded .topbar {
+    height: 68px;
+    margin-left: 0;
+    padding: 8px 12px;
+  }
+
+  .ui-shell.admin-app.product-shell .sidebar,
+  .ui-shell.admin-app.product-shell.sidebar-expanded .sidebar {
+    width: min(88vw, 328px);
+    background: rgba(250, 250, 252, 0.94);
+  }
+
+  .ui-shell.admin-app.product-shell .mobile-sidebar-head {
+    position: relative;
+    justify-content: flex-end;
+  }
+
+  .ui-shell.admin-app.product-shell .mobile-sidebar-brand {
+    position: absolute;
+    inset-inline-start: 50%;
+    width: min(200px, calc(100% - 120px));
+    transform: translateX(-50%);
+  }
+
+  .ui-shell.admin-app.product-shell .mobile-sidebar-brand img {
+    width: 100%;
+  }
+
+  .ui-shell.admin-app.product-shell .mobile-sidebar-close {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ui-shell.admin-app.product-shell .sidebar nav {
+    padding: 12px 12px 16px;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-dash-header,
+  .ui-shell.admin-app.product-shell .admin-exam-header,
+  .ui-shell.admin-app.product-shell .admin-session-header,
+  .ui-shell.admin-app.product-shell .workspace-page-header,
+  .ui-shell.admin-app.product-shell .builder-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-dash-actions,
+  .ui-shell.admin-app.product-shell .workspace-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-dash-actions > *,
+  .ui-shell.admin-app.product-shell .workspace-header-actions > * {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell .admin-two-col,
+  .ui-shell.admin-app.product-shell .builder-layout,
+  .ui-shell.admin-app.product-shell .access-grid,
+  .ui-shell.admin-app.product-shell .policy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-exam-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-exam-room-list {
+    position: static;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-reference-room-card,
+  .ui-shell.admin-app.product-shell .admin-reference-exam-card {
+    display: block;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-reference-room-card .reference-room-card-body,
+  .ui-shell.admin-app.product-shell .admin-reference-room-card .reference-room-card-footer {
+    border-inline-start: 0;
+    border-top: 1px solid var(--admin-line);
+  }
+
+  .ui-shell.admin-app.product-shell .admin-upload-hero,
+  .ui-shell.admin-app.product-shell .section-card {
+    padding: 19px;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-upload-library-head,
+  .ui-shell.admin-app.product-shell .admin-upload-upload-side {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-upload-search {
+    width: 100%;
+  }
+}
+
+/* Product admin palette: keep operational screens on the same light-red
+ * language as the student shell. The question-bank route is included because
+ * it was explicitly requested for visual alignment; runner/question behavior
+ * is not changed here. Protected exam authoring routes remain untouched. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) {
+  --admin-primary: #d25362;
+  --admin-primary-strong: #b5122b;
+  --admin-primary-soft: #fff1f3;
+  --admin-accent: #d25362;
+  --admin-accent-hover: #b5122b;
+  --admin-bg: #fff8f9;
+  --admin-focus: 0 0 0 4px rgba(210, 83, 98, 0.16);
+  --ui-info: #b5122b;
+  --ui-info-soft: #fff1f3;
+  --ui-focus: 0 0 0 3px rgba(210, 83, 98, 0.16);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .main-content,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .main-content {
+  background:
+    radial-gradient(circle at 86% 0%, rgba(210, 83, 98, 0.08), transparent 28rem),
+    radial-gradient(circle at 12% 28%, rgba(181, 18, 43, 0.035), transparent 24rem),
+    var(--admin-bg);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar nav button:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar-toggle:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .sidebar nav button:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .sidebar-toggle:hover {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .sidebar nav button.active,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .sidebar nav button.active {
+  color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(button, a, input, select, textarea):focus-visible,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(button, a, input, select, textarea):focus-visible {
+  outline-color: rgba(210, 83, 98, 0.34);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-intro,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-workflow-intro {
+  background: rgba(210, 83, 98, 0.055);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-workflow-strip > button:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-action-item:hover,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-log-item:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-workflow-strip > button:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-action-item:hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) .admin-log-item:hover {
+  background: rgba(210, 83, 98, 0.045);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.primary-btn, .workspace-button.primary, .admin-session-primary),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(.primary-btn, .workspace-button.primary, .admin-session-primary) {
+  background: var(--admin-primary, #d25362);
+  border-color: var(--admin-primary, #d25362);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(181, 18, 43, 0.14);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(.primary-btn, .workspace-button.primary, .admin-session-primary):hover:not(:disabled) {
+  background: var(--admin-primary-strong, #b5122b);
+  border-color: var(--admin-primary-strong, #b5122b);
+  box-shadow: 0 9px 20px rgba(181, 18, 43, 0.18);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(.outline-btn, .workspace-button.ghost, .admin-session-refresh, .admin-session-action):hover:not(:disabled),
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(.outline-btn, .workspace-button.ghost, .admin-session-refresh, .admin-session-action):hover:not(:disabled) {
+  border-color: rgba(181, 18, 43, 0.32);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):hover,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):hover {
+  border-color: rgba(210, 83, 98, 0.38);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
+.ui-shell.admin-app.product-shell:has(.question-bank-page) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(181, 18, 43, 0.72);
+}
+
+@media (max-width: 575px) {
+  .ui-shell.admin-app.product-shell .main-content {
+    padding-inline: 12px;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-kpi-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-dash-actions,
+  .ui-shell.admin-app.product-shell .workspace-header-actions {
+    flex-direction: column;
+  }
+
+  .ui-shell.admin-app.product-shell .admin-dash-actions > *,
+  .ui-shell.admin-app.product-shell .workspace-header-actions > * {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell.admin-app.product-shell *,
+  .admin-login-page * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* The admin exam catalog is an authoring/library surface, not the learner's
+ * question or answer view. Keep its room cards readable as independent cards
+ * instead of forcing three dense columns into one long strip. */
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) {
+  width: min(1280px, 100%);
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-page-header {
+  align-items: flex-end;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 17px 19px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-filter-row > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-filter-row > div:first-child b {
+  color: var(--admin-ink);
+  font-size: 14px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-filter-row > div:first-child span {
+  color: var(--admin-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-pills {
+  justify-content: flex-end;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-pills > button {
+  min-height: 40px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-pills small {
+  font-size: 11px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .room-catalog-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 390px));
+  justify-content: start;
+  gap: 18px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .admin-reference-room-card {
+  display: flex;
+  max-width: 390px;
+  min-height: 360px;
+  flex-direction: column;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--admin-shadow);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .admin-reference-room-card:hover {
+  border-color: rgba(29, 78, 216, 0.3);
+  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-3px);
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .admin-room-card-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-title {
+  display: flex;
+  min-height: 105px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 21px 22px 17px;
+  text-align: center;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-title h2 {
+  width: 100%;
+  margin: 0;
+  color: var(--admin-ink);
+  font-size: 18px;
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  overflow-wrap: break-word;
+  text-align: center;
+  word-break: normal;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .exam-type-badge {
+  align-self: center;
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  border-radius: 8px;
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+  font-size: 12px;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+  padding: 17px 22px;
+  border-top: 1px solid var(--admin-line);
+  border-inline-start: 0;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(60, 60, 67, 0.09);
+  border-radius: 11px;
+  background: rgba(245, 245, 247, 0.58);
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item + .exam-meta-item {
+  margin-top: 0;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item > span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px;
+  grid-column: 1 / -1;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item svg {
+  width: 14px;
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item small {
+  color: var(--admin-subtle);
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item > b {
+  grid-column: 1 / -1;
+  min-width: 0;
+  color: var(--admin-body);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-footer {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 14px;
+  padding: 17px 22px 20px;
+  border-top: 1px solid var(--admin-line);
+  border-inline-start: 0;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-completion {
+  width: 100%;
+  max-width: none;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-completion span {
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-completion b {
+  color: var(--admin-primary);
+  font-size: 12px;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .exam-progress {
+  height: 7px;
+  background: #dbeafe;
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .exam-progress > span {
+  height: 7px;
+  background: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-footer > :where(a, button) {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: var(--admin-primary);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 7px 16px rgba(29, 78, 216, 0.14);
+}
+
+.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-footer > :where(a, button):hover {
+  background: var(--admin-primary-strong);
+}
+
+@media (max-width: 1050px) {
+  .ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .room-catalog-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 390px));
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .workspace-pills {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .room-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .admin-reference-room-card {
+    max-width: none;
+    min-height: 0;
+  }
+}

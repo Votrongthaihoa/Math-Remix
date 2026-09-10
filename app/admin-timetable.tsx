@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   CalendarClock,
   CheckCircle2,
@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
+import AeckConfirmDialog from "../components/aeck/AeckConfirmDialog";
 import { formatUiDate, formatUiTime, formatUiWeekday } from "./ui-format";
 import AdminCourseTimetable from "./admin-course-timetable";
 
@@ -38,6 +39,12 @@ type TimetablePayload = {
   serverTime?: string;
   error?: string;
 };
+
+type TimetableView = "courses" | "exams";
+
+function timetableViewFromUrl(url: URL): TimetableView {
+  return url.searchParams.get("view") === "exams" ? "exams" : "courses";
+}
 
 function startOfWeek(value: Date) {
   const date = new Date(value);
@@ -102,6 +109,8 @@ function TimetableEditor({
   const [endAt, setEndAt] = useState(() => localDateTimeValue(room.exam_end, fallback.end));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [pendingScheduleRemoval, setPendingScheduleRemoval] = useState(false);
+  const [scheduleRemovalError, setScheduleRemovalError] = useState("");
   const scheduled = Boolean(validDate(room.exam_start));
   const scheduleAbortController = useRef<AbortController | null>(null);
   const startTimestamp = Date.parse(startAt);
@@ -112,13 +121,13 @@ function TimetableEditor({
 
   useEffect(() => () => scheduleAbortController.current?.abort(), []);
 
-  async function updateSchedule(start: string | null, end: string | null) {
+  async function updateSchedule(start: string | null, end: string | null, source: "save" | "remove") {
     if (saving) return;
     scheduleAbortController.current?.abort();
     const controller = new AbortController();
     scheduleAbortController.current = controller;
     setSaving(true);
-    setError("");
+    if (source === "remove") setScheduleRemovalError(""); else setError("");
     try {
       const response = await authenticatedFetch("/api/admin/timetable", {
         method: "PATCH",
@@ -134,9 +143,11 @@ function TimetableEditor({
       if (controller.signal.aborted) return;
       if (!response.ok || !payload?.room) throw new Error(payload?.error ?? "Không thể cập nhật lịch vận hành.");
       onSaved(payload.room, start ? "Đã lưu lịch vận hành." : "Đã gỡ lịch khỏi phòng thi.");
+      if (source === "remove") setPendingScheduleRemoval(false);
     } catch (value) {
       if (controller.signal.aborted) return;
-      setError(value instanceof Error ? value.message : "Không thể cập nhật lịch vận hành.");
+      const message = value instanceof Error ? value.message : "Không thể cập nhật lịch vận hành.";
+      if (source === "remove") setScheduleRemovalError(message); else setError(message);
     } finally {
       if (scheduleAbortController.current === controller) setSaving(false);
     }
@@ -154,11 +165,12 @@ function TimetableEditor({
       setError("Thời gian kết thúc phải sau thời gian bắt đầu.");
       return;
     }
-    void updateSchedule(startAt, endAt);
+    void updateSchedule(startAt, endAt, "save");
   }
 
   return (
-    <form className="admin-timetable-editor" onSubmit={submit} aria-labelledby="admin-timetable-editor-title">
+    <>
+      <form className="admin-timetable-editor" onSubmit={submit} aria-labelledby="admin-timetable-editor-title">
       <div className="admin-timetable-panel-heading">
         <span><Clock3 aria-hidden="true" /></span>
         <div>
@@ -185,7 +197,7 @@ function TimetableEditor({
       {error ? <p id="admin-timetable-editor-error" className="admin-timetable-form-error" role="alert"><CircleAlert aria-hidden="true" />{error}</p> : null}
 
       <div className="admin-timetable-editor-actions">
-        <button type="button" className="admin-timetable-secondary-action" disabled={saving || !scheduled} onClick={() => { if (window.confirm("Gỡ lịch khỏi phòng thi này?")) void updateSchedule(null, null); }}>
+        <button type="button" className="admin-timetable-secondary-action" disabled={saving || !scheduled} onClick={() => setPendingScheduleRemoval(true)}>
           <Trash2 aria-hidden="true" />Gỡ lịch
         </button>
         <button type="submit" className="admin-timetable-primary-action" disabled={saving}>
@@ -193,7 +205,17 @@ function TimetableEditor({
           {saving ? "Đang lưu…" : "Lưu lịch"}
         </button>
       </div>
-    </form>
+      </form>
+      {pendingScheduleRemoval ? <AeckConfirmDialog
+        open
+      title="Gỡ lịch phòng thi?"
+      description={`Lịch của “${room.title}” sẽ được gỡ khỏi lịch vận hành và không còn hiển thị cho học viên. Phòng thi và đề thi vẫn được giữ nguyên.`}
+        errorMessage={scheduleRemovalError}
+        secondaryAction={{ label: "Hủy", onClick: () => { setScheduleRemovalError(""); setPendingScheduleRemoval(false); }, disabled: saving }}
+        primaryAction={{ label: saving ? "Đang gỡ…" : "Gỡ lịch", onClick: () => void updateSchedule(null, null, "remove"), disabled: saving }}
+        onClose={() => { if (!saving) { setScheduleRemovalError(""); setPendingScheduleRemoval(false); } }}
+      /> : null}
+    </>
   );
 }
 
@@ -302,11 +324,11 @@ function ExamRoomTimetable() {
               <span><CalendarClock aria-hidden="true" /></span>
               <div><h2 id="admin-timetable-week-title">Lịch theo tuần</h2><p>{weekLabel}</p></div>
             </div>
-            <div className="admin-timetable-week-controls" aria-label="Điều hướng tuần">
+            <nav className="admin-timetable-week-controls" aria-label="Điều hướng tuần">
               <button type="button" aria-label="Tuần trước" onClick={() => setWeekOffset(value => value - 1)}><ChevronLeft aria-hidden="true" /></button>
               <button type="button" className="admin-timetable-current-week" disabled={weekOffset === 0} onClick={() => setWeekOffset(0)}>Tuần này</button>
               <button type="button" aria-label="Tuần sau" onClick={() => setWeekOffset(value => value + 1)}><ChevronRight aria-hidden="true" /></button>
-            </div>
+            </nav>
           </div>
 
           {loading ? <div className="admin-timetable-loading" role="status"><RefreshCw className="is-spinning" aria-hidden="true" />Đang tải lịch vận hành…</div> : (
@@ -346,14 +368,17 @@ function ExamRoomTimetable() {
           <label className="admin-timetable-search"><Search aria-hidden="true" /><span className="admin-timetable-visually-hidden">Tìm phòng chưa xếp lịch</span><input name="roomSearch" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm phòng…" autoComplete="off" /></label>
         </div>
         {loading ? <div className="admin-timetable-loading" role="status">Đang tải danh sách…</div> : visibleUnscheduledRooms.length ? (
-          <div className="admin-timetable-room-table" role="table" aria-label="Phòng chưa xếp lịch">
-            <div className="admin-timetable-room-row admin-timetable-room-row-head" role="row"><span role="columnheader">Phòng thi</span><span role="columnheader">Loại</span><span role="columnheader">Số đề</span><span role="columnheader">Trạng thái</span><span role="columnheader">Thao tác</span></div>
-            {visibleUnscheduledRooms.map(room => <div className={`admin-timetable-room-row ${selectedRoomId === room.id ? "is-selected" : ""}`} role="row" key={room.id}>
-              <span role="cell"><strong title={room.title}>{room.title}</strong><small>{room.description || "Chưa có mô tả"}</small></span>
-              <span role="cell">{room.exam_type}</span><span role="cell">{room.exam_count} đề</span><span role="cell"><i className={room.published ? "is-published" : "is-draft"} />{room.published ? "Đã xuất bản" : "Bản nháp"}</span>
-              <span role="cell"><button type="button" onClick={() => setSelectedRoomId(room.id)}>Thiết lập <ChevronRight aria-hidden="true" /></button></span>
-            </div>)}
-          </div>
+          <table className="admin-timetable-room-table">
+            <caption className="admin-timetable-visually-hidden">Phòng chưa xếp lịch</caption>
+            <thead><tr className="admin-timetable-room-row admin-timetable-room-row-head"><th scope="col">Phòng thi</th><th scope="col">Loại</th><th scope="col">Số đề</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
+            <tbody>
+              {visibleUnscheduledRooms.map(room => <tr className={`admin-timetable-room-row ${selectedRoomId === room.id ? "is-selected" : ""}`} key={room.id}>
+                <td><span className="admin-timetable-cell-label">Phòng thi</span><strong title={room.title}>{room.title}</strong><small>{room.description || "Chưa có mô tả"}</small></td>
+                <td><span className="admin-timetable-cell-label">Loại</span>{room.exam_type}</td><td><span className="admin-timetable-cell-label">Số đề</span>{room.exam_count} đề</td><td><span className="admin-timetable-cell-label">Trạng thái</span><i className={room.published ? "is-published" : "is-draft"} />{room.published ? "Đã xuất bản" : "Bản nháp"}</td>
+                <td><span className="admin-timetable-cell-label">Thao tác</span><button type="button" aria-label={`Thiết lập lịch cho ${room.title}`} onClick={() => setSelectedRoomId(room.id)}>Thiết lập <ChevronRight aria-hidden="true" /></button></td>
+              </tr>)}
+            </tbody>
+          </table>
         ) : <div className="admin-timetable-inline-empty" role="status">{unscheduledRooms.length ? "Không tìm thấy phòng phù hợp." : "Tất cả phòng thi đã được xếp lịch."}</div>}
       </section>
     </div>
@@ -361,12 +386,46 @@ function ExamRoomTimetable() {
 }
 
 export default function AdminTimetable() {
-  const [activeView, setActiveView] = useState<"courses" | "exams">("courses");
+  const [activeView, setActiveView] = useState<TimetableView>("courses");
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const tabViews: TimetableView[] = ["courses", "exams"];
+
+  useEffect(() => {
+    const syncViewFromUrl = () => setActiveView(timetableViewFromUrl(new URL(window.location.href)));
+    syncViewFromUrl();
+    window.addEventListener("popstate", syncViewFromUrl);
+    return () => window.removeEventListener("popstate", syncViewFromUrl);
+  }, []);
+
+  function setTimetableView(view: TimetableView) {
+    if (view === activeView) return;
+    const url = new URL(window.location.href);
+    if (view === "exams") url.searchParams.set("view", view);
+    else url.searchParams.delete("view");
+    window.history.pushState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    setActiveView(view);
+  }
+
+  function handleTimetableTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    const currentIndex = tabViews.indexOf(activeView);
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabViews.length;
+    else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabViews.length) % tabViews.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = tabViews.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextView = tabViews[nextIndex];
+    setTimetableView(nextView);
+    window.requestAnimationFrame(() => tabRefs.current[nextIndex]?.focus());
+  }
+
   return <div className="admin-timetable-hub">
-    <div className="admin-timetable-tabs" role="tablist" aria-label="Loại thời khóa biểu">
-      <button type="button" role="tab" aria-selected={activeView === "courses"} onClick={() => setActiveView("courses")}>Lịch khóa học</button>
-      <button type="button" role="tab" aria-selected={activeView === "exams"} onClick={() => setActiveView("exams")}>Lịch phòng thi</button>
+    <div className="admin-timetable-tabs" role="tablist" aria-label="Loại thời khóa biểu" aria-orientation="horizontal">
+      <button ref={element => { tabRefs.current[0] = element; }} type="button" role="tab" id="admin-timetable-course-tab" aria-controls="admin-timetable-course-panel" aria-selected={activeView === "courses"} tabIndex={activeView === "courses" ? 0 : -1} onKeyDown={handleTimetableTabKeyDown} onClick={() => setTimetableView("courses")}>Lịch khóa học</button>
+      <button ref={element => { tabRefs.current[1] = element; }} type="button" role="tab" id="admin-timetable-exam-tab" aria-controls="admin-timetable-exam-panel" aria-selected={activeView === "exams"} tabIndex={activeView === "exams" ? 0 : -1} onKeyDown={handleTimetableTabKeyDown} onClick={() => setTimetableView("exams")}>Lịch phòng thi</button>
     </div>
-    <div role="tabpanel">{activeView === "courses" ? <AdminCourseTimetable /> : <ExamRoomTimetable />}</div>
+    <div role="tabpanel" id={activeView === "courses" ? "admin-timetable-course-panel" : "admin-timetable-exam-panel"} aria-labelledby={activeView === "courses" ? "admin-timetable-course-tab" : "admin-timetable-exam-tab"}>{activeView === "courses" ? <AdminCourseTimetable /> : <ExamRoomTimetable />}</div>
   </div>;
 }

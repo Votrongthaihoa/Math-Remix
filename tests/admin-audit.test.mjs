@@ -4,6 +4,45 @@ import test from "node:test";
 
 const source = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
+test("admin audit ignores stale responses after filters change", async () => {
+  const page = await source("app/admin-audit-log.tsx");
+
+  assert.match(page, /const controller = new AbortController\(\);\s*let active = true;/);
+  assert.match(page, /if \(!active \|\| controller\.signal\.aborted\) return;\s*setPayload\(result \?\? \{\}\);/);
+  assert.match(page, /return \(\) => \{\s*active = false;\s*controller\.abort\(\);\s*\};/);
+});
+
+test("admin audit cells retain their column context when mobile headers are hidden", async () => {
+  const [page, styles] = await Promise.all([
+    source("app/admin-audit-log.tsx"),
+    source("app/admin-reference-suite.css"),
+  ]);
+
+  for (const label of ["Thao tác", "Nguồn", "Người thực hiện", "Đối tượng", "Thời gian", "Trạng thái"]) {
+    assert.match(page, new RegExp(`admin-audit-cell-label">${label}`));
+  }
+  assert.match(styles, /\.admin-audit-cell-label\s*\{\s*display: none;/);
+  assert.match(styles, /@media \(max-width: 840px\)[\s\S]*?\.admin-audit-cell-label\s*\{[\s\S]*?position: absolute;/);
+});
+
+test("admin audit uses native table semantics without hiding mobile audit details", async () => {
+  const [page, styles] = await Promise.all([
+    source("app/admin-audit-log.tsx"),
+    source("app/admin-reference-suite.css"),
+  ]);
+
+  assert.match(page, /<table className="admin-audit-table">/);
+  assert.match(page, /<caption className="admin-audit-visually-hidden">Nhật ký thao tác quản trị<\/caption>/);
+  assert.match(page, /<thead><tr className="admin-audit-row admin-audit-row-head">/);
+  assert.match(page, /<th scope="col">Thao tác<\/th>/);
+  assert.match(page, /<tbody>\s*\{items\.map\(item => <tr/);
+  assert.doesNotMatch(page, /role="table"|role="row"|role="columnheader"|role="cell"/);
+  assert.match(styles, /\.admin-audit-table\s+thead\s*\{[\s\S]*?position:\s*absolute;/);
+  assert.match(styles, /\.admin-audit-row\s*>\s*:is\(td, th\)\s*\{[\s\S]*?display:\s*block;/);
+  assert.match(styles, /\.admin-audit-row > td:nth-child\(4\)\s*\{[\s\S]*?display:\s*block;/);
+  assert.doesNotMatch(styles, /\.admin-audit-row > span\s*\{\s*display:\s*none;/);
+});
+
 test("exam admin audit migration is constrained, indexed, and RLS protected", async () => {
   const migration = await source("supabase/migrations/022_exam_admin_audit_logs.sql");
   assert.match(migration, /create table if not exists public\.exam_admin_audit_logs/i);
@@ -100,9 +139,8 @@ test("closed exam slots can be deleted with audited cascading data cleanup", asy
 });
 
 test("new exam creation is draft-first and cannot publish before preflight", async () => {
-  const [workspace, legacyManager, policyRoute, auditServer, publishMigration] = await Promise.all([
+  const [workspace, policyRoute, auditServer, publishMigration] = await Promise.all([
     source("app/admin-exam-workspace.tsx"),
-    source("app/admin-exams.tsx"),
     source("app/api/admin/exam-policy/route.ts"),
     source("lib/admin-audit-server.ts"),
     source("supabase/migrations/031_exam_publish_preflight.sql"),
@@ -111,10 +149,6 @@ test("new exam creation is draft-first and cannot publish before preflight", asy
   assert.match(workspace, /\.insert\(\{ \.\.\.form, published: false/);
   assert.match(workspace, /body: JSON\.stringify\(\{ action: "preflight", examId: examResult\.data\.id \}\)/);
   assert.match(workspace, /body: JSON\.stringify\(\{ action: "publish_exam", examId: examResult\.data\.id \}\)/);
-  assert.match(legacyManager, /const requestedPublish = published/);
-  assert.match(legacyManager, /published: false, sort_order: counts\.exams/);
-  assert.match(legacyManager, /body: JSON\.stringify\(\{ action: "preflight", examId: id \}\)/);
-  assert.match(legacyManager, /body: JSON\.stringify\(\{ action: "publish_exam", examId: id \}\)/);
   assert.match(policyRoute, /body\.action === "publish_exam"/);
   assert.match(policyRoute, /runExamPreflight/);
   assert.match(policyRoute, /action: "publish_exam"/);

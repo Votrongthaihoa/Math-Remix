@@ -6,6 +6,8 @@ import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
 import { apiRequestUrl } from "../lib/api-url";
 import LoadingIndicator from "./loading-indicator";
 
+const MEDIA_VIEWER_ORIGIN = "https://media.mathremix.pro.vn";
+
 export type SecureLessonResource = {
   id: string;
   title: string;
@@ -38,7 +40,7 @@ function SecureViewerError({ message, onRetry }: { message: string; onRetry?: ()
 export default function VideoPlayer({ resource }: { resource: SecureLessonResource }) {
   const [content, setContent] = useState<ResolvedContent | null>(null);
   const [watermarkEmail, setWatermarkEmail] = useState("");
-  const [pdfObjectUrl, setPdfObjectUrl] = useState("");
+  const [pdfBytes, setPdfBytes] = useState<ArrayBuffer | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,8 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   const videoFrameRef = useRef<HTMLIFrameElement>(null);
   const hlsFrameRef = useRef<HTMLIFrameElement>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement>(null);
+  const viewerChannelRef = useRef(crypto.randomUUID());
+  const pdfSentRef = useRef(false);
   const pendingDownloadUrlsRef = useRef(new Map<string, number>());
 
   useEffect(() => () => {
@@ -92,11 +96,18 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   function retryVideoSource() {
     setVideoPlaybackError("");
+    viewerChannelRef.current = crypto.randomUUID();
     setResolutionNonce(value => value + 1);
   }
 
   const sendEmbeddedVideoSource = useCallback((resolved: ResolvedContent | null) => {
-    if (!resolved?.playbackUrl || !["onedrive_video", "hls_vault"].includes(resolved.type)) return;
+    if (!resolved) return;
+    if (resolved.type === "youtube") {
+      if (!resolved.youtubeId) return;
+      videoFrameRef.current?.contentWindow?.postMessage({ type: "remix:set-video-source", videoId: resolved.youtubeId, start: resolved.start ?? 0, watermark: watermarkEmail, channel: viewerChannelRef.current }, MEDIA_VIEWER_ORIGIN);
+      return;
+    }
+    if (!resolved.playbackUrl || !["onedrive_video", "hls_vault"].includes(resolved.type)) return;
     const frameRef = resolved.type === "hls_vault" ? hlsFrameRef : videoFrameRef;
     const configuredPlaybackUrl = resolved.type === "hls_vault" ? apiRequestUrl(resolved.playbackUrl) : resolved.playbackUrl;
     const playbackUrl = typeof configuredPlaybackUrl === "string"
@@ -109,15 +120,21 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       src: playbackUrl,
       mimeType: resolved.mimeType || (resolved.type === "hls_vault" ? "application/vnd.apple.mpegurl" : "video/mp4"),
       title: resolved.title,
-    }, window.location.origin);
-  }, []);
+      watermark: watermarkEmail,
+      channel: viewerChannelRef.current,
+    }, MEDIA_VIEWER_ORIGIN);
+  }, [watermarkEmail]);
+
+  function initializeViewer(frame: HTMLIFrameElement | null) {
+    frame?.contentWindow?.postMessage({ type: "remix:viewer-init", channel: viewerChannelRef.current }, MEDIA_VIEWER_ORIGIN);
+  }
 
   useEffect(() => {
-    if (!content || !content.playbackUrl || !["onedrive_video", "hls_vault"].includes(content.type)) return;
+    if (!content || (content.type === "youtube" ? !content.youtubeId : !content.playbackUrl || !["onedrive_video", "hls_vault"].includes(content.type))) return;
     const frameRef = content.type === "hls_vault" ? hlsFrameRef : videoFrameRef;
     const frameWindow = frameRef.current?.contentWindow;
     function handleVideoPlayerMessage(event: MessageEvent) {
-      if (event.origin !== window.location.origin || event.source !== frameWindow) return;
+      if (event.origin !== MEDIA_VIEWER_ORIGIN || event.source !== frameWindow || event.data?.channel !== viewerChannelRef.current) return;
       if (event.data?.type === "remix:video-player-ready") sendEmbeddedVideoSource(content);
       if (event.data?.type === "remix:video-player-error") setVideoPlaybackError(typeof event.data.message === "string" ? event.data.message : "Không thể phát video này.");
     }
@@ -126,12 +143,25 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   }, [content, sendEmbeddedVideoSource]);
 
   useEffect(() => {
+    if (!content || content.protectedContent !== "pdf" || !pdfBytes) return;
+    const resolved = content;
+    const bytes = pdfBytes;
+    function handlePdfViewerMessage(event: MessageEvent) {
+      if (event.origin !== MEDIA_VIEWER_ORIGIN || event.source !== pdfFrameRef.current?.contentWindow || event.data?.channel !== viewerChannelRef.current || event.data?.type !== "remix:pdf-viewer-ready" || pdfSentRef.current) return;
+      pdfSentRef.current = true;
+      pdfFrameRef.current?.contentWindow?.postMessage({ type: "remix:set-pdf-source", bytes, mimeType: "application/pdf", title: resolved.title, allowDownload: resource.allow_download, channel: viewerChannelRef.current }, MEDIA_VIEWER_ORIGIN, [bytes]);
+    }
+    window.addEventListener("message", handlePdfViewerMessage);
+    return () => window.removeEventListener("message", handlePdfViewerMessage);
+  }, [content, pdfBytes, resource.allow_download]);
+
+  useEffect(() => {
     if (!content || content.type === "youtube") return;
     const resolved = content;
     let cancelled = false;
     const controller = new AbortController();
     async function downloadWatermarkedPdf(event: MessageEvent) {
-      if (event.origin !== window.location.origin || event.source !== pdfFrameRef.current?.contentWindow || event.data?.type !== "remix:pdf-download-request") return;
+      if (event.origin !== MEDIA_VIEWER_ORIGIN || event.source !== pdfFrameRef.current?.contentWindow || event.data?.channel !== viewerChannelRef.current || event.data?.type !== "remix:pdf-download-request") return;
       const frame = pdfFrameRef.current?.contentWindow;
       try {
         if (!supabase) throw new Error("Chưa cấu hình Supabase.");
@@ -164,9 +194,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
           pendingDownloadUrlsRef.current.delete(blobUrl);
         }, 1000);
         pendingDownloadUrlsRef.current.set(blobUrl, timer);
-        if (!cancelled) frame?.postMessage({ type: "remix:pdf-download-result", ok: true }, window.location.origin);
+        if (!cancelled) frame?.postMessage({ type: "remix:pdf-download-result", ok: true, channel: viewerChannelRef.current }, MEDIA_VIEWER_ORIGIN);
       } catch (downloadError) {
-        if (!cancelled && (!(downloadError instanceof Error) || downloadError.name !== "AbortError")) frame?.postMessage({ type: "remix:pdf-download-result", ok: false, error: downloadError instanceof Error ? downloadError.message : "Không thể tải PDF." }, window.location.origin);
+        if (!cancelled && (!(downloadError instanceof Error) || downloadError.name !== "AbortError")) frame?.postMessage({ type: "remix:pdf-download-result", ok: false, error: downloadError instanceof Error ? downloadError.message : "Không thể tải PDF.", channel: viewerChannelRef.current }, MEDIA_VIEWER_ORIGIN);
       }
     }
     window.addEventListener("message", downloadWatermarkedPdf);
@@ -180,12 +210,12 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
   useEffect(() => {
     if (content?.protectedContent !== "pdf" || content.type === "youtube") return;
     let cancelled = false;
-    let objectUrl = "";
     const controller = new AbortController();
     async function loadPdfIntoMemory() {
       setPdfLoading(true);
       setPdfError("");
-      setPdfObjectUrl("");
+      setPdfBytes(null);
+      pdfSentRef.current = false;
       try {
         if (!supabase) throw new Error("Chưa cấu hình Supabase.");
         const response = await authenticatedFetch("/api/resource-content", {
@@ -202,10 +232,9 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         const binary = atob(payload.data);
         const bytes = new Uint8Array(binary.length);
         for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-        objectUrl = URL.createObjectURL(new Blob([bytes], { type: payload.mimeType || "application/pdf" }));
         if (!cancelled) {
           setPdfError("");
-          setPdfObjectUrl(objectUrl);
+          setPdfBytes(bytes.buffer);
         }
       } catch (loadError) {
         if (!cancelled && (!(loadError instanceof Error) || loadError.name !== "AbortError")) setPdfError(loadError instanceof Error ? loadError.message : "Không thể tải tài liệu PDF.");
@@ -217,7 +246,6 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     return () => {
       cancelled = true;
       controller.abort();
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [content, resource.videoToken]);
 
@@ -226,7 +254,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
 
   if (content.type === "youtube") {
     if (!content.youtubeId) return <SecureViewerError message="Liên kết YouTube không hợp lệ."/>;
-    return <iframe className="lesson-frame lesson-video" src={`/yt-embed-player.html?v=${encodeURIComponent(content.youtubeId)}&start=${content.start ?? 0}&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"/>;
+    return <iframe ref={videoFrameRef} key={`${resource.id}:${resolutionNonce}`} className="lesson-frame lesson-video" src={`${MEDIA_VIEWER_ORIGIN}/viewer/video?mode=youtube`} title={content.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" sandbox="allow-scripts allow-same-origin" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/>;
   }
 
   if (content.type === "hls_vault") {
@@ -237,10 +265,12 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
         ref={hlsFrameRef}
         key={`${resource.id}:${resolutionNonce}`}
         className="lesson-frame lesson-video"
-        src={`/yt-embed-player.html?mode=hls&wm=${encodeURIComponent(watermarkEmail)}`}
+        src={`${MEDIA_VIEWER_ORIGIN}/viewer/video?mode=hls`}
         title={content.title}
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        onLoad={() => sendEmbeddedVideoSource(content)}
+        sandbox="allow-scripts allow-same-origin"
+        referrerPolicy="no-referrer"
+        onLoad={event => initializeViewer(event.currentTarget)}
       />;
     }
 
@@ -252,18 +282,20 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
       ref={videoFrameRef}
       key={`${resource.id}:${resolutionNonce}`}
       className="lesson-frame lesson-video"
-      src={`/yt-embed-player.html?mode=native&wm=${encodeURIComponent(watermarkEmail)}`}
+      src={`${MEDIA_VIEWER_ORIGIN}/viewer/video?mode=native`}
       title={content.title}
       allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-      onLoad={() => sendEmbeddedVideoSource(content)}
+      sandbox="allow-scripts allow-same-origin"
+      referrerPolicy="no-referrer"
+      onLoad={event => initializeViewer(event.currentTarget)}
     />;
   }
 
   if (content.protectedContent !== "pdf") return <SecureViewerError message="Không thể mở tài liệu PDF."/>;
-  if (pdfLoading || !pdfObjectUrl && !pdfError) return <SecureViewerState label="Đang tải tài liệu PDF…"/>;
+  if (pdfLoading || !pdfBytes && !pdfError) return <SecureViewerState label="Đang tải tài liệu PDF…"/>;
   if (pdfError) return <SecureViewerError message={pdfError} onRetry={retryVideoSource}/>;
-  const viewerUrl = `/pdf-viewer.html?file=${encodeURIComponent(pdfObjectUrl)}&title=${encodeURIComponent(content.title)}&download=${resource.allow_download ? "1" : "0"}`;
-  return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title}/></div>;
+  const viewerUrl = `${MEDIA_VIEWER_ORIGIN}/viewer/pdf`;
+  return <div className="lesson-document"><iframe ref={pdfFrameRef} className="lesson-frame" src={viewerUrl} title={content.title} sandbox="allow-scripts allow-same-origin" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/></div>;
 }
 
 

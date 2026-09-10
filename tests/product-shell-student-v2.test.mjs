@@ -22,6 +22,28 @@ test("search placeholders use a single typographic ellipsis", async () => {
   assert.doesNotMatch(discovery, /Đang đồng bộ dữ liệu quản trị\.\.\./);
 });
 
+test("student timetable reuses its Vietnam-time formatter across schedule events", async () => {
+  const discovery = await readFile(new URL("../app/student-discovery.tsx", import.meta.url), "utf8");
+  const timetable = discovery.slice(discovery.indexOf("const timetableStartHour"), discovery.indexOf("export type AdminFinderItem"));
+  const timetablePartsSource = timetable.slice(timetable.indexOf("function timetableParts"), timetable.indexOf("function timetableEntryFromApi"));
+
+  assert.match(timetable, /const timetablePartsFormatter = new Intl\.DateTimeFormat\("en-CA",/);
+  assert.match(timetablePartsSource, /const parts = timetablePartsFormatter\.formatToParts\(date\);/);
+  assert.doesNotMatch(timetablePartsSource, /new Intl\.DateTimeFormat/);
+});
+
+test("student timetable exposes its legend and weekly controls with native navigation semantics", async () => {
+  const [discovery, styles] = await Promise.all([
+    readFile(new URL("../app/student-discovery.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/student-timetable-reference.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(discovery, /<ul className="student-timetable-legends hidden sm:flex items-center gap-2" aria-label="Loại lịch học">/);
+  assert.match(discovery, /<li className="student-timetable-legend inline-flex items-center gap-1 text-\[11px\] font-medium px-2 py-0\.5 rounded-full"/);
+  assert.match(discovery, /<nav className="student-timetable-week-controls flex items-center gap-1" aria-label="Điều hướng tuần">/);
+  assert.match(styles, /\.student-timetable-legends\s*\{[\s\S]*?list-style: none;[\s\S]*?margin: 0;[\s\S]*?padding: 0;/);
+});
+
 test("course search is URL-backed and announces the filtered result count", async () => {
   const [platform, styles] = await Promise.all([
     readFile(platformUrl, "utf8"),
@@ -34,6 +56,7 @@ test("course search is URL-backed and announces the filtered result count", asyn
   assert.match(platform, /onChange=\{event=>setCourseSearch\(event\.target\.value\)\}/);
   assert.match(platform, /router\.replace\(`\$\{pathname\}/);
   assert.match(platform, /className="course-search-status" role="status" aria-live="polite"/);
+  assert.doesNotMatch(platform, /<div className="hidden" aria-hidden="true">[\s\S]*?course-view-toggle[\s\S]*?<button/);
   assert.match(styles, /@media \(max-width: 1024px\)[\s\S]*?\.courses-toolbar[\s\S]*?flex-direction: column/);
   assert.match(styles, /@media \(max-width: 1024px\)[\s\S]*?\.course-search[\s\S]*?width: 100%/);
 });

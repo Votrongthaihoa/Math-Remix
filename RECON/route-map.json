@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-09-06",
+  "status": "public-and-authenticated-shell-recon-complete-local-validated",
+  "public": [
+    { "path": "/", "evidence": "verified-live" },
+    { "path": "/giao-vien", "evidence": "visible-link" },
+    { "path": "/goi-hoc-tap", "evidence": "visible-link" },
+    { "path": "/dang-ky-minh-chung", "evidence": "visible-link" },
+    { "path": "/khoa-hoc?category=TSA", "evidence": "visible-link" },
+    { "path": "/khoa-hoc?category=DGNL", "evidence": "visible-link" },
+    { "path": "/khoa-hoc?category=THPT", "evidence": "visible-link" },
+    { "path": "/luyen-thi-tsa", "evidence": "visible-link" },
+    { "path": "/cau-truc-de-thi-tsa", "evidence": "visible-link" },
+    { "path": "/cach-tinh-diem-tsa", "evidence": "visible-link" },
+    { "path": "/luyen-thi-hsa", "evidence": "visible-link" },
+    { "path": "/cau-truc-de-thi-hsa", "evidence": "visible-link" },
+    { "path": "/dang-ky-thi-hsa", "evidence": "visible-link" },
+    { "path": "/dieu-khoan-dich-vu", "evidence": "visible-link" },
+    { "path": "/chinh-sach-bao-mat", "evidence": "visible-link" },
+    { "path": "/dieu-kien-han-che-cung-cap", "evidence": "visible-link" },
+    { "path": "/quyen-va-nghia-vu-hai-ben", "evidence": "visible-link" },
+    { "path": "/chinh-sach-thanh-toan", "evidence": "visible-link" },
+    { "path": "/chinh-sach-gia", "evidence": "visible-link" },
+    { "path": "/chinh-sach-van-chuyen-doi-tra", "evidence": "visible-link" },
+    { "path": "/chinh-sach-khieu-nai", "evidence": "visible-link" }
+  ],
+  "app": [
+    { "path": "/courses?examType=HSA", "evidence": "verified-live" },
+    { "path": "/dashboard", "evidence": "verified-live" },
+    { "path": "/courses", "evidence": "verified-live" },
+    { "path": "/course/study/:id", "evidence": "verified-live-redacted-id" },
+    { "path": "/history", "evidence": "verified-live" },
+    { "path": "/tkb", "evidence": "verified-live" },
+    { "path": "/portal", "evidence": "verified-live" },
+    { "path": "/exam-rooms/:type", "evidence": "verified-live-hsa" },
+    { "path": "/assessment-list/:examRoomId", "evidence": "bundle-observed" },
+    { "path": "/assessment/:assessmentId", "evidence": "bundle-observed" },
+    { "path": "/exam/test/:id", "evidence": "bundle-observed" },
+    { "path": "/exam/result/:assessmentId", "evidence": "bundle-observed" },
+    { "path": "/exam-answer/:id", "evidence": "bundle-observed" },
+    { "path": "/exam/confirm-info/:id", "evidence": "bundle-observed" }
+  ]
+}

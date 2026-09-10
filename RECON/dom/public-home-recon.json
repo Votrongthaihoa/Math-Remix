@@ -1,0 +1,340 @@
+{
+  "timestamp": "2026-09-06T04:10:45.372Z",
+  "design": {
+    "header": {
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 81,
+      "bg": "rgba(255, 255, 255, 0.8)",
+      "color": "rgb(0, 0, 0)",
+      "font": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-se",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "position": "sticky",
+      "zIndex": "50"
+    },
+    "footer": {
+      "x": 0,
+      "y": 4068,
+      "w": 1920,
+      "h": 429,
+      "bg": "rgb(29, 12, 12)",
+      "color": "rgb(255, 255, 255)",
+      "font": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-se",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "position": "relative",
+      "zIndex": "auto"
+    },
+    "hero": {
+      "x": 0,
+      "y": 2105,
+      "w": 1920,
+      "h": 1230,
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "font": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-se",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "position": "relative",
+      "zIndex": "10"
+    },
+    "body": {
+      "bg": "rgb(255, 255, 255)",
+      "color": "rgb(0, 0, 0)",
+      "font": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-se"
+    },
+    "scrollHeight": 4497,
+    "title": "AECK - Luyện thi TSA, HSA & Đánh giá năng lực trực tuyến",
+    "h1": [
+      "GIẢI PHÁP HỌC TẬP TOÀN DIỆN"
+    ],
+    "h2": [
+      "Tìm hiểu kỳ thi"
+    ],
+    "sections": 2
+  },
+  "links": [
+    {
+      "href": "/",
+      "text": "",
+      "inNav": true
+    },
+    {
+      "href": "/giao-vien",
+      "text": "Giáo viên",
+      "inNav": true
+    },
+    {
+      "href": "/goi-hoc-tap",
+      "text": "Gói học tập",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng nhập",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng ký",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng nhập",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng ký",
+      "inNav": true
+    },
+    {
+      "href": "/khoa-hoc?category=TSA",
+      "text": "Xem tất cả",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - TSA] KHOÁ LUYỆN ĐỀ TINH TÚGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9  - TSA] CẨM NANG TSA HUSTGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 TSA] NÂNG CAO: TOÁNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 TSA] CHUYÊN ĐỀ: ĐỌC HIỂU - KHOA HỌCGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9] NỀN TẢNG: TOÁNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/khoa-hoc?category=DGNL",
+      "text": "Xem tất cả",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: SINH HỌCGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: HOÁ HỌCGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: VẬT LÝGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: ĐỊA LÝGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL BCA] CHUYÊN ĐỀ: NGỮ VĂNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL QDA] CHUYÊN ĐỀ: NGỮ VĂNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: LỊCH SỬGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: TIẾNG ANHGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL HSA] CHUYÊN ĐỀ: NGỮ VĂNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] NÂNG CAO: TOÁNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/khoa-hoc?category=THPT",
+      "text": "Xem tất cả",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - HSG] LUYỆN ĐỀ: TOÁNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - HSG] NÂNG CAO: TOÁNGiáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/luyen-thi-tsa",
+      "text": "Đánh giá tư duy — TSAKỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biếtTSA l",
+      "inNav": false
+    },
+    {
+      "href": "/cau-truc-de-thi-tsa",
+      "text": "Đánh giá tư duy — TSACấu trúc đề thi TSA: 3 phần, 100 câu, 150 phútĐề thi TSA gồ",
+      "inNav": false
+    },
+    {
+      "href": "/cach-tinh-diem-tsa",
+      "text": "Đánh giá tư duy — TSACách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điể",
+      "inNav": false
+    },
+    {
+      "href": "/luyen-thi-hsa",
+      "text": "Đánh giá năng lực — HSAKỳ thi Đánh giá năng lực HSA của ĐHQG Hà NộiHSA là gì, ai",
+      "inNav": false
+    },
+    {
+      "href": "/cau-truc-de-thi-hsa",
+      "text": "Đánh giá năng lực — HSACấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phútĐề HSA",
+      "inNav": false
+    },
+    {
+      "href": "/dang-ky-thi-hsa",
+      "text": "Đánh giá năng lực — HSAĐăng ký thi HSA: quy trình 8 bước và những mốc dễ trượtHư",
+      "inNav": false
+    },
+    {
+      "href": "/",
+      "text": "",
+      "inNav": true
+    },
+    {
+      "href": "mailto:hotro@aeck.vn",
+      "text": "hotro@aeck.vn",
+      "inNav": true
+    },
+    {
+      "href": "tel:0776362944",
+      "text": "0776 362 944",
+      "inNav": true
+    },
+    {
+      "href": "https://www.facebook.com/aeck.edu.vn",
+      "text": "Fanpage AECK",
+      "inNav": true
+    },
+    {
+      "href": "/dieu-khoan-dich-vu",
+      "text": "Điều Khoản Dịch Vụ",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-bao-mat",
+      "text": "Bảo Mật Thông Tin",
+      "inNav": true
+    },
+    {
+      "href": "/dieu-kien-han-che-cung-cap",
+      "text": "Điều Kiện Hạn Chế Cung Cấp",
+      "inNav": true
+    },
+    {
+      "href": "/quyen-va-nghia-vu-hai-ben",
+      "text": "Quyền & Nghĩa Vụ Hai Bên",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-thanh-toan",
+      "text": "Thanh Toán",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-gia",
+      "text": "Giá Dịch Vụ",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-van-chuyen-doi-tra",
+      "text": "Vận Chuyển & Đổi Trả",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-khieu-nai",
+      "text": "Khiếu Nại & Phản Ánh",
+      "inNav": true
+    },
+    {
+      "href": "https://zalo.me/0776362944",
+      "text": "Chat ZaloZalo",
+      "inNav": false
+    },
+    {
+      "href": "https://m.me/aeck.edu.vn",
+      "text": "Nhắn Messenger",
+      "inNav": false
+    },
+    {
+      "href": "https://www.facebook.com/aeck.edu.vn",
+      "text": "Fanpage AECK",
+      "inNav": false
+    },
+    {
+      "href": "tel:0776362944",
+      "text": "Gọi 0776 362 944",
+      "inNav": false
+    }
+  ],
+  "networkRequests": [
+    {
+      "method": "POST",
+      "url": "https://server.aeck.vn/api/v2/auth/refresh-token"
+    },
+    {
+      "method": "GET",
+      "url": "https://server.aeck.vn/api/v2/public-key/server-public-key"
+    },
+    {
+      "method": "GET",
+      "url": "https://server.aeck.vn/api/v2/public-key/server-public-key"
+    },
+    {
+      "method": "POST",
+      "url": "https://server.aeck.vn/api/v2/public-key/register-client-key"
+    },
+    {
+      "method": "POST",
+      "url": "https://server.aeck.vn/api/v2/public-key/register-client-key"
+    },
+    {
+      "method": "GET",
+      "url": "https://server.aeck.vn/api/v2/courses?publicList=1"
+    }
+  ]
+}

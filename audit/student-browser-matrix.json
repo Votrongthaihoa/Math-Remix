@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-11T02:21:42+07:00",
+  "mode": "synthetic_loopback",
+  "command": "scripts/run-playwright.mjs critical-flow.spec.ts student-flow.spec.ts --project=<project> --workers=1 --output=test-results/resume-matrix",
+  "total": {
+    "tests": 120,
+    "passed": 120,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0
+  },
+  "projects": [
+    { "name": "chromium", "viewport": { "width": 1440, "height": 900 }, "tests": 20, "passed": 20, "failed": 0, "skipped": 0, "evidenceDirectory": "test-results/resume-matrix" },
+    { "name": "tablet-768", "viewport": { "width": 768, "height": 1024 }, "tests": 20, "passed": 20, "failed": 0, "skipped": 0, "evidenceDirectory": "test-results/resume-matrix" },
+    { "name": "mobile-390", "viewport": { "width": 390, "height": 844 }, "tests": 20, "passed": 20, "failed": 0, "skipped": 0, "evidenceDirectory": "test-results/resume-matrix" },
+    { "name": "mobile-360", "viewport": { "width": 360, "height": 800 }, "tests": 20, "passed": 20, "failed": 0, "skipped": 0, "evidenceDirectory": "test-results/resume-matrix" },
+    { "name": "mobile-320", "viewport": { "width": 320, "height": 800 }, "tests": 20, "passed": 20, "failed": 0, "skipped": 0, "evidenceDirectory": "test-results/resume-matrix" },
+    { "name": "webkit", "viewport": { "width": 1280, "height": 720 }, "tests": 20, "passed": 20, "failed": 0, "skipped": 0, "evidenceDirectory": "test-results/resume-matrix" }
+  ],
+  "boundaries": [
+    "All network traffic was synthetic or loopback; no production API, Supabase project, account, token, or personal data was used.",
+    "Chromium and WebKit compatibility was smoke-tested; this is not a claim of a live authenticated staging session.",
+    "The matrix covers the public and student-flow specs only and never creates attempts, submits answers, or writes exam data."
+  ]
+}

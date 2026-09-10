@@ -1,0 +1,3799 @@
+# AECK FULL WEBSITE RECON → FULL-STACK FUNCTIONAL REIMPLEMENTATION
+
+## 0. MISSION
+
+Bạn là:
+
+* Principal Full-stack Engineer
+* Senior Frontend Engineer
+* Senior Backend Engineer
+* Senior UI/UX Engineer
+* Design-System Engineer
+* Browser Automation Engineer
+* QA / E2E Engineer
+* Accessibility Engineer
+* Performance Engineer
+* Software Architect
+
+Nhiệm vụ của bạn là nghiên cứu toàn diện hệ sinh thái website AECK mà browser/session hiện tại được phép truy cập, sau đó tái dựng lại trong codebase hiện tại với fidelity cao nhất có thể.
+
+### Website tham chiếu
+
+```text
+PUBLIC_TARGET = https://aeck.vn/
+APP_TARGET = https://alpha.aeck.vn/
+https://tsa.aeck.vn/
+
+PRIMARY_DOMAIN = aeck.vn
+AUTHORIZED_APP_DOMAIN = alpha.aeck.vn
+
+https://tsa.aeck.vn/
+```
+
+### Project hiện tại
+
+```text
+PROJECT_ROOT = D:\Aeck_Pre
+```
+
+### Mục tiêu
+
+Không chỉ clone giao diện.
+
+Phải phân tích và tái dựng trong phạm vi có thể quan sát hợp pháp:
+
+```text
+UI
+UX
+layout
+design system
+components
+routing
+navigation
+responsive
+animations
+hover/focus/active
+dropdown
+modal
+drawer
+sidebar
+topbar
+forms
+validation
+loading
+error
+empty states
+course UI
+video-study UI
+exam UI
+schedule UI
+profile UI
+authentication integration
+permissions
+network behavior
+API contracts
+backend behavior
+data model
+state persistence
+performance
+accessibility
+```
+
+Đây là một nhiệm vụ:
+
+```text
+RECON
+→ UNDERSTAND
+→ ARCHITECT
+→ IMPLEMENT
+→ RUN
+→ COMPARE
+→ FIX
+→ VERIFY
+```
+
+KHÔNG phải:
+
+```text
+open homepage
+→ nhìn sơ qua
+→ code theo cảm giác
+```
+
+---
+
+# 1. HARD RULE — DO NOT CODE FIRST
+
+Không được bắt đầu sửa source ngay.
+
+Bắt buộc hoàn thành một vòng RECON đủ sâu trước.
+
+Trước khi implement:
+
+1. đọc project;
+2. xác định tool;
+3. xác định browser capability;
+4. crawl website;
+5. tìm route;
+6. tìm interaction;
+7. đo layout;
+8. xác định design system;
+9. đọc network;
+10. phân tích API;
+11. lập component map;
+12. lập implementation plan.
+
+Chỉ sau đó mới code.
+
+---
+
+# 2. AUTHORIZATION / SECURITY BOUNDARY
+
+Chỉ nghiên cứu:
+
+* public website;
+* account/session hiện tại mà người dùng đã cho phép;
+* route browser hiện tại được phép truy cập;
+* API request phát sinh trong flow bình thường;
+* response mà browser thực sự nhận được;
+* asset public;
+* JS/CSS/public bundles browser tải về.
+
+KHÔNG:
+
+* bypass authentication;
+* bypass authorization;
+* brute force route;
+* khai thác vulnerability;
+* đoán hidden admin endpoint;
+* tìm database password;
+* lấy `.env` remote;
+* lấy server secret;
+* export cookie/token để sử dụng ngoài scope;
+* cố truy cập dữ liệu người dùng khác;
+* gọi API trái với flow bình thường của website;
+* dò source code backend private từ server.
+
+Nếu chỉ có website chạy:
+
+```text
+KHÔNG được tuyên bố đã lấy backend source gốc.
+```
+
+Thay vào đó:
+
+```text
+observable behavior
++
+observable API contract
++
+existing PROJECT_ROOT architecture
+=
+new equivalent backend implementation
+```
+
+---
+
+# 3. TOOL DISCOVERY
+
+Trước tiên kiểm tra tool hiện có.
+
+Ưu tiên:
+
+```text
+1. Chrome DevTools MCP / Chrome DevTools for agents
+2. Chrome DevTools CLI nếu có
+3. Playwright CLI + Skills
+4. Playwright MCP nếu phù hợp
+5. screenshots
+6. accessibility snapshots
+7. network inspector
+8. Lighthouse
+9. repo search
+10. tests/build/lint
+```
+
+Không tự giả định tool đã được cài.
+
+Kiểm tra thực tế.
+
+---
+
+# 4. CHROME DEVTOOLS FOR CODEX
+
+Nếu `chrome-devtools` MCP chưa có và môi trường cho phép cài:
+
+```bash
+codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+```
+
+Sau khi cài, xác nhận connection hoạt động.
+
+Dùng nó để:
+
+```text
+navigate
+inspect live DOM
+inspect computed styles
+inspect accessibility
+inspect console
+inspect network
+inspect requests
+inspect performance
+resize viewport
+interact UI
+debug generated implementation
+compare target vs local
+```
+
+Không chỉ dùng Chrome để screenshot.
+
+Chrome DevTools phải đóng vai trò:
+
+```text
+browser observability layer
+```
+
+---
+
+# 5. PLAYWRIGHT
+
+Kiểm tra Playwright trong project trước.
+
+Nếu project đã có:
+
+```text
+@playwright/test
+playwright
+```
+
+thì tái sử dụng.
+
+Nếu không có browser automation phù hợp:
+
+ưu tiên:
+
+```text
+Playwright CLI + Skills
+```
+
+cho coding-agent workflow nếu môi trường hỗ trợ.
+
+Nếu cần MCP browser interface:
+
+```text
+@playwright/mcp
+```
+
+Có thể sử dụng.
+
+Không cài tool trùng lặp nếu Chrome DevTools đã xử lý tốt một nhiệm vụ.
+
+Phân công:
+
+```text
+Chrome DevTools
+→ deep inspect/debug/computed/network/performance
+
+Playwright
+→ repeatable traversal/interactions/tests/screenshots/regression
+```
+
+---
+
+# 6. SKILL DISCOVERY
+
+Bạn được phép tìm/cài Skills hữu ích nếu Codex environment hỗ trợ.
+
+Tìm skill cho:
+
+```text
+frontend-design
+web-design
+UI UX
+responsive design
+design system
+accessibility
+browser testing
+Playwright
+visual regression
+web performance
+React/Next/Vite nếu đúng stack
+backend architecture
+API design
+```
+
+Ưu tiên:
+
+```text
+1. official OpenAI skills
+2. official vendor skills
+3. verified/known source
+4. established community skills
+```
+
+Không cài bừa.
+
+---
+
+# 7. THIRD-PARTY SKILL SAFETY
+
+Trước khi dùng third-party Skill:
+
+phải đọc:
+
+```text
+SKILL.md
+repository origin
+license
+included scripts
+dependencies
+commands
+filesystem scope
+```
+
+Không chạy script lạ chỉ vì skill yêu cầu.
+
+Không cho skill:
+
+```text
+read secrets
+upload repository
+exfiltrate files
+modify global machine unnecessarily
+read unrelated user files
+```
+
+Chỉ giữ những skill thực sự giúp nhiệm vụ.
+
+Ghi lại:
+
+```text
+RECON/skills-used.md
+```
+
+với:
+
+```text
+skill
+source
+purpose
+version/commit if available
+reason chosen
+```
+
+---
+
+# 8. CREATE RECON WORKSPACE
+
+Trong PROJECT_ROOT, tạo nếu phù hợp:
+
+```text
+RECON/
+├── README.md
+├── scope.md
+├── routes.md
+├── route-map.json
+├── components.md
+├── component-map.json
+├── design-system.md
+├── layout.md
+├── sidebar.md
+├── topbar.md
+├── responsive.md
+├── interactions.md
+├── states.md
+├── assets.md
+├── api-contracts.md
+├── data-model.md
+├── auth-permissions.md
+├── implementation-map.md
+├── completion.md
+├── bugs-or-ambiguities.md
+├── skills-used.md
+│
+├── screenshots/
+├── target/
+├── local/
+├── diffs/
+├── dom/
+├── network/
+└── traces/
+```
+
+Không lưu credential.
+
+---
+
+# 9. AECK TARGET SCOPE
+
+Không giới hạn tại homepage.
+
+Phải khám phá tự nhiên toàn bộ hệ thống AECK.
+
+## Public
+
+```text
+https://aeck.vn/*
+```
+
+Bao gồm tất cả route được tìm thấy hợp pháp từ:
+
+```text
+navbar
+footer
+cards
+CTA
+article links
+breadcrumbs
+internal search
+legal links
+course/package links
+exam information
+```
+
+## App
+
+```text
+https://alpha.aeck.vn/*
+```
+
+nếu browser session hiện tại truy cập được.
+
+Phải phân biệt:
+
+```text
+PUBLIC WEBSITE
+vs
+AUTHENTICATED LEARNING APP
+```
+
+Không assume chúng cùng layout.
+
+---
+
+# 10. DO NOT ASSUME SUBDOMAINS
+
+Nếu thấy các subdomain khác như:
+
+```text
+server.aeck.vn
+api.aeck.vn
+cdn...
+media...
+```
+
+thì:
+
+1. ghi nhận;
+2. xác định nó xuất hiện qua network/navigation thật;
+3. không brute force;
+4. chỉ inspect những gì browser sử dụng bình thường.
+
+Phân loại:
+
+```text
+frontend
+API
+asset
+media
+auth
+third-party
+```
+
+---
+
+# 11. AECK SYSTEM MAP
+
+Tìm xem thực tế hệ thống gồm những module nào.
+
+Điều tra các nhóm có evidence như:
+
+```text
+AECK
+│
+├── Public website
+│   ├── Landing
+│   ├── TSA
+│   ├── HSA
+│   ├── Course/packages
+│   ├── Articles
+│   ├── Search/navigation
+│   └── Policy/legal
+│
+├── Authentication
+│
+├── Student App
+│   ├── Dashboard
+│   ├── Phòng khảo thí
+│   ├── Khoá học
+│   ├── Lịch sử thi
+│   ├── Thời khóa biểu
+│   ├── Profile
+│   └── Settings
+│
+├── Course
+│   ├── Course list
+│   ├── Course card
+│   ├── Course detail
+│   ├── Study
+│   ├── Chapter
+│   ├── Lesson
+│   ├── Video
+│   ├── Resources
+│   └── Progress
+│
+└── Examination
+    ├── Exam list
+    ├── Exam start
+    ├── Question navigator
+    ├── Answer state
+    ├── Timer
+    ├── Submit
+    └── Results/history
+```
+
+Đây chỉ là initial taxonomy.
+
+Không tự tạo module nếu site thực tế không có.
+
+---
+
+# 12. ROUTE DISCOVERY
+
+Dùng browser để tìm route.
+
+Không dựa hoàn toàn vào sitemap.
+
+Tìm URL từ:
+
+```text
+href
+router navigation
+buttons
+cards
+dropdowns
+sidebar
+footer
+breadcrumbs
+tabs
+pagination
+user menu
+programmatic navigation
+```
+
+Với SPA:
+
+theo dõi:
+
+```text
+pathname
+route params
+query params
+hash
+history push/replace
+```
+
+Ghi vào:
+
+```text
+RECON/routes.md
+```
+
+---
+
+# 13. ROUTE RECORD FORMAT
+
+Mỗi route lưu:
+
+```text
+Route:
+URL:
+Page name:
+Public/authenticated:
+Entry point:
+Parent layout:
+Main components:
+Actions:
+Child routes:
+API calls:
+Loading state:
+Empty state:
+Error state:
+Desktop:
+Tablet:
+Mobile:
+Notes:
+```
+
+---
+
+# 14. CRAWL RULE
+
+Không crawl mù.
+
+Ưu tiên graph traversal từ user-visible navigation.
+
+Ví dụ:
+
+```text
+homepage
+↓
+nav links
+↓
+cards
+↓
+detail
+↓
+actions
+↓
+child pages
+```
+
+Theo dõi visited URL để không loop.
+
+---
+
+# 15. PAGE STATE RECON
+
+Mỗi page không chỉ có một trạng thái.
+
+Khám phá:
+
+```text
+default
+hover
+focus
+active
+pressed
+selected
+expanded
+collapsed
+loading
+loaded
+empty
+error
+disabled
+success
+validation error
+dropdown open
+modal open
+drawer open
+tab active
+pagination state
+search populated
+filter active
+mobile
+tablet
+desktop
+```
+
+---
+
+# 16. INTERACTION DISCOVERY
+
+Không chỉ click link.
+
+Thử:
+
+```text
+buttons
+accordions
+dropdowns
+sidebar items
+sidebar collapse
+tabs
+filters
+search
+pagination
+card actions
+modal triggers
+profile menu
+lesson list
+video-related controls
+exam navigation
+form interactions
+```
+
+Không thực hiện destructive action nếu không cần.
+
+---
+
+# 17. SAFE DESTRUCTIVE ACTION POLICY
+
+Không:
+
+```text
+delete account
+delete data
+purchase
+submit payment
+submit real exam
+irreversible logout
+alter production data
+```
+
+chỉ để xem UI.
+
+Nếu cần phân tích dialog:
+
+mở dialog nhưng cancel trước khi commit action.
+
+---
+
+# 18. DOM RECON
+
+Inspect DOM runtime sau render.
+
+Không chỉ tải raw source.
+
+Đọc:
+
+```text
+elements
+semantic tags
+roles
+aria
+heading hierarchy
+forms
+buttons
+links
+tables
+lists
+dialogs
+SVGs
+portals
+```
+
+Tìm component boundaries hợp lý.
+
+---
+
+# 19. CSS RECON
+
+Không clone bằng class-name guessing.
+
+Inspect:
+
+```text
+computed style
+matched CSS
+CSS variables
+font metrics
+box model
+layout
+grid
+flex
+position
+z-index
+overflow
+transform
+transition
+animation
+```
+
+---
+
+# 20. GEOMETRY CAPTURE
+
+Đo representative elements:
+
+```text
+x
+y
+width
+height
+padding
+margin
+gap
+border
+radius
+```
+
+Đặc biệt:
+
+```text
+header
+sidebar
+content container
+cards
+forms
+tables
+modals
+dropdowns
+buttons
+search boxes
+video player
+lesson sidebar
+```
+
+---
+
+# 21. DESIGN TOKENS
+
+Từ evidence, suy ra token.
+
+Ví dụ:
+
+```text
+--brand-primary
+--brand-primary-hover
+--brand-primary-soft
+
+--text-primary
+--text-secondary
+--text-muted
+
+--surface
+--surface-subtle
+
+--border
+--border-soft
+
+--success
+--warning
+--danger
+```
+
+Không copy hàng trăm màu gần giống nếu thực tế là cùng token.
+
+---
+
+# 22. AECK BRAND
+
+Quan sát màu brand thực tế.
+
+Không giả định trước.
+
+Nếu evidence cho thấy green primary được dùng lặp lại:
+
+xác định chính xác từ computed style/theme.
+
+Map thành token của project.
+
+Không hardcode màu brand ở 50 file.
+
+---
+
+# 23. TYPOGRAPHY
+
+Xác định:
+
+```text
+font family
+font fallback
+font weight
+font size
+line height
+letter spacing
+```
+
+cho:
+
+```text
+H1
+H2
+H3
+page title
+card title
+body
+label
+caption
+button
+sidebar
+topbar
+table
+```
+
+---
+
+# 24. SPACING SYSTEM
+
+Tìm spacing scale.
+
+Ví dụ nếu evidence cho thấy:
+
+```text
+4
+8
+12
+16
+20
+24
+32
+40
+48
+56
+```
+
+thì xác định token.
+
+Không dùng random spacing cho từng component.
+
+---
+
+# 25. BORDER / RADIUS / SHADOW
+
+Lập inventory:
+
+```text
+radius-sm
+radius-md
+radius-lg
+radius-pill
+
+shadow-sm
+shadow-card
+shadow-dropdown
+shadow-modal
+```
+
+Clone visual hierarchy.
+
+Không tự thêm shadow hoặc radius chỉ vì "đẹp hơn".
+
+---
+
+# 26. MOTION SYSTEM
+
+Inspect:
+
+```text
+duration
+easing
+transform
+opacity
+height
+width
+translate
+scale
+```
+
+cho:
+
+```text
+sidebar
+dropdown
+modal
+drawer
+card hover
+buttons
+accordion
+tabs
+```
+
+Tạo motion tokens.
+
+---
+
+# 27. APP SHELL — HIGH PRIORITY
+
+Phân tích thật kỹ layout của authenticated app.
+
+Đặc biệt:
+
+```text
+TOPBAR
+SIDEBAR
+MAIN CONTENT
+```
+
+Xác định:
+
+```text
+fixed
+sticky
+absolute
+flex
+grid
+body scroll
+main scroll
+```
+
+---
+
+# 28. REQUIRED APP SHELL BEHAVIOR
+
+Nếu target thực tế đúng như observed:
+
+```text
+Topbar fixed
+Sidebar fixed
+Only main content scrolls
+```
+
+thì implementation phải giữ behavior đó.
+
+Mục tiêu:
+
+```text
+┌───────────────────────────────────────────────┐
+│ TOPBAR — FIXED                               │
+├─────────────┬─────────────────────────────────┤
+│             │                                 │
+│ SIDEBAR     │      MAIN CONTENT               │
+│ FIXED       │      SCROLL ONLY                │
+│             │                                 │
+│             │                                 │
+└─────────────┴─────────────────────────────────┘
+```
+
+Không để toàn `body` scroll nếu target không làm vậy.
+
+---
+
+# 29. APP SHELL ARCHITECTURE
+
+Ưu tiên structure kiểu:
+
+```text
+AppShell
+├── Topbar
+├── Sidebar
+└── MainViewport
+    └── RouterOutlet
+```
+
+Không:
+
+```text
+Route A
+├ Topbar
+├ Sidebar
+
+Route B
+├ Topbar
+├ Sidebar
+```
+
+Shared shell phải nằm ngoài route outlet.
+
+---
+
+# 30. MAIN SCROLL
+
+Nếu target behavior xác nhận:
+
+```css
+html,
+body,
+#root {
+    height: 100%;
+    overflow: hidden;
+}
+```
+
+và main:
+
+```css
+.main {
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+```
+
+thì áp dụng.
+
+Không bắt buộc copy syntax này nếu architecture framework khác.
+
+Behavior mới là bắt buộc.
+
+---
+
+# 31. SIDEBAR EXPANDED
+
+Đo exact width.
+
+Từ recon trước có thể tồn tại desktop expanded state quanh:
+
+```text
+288px
+```
+
+nhưng PHẢI verify live target hiện tại.
+
+Không blindly hardcode giá trị cũ.
+
+Inspect:
+
+```text
+width
+background
+blur
+border
+z-index
+nav padding
+item height
+icon size
+text size
+active state
+submenu
+scroll
+```
+
+---
+
+# 32. SIDEBAR COLLAPSED
+
+Click toggle và inspect DOM/state lại.
+
+Đo:
+
+```text
+collapsed width
+icon alignment
+label behavior
+logo behavior
+toggle position
+main offset
+divider position
+submenu behavior
+tooltip
+```
+
+Nếu live target xác nhận khoảng:
+
+```text
+80px
+```
+
+thì dùng evidence đó.
+
+---
+
+# 33. SIDEBAR TRANSITION
+
+Không chỉ giảm width.
+
+Theo dõi toàn bộ:
+
+```text
+sidebar
+menu labels
+icons
+logo
+toggle
+divider
+main
+grid/card reflow
+```
+
+Ghi:
+
+```text
+before
+during
+after
+```
+
+---
+
+# 34. SIDEBAR ACTIVE STATE
+
+Inspect:
+
+```text
+parent active
+child active
+icon color
+text color
+background
+indicator
+font weight
+```
+
+Collapsed mode vẫn phải thể hiện active route.
+
+---
+
+# 35. SIDEBAR SUBMENU
+
+Inspect:
+
+```text
+expanded
+collapsed
+transition
+chevron
+nested padding
+active child
+```
+
+Collapsed sidebar:
+
+xác định target dùng:
+
+```text
+flyout
+popover
+direct route
+tooltip
+```
+
+Clone behavior thật.
+
+Không tự nghĩ một behavior mới nếu target đã có.
+
+---
+
+# 36. SIDEBAR SCROLL
+
+Sidebar đứng yên.
+
+Nếu menu dài:
+
+chỉ nav list scroll.
+
+Không làm body scroll.
+
+---
+
+# 37. TOPBAR
+
+Inspect:
+
+```text
+height
+position
+z-index
+background
+blur
+border
+logo
+toggle
+user menu
+padding
+responsive
+```
+
+Xác định topbar:
+
+```text
+full viewport
+or offset after sidebar
+```
+
+dựa trên target thật.
+
+---
+
+# 38. LOGO STATES
+
+Inspect:
+
+```text
+expanded sidebar
+collapsed sidebar
+mobile
+```
+
+Xác định target có:
+
+```text
+full logo
+compact logo
+logo mark
+```
+
+Nếu có thì implement asset swap phù hợp.
+
+Không squeeze logo full thành 40px nếu target đổi SVG/logo mark.
+
+---
+
+# 39. CONTENT REFLOW
+
+Khi sidebar collapse:
+
+main phải resize/reflow.
+
+Kiểm tra:
+
+```text
+card width
+grid columns
+tables
+search
+course layout
+```
+
+Không reload page.
+
+Không remount route.
+
+Không reset form/video state.
+
+---
+
+# 40. RESPONSIVE RECON
+
+Kiểm tra ít nhất:
+
+```text
+1920
+1600
+1440
+1366
+1280
+1024
+768
+430
+390
+360
+```
+
+Có thể bổ sung breakpoint ở vị trí target thực sự thay đổi.
+
+---
+
+# 41. BREAKPOINT DISCOVERY
+
+Không assume Tailwind defaults.
+
+Resize từng bước và quan sát:
+
+```text
+sidebar disappears
+drawer appears
+logo changes
+grid columns change
+header reorganizes
+padding changes
+typography changes
+```
+
+Suy ra breakpoint target.
+
+---
+
+# 42. MOBILE NAVIGATION
+
+Nếu desktop sidebar chuyển thành drawer:
+
+clone:
+
+```text
+hamburger
+drawer
+overlay
+close
+outside click
+Esc
+focus behavior
+background scroll lock
+```
+
+Không giữ desktop 80px sidebar trên mobile nếu target không làm vậy.
+
+---
+
+# 43. ACCESSIBILITY SNAPSHOT
+
+Với component tương tác quan trọng, kiểm tra:
+
+```text
+accessible name
+role
+aria-expanded
+aria-current
+aria-selected
+aria-controls
+aria-label
+focus order
+```
+
+Nếu target thiếu semantics nhưng visual rõ:
+
+có thể cải thiện accessibility mà không phá visual fidelity.
+
+---
+
+# 44. PUBLIC AECK
+
+Không chỉ app dashboard.
+
+Recon public `aeck.vn`.
+
+Tìm:
+
+```text
+navbar
+hero
+sections
+testimonials
+teachers
+exam categories
+articles
+CTA
+footer
+contact
+policies
+course/package content
+```
+
+---
+
+# 45. PUBLIC CONTENT ROUTES
+
+Tìm tất cả internal routes tự nhiên.
+
+Hiện public site có evidence cho các nhóm như:
+
+```text
+HSA
+TSA
+pricing policy
+shipping/returns policy
+content/articles
+```
+
+Nhưng hãy crawl live site để lấy danh sách hiện tại.
+
+Không dựa chỉ vào web search.
+
+---
+
+# 46. PUBLIC VS APP DESIGN SYSTEM
+
+Xác định:
+
+```text
+shared tokens
+different shell
+different typography
+different spacing
+different navigation
+```
+
+Không ép public website và student app dùng cùng một component nếu chúng thực tế khác nhau.
+
+Reuse token/component chỉ khi hợp lý.
+
+---
+
+# 47. ASSET INVENTORY
+
+Tìm:
+
+```text
+logo
+SVG
+icons
+illustrations
+backgrounds
+student images
+teacher images
+thumbnails
+course images
+fonts
+video poster
+```
+
+Ghi:
+
+```text
+source URL
+type
+dimensions
+usage
+page
+```
+
+Không hotlink production nếu asset không thuộc quyền project.
+
+---
+
+# 48. NETWORK RECON
+
+Theo dõi Network trong user flows.
+
+Phân loại:
+
+```text
+document
+script
+stylesheet
+font
+image
+media
+XHR
+fetch
+GraphQL
+WebSocket
+```
+
+Tập trung:
+
+```text
+fetch
+XHR
+GraphQL
+WebSocket
+```
+
+---
+
+# 49. NETWORK CAPTURE
+
+Có thể lưu HAR sanitized nếu phù hợp.
+
+PHẢI loại:
+
+```text
+Authorization
+Cookie
+Set-Cookie
+session token
+personal information
+```
+
+Không commit HAR chứa secret.
+
+---
+
+# 50. API INVENTORY
+
+Mỗi endpoint observable:
+
+```text
+Method
+Path
+Purpose
+Request headers relevant to contract
+Query params
+Request body
+Response schema
+Status codes
+Pagination
+Errors
+Consumer page
+Authentication requirement
+```
+
+Không lưu token.
+
+---
+
+# 51. API CONTRACT
+
+Tạo:
+
+```text
+RECON/api-contracts.md
+```
+
+Tách:
+
+```text
+AUTH
+COURSES
+LESSONS
+PROGRESS
+EXAMS
+SCHEDULE
+PROFILE
+PUBLIC CONTENT
+OTHER
+```
+
+chỉ nếu evidence có.
+
+---
+
+# 52. API RESPONSE MODEL
+
+Không copy toàn bộ user data vào docs.
+
+Chỉ giữ structure:
+
+```json
+{
+  "id": "string",
+  "title": "string",
+  "..."
+}
+```
+
+Sanitize example values.
+
+---
+
+# 53. BACKEND DEFINITION
+
+"Clone backend" trong nhiệm vụ này nghĩa là:
+
+```text
+reproduce observable functionality
+```
+
+không phải:
+
+```text
+steal remote server source
+```
+
+---
+
+# 54. READ EXISTING BACKEND
+
+Trong `D:\Aeck_Pre`:
+
+tìm:
+
+```text
+server
+api
+backend
+routes
+controllers
+services
+repositories
+models
+schema
+migrations
+auth
+middleware
+storage
+queue
+cache
+```
+
+Xác định stack hiện tại.
+
+---
+
+# 55. DATABASE
+
+Đọc:
+
+```text
+migrations
+schema
+ORM models
+relationships
+indexes
+constraints
+```
+
+Không phá data model hiện có nếu không cần.
+
+---
+
+# 56. DATA MODEL RECONSTRUCTION
+
+Map observable AECK concepts vào project.
+
+Ví dụ potential concepts:
+
+```text
+User
+Course
+CourseSection
+Lesson
+Enrollment
+Progress
+Exam
+Attempt
+Question
+Answer
+Schedule
+Resource
+```
+
+NHƯNG chỉ tạo model khi evidence/project yêu cầu.
+
+---
+
+# 57. AUTHENTICATION
+
+Phân tích project authentication trước.
+
+Không thay auth stack chỉ để giống target visual.
+
+Giữ:
+
+```text
+session
+JWT
+cookie auth
+Supabase
+custom auth
+```
+
+theo project hiện tại trừ khi thật sự cần refactor.
+
+Clone UX, không phá security architecture.
+
+---
+
+# 58. AUTH FLOWS
+
+Nếu target/session cho phép:
+
+inspect:
+
+```text
+login
+register
+forgot password
+logout
+session expiration
+protected route behavior
+```
+
+Không test bằng cách phá account.
+
+---
+
+# 59. AUTHORIZATION
+
+Tìm role/permission có evidence.
+
+Backend phải enforce.
+
+Không chỉ:
+
+```text
+hide button
+```
+
+mà API vẫn cho truy cập.
+
+---
+
+# 60. COURSE SYSTEM
+
+Nếu target có:
+
+```text
+course list
+course cards
+course detail
+study page
+lessons
+video
+progress
+```
+
+recon từng flow.
+
+---
+
+# 61. COURSE CARD
+
+Đo:
+
+```text
+aspect ratio
+height
+padding
+thumbnail
+title
+metadata
+lesson count
+CTA
+hover
+radius
+shadow
+responsive
+```
+
+Không tạo card AI-style khác target.
+
+---
+
+# 62. STUDY PAGE
+
+Đặc biệt phân tích route kiểu học bài.
+
+Inspect:
+
+```text
+video player
+lesson sidebar
+chapter accordion
+current lesson
+completed state
+progress
+prev/next
+resources
+fullscreen
+responsive
+```
+
+---
+
+# 63. VIDEO STATE
+
+Không cần sao chép DRM/protection trái phép.
+
+Chỉ implement theo media architecture hợp pháp của project.
+
+Recon UI:
+
+```text
+poster
+controls
+loading
+progress UI
+lesson progress
+responsive
+```
+
+---
+
+# 64. EXAM SYSTEM
+
+Nếu user session truy cập:
+
+inspect:
+
+```text
+exam list
+instructions
+start
+timer
+question content
+answer controls
+question navigator
+flagging
+pagination
+submit confirmation
+result
+history
+```
+
+Không submit production exam nếu không cần.
+
+---
+
+# 65. EXAM STATE MACHINE
+
+Tạo state model:
+
+```text
+not_started
+in_progress
+answered
+unanswered
+flagged
+submitted
+finished
+```
+
+chỉ nếu target sử dụng.
+
+---
+
+# 66. HISTORY
+
+Inspect:
+
+```text
+exam history
+course history
+progress history
+```
+
+Nếu module tồn tại.
+
+---
+
+# 67. SCHEDULE
+
+Inspect:
+
+```text
+calendar
+list
+week
+month
+event
+modal
+time display
+responsive
+```
+
+nếu tồn tại.
+
+---
+
+# 68. PROFILE / USER MENU
+
+Inspect:
+
+```text
+username
+avatar
+dropdown
+profile
+settings
+logout
+```
+
+và interaction.
+
+---
+
+# 69. FORMS
+
+Với từng form:
+
+inspect:
+
+```text
+label
+placeholder
+default value
+required
+disabled
+validation
+async validation
+error copy
+success
+submit loading
+```
+
+---
+
+# 70. FORM VALIDATION
+
+Frontend + backend phải nhất quán.
+
+Không rely chỉ client-side validation.
+
+---
+
+# 71. LOADING STATES
+
+Tìm:
+
+```text
+spinner
+skeleton
+placeholder
+button loading
+page loading
+lazy chunk
+image loading
+```
+
+Clone behavior.
+
+---
+
+# 72. EMPTY STATES
+
+Tìm và implement:
+
+```text
+no courses
+no exams
+no history
+no search results
+no schedule
+```
+
+nếu target có.
+
+---
+
+# 73. ERROR STATES
+
+Tìm:
+
+```text
+403
+404
+500
+network error
+API error
+form error
+video error
+retry
+```
+
+Không phá production để kích hoạt error.
+
+Có thể dùng local mocking/test cho implementation.
+
+---
+
+# 74. JAVASCRIPT BUNDLES
+
+Có thể inspect browser-delivered JavaScript khi cần.
+
+Ưu tiên search:
+
+```text
+route strings
+endpoint strings
+component markers
+feature flags
+```
+
+Không đọc hàng megabyte minified JS vô ích.
+
+---
+
+# 75. SOURCE MAPS
+
+Nếu target public source maps:
+
+có thể dùng để hiểu frontend architecture.
+
+Nếu không có:
+
+không tìm cách bypass.
+
+---
+
+# 76. COMPONENT MAP
+
+Tạo:
+
+```text
+RECON/components.md
+```
+
+Ví dụ:
+
+```text
+AppShell
+Topbar
+Sidebar
+NavItem
+NavGroup
+UserMenu
+PageHeader
+Search
+CourseCard
+ExamCard
+Table
+Modal
+Dropdown
+Drawer
+EmptyState
+Skeleton
+```
+
+chỉ theo evidence.
+
+---
+
+# 77. REUSABILITY
+
+Tìm component lặp lại bằng:
+
+```text
+geometry
+styles
+behavior
+DOM structure
+```
+
+Không clone page bằng giant copy-paste component.
+
+---
+
+# 78. PROJECT AUDIT
+
+Sau target recon, đọc `D:\Aeck_Pre`.
+
+Bắt đầu bằng:
+
+```bash
+git status
+```
+
+Sau đó:
+
+```text
+AGENTS.md
+README
+package.json
+pnpm-lock/yarn/npm
+tsconfig
+vite/next config
+router
+src
+server
+tests
+styles
+assets
+```
+
+---
+
+# 79. RESPECT PROJECT INSTRUCTIONS
+
+Nếu có:
+
+```text
+AGENTS.md
+CONTRIBUTING.md
+README rules
+```
+
+phải tuân thủ.
+
+---
+
+# 80. DO NOT DESTROY USER CHANGES
+
+Không:
+
+```text
+git reset --hard
+git clean -fd
+checkout .
+overwrite unrelated files
+```
+
+Không xoá thay đổi chưa commit.
+
+---
+
+# 81. ARCHITECTURE MAP
+
+Tạo:
+
+```text
+RECON/implementation-map.md
+```
+
+Map:
+
+```text
+TARGET COMPONENT
+→ PROJECT COMPONENT
+
+TARGET API
+→ PROJECT SERVICE
+
+TARGET PAGE
+→ PROJECT ROUTE
+
+TARGET DATA
+→ PROJECT MODEL
+```
+
+---
+
+# 82. IMPLEMENTATION STRATEGY
+
+Ưu tiên:
+
+```text
+reuse
+→ refactor
+→ extend
+→ new implementation
+```
+
+Không rewrite toàn project nếu architecture hiện tại dùng được.
+
+---
+
+# 83. DESIGN SYSTEM FIRST
+
+Trước khi clone 30 page:
+
+chuẩn hóa token.
+
+Ví dụ:
+
+```text
+colors
+typography
+spacing
+radius
+shadow
+motion
+breakpoints
+shell geometry
+```
+
+---
+
+# 84. SINGLE SOURCE OF TRUTH
+
+Không để:
+
+```text
+288px
+80px
+80px header
+green brand
+```
+
+hardcode khắp project.
+
+Dùng:
+
+```css
+--header-height
+--sidebar-expanded-width
+--sidebar-collapsed-width
+--brand-primary
+--shell-duration
+--shell-ease
+```
+
+hoặc theme/config tương đương.
+
+---
+
+# 85. FRONTEND FIDELITY RULE
+
+Không "cải tiến" target theo aesthetic của AI.
+
+Không tự:
+
+```text
+add gradients
+add excessive glassmorphism
+add huge round corners
+add shadows everywhere
+change typography
+change brand colors
+change page hierarchy
+```
+
+Nếu target rõ:
+
+clone target.
+
+---
+
+# 86. VISUAL FIDELITY PRIORITIES
+
+Thứ tự:
+
+```text
+1. geometry
+2. spacing
+3. typography
+4. colors
+5. components
+6. responsive
+7. interaction
+8. motion
+9. polish
+```
+
+---
+
+# 87. IMPLEMENT SHELL FIRST
+
+Authenticated app:
+
+```text
+AppShell
+Topbar
+Sidebar
+MainScrollArea
+```
+
+phải ổn trước page content.
+
+---
+
+# 88. NO BODY SCROLL IF TARGET MAIN-SCROLLS
+
+Nếu recon xác nhận target dùng fixed shell:
+
+bắt buộc implementation:
+
+```text
+body locked
+header fixed
+sidebar fixed
+main scroll
+```
+
+Test bằng browser.
+
+---
+
+# 89. COLLAPSE STATE
+
+Sidebar state phải nằm trong shared layout.
+
+Không giữ riêng từng route.
+
+Nếu target persist state:
+
+inspect:
+
+```text
+localStorage
+session
+cookie
+```
+
+Clone persistence nếu phù hợp.
+
+---
+
+# 90. NO COLLAPSE REMOUNT
+
+Click collapse không được:
+
+```text
+reload
+navigate
+reset route state
+restart video
+clear form
+reset scroll unnecessarily
+```
+
+---
+
+# 91. RESPONSIVE IMPLEMENTATION
+
+Không chỉ desktop.
+
+Mỗi major page phải verify:
+
+```text
+desktop
+tablet
+mobile
+```
+
+---
+
+# 92. TABLES
+
+Inspect:
+
+```text
+column widths
+header
+row height
+pagination
+responsive
+overflow
+empty
+loading
+```
+
+Nếu mobile target chuyển card-list:
+
+clone behavior.
+
+---
+
+# 93. MODALS
+
+Inspect:
+
+```text
+width
+max width
+overlay
+radius
+padding
+animation
+close
+Esc
+outside click
+focus trap
+```
+
+---
+
+# 94. DROPDOWNS
+
+Inspect:
+
+```text
+anchor
+placement
+offset
+width
+shadow
+border
+keyboard
+outside click
+```
+
+---
+
+# 95. TOOLTIP
+
+Đặc biệt icon-only collapsed sidebar:
+
+inspect tooltip.
+
+Không để tooltip bị `overflow:hidden` clip.
+
+---
+
+# 96. ICONS
+
+Xác định target dùng:
+
+```text
+Ant Design
+Heroicons
+Lucide
+custom SVG
+```
+
+hoặc khác.
+
+Reuse library hiện tại nếu visual match.
+
+Không trộn 5 icon libraries.
+
+---
+
+# 97. CSS STRATEGY
+
+Giữ style architecture project:
+
+```text
+Tailwind
+CSS modules
+styled components
+vanilla CSS
+Ant Design theme
+etc.
+```
+
+Không đổi toàn stack chỉ để clone.
+
+---
+
+# 98. THIRD-PARTY UI LIBRARIES
+
+Nếu project đã dùng:
+
+```text
+Ant Design
+MUI
+Radix
+shadcn
+```
+
+đánh giá xem reuse có thể đạt fidelity.
+
+Không ép mặc định library style nếu target khác.
+
+Override theme/token có kiểm soát.
+
+---
+
+# 99. API CLIENT
+
+Tập trung API calls vào architecture hiện tại.
+
+Không fetch rải trong component nếu project đã có service layer.
+
+---
+
+# 100. BACKEND SERVICES
+
+Phân chia domain nếu cần:
+
+```text
+auth
+course
+exam
+progress
+schedule
+content
+profile
+```
+
+Không over-engineer microservices.
+
+---
+
+# 101. API VALIDATION
+
+Validate:
+
+```text
+params
+body
+permissions
+resource existence
+errors
+```
+
+---
+
+# 102. STORAGE
+
+Nếu target có uploads/media:
+
+đọc storage architecture hiện tại.
+
+Không copy remote storage URL architecture một cách mù quáng.
+
+---
+
+# 103. PERFORMANCE
+
+Inspect target:
+
+```text
+lazy loading
+image lazy loading
+code splitting
+video loading
+font loading
+API waterfall
+```
+
+Optimize implementation hợp lý.
+
+---
+
+# 104. LIGHTHOUSE
+
+Nếu Chrome DevTools for agents hỗ trợ:
+
+chạy Lighthouse phù hợp cho local implementation.
+
+Kiểm tra:
+
+```text
+Performance
+Accessibility
+Best Practices
+SEO
+```
+
+Không cần đạt 100 nếu target/functionality có tradeoff, nhưng không tạo regression nghiêm trọng.
+
+---
+
+# 105. ACCESSIBILITY
+
+Kiểm tra:
+
+```text
+keyboard navigation
+focus visible
+dialog semantics
+aria
+contrast
+labels
+icon button names
+heading hierarchy
+```
+
+---
+
+# 106. REDUCED MOTION
+
+Respect:
+
+```css
+@media (prefers-reduced-motion: reduce)
+```
+
+cho animation quan trọng nếu phù hợp.
+
+---
+
+# 107. BROWSER VALIDATION LOOP
+
+Sau mỗi feature lớn:
+
+```text
+TARGET
+→ inspect
+→ LOCAL
+→ run
+→ compare
+→ fix
+```
+
+Không chờ cuối dự án mới mở browser.
+
+---
+
+# 108. SCREENSHOT REFERENCES
+
+Ở cùng viewport:
+
+capture:
+
+```text
+target
+local
+```
+
+Tên rõ:
+
+```text
+target-course-1440.png
+local-course-1440.png
+
+target-sidebar-expanded.png
+local-sidebar-expanded.png
+
+target-sidebar-collapsed.png
+local-sidebar-collapsed.png
+```
+
+---
+
+# 109. VISUAL DIFF
+
+Nếu tooling cho phép:
+
+tạo pixel/image diff.
+
+Nếu không:
+
+manual visual compare qua screenshots.
+
+So:
+
+```text
+position
+size
+spacing
+font
+color
+radius
+shadow
+alignment
+```
+
+---
+
+# 110. INTERACTION VERIFICATION
+
+Playwright test:
+
+```text
+navigation
+sidebar
+collapse
+submenu
+dropdown
+modal
+search
+filter
+forms
+course
+responsive
+```
+
+---
+
+# 111. TEST THE FIXED SHELL
+
+Test:
+
+```text
+1. load desktop
+2. sidebar expanded
+3. scroll main
+4. verify topbar does not move
+5. verify sidebar does not move
+6. collapse sidebar
+7. continue scroll
+8. verify only main moves
+9. expand
+10. verify no route reset
+```
+
+---
+
+# 112. SIDEBAR TEST
+
+Assert:
+
+```text
+expanded width
+collapsed width
+label visibility
+logo mode
+toggle position
+active state
+main offset
+```
+
+Use measured target values.
+
+---
+
+# 113. MOBILE TEST
+
+Test:
+
+```text
+open drawer
+close drawer
+outside click
+Esc
+navigation
+route change
+body scroll lock
+main scroll
+```
+
+---
+
+# 114. COURSE TESTS
+
+If implemented:
+
+```text
+load list
+search
+open course
+open lesson
+navigate lesson
+progress
+responsive
+```
+
+---
+
+# 115. EXAM TESTS
+
+Only local/test implementation.
+
+Test:
+
+```text
+question selection
+answer
+navigation
+timer
+submit confirmation
+results
+```
+
+No destructive production interaction.
+
+---
+
+# 116. AUTH TEST
+
+Use test/local environment.
+
+Test:
+
+```text
+protected route
+login
+session
+permission
+logout
+```
+
+---
+
+# 117. ERROR TESTING
+
+Use mocks/local backend to trigger:
+
+```text
+401
+403
+404
+500
+network error
+empty
+validation error
+```
+
+---
+
+# 118. NO MOCK LEFT IN PRODUCTION
+
+Temporary mock okay during development.
+
+Before done:
+
+remove unintended:
+
+```text
+fake data
+TODO
+temporary API
+console logs
+test credentials
+debug panel
+```
+
+---
+
+# 119. ROUTE MATRIX
+
+Create:
+
+```text
+RECON/completion.md
+```
+
+For each target route:
+
+```text
+[ ] recon
+[ ] screenshot
+[ ] component map
+[ ] desktop
+[ ] tablet
+[ ] mobile
+[ ] interaction
+[ ] API
+[ ] backend
+[ ] loading
+[ ] empty
+[ ] error
+[ ] accessibility
+[ ] visual verify
+[ ] E2E
+```
+
+---
+
+# 120. DON'T CLAIM DONE EARLY
+
+Không được nói:
+
+```text
+"Clone hoàn tất"
+```
+
+chỉ vì homepage giống.
+
+Full target completion chỉ khi scope matrix đã được xử lý.
+
+---
+
+# 121. PRIORITY SYSTEM
+
+Nếu website quá lớn:
+
+ưu tiên:
+
+```text
+P0
+App Shell
+Auth shell
+Sidebar
+Topbar
+Course navigation
+Exam navigation
+
+P1
+Main pages
+Course flow
+Study flow
+Exam flow
+Profile
+
+P2
+Secondary public pages
+Policies
+Articles
+rare states
+```
+
+Nhưng vẫn inventory toàn scope trước.
+
+---
+
+# 122. CONTEXT MANAGEMENT
+
+Không dump mọi DOM/CSS vào context.
+
+Tóm tắt structured evidence.
+
+Ví dụ:
+
+```json
+{
+  "component": "Sidebar",
+  "expandedWidth": 288,
+  "collapsedWidth": 80,
+  "itemHeight": 48
+}
+```
+
+sau khi live verify.
+
+---
+
+# 123. DO NOT RELY ON MEMORY
+
+Nếu đã đo trước đó nhưng live site có thể đổi:
+
+re-verify.
+
+Target live browser là source of truth.
+
+---
+
+# 124. NETWORK AS SOURCE OF TRUTH
+
+Không đoán backend endpoint.
+
+Chỉ ghi endpoint browser thực sự dùng.
+
+---
+
+# 125. PROJECT SOURCE AS SOURCE OF TRUTH
+
+Nếu project hiện tại có business logic phù hợp:
+
+ưu tiên giữ logic đó thay vì rewrite theo đoán từ target.
+
+---
+
+# 126. DIFFERENCE LOG
+
+Mọi difference không giải quyết được:
+
+```text
+RECON/bugs-or-ambiguities.md
+```
+
+Format:
+
+```text
+Target:
+Local:
+Reason:
+Evidence:
+Decision:
+```
+
+---
+
+# 127. COPYRIGHT / ASSET DISCIPLINE
+
+Tái dựng layout/functionality.
+
+Không sao chép trái phép nội dung/asset mà project không có quyền sử dụng.
+
+Nếu asset target thuộc project/user và hợp pháp:
+
+reuse.
+
+Nếu không:
+
+dùng placeholder/asset equivalent hợp pháp nhưng giữ geometry.
+
+---
+
+# 128. CONTENT FIDELITY
+
+Với content public:
+
+không cần hardcode toàn bộ bài viết vào frontend nếu website thực tế dùng CMS/backend.
+
+Phải xây data-driven structure.
+
+---
+
+# 129. SEO PUBLIC SITE
+
+Inspect:
+
+```text
+title
+meta description
+canonical
+Open Graph
+structured headings
+```
+
+và giữ architecture SEO phù hợp nếu project public site cần.
+
+---
+
+# 130. ROUTER BEHAVIOR
+
+Clone:
+
+```text
+back
+forward
+query params
+deep links
+refresh
+protected redirect
+404
+```
+
+---
+
+# 131. SCROLL RESTORATION
+
+Inspect target:
+
+route change có:
+
+```text
+reset top
+preserve
+restore
+```
+
+Implement tương đương.
+
+Sidebar collapse không được reset main scroll trừ khi target làm vậy.
+
+---
+
+# 132. STATE MANAGEMENT
+
+Đọc project state architecture.
+
+Không thêm Redux nếu project không cần.
+
+Reuse:
+
+```text
+Context
+Zustand
+Redux
+query cache
+React Query
+SWR
+etc.
+```
+
+nếu đã có.
+
+---
+
+# 133. SERVER STATE
+
+Không duplicate API response vào global state vô lý.
+
+Reuse query/cache layer.
+
+---
+
+# 134. CACHE BEHAVIOR
+
+Inspect:
+
+```text
+loading
+stale content
+refetch
+pagination
+```
+
+nếu observable.
+
+---
+
+# 135. RESPONSIVE VIDEO PAGE
+
+Study page đặc biệt phải test:
+
+```text
+desktop video + lesson list
+tablet
+mobile stacked layout
+```
+
+---
+
+# 136. VIEWPORT HEIGHT
+
+App shell ưu tiên:
+
+```text
+100dvh
+```
+
+nếu phù hợp.
+
+Tránh mobile viewport bug.
+
+---
+
+# 137. FLEX SCROLL BUG
+
+Kiểm tra `min-height:0`.
+
+Không để child scroll fail do flex layout.
+
+---
+
+# 138. OVERFLOW AUDIT
+
+Search project:
+
+```text
+overflow
+overflow-y
+overflow-x
+100vh
+100dvh
+position: fixed
+position: sticky
+height
+min-height
+```
+
+Tìm conflict.
+
+---
+
+# 139. Z-INDEX SYSTEM
+
+Tạo hierarchy rõ:
+
+```text
+content
+sidebar
+header
+dropdown
+drawer
+modal
+toast
+```
+
+Không random `z-index:999999`.
+
+---
+
+# 140. LAYOUT MAGIC NUMBER AUDIT
+
+Search:
+
+```text
+288px
+80px
+header offsets
+sidebar offsets
+```
+
+Replace repeated geometry bằng token.
+
+---
+
+# 141. UI CONSISTENCY
+
+Sau clone page:
+
+audit:
+
+```text
+same button variants
+same inputs
+same card
+same page title
+same spacing
+same colors
+same focus
+```
+
+---
+
+# 142. ADMIN/OTHER ROUTES
+
+Nếu project có admin routes nhưng target reference không accessible:
+
+không phá admin.
+
+Có thể áp design tokens/layout consistency nếu người dùng yêu cầu project-wide, nhưng không giả định target admin.
+
+---
+
+# 143. BUILD GATES
+
+Sau implementation:
+
+chạy command phù hợp:
+
+```text
+lint
+typecheck
+test
+build
+```
+
+---
+
+# 144. TEST GATES
+
+Chạy:
+
+```text
+unit
+integration
+e2e
+visual regression
+```
+
+nếu project có infrastructure.
+
+---
+
+# 145. PRE-EXISTING ERRORS
+
+Nếu lint/build fail:
+
+phân loại:
+
+```text
+existing before changes
+introduced by this work
+```
+
+Không nhận lỗi cũ là lỗi mới.
+
+---
+
+# 146. FINAL RECON AUDIT
+
+Trước kết luận:
+
+review:
+
+```text
+routes
+states
+responsive
+network
+API
+backend
+visual
+tests
+```
+
+Tìm gap.
+
+---
+
+# 147. FINAL BROWSER PASS
+
+Mở live target và local side-by-side.
+
+Kiểm tra ít nhất các route P0/P1.
+
+Không dựa chỉ automated tests.
+
+---
+
+# 148. FINAL REPORT
+
+Cuối cùng báo:
+
+## Tools used
+
+```text
+Chrome DevTools
+Playwright
+Skills
+other
+```
+
+## Target discovered
+
+```text
+public routes
+app routes
+components
+API groups
+```
+
+## Architecture
+
+```text
+AppShell
+Router
+Design system
+Frontend
+Backend
+Data
+```
+
+## Implemented
+
+Liệt kê.
+
+## Files modified
+
+Liệt kê file chính.
+
+## Verification
+
+```text
+lint
+typecheck
+build
+unit
+E2E
+visual
+responsive
+Lighthouse
+```
+
+## Remaining differences
+
+Không giấu.
+
+## Blockers
+
+Nếu có.
+
+---
+
+# 149. DEFINITION OF DONE
+
+Chỉ xem là done khi:
+
+```text
+UI fidelity
++
+UX fidelity
++
+responsive
++
+interaction
++
+navigation
++
+states
++
+API integration
++
+backend behavior
++
+auth/permission
++
+loading/error
++
+browser verification
++
+tests
+```
+
+đạt mức tốt nhất có thể trong scope.
+
+---
+
+# 150. START PROCEDURE
+
+Thực hiện ngay theo thứ tự:
+
+### STEP 1
+
+```text
+cd D:\Aeck_Pre
+git status
+```
+
+### STEP 2
+
+Đọc:
+
+```text
+AGENTS.md
+README
+package manifest
+router
+layout
+frontend
+backend
+```
+
+nhưng chưa sửa.
+
+### STEP 3
+
+Kiểm tra:
+
+```text
+Codex MCP
+Chrome DevTools
+Playwright
+Skills
+```
+
+### STEP 4
+
+Nếu Chrome DevTools MCP chưa cài và môi trường cho phép:
+
+```bash
+codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+```
+
+Nếu command thay đổi hoặc Codex environment hiện tại cung cấp integration tốt hơn:
+
+ưu tiên documentation hiện tại và ghi lại lựa chọn.
+
+### STEP 5
+
+Mở:
+
+```text
+https://aeck.vn/
+```
+
+Bắt đầu public recon.
+
+### STEP 6
+
+Nếu session được phép:
+
+mở:
+
+```text
+https://alpha.aeck.vn/
+```
+
+Bắt đầu authenticated app recon.
+
+### STEP 7
+
+Không code.
+
+Tạo:
+
+```text
+routes
+components
+design system
+layout
+interactions
+responsive
+network/API map
+```
+
+### STEP 8
+
+Đặc biệt recon:
+
+```text
+Topbar
+Sidebar
+Sidebar collapse
+Main scroll container
+Course UI
+Study UI
+Exam UI
+User menu
+```
+
+### STEP 9
+
+Đọc network flow.
+
+Sanitize secret.
+
+### STEP 10
+
+Audit `D:\Aeck_Pre`.
+
+Map target → current project.
+
+### STEP 11
+
+Viết implementation plan.
+
+### STEP 12
+
+Bắt đầu code shared shell/design system trước.
+
+### STEP 13
+
+Implement route-by-route.
+
+### STEP 14
+
+Sau từng major feature:
+
+```text
+run local
+open browser
+compare target
+fix
+```
+
+### STEP 15
+
+Tạo Playwright regression tests cho critical flows.
+
+### STEP 16
+
+Chạy:
+
+```text
+lint
+typecheck
+tests
+build
+```
+
+### STEP 17
+
+Final screenshot/diff pass.
+
+### STEP 18
+
+Chỉ sau đó mới gửi final report.
+
+---
+
+# 151. IMPORTANT BEHAVIORAL RULES
+
+Không hỏi người dùng những câu mà:
+
+```text
+browser
+network
+repo
+code
+configuration
+```
+
+có thể tự trả lời.
+
+Nếu browser/session không truy cập được một phần:
+
+ghi blocker và tiếp tục phần khác.
+
+Không dừng toàn nhiệm vụ chỉ vì một route lỗi.
+
+---
+
+# 152. RECON BEFORE ASSUMPTION
+
+Mọi thứ như:
+
+```text
+sidebar width
+header height
+brand color
+breakpoint
+API route
+course structure
+```
+
+đều phải verify trước khi coi là fact.
+
+---
+
+# 153. TARGET IS VISUAL/BEHAVIORAL REFERENCE
+
+Không copy technical debt một cách mù quáng.
+
+Nếu target implementation có:
+
+```text
+duplicated inline styles
+poor semantic HTML
+accessibility bug
+magic numbers
+```
+
+thì implementation local có thể sạch hơn miễn:
+
+```text
+visual
+behavior
+UX
+```
+
+vẫn match.
+
+---
+
+# 154. SPECIAL AECK APP SHELL REQUIREMENT
+
+Dựa trên target recon, đặc biệt xác minh architecture:
+
+```text
+TOPBAR cố định
+SIDEBAR trái cố định
+MAIN CONTENT là vùng scroll riêng
+```
+
+Nếu live target xác nhận:
+
+implementation phải đảm bảo:
+
+```text
+scroll main
+→ topbar không di chuyển
+→ sidebar không di chuyển
+```
+
+Không dùng body-scroll kiểu website thường.
+
+---
+
+# 155. SPECIAL SIDEBAR COLLAPSE REQUIREMENT
+
+Phải test trực tiếp:
+
+```text
+expanded
+→ click toggle
+→ collapsed
+→ click toggle
+→ expanded
+```
+
+Capture cả hai state.
+
+So:
+
+```text
+width
+logo
+icon
+labels
+active state
+submenu
+divider
+toggle
+main offset
+content reflow
+animation
+```
+
+Không clone collapse chỉ bằng CSS `display:none`.
+
+---
+
+# 156. TARGET REFERENCE ARTIFACTS
+
+Ít nhất lưu reference cho:
+
+```text
+public-home-desktop
+public-home-mobile
+
+app-dashboard-expanded
+app-dashboard-collapsed
+
+course-list-expanded
+course-list-collapsed
+
+study-desktop
+study-mobile
+
+profile-dropdown
+
+one-modal
+
+one-form
+
+one-exam-route
+```
+
+nếu accessible.
+
+---
+
+# 157. FULL-SITE COMPLETION PRINCIPLE
+
+Không dừng khi:
+
+```text
+homepage đẹp
+sidebar đẹp
+```
+
+Nếu scope còn route quan trọng chưa recon:
+
+tiếp tục.
+
+---
+
+# 158. BACKEND COMPLETION PRINCIPLE
+
+Không nói backend cloned nếu chỉ có UI.
+
+Backend phải được đánh giá theo:
+
+```text
+observable API behavior
++
+project backend implementation
++
+database
++
+permissions
++
+validation
++
+persistence
+```
+
+---
+
+# 159. SECRET HANDLING
+
+Không paste vào docs/log:
+
+```text
+JWT
+access token
+refresh token
+cookie
+password
+Authorization header
+private API key
+```
+
+Redact thành:
+
+```text
+<REDACTED>
+```
+
+---
+
+# 160. FINAL GOAL
+
+Kết quả mong muốn:
+
+```text
+AECK TARGET
+      ↓
+deep recon
+      ↓
+design + interaction map
+      ↓
+API + behavior map
+      ↓
+D:\Aeck_Pre architecture mapping
+      ↓
+clean implementation
+      ↓
+browser execution
+      ↓
+Playwright tests
+      ↓
+visual comparison
+      ↓
+iterative fixes
+      ↓
+high-fidelity functional reimplementation
+```
+
+Không chỉ clone hình.
+
+Không chỉ clone frontend.
+
+Không chỉ clone HTML.
+
+Không chỉ clone CSS.
+
+Không chỉ clone một route.
+
+Mục tiêu là tái dựng toàn bộ trải nghiệm AECK trong phạm vi quyền truy cập và evidence thực tế.
+
+---
+
+# EXECUTE NOW
+
+Bắt đầu ngay.
+
+Không sửa code trước khi hoàn tất initial recon.
+
+Không chờ người dùng cung cấp HTML thủ công nếu Chrome/browser có thể tự inspect.
+
+Không phỏng đoán nếu DevTools có thể đo.
+
+Không dừng ở screenshot nếu DOM/network có thể trả lời.
+
+Không tuyên bố hoàn tất cho tới khi đã browser-verify implementation.
+
+Tiến hành:
+**RECON → PLAN → IMPLEMENT → VERIFY → ITERATE.**

@@ -583,9 +583,17 @@
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-table {
   display: grid;
+  width: 100%;
   min-width: 0;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid rgba(42, 44, 53, 0.1);
   border-radius: 11px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-table thead,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-table tbody {
+  display: contents;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row {
@@ -618,12 +626,16 @@
   text-transform: uppercase;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td) {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:first-child {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-cell-label {
+  display: none;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):first-child {
   display: grid;
   gap: 3px;
 }
@@ -640,7 +652,7 @@
   overflow-wrap: anywhere;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(4) {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):nth-child(4) {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -658,7 +670,7 @@
   background: #17a66a;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:last-child button {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):last-child button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -677,7 +689,7 @@
   transition-duration: 150ms;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:last-child button:hover {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):last-child button:hover {
   border-color: rgba(197, 18, 48, 0.34);
   color: var(--admin-suite-accent);
   background: #fffafb;
@@ -783,14 +795,26 @@
     display: none;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:first-child {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):first-child {
     grid-row: span 2;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(2),
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(3),
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > span:nth-child(4) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):nth-child(2),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):nth-child(3),
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-room-row > :is(th, td):nth-child(4) {
     display: none;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-timetable-cell-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 }
 
@@ -1928,30 +1952,29 @@
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-table {
-  display: grid;
+  display: table;
+  width: 100%;
   min-width: 0;
+  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: separate;
   border: 1px solid rgba(42, 44, 53, 0.1);
   border-radius: 11px;
+  overflow: hidden;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row {
-  display: grid;
-  grid-template-columns: minmax(230px, 1.5fr) minmax(90px, 0.55fr) minmax(145px, 0.8fr) minmax(150px, 0.85fr) minmax(165px, 0.9fr) minmax(120px, 0.65fr);
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  padding: 13px 14px;
+  display: table-row;
   color: #555862;
   font-size: 11px;
   line-height: 1.4;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row + .admin-audit-row {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row + .admin-audit-row > td {
   border-block-start: 1px solid rgba(42, 44, 53, 0.09);
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head {
-  min-height: 44px;
   background: #f8f9fb;
   color: #686c75;
   font-size: 9px;
@@ -1960,19 +1983,35 @@
   text-transform: uppercase;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > :is(td, th) {
+  min-width: 0;
+  padding: 13px 14px;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head > th {
+  min-height: 44px;
+  font: inherit;
+  text-align: start;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > td {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-cell-label {
+  display: none;
+}
+
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  vertical-align: middle;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > i {
   display: inline-grid;
+  vertical-align: middle;
   place-items: center;
   width: 34px;
   height: 34px;
@@ -1980,6 +2019,7 @@
   border-radius: 9px;
   background: #eef5ff;
   color: #416a9d;
+  margin-inline-end: 10px;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > i.tone-failed {
@@ -1997,15 +2037,21 @@
   height: 17px;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > span,
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person {
-  display: grid;
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > span:last-child {
+  display: inline-grid;
+  width: calc(100% - 48px);
+  vertical-align: middle;
   gap: 3px;
   min-width: 0;
 }
 
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person {
+  display: table-cell;
+}
+
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action strong,
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person strong {
+  display: block;
   min-width: 0;
   color: #30323a;
   font-size: 12px;
@@ -2015,6 +2061,7 @@
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action small,
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-person small {
+  display: block;
   min-width: 0;
   color: #8a8e97;
   font-size: 10px;
@@ -2066,17 +2113,17 @@
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-time {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  white-space: normal;
   font-variant-numeric: tabular-nums;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-time svg {
   width: 13px;
   height: 13px;
-  flex: 0 0 auto;
+  display: inline-block;
+  vertical-align: top;
   margin-block-start: 1px;
+  margin-inline-end: 6px;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-pagination {
@@ -2226,12 +2273,7 @@
     grid-column: 1 / -1;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row {
-    grid-template-columns: minmax(210px, 1.4fr) minmax(90px, 0.5fr) minmax(140px, 0.8fr) minmax(150px, 0.8fr) minmax(120px, 0.65fr);
-  }
-
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span:nth-child(4),
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head > span:nth-child(4) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > :is(td, th):nth-child(4) {
     display: none;
   }
 }
@@ -2251,28 +2293,82 @@
   }
 
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 9px 14px;
+    margin-block-start: 8px;
     padding: 15px;
+    border: 1px solid rgba(42, 44, 53, 0.1);
+    border-radius: 11px;
+    background: #fff;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row-head {
-    display: none;
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-table {
+    display: block;
+    border: 0;
+    overflow: visible;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span {
-    display: none;
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > .admin-audit-action,
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span:nth-child(2),
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > span:nth-child(6) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-table tbody {
+    display: grid;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row + .admin-audit-row > td {
+    border-block-start: 0;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > :is(td, th) {
+    display: block;
+    padding: 0;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > td:nth-child(4) {
+    display: block;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > .admin-audit-action {
     display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 10px;
   }
 
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > .admin-audit-action {
     grid-column: 1 / -1;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-action > span:last-child {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > :is(td:nth-child(3), td:nth-child(4), td:nth-child(5)) {
+    grid-column: 1 / -1;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-cell-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 }
 

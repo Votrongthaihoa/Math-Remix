@@ -1,0 +1,5815 @@
+{
+  "capturedAt": "2026-09-06T07:07:08.758Z",
+  "origin": "https://aeck.vn",
+  "source": "homepage-visible-links",
+  "homepageLinks": [
+    {
+      "href": "/",
+      "text": "",
+      "inNav": true
+    },
+    {
+      "href": "/giao-vien",
+      "text": "Giáo viên",
+      "inNav": true
+    },
+    {
+      "href": "/goi-hoc-tap",
+      "text": "Gói học tập",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng nhập",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng ký",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng nhập",
+      "inNav": true
+    },
+    {
+      "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2F",
+      "text": "Đăng ký",
+      "inNav": true
+    },
+    {
+      "href": "/khoa-hoc?category=TSA",
+      "text": "Xem tất cả",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - TSA] KHOÁ LUYỆN ĐỀ TINH TÚ Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - TSA] CẨM NANG TSA HUST Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 TSA] NÂNG CAO: TOÁN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 TSA] CHUYÊN ĐỀ: ĐỌC HIỂU - KHOA HỌC Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9] NỀN TẢNG: TOÁN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/khoa-hoc?category=DGNL",
+      "text": "Xem tất cả",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: SINH HỌC Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: HOÁ HỌC Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: VẬT LÝ Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: ĐỊA LÝ Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL BCA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL QDA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: LỊCH SỬ Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: TIẾNG ANH Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL HSA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - ĐGNL] NÂNG CAO: TOÁN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/khoa-hoc?category=THPT",
+      "text": "Xem tất cả",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - HSG] LUYỆN ĐỀ: TOÁN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/portal",
+      "text": "[2K9 - HSG] NÂNG CAO: TOÁN Giáo viên AECK",
+      "inNav": false
+    },
+    {
+      "href": "/luyen-thi-tsa",
+      "text": "ĐÁNH GIÁ TƯ DUY — TSA Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết TSA là gì, bài thi đánh giá những gì, thi trên máy hay trên giấy, kết quả dùng xét tuyển vào trường nào",
+      "inNav": false
+    },
+    {
+      "href": "/cau-truc-de-thi-tsa",
+      "text": "ĐÁNH GIÁ TƯ DUY — TSA Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút Đề thi TSA gồm 3 phần: Tư duy Toán học 60 phút, Tư duy Đọc hiểu 30 phút, Tư duy Khoa học 60 phút. Chi tiết nội ",
+      "inNav": false
+    },
+    {
+      "href": "/cach-tinh-diem-tsa",
+      "text": "ĐÁNH GIÁ TƯ DUY — TSA Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao Điểm TSA không phải điểm thô. Bách khoa chấm bằng mô hình IRT 2 tham số rồi quy về thang 100.",
+      "inNav": false
+    },
+    {
+      "href": "/luyen-thi-hsa",
+      "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội HSA là gì, ai tổ chức, thi trên máy tính ra sao, một năm được thi mấy lượt, kết quả dùng xét tuyển vào bao nhiê",
+      "inNav": false
+    },
+    {
+      "href": "/cau-truc-de-thi-hsa",
+      "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút Đề HSA gồm Toán 50 câu 75 phút, Văn học Ngôn ngữ 50 câu 60 phút và phần tự chọn Khoa học hoặc Tiếng Anh ",
+      "inNav": false
+    },
+    {
+      "href": "/dang-ky-thi-hsa",
+      "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt Hướng dẫn đăng ký thi Đánh giá năng lực HSA: 8 bước trên hệ thống, giấy tờ và ảnh cần chuẩn bị, hạn ",
+      "inNav": false
+    },
+    {
+      "href": "/",
+      "text": "",
+      "inNav": true
+    },
+    {
+      "href": "mailto:hotro@aeck.vn",
+      "text": "hotro@aeck.vn",
+      "inNav": true
+    },
+    {
+      "href": "tel:0776362944",
+      "text": "0776 362 944",
+      "inNav": true
+    },
+    {
+      "href": "https://www.facebook.com/aeck.edu.vn",
+      "text": "Fanpage AECK",
+      "inNav": true
+    },
+    {
+      "href": "/dieu-khoan-dich-vu",
+      "text": "Điều Khoản Dịch Vụ",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-bao-mat",
+      "text": "Bảo Mật Thông Tin",
+      "inNav": true
+    },
+    {
+      "href": "/dieu-kien-han-che-cung-cap",
+      "text": "Điều Kiện Hạn Chế Cung Cấp",
+      "inNav": true
+    },
+    {
+      "href": "/quyen-va-nghia-vu-hai-ben",
+      "text": "Quyền & Nghĩa Vụ Hai Bên",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-thanh-toan",
+      "text": "Thanh Toán",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-gia",
+      "text": "Giá Dịch Vụ",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-van-chuyen-doi-tra",
+      "text": "Vận Chuyển & Đổi Trả",
+      "inNav": true
+    },
+    {
+      "href": "/chinh-sach-khieu-nai",
+      "text": "Khiếu Nại & Phản Ánh",
+      "inNav": true
+    },
+    {
+      "href": "https://zalo.me/0776362944",
+      "text": "Chat Zalo Zalo",
+      "inNav": false
+    },
+    {
+      "href": "https://m.me/aeck.edu.vn",
+      "text": "Nhắn Messenger",
+      "inNav": false
+    },
+    {
+      "href": "https://www.facebook.com/aeck.edu.vn",
+      "text": "Fanpage AECK",
+      "inNav": false
+    },
+    {
+      "href": "tel:0776362944",
+      "text": "Gọi 0776 362 944",
+      "inNav": false
+    }
+  ],
+  "discoveredRoutes": [
+    "/",
+    "/giao-vien",
+    "/goi-hoc-tap",
+    "/khoa-hoc?category=TSA",
+    "/portal",
+    "/khoa-hoc?category=DGNL",
+    "/khoa-hoc?category=THPT",
+    "/luyen-thi-tsa",
+    "/cau-truc-de-thi-tsa",
+    "/cach-tinh-diem-tsa",
+    "/luyen-thi-hsa",
+    "/cau-truc-de-thi-hsa",
+    "/dang-ky-thi-hsa",
+    "/dieu-khoan-dich-vu",
+    "/chinh-sach-bao-mat",
+    "/dieu-kien-han-che-cung-cap",
+    "/quyen-va-nghia-vu-hai-ben",
+    "/chinh-sach-thanh-toan",
+    "/chinh-sach-gia",
+    "/chinh-sach-van-chuyen-doi-tra",
+    "/chinh-sach-khieu-nai"
+  ],
+  "records": [
+    {
+      "expectedRoute": "/",
+      "finalUrl": "https://aeck.vn/",
+      "title": "AECK - Luyện thi TSA, HSA & Đánh giá năng lực trực tuyến",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4497,
+        "bodyHeight": 4497,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4068,
+          "width": 1440,
+          "height": 429,
+          "position": "relative",
+          "zIndex": "auto",
+          "overflow": "hidden",
+          "backgroundColor": "rgb(29, 12, 12)",
+          "color": "rgb(255, 255, 255)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 0,
+          "y": 2105,
+          "width": 1440,
+          "height": 1230,
+          "position": "relative",
+          "zIndex": "10",
+          "overflow": "hidden",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "GIẢI PHÁP HỌC TẬP TOÀN DIỆN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - TSA] KHOÁ LUYỆN ĐỀ TINH TÚ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - TSA] CẨM NANG TSA HUST"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 TSA] NÂNG CAO: TOÁN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 TSA] CHUYÊN ĐỀ: ĐỌC HIỂU - KHOA HỌC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9] NỀN TẢNG: TOÁN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: SINH HỌC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: HOÁ HỌC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: VẬT LÝ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: ĐỊA LÝ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL BCA] CHUYÊN ĐỀ: NGỮ VĂN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL QDA] CHUYÊN ĐỀ: NGỮ VĂN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: LỊCH SỬ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: TIẾNG ANH"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL HSA] CHUYÊN ĐỀ: NGỮ VĂN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] NÂNG CAO: TOÁN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - HSG] LUYỆN ĐỀ: TOÁN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - HSG] NÂNG CAO: TOÁN"
+        },
+        {
+          "level": "h2",
+          "text": "Tìm hiểu kỳ thi"
+        },
+        {
+          "level": "h3",
+          "text": "THÔNG TIN"
+        },
+        {
+          "level": "h3",
+          "text": "CHÍNH SÁCH"
+        },
+        {
+          "level": "h3",
+          "text": "THÔNG TIN TRA CỨU"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2F",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2F",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/khoa-hoc?category=TSA",
+          "text": "Xem tất cả",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - TSA] KHOÁ LUYỆN ĐỀ TINH TÚ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - TSA] CẨM NANG TSA HUST Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 TSA] NÂNG CAO: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 TSA] CHUYÊN ĐỀ: ĐỌC HIỂU - KHOA HỌC Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9] NỀN TẢNG: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/khoa-hoc?category=DGNL",
+          "text": "Xem tất cả",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: SINH HỌC Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: HOÁ HỌC Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: VẬT LÝ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: ĐỊA LÝ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL BCA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL QDA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: LỊCH SỬ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: TIẾNG ANH Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL HSA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] NÂNG CAO: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/khoa-hoc?category=THPT",
+          "text": "Xem tất cả",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - HSG] LUYỆN ĐỀ: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - HSG] NÂNG CAO: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/luyen-thi-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết TSA là gì, bài thi đánh giá những gì, thi trên máy hay trên giấy, kết quả dùng xét tuyển vào trường nào",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cau-truc-de-thi-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút Đề thi TSA gồm 3 phần: Tư duy Toán học 60 phút, Tư duy Đọc hiểu 30 phút, Tư duy Khoa học 60 phút. Chi tiết nội ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cach-tinh-diem-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao Điểm TSA không phải điểm thô. Bách khoa chấm bằng mô hình IRT 2 tham số rồi quy về thang 100.",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/luyen-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội HSA là gì, ai tổ chức, thi trên máy tính ra sao, một năm được thi mấy lượt, kết quả dùng xét tuyển vào bao nhiê",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cau-truc-de-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút Đề HSA gồm Toán 50 câu 75 phút, Văn học Ngôn ngữ 50 câu 60 phút và phần tự chọn Khoa học hoặc Tiếng Anh ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dang-ky-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt Hướng dẫn đăng ký thi Đánh giá năng lực HSA: 8 bước trên hệ thống, giấy tờ và ảnh cần chuẩn bị, hạn ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "Điều Khoản Dịch Vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "Bảo Mật Thông Tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "Điều Kiện Hạn Chế Cung Cấp",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "Quyền & Nghĩa Vụ Hai Bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "Thanh Toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "Giá Dịch Vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "Vận Chuyển & Đổi Trả",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "Khiếu Nại & Phản Ánh",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [
+        {
+          "text": "‹",
+          "aria": "Giáo viên trước",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "›",
+          "aria": "Giáo viên tiếp theo",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem khoá trước — Khoá học TSA",
+          "type": "button",
+          "disabled": true
+        },
+        {
+          "text": "",
+          "aria": "Xem khoá tiếp theo — Khoá học TSA",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem khoá trước — Khoá học ĐGNL",
+          "type": "button",
+          "disabled": true
+        },
+        {
+          "text": "",
+          "aria": "Xem khoá tiếp theo — Khoá học ĐGNL",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem khoá trước — Khoá học THPT",
+          "type": "button",
+          "disabled": true
+        },
+        {
+          "text": "",
+          "aria": "Xem khoá tiếp theo — Khoá học THPT",
+          "type": "button",
+          "disabled": true
+        }
+      ],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Bạn sẽ được trải nghiệm KHO ĐỀ| GIẢI PHÁP HỌC TẬP TOÀN DIỆN NỀN TẢNG HÀNG ĐẦU LUYỆN THI ONLINE THÀNH VIÊN 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 "
+    },
+    {
+      "expectedRoute": "/giao-vien",
+      "finalUrl": "https://aeck.vn/giao-vien",
+      "title": "Đội ngũ giáo viên | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 1624,
+        "bodyHeight": 1624,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": null,
+        "firstSection": null
+      },
+      "headings": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fgiao-vien",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fgiao-vien",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [
+        {
+          "text": "",
+          "aria": "Xem thông tin Thầy Vũ Gia Khoa",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Thầy Hồ Hoàng",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Thầy Minh Thành",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Cô Nguyễn Thị Cúc",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Cô Thuỳ Trang",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Cô Trần Thị Mơ",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Cô Minh Thư",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Cô Bích Ngọc",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Anh Lê Vĩnh Phước",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Anh Đức Nhân",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Anh Nhật Nam",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Chị Khánh Ngọc",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "aria": "Xem thông tin Chị Diệu Hoa",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký ĐỘI NGŨ GIÁO VIÊN SÁNG TẠO - TIÊN PHONG Chat Zalo Zalo Nhắn Messenger Fanpage AECK Gọi 0776 362 944"
+    },
+    {
+      "expectedRoute": "/goi-hoc-tap",
+      "finalUrl": "https://aeck.vn/goi-hoc-tap",
+      "title": "Gói học tập | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 900,
+        "bodyHeight": 900,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": {
+          "x": 0,
+          "y": 81,
+          "width": 1440,
+          "height": 546,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "footer": null,
+        "firstSection": null
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Gói học tập"
+        },
+        {
+          "level": "h3",
+          "text": "Khoá Toàn diện TSA 2027"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fgoi-hoc-tap",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fgoi-hoc-tap",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Chi tiết",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Đăng kí ngay",
+          "aria": null,
+          "type": null,
+          "disabled": false
+        }
+      ],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Gói học tập Đăng kí gói học tập để mở khoá toàn bộ khoá học và phòng luyện thi Thanh toán tự động Khoá Toàn diện TSA 2027 2.500.000 ₫ Chi ti"
+    },
+    {
+      "expectedRoute": "/khoa-hoc?category=TSA",
+      "finalUrl": "https://aeck.vn/khoa-hoc?category=TSA",
+      "title": "Khoá học luyện thi TSA, ĐGNL & THPT | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 900,
+        "bodyHeight": 900,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": {
+          "x": 0,
+          "y": 81,
+          "width": 1440,
+          "height": 709,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "footer": null,
+        "firstSection": {
+          "x": 400,
+          "y": 165,
+          "width": 984,
+          "height": 585,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h2",
+          "text": "DANH MỤC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - TSA] KHOÁ LUYỆN ĐỀ TINH TÚ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - TSA] CẨM NANG TSA HUST"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 TSA] NÂNG CAO: TOÁN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 TSA] CHUYÊN ĐỀ: ĐỌC HIỂU - KHOA HỌC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9] NỀN TẢNG: TOÁN"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fkhoa-hoc%3Fcategory%3DTSA",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fkhoa-hoc%3Fcategory%3DTSA",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - TSA] KHOÁ LUYỆN ĐỀ TINH TÚ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - TSA] CẨM NANG TSA HUST Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 TSA] NÂNG CAO: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 TSA] CHUYÊN ĐỀ: ĐỌC HIỂU - KHOA HỌC Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9] NỀN TẢNG: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [
+        {
+          "text": "ĐÁNH GIÁ TƯ DUY (TSA) 5 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "ĐÁNH GIÁ NĂNG LỰC (HSA - QDA - BCA) 10 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "THPT QUỐC GIA (THPT) 2 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ Khoá học DANH MỤC ĐÁNH GIÁ TƯ DUY (TSA) 5 khoá học ĐÁNH GIÁ NĂNG LỰC (HSA - QDA - BCA) 10 khoá học THPT QUỐC GIA (THPT) 2 khoá học"
+    },
+    {
+      "expectedRoute": "/portal",
+      "finalUrl": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "title": "AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 900,
+        "bodyHeight": 0,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": null,
+        "main": null,
+        "footer": null,
+        "firstSection": null
+      },
+      "headings": [],
+      "links": [],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "You need to enable JavaScript to run this app."
+    },
+    {
+      "expectedRoute": "/khoa-hoc?category=DGNL",
+      "finalUrl": "https://aeck.vn/khoa-hoc?category=DGNL",
+      "title": "Khoá học luyện thi TSA, ĐGNL & THPT | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 1330,
+        "bodyHeight": 1330,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": {
+          "x": 0,
+          "y": 81,
+          "width": 1440,
+          "height": 1249,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "footer": null,
+        "firstSection": {
+          "x": 400,
+          "y": 165,
+          "width": 984,
+          "height": 1126,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h2",
+          "text": "DANH MỤC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: SINH HỌC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: HOÁ HỌC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: VẬT LÝ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: ĐỊA LÝ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL BCA] CHUYÊN ĐỀ: NGỮ VĂN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL QDA] CHUYÊN ĐỀ: NGỮ VĂN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: LỊCH SỬ"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: TIẾNG ANH"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL HSA] CHUYÊN ĐỀ: NGỮ VĂN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - ĐGNL] NÂNG CAO: TOÁN"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fkhoa-hoc%3Fcategory%3DDGNL",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fkhoa-hoc%3Fcategory%3DDGNL",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: SINH HỌC Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: HOÁ HỌC Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: VẬT LÝ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: ĐỊA LÝ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL BCA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL QDA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: LỊCH SỬ Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] CHUYÊN ĐỀ: TIẾNG ANH Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL HSA] CHUYÊN ĐỀ: NGỮ VĂN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - ĐGNL] NÂNG CAO: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [
+        {
+          "text": "ĐÁNH GIÁ TƯ DUY (TSA) 5 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "ĐÁNH GIÁ NĂNG LỰC (HSA - QDA - BCA) 10 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "THPT QUỐC GIA (THPT) 2 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ Khoá học DANH MỤC ĐÁNH GIÁ TƯ DUY (TSA) 5 khoá học ĐÁNH GIÁ NĂNG LỰC (HSA - QDA - BCA) 10 khoá học THPT QUỐC GIA (THPT) 2 khoá học"
+    },
+    {
+      "expectedRoute": "/khoa-hoc?category=THPT",
+      "finalUrl": "https://aeck.vn/khoa-hoc?category=THPT",
+      "title": "Khoá học luyện thi TSA, ĐGNL & THPT | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 900,
+        "bodyHeight": 900,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": {
+          "x": 0,
+          "y": 81,
+          "width": 1440,
+          "height": 438,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "footer": null,
+        "firstSection": {
+          "x": 400,
+          "y": 165,
+          "width": 984,
+          "height": 315,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h2",
+          "text": "DANH MỤC"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - HSG] LUYỆN ĐỀ: TOÁN"
+        },
+        {
+          "level": "h3",
+          "text": "[2K9 - HSG] NÂNG CAO: TOÁN"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fkhoa-hoc%3Fcategory%3DTHPT",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fkhoa-hoc%3Fcategory%3DTHPT",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - HSG] LUYỆN ĐỀ: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/portal",
+          "text": "[2K9 - HSG] NÂNG CAO: TOÁN Giáo viên AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [
+        {
+          "text": "ĐÁNH GIÁ TƯ DUY (TSA) 5 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "ĐÁNH GIÁ NĂNG LỰC (HSA - QDA - BCA) 10 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "THPT QUỐC GIA (THPT) 2 khoá học",
+          "aria": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ Khoá học DANH MỤC ĐÁNH GIÁ TƯ DUY (TSA) 5 khoá học ĐÁNH GIÁ NĂNG LỰC (HSA - QDA - BCA) 10 khoá học THPT QUỐC GIA (THPT) 2 khoá học"
+    },
+    {
+      "expectedRoute": "/luyen-thi-tsa",
+      "finalUrl": "https://aeck.vn/luyen-thi-tsa",
+      "title": "Kỳ thi Đánh giá tư duy TSA - Thông tin đầy đủ 2027 | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 3836,
+        "bodyHeight": 3836,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 3721,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 724,
+          "width": 720,
+          "height": 275,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết"
+        },
+        {
+          "level": "h2",
+          "text": "TSA là kỳ thi gì?"
+        },
+        {
+          "level": "h2",
+          "text": "Bài thi đánh giá những năng lực nào?"
+        },
+        {
+          "level": "h2",
+          "text": "Ai nên thi TSA?"
+        },
+        {
+          "level": "h2",
+          "text": "Thi như thế nào, ở đâu?"
+        },
+        {
+          "level": "h2",
+          "text": "Đăng ký dự thi"
+        },
+        {
+          "level": "h2",
+          "text": "Ôn TSA bắt đầu từ đâu"
+        },
+        {
+          "level": "h2",
+          "text": "Câu hỏi thường gặp"
+        },
+        {
+          "level": "h2",
+          "text": "NGUỒN THAM KHẢO"
+        },
+        {
+          "level": "h2",
+          "text": "Luyện đề TSA bám sát cấu trúc thật"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fluyen-thi-tsa",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fluyen-thi-tsa",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tsa-la-gi",
+          "text": "TSA là kỳ thi gì?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#danh-gia-gi",
+          "text": "Bài thi đánh giá những năng lực nào?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#ai-nen-thi",
+          "text": "Ai nên thi TSA?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#hinh-thuc-thi",
+          "text": "Thi như thế nào, ở đâu?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dang-ky",
+          "text": "Đăng ký dự thi",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#on-tap",
+          "text": "Ôn TSA bắt đầu từ đâu",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://ts.hust.edu.vn/tin-tuc/gioi-thieu-ve-ky-thi-danh-gia-tu-duy-tsa",
+          "text": "Giới thiệu về Kỳ thi Đánh giá tư duy — TSA (ĐH Bách khoa Hà Nội)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Xem gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Hỏi qua Fanpage",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/cau-truc-de-thi-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cach-tinh-diem-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Đánh giá tư duy — TSA Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết TSA là kỳ thi riêng do Đại học Bách khoa Hà Nội tổ ch"
+    },
+    {
+      "expectedRoute": "/cau-truc-de-thi-tsa",
+      "finalUrl": "https://aeck.vn/cau-truc-de-thi-tsa",
+      "title": "Cấu trúc đề thi TSA - 3 phần, 100 câu, 150 phút | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4321,
+        "bodyHeight": 4321,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4206,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 724,
+          "width": 720,
+          "height": 434,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút"
+        },
+        {
+          "level": "h2",
+          "text": "Tổng quan bài thi"
+        },
+        {
+          "level": "h2",
+          "text": "Phần 1 — Tư duy Toán học (60 phút)"
+        },
+        {
+          "level": "h2",
+          "text": "Phần 2 — Tư duy Đọc hiểu (30 phút)"
+        },
+        {
+          "level": "h2",
+          "text": "Phần 3 — Tư duy Khoa học / Giải quyết vấn đề (60 phút)"
+        },
+        {
+          "level": "h2",
+          "text": "Ba mức độ tư duy trong đề"
+        },
+        {
+          "level": "h2",
+          "text": "Năm dạng câu hỏi"
+        },
+        {
+          "level": "h2",
+          "text": "Câu hỏi thường gặp"
+        },
+        {
+          "level": "h2",
+          "text": "NGUỒN THAM KHẢO"
+        },
+        {
+          "level": "h2",
+          "text": "Luyện đề TSA bám sát cấu trúc thật"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fcau-truc-de-thi-tsa",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fcau-truc-de-thi-tsa",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tong-quan",
+          "text": "Tổng quan bài thi",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tu-duy-toan-hoc",
+          "text": "Phần 1 — Tư duy Toán học (60 phút)",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tu-duy-doc-hieu",
+          "text": "Phần 2 — Tư duy Đọc hiểu (30 phút)",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tu-duy-khoa-hoc",
+          "text": "Phần 3 — Tư duy Khoa học / Giải quyết vấn đề (60 phút)",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#muc-do-tu-duy",
+          "text": "Ba mức độ tư duy trong đề",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dang-cau-hoi",
+          "text": "Năm dạng câu hỏi",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://ts.hust.edu.vn/tin-tuc/gioi-thieu-ve-ky-thi-danh-gia-tu-duy-tsa",
+          "text": "Giới thiệu về Kỳ thi Đánh giá tư duy — TSA (ĐH Bách khoa Hà Nội)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Xem gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Hỏi qua Fanpage",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/luyen-thi-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cach-tinh-diem-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Đánh giá tư duy — TSA Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút Biết trước đề có gì là bước đầu tiên khi ôn TSA. Dưới đây là "
+    },
+    {
+      "expectedRoute": "/cach-tinh-diem-tsa",
+      "finalUrl": "https://aeck.vn/cach-tinh-diem-tsa",
+      "title": "Cách tính điểm TSA - Thang 100 và mô hình IRT 2 tham số | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 3955,
+        "bodyHeight": 3955,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 3840,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 724,
+          "width": 720,
+          "height": 251,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao"
+        },
+        {
+          "level": "h2",
+          "text": "Điểm TSA không phải điểm thô"
+        },
+        {
+          "level": "h2",
+          "text": "Mô hình IRT hai tham số"
+        },
+        {
+          "level": "h2",
+          "text": "Quy trình chấm bốn bước"
+        },
+        {
+          "level": "h2",
+          "text": "Thang điểm và điểm thành phần"
+        },
+        {
+          "level": "h2",
+          "text": "Điểm các đợt thi có so sánh được không?"
+        },
+        {
+          "level": "h2",
+          "text": "Cách chấm này ảnh hưởng gì tới cách ôn"
+        },
+        {
+          "level": "h2",
+          "text": "Câu hỏi thường gặp"
+        },
+        {
+          "level": "h2",
+          "text": "NGUỒN THAM KHẢO"
+        },
+        {
+          "level": "h2",
+          "text": "Luyện đề TSA bám sát cấu trúc thật"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fcach-tinh-diem-tsa",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fcach-tinh-diem-tsa",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#khong-phai-diem-tho",
+          "text": "Điểm TSA không phải điểm thô",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#irt",
+          "text": "Mô hình IRT hai tham số",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quy-trinh-4-buoc",
+          "text": "Quy trình chấm bốn bước",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thang-diem",
+          "text": "Thang điểm và điểm thành phần",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#cong-bang-giua-cac-dot",
+          "text": "Điểm các đợt thi có so sánh được không?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#on-luyen",
+          "text": "Cách chấm này ảnh hưởng gì tới cách ôn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://ts.hust.edu.vn/tin-tuc/hieu-the-nao-ve-phuong-phap-cham-diem-tsa-cua-dai-hoc-bach-khoa-ha-noi",
+          "text": "Hiểu thế nào về phương pháp chấm điểm TSA (ĐH Bách khoa Hà Nội)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "https://hust.edu.vn/vi/news/tin-tuc-su-kien/vi-sao-diem-thi-tsa-phan-anh-chinh-xac-nang-luc-tu-duy-cua-thi-sinh-655844.html",
+          "text": "Vì sao điểm thi TSA phản ánh chính xác năng lực tư duy của thí sinh?",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Xem gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Hỏi qua Fanpage",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/luyen-thi-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Kỳ thi Đánh giá tư duy TSA: toàn bộ thông tin cần biết",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cau-truc-de-thi-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cấu trúc đề thi TSA: 3 phần, 100 câu, 150 phút",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Đánh giá tư duy — TSA Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao Đây là phần gây hiểu nhầm nhiều nhất. Hai t"
+    },
+    {
+      "expectedRoute": "/luyen-thi-hsa",
+      "finalUrl": "https://aeck.vn/luyen-thi-hsa",
+      "title": "Kỳ thi Đánh giá năng lực HSA - Thông tin đầy đủ 2026 | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4164,
+        "bodyHeight": 4164,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4049,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 724,
+          "width": 720,
+          "height": 227,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội"
+        },
+        {
+          "level": "h2",
+          "text": "HSA là kỳ thi gì?"
+        },
+        {
+          "level": "h2",
+          "text": "Bài thi đánh giá những gì?"
+        },
+        {
+          "level": "h2",
+          "text": "Một năm được thi mấy lượt?"
+        },
+        {
+          "level": "h2",
+          "text": "Bao nhiêu trường dùng kết quả HSA?"
+        },
+        {
+          "level": "h2",
+          "text": "Thi ở đâu?"
+        },
+        {
+          "level": "h2",
+          "text": "Ôn HSA thế nào cho hiệu quả"
+        },
+        {
+          "level": "h2",
+          "text": "Câu hỏi thường gặp"
+        },
+        {
+          "level": "h2",
+          "text": "NGUỒN THAM KHẢO"
+        },
+        {
+          "level": "h2",
+          "text": "Luyện đề TSA bám sát cấu trúc thật"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fluyen-thi-hsa",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fluyen-thi-hsa",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#hsa-la-gi",
+          "text": "HSA là kỳ thi gì?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#danh-gia-gi",
+          "text": "Bài thi đánh giá những gì?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#so-lan-thi",
+          "text": "Một năm được thi mấy lượt?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#truong-su-dung",
+          "text": "Bao nhiêu trường dùng kết quả HSA?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dia-diem",
+          "text": "Thi ở đâu?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#on-tap",
+          "text": "Ôn HSA thế nào cho hiệu quả",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.hsa.edu.vn/ky-thi/ky-thi-dgnl-hsa",
+          "text": "Kỳ thi ĐGNL HSA (Viện Đào tạo số và Khảo thí — ĐHQGHN)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "https://www.hsa.edu.vn/tra-cuu/truong-dai-hoc-su-dung",
+          "text": "Danh sách trường đại học sử dụng kết quả HSA",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "https://www.hsa.edu.vn/tra-cuu/dia-diem-thi",
+          "text": "Địa điểm thi HSA",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Xem gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Hỏi qua Fanpage",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/cau-truc-de-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dang-ky-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Đánh giá năng lực — HSA Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội HSA là kỳ thi đánh giá năng lực do Đại học Quốc gia Hà Nội tổ"
+    },
+    {
+      "expectedRoute": "/cau-truc-de-thi-hsa",
+      "finalUrl": "https://aeck.vn/cau-truc-de-thi-hsa",
+      "title": "Cấu trúc đề thi HSA 2026 - 150 câu, 195 phút, thang 150 điểm | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4148,
+        "bodyHeight": 4148,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4033,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 752,
+          "width": 720,
+          "height": 486,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút"
+        },
+        {
+          "level": "h2",
+          "text": "Tổng quan bài thi"
+        },
+        {
+          "level": "h2",
+          "text": "Phần 1 — Toán học và xử lý số liệu (75 phút)"
+        },
+        {
+          "level": "h2",
+          "text": "Phần 2 — Văn học, Ngôn ngữ (60 phút)"
+        },
+        {
+          "level": "h2",
+          "text": "Phần 3 — Khoa học hoặc Tiếng Anh (60 phút)"
+        },
+        {
+          "level": "h2",
+          "text": "Kiến thức rơi vào lớp mấy?"
+        },
+        {
+          "level": "h2",
+          "text": "Cách chấm điểm và quy tắc làm bài"
+        },
+        {
+          "level": "h2",
+          "text": "Câu hỏi thường gặp"
+        },
+        {
+          "level": "h2",
+          "text": "NGUỒN THAM KHẢO"
+        },
+        {
+          "level": "h2",
+          "text": "Luyện đề TSA bám sát cấu trúc thật"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fcau-truc-de-thi-hsa",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fcau-truc-de-thi-hsa",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tong-quan",
+          "text": "Tổng quan bài thi",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phan-1",
+          "text": "Phần 1 — Toán học và xử lý số liệu (75 phút)",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phan-2",
+          "text": "Phần 2 — Văn học, Ngôn ngữ (60 phút)",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phan-3",
+          "text": "Phần 3 — Khoa học hoặc Tiếng Anh (60 phút)",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phan-bo-kien-thuc",
+          "text": "Kiến thức rơi vào lớp mấy?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#cach-cham",
+          "text": "Cách chấm điểm và quy tắc làm bài",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.hsa.edu.vn/huong-dan/dang-thuc-bai-thi",
+          "text": "Dạng thức và đề cương bài thi ĐGNL áp dụng từ năm 2026 (ĐHQGHN)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "https://www.hsa.edu.vn/bai-dang/44",
+          "text": "Đề thi tham khảo bài thi ĐGNL (ĐHQGHN)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Xem gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Hỏi qua Fanpage",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/cach-tinh-diem-tsa",
+          "text": "ĐÁNH GIÁ TƯ DUY — TSA Cách tính điểm TSA: vì sao làm đúng nhiều câu chưa chắc điểm cao",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/luyen-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dang-ky-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Đánh giá năng lực — HSA Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút Dạng thức dưới đây áp dụng từ năm 2026, theo Quyết địn"
+    },
+    {
+      "expectedRoute": "/dang-ky-thi-hsa",
+      "finalUrl": "https://aeck.vn/dang-ky-thi-hsa",
+      "title": "Đăng ký thi HSA - Quy trình 8 bước, hồ sơ và lệ phí | AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 3439,
+        "bodyHeight": 3439,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 3324,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 695,
+          "width": 720,
+          "height": 99,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt"
+        },
+        {
+          "level": "h2",
+          "text": "Đăng ký ở đâu?"
+        },
+        {
+          "level": "h2",
+          "text": "Chuẩn bị trước khi mở cổng"
+        },
+        {
+          "level": "h2",
+          "text": "Quy trình 8 bước"
+        },
+        {
+          "level": "h2",
+          "text": "Lệ phí và hạn thanh toán"
+        },
+        {
+          "level": "h2",
+          "text": "Giới hạn số lượt thi"
+        },
+        {
+          "level": "h2",
+          "text": "Câu hỏi thường gặp"
+        },
+        {
+          "level": "h2",
+          "text": "NGUỒN THAM KHẢO"
+        },
+        {
+          "level": "h2",
+          "text": "Luyện đề TSA bám sát cấu trúc thật"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fdang-ky-thi-hsa",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fdang-ky-thi-hsa",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dang-ky-o-dau",
+          "text": "Đăng ký ở đâu?",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#chuan-bi",
+          "text": "Chuẩn bị trước khi mở cổng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quy-trinh",
+          "text": "Quy trình 8 bước",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#le-phi",
+          "text": "Lệ phí và hạn thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#so-luot-thi",
+          "text": "Giới hạn số lượt thi",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.hsa.edu.vn/huong-dan/dang-ky-thi",
+          "text": "Hướng dẫn đăng ký thi (Viện Đào tạo số và Khảo thí — ĐHQGHN)",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "https://www.hsa.edu.vn/huong-dan/nop-le-phi",
+          "text": "Hướng dẫn nộp lệ phí thi",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "https://www.hsa.edu.vn/huong-dan/quy-che-thi",
+          "text": "Quy chế thi đánh giá năng lực",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Xem gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Hỏi qua Fanpage",
+          "aria": null,
+          "external": true
+        },
+        {
+          "href": "/luyen-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Kỳ thi Đánh giá năng lực HSA của ĐHQG Hà Nội",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/cau-truc-de-thi-hsa",
+          "text": "ĐÁNH GIÁ NĂNG LỰC — HSA Cấu trúc đề thi HSA 2026: 3 phần, 150 câu, 195 phút",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Đánh giá năng lực — HSA Đăng ký thi HSA: quy trình 8 bước và những mốc dễ trượt Phần lớn rắc rối khi đăng ký HSA không nằm ở chỗ k"
+    },
+    {
+      "expectedRoute": "/dieu-khoan-dich-vu",
+      "finalUrl": "https://aeck.vn/dieu-khoan-dich-vu",
+      "title": "Điều khoản dịch vụ - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 3931,
+        "bodyHeight": 3931,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 3816,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 799,
+          "width": 720,
+          "height": 505,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Điều khoản dịch vụ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Điều khoản sử dụng"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Bảo vệ thông tin cá nhân"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Sử dụng dịch vụ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Quyền sở hữu trí tuệ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Giới hạn trách nhiệm"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Cập nhật điều khoản"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Thông tin liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Pháp lý"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fdieu-khoan-dich-vu",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fdieu-khoan-dich-vu",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dieu-khoan-su-dung",
+          "text": "Ⅰ. Điều khoản sử dụng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#bao-ve-thong-tin",
+          "text": "Ⅱ. Bảo vệ thông tin cá nhân",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#su-dung-dich-vu",
+          "text": "Ⅲ. Sử dụng dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#so-huu-tri-tue",
+          "text": "Ⅳ. Quyền sở hữu trí tuệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#gioi-han-trach-nhiem",
+          "text": "Ⅴ. Giới hạn trách nhiệm",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#cap-nhat-dieu-khoan",
+          "text": "Ⅵ. Cập nhật điều khoản",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅶ. Thông tin liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phap-ly",
+          "text": "Ⅷ. Pháp lý",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Điều khoản Điều khoản dịch vụ CẬP NHẬT LẦN CUỐI: 28/08/2026 Cảm ơn bạn đã tin tưởng AECK. Trước khi bắt đầu học và luyện đề, mời b"
+    },
+    {
+      "expectedRoute": "/chinh-sach-bao-mat",
+      "finalUrl": "https://aeck.vn/chinh-sach-bao-mat",
+      "title": "Chính sách bảo mật thông tin - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 6098,
+        "bodyHeight": 6098,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 5983,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 913,
+          "width": 720,
+          "height": 295,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Chính sách bảo mật thông tin"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Thông tin chúng tôi thu thập"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Mục đích sử dụng thông tin"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Chia sẻ thông tin"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Bảo mật thông tin"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Thời gian lưu trữ dữ liệu"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Cookie và công nghệ tương tự"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Dữ liệu của người học chưa thành niên"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Bên thứ ba tham gia xử lý dữ liệu"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅸ. Quyền của bạn với dữ liệu cá nhân"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅹ. Khiếu nại khi thông tin cá nhân bị dùng sai mục đích"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅺ. Thay đổi chính sách bảo mật"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅻ. Đơn vị chịu trách nhiệm và liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-bao-mat",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-bao-mat",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thong-tin-thu-thap",
+          "text": "Ⅰ. Thông tin chúng tôi thu thập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#muc-dich-su-dung",
+          "text": "Ⅱ. Mục đích sử dụng thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#chia-se-thong-tin",
+          "text": "Ⅲ. Chia sẻ thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#bao-mat-thong-tin",
+          "text": "Ⅳ. Bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thoi-gian-luu-tru",
+          "text": "Ⅴ. Thời gian lưu trữ dữ liệu",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#cookie",
+          "text": "Ⅵ. Cookie và công nghệ tương tự",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#nguoi-hoc-chua-thanh-nien",
+          "text": "Ⅶ. Dữ liệu của người học chưa thành niên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#ben-thu-ba",
+          "text": "Ⅷ. Bên thứ ba tham gia xử lý dữ liệu",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quyen-cua-ban",
+          "text": "Ⅸ. Quyền của bạn với dữ liệu cá nhân",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#khieu-nai-du-lieu",
+          "text": "Ⅹ. Khiếu nại khi thông tin cá nhân bị dùng sai mục đích",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thay-doi-chinh-sach",
+          "text": "Ⅺ. Thay đổi chính sách bảo mật",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅻ. Đơn vị chịu trách nhiệm và liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Bảo mật Chính sách bảo mật thông tin CẬP NHẬT LẦN CUỐI: 03/09/2026 Tại AECK, chúng tôi cam kết bảo vệ quyền riêng tư và an toàn th"
+    },
+    {
+      "expectedRoute": "/dieu-kien-han-che-cung-cap",
+      "finalUrl": "https://aeck.vn/dieu-kien-han-che-cung-cap",
+      "title": "Điều kiện hạn chế cung cấp hàng hoá, dịch vụ - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4396,
+        "bodyHeight": 4396,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4281,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 845,
+          "width": 720,
+          "height": 247,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Thời gian tiếp nhận và xử lý"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Điều kiện với người mua"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Giới hạn kỹ thuật"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Phạm vi và thời hạn cung cấp"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Trường hợp từ chối hoặc tạm dừng cung cấp"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Bảo trì, gián đoạn và bất khả kháng"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Quyền lợi của bạn không bị loại trừ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fdieu-kien-han-che-cung-cap",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fdieu-kien-han-che-cung-cap",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thoi-gian-cung-cap",
+          "text": "Ⅰ. Thời gian tiếp nhận và xử lý",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dieu-kien-nguoi-mua",
+          "text": "Ⅱ. Điều kiện với người mua",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#gioi-han-ky-thuat",
+          "text": "Ⅲ. Giới hạn kỹ thuật",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#pham-vi-thoi-han",
+          "text": "Ⅳ. Phạm vi và thời hạn cung cấp",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tu-choi-cung-cap",
+          "text": "Ⅴ. Trường hợp từ chối hoặc tạm dừng cung cấp",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#gian-doan",
+          "text": "Ⅵ. Bảo trì, gián đoạn và bất khả kháng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quyen-loi-khong-bi-loai-tru",
+          "text": "Ⅶ. Quyền lợi của bạn không bị loại trừ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅷ. Liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Điều kiện Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ CẬP NHẬT LẦN CUỐI: 03/09/2026 Có những trường hợp AECK không"
+    },
+    {
+      "expectedRoute": "/quyen-va-nghia-vu-hai-ben",
+      "finalUrl": "https://aeck.vn/quyen-va-nghia-vu-hai-ben",
+      "title": "Quyền và nghĩa vụ của hai bên - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4398,
+        "bodyHeight": 4398,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4283,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 770,
+          "width": 720,
+          "height": 383,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Quyền và nghĩa vụ của hai bên"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Các bên trong giao dịch"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Quyền của người học"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Nghĩa vụ của người học"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Quyền của AECK"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Nghĩa vụ của AECK"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Hiệu lực và chấm dứt"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Pháp luật áp dụng và liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fquyen-va-nghia-vu-hai-ben",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fquyen-va-nghia-vu-hai-ben",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#cac-ben",
+          "text": "Ⅰ. Các bên trong giao dịch",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quyen-nguoi-hoc",
+          "text": "Ⅱ. Quyền của người học",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#nghia-vu-nguoi-hoc",
+          "text": "Ⅲ. Nghĩa vụ của người học",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quyen-aeck",
+          "text": "Ⅳ. Quyền của AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#nghia-vu-aeck",
+          "text": "Ⅴ. Nghĩa vụ của AECK",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#hieu-luc",
+          "text": "Ⅵ. Hiệu lực và chấm dứt",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phap-luat-ap-dung",
+          "text": "Ⅶ. Pháp luật áp dụng và liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Quyền và nghĩa vụ Quyền và nghĩa vụ của hai bên CẬP NHẬT LẦN CUỐI: 03/09/2026 Khi bạn mua một gói học tập của AECK, giữa hai bên h"
+    },
+    {
+      "expectedRoute": "/chinh-sach-thanh-toan",
+      "finalUrl": "https://aeck.vn/chinh-sach-thanh-toan",
+      "title": "Chính sách thanh toán - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4597,
+        "bodyHeight": 4597,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4482,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 855,
+          "width": 720,
+          "height": 97,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Chính sách thanh toán"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Phạm vi áp dụng"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Phương thức thanh toán được chấp nhận"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Quy trình thanh toán"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Đăng ký và thanh toán qua fanpage, Zalo, hotline"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Đồng tiền và số tiền thanh toán"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Xác nhận và chứng từ"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. An toàn khi thanh toán"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Hoàn tiền"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅸ. Liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-thanh-toan",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-thanh-toan",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#pham-vi",
+          "text": "Ⅰ. Phạm vi áp dụng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phuong-thuc",
+          "text": "Ⅱ. Phương thức thanh toán được chấp nhận",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quy-trinh",
+          "text": "Ⅲ. Quy trình thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dang-ky-qua-tu-van",
+          "text": "Ⅳ. Đăng ký và thanh toán qua fanpage, Zalo, hotline",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#so-tien",
+          "text": "Ⅴ. Đồng tiền và số tiền thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#chung-tu",
+          "text": "Ⅵ. Xác nhận và chứng từ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#an-toan",
+          "text": "Ⅶ. An toàn khi thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#hoan-tien",
+          "text": "Ⅷ. Hoàn tiền",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅸ. Liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Thanh toán Chính sách thanh toán CẬP NHẬT LẦN CUỐI: 03/09/2026 AECK nhận thanh toán bằng chuyển khoản ngân hàng theo mã đơn hàng v"
+    },
+    {
+      "expectedRoute": "/chinh-sach-gia",
+      "finalUrl": "https://aeck.vn/chinh-sach-gia",
+      "title": "Chính sách giá - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 3855,
+        "bodyHeight": 3855,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 3740,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 799,
+          "width": 720,
+          "height": 213,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Chính sách giá"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Nguyên tắc niêm yết giá"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Giá đã bao gồm những gì"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Phí vận chuyển và các chi phí phát sinh khác"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Chi phí sử dụng website"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Điều chỉnh giá"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Ưu đãi và khuyến mại"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Khi giá hiển thị sai"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-gia",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-gia",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#niem-yet",
+          "text": "Ⅰ. Nguyên tắc niêm yết giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#bao-gom",
+          "text": "Ⅱ. Giá đã bao gồm những gì",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phi-phat-sinh",
+          "text": "Ⅲ. Phí vận chuyển và các chi phí phát sinh khác",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#phi-su-dung-website",
+          "text": "Ⅳ. Chi phí sử dụng website",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thay-doi-gia",
+          "text": "Ⅴ. Điều chỉnh giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#uu-dai",
+          "text": "Ⅵ. Ưu đãi và khuyến mại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#sai-lech-gia",
+          "text": "Ⅶ. Khi giá hiển thị sai",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅷ. Liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Giá dịch vụ Chính sách giá CẬP NHẬT LẦN CUỐI: 03/09/2026 Giá của mỗi gói học tập được niêm yết công khai ngay trên trang giới thiệ"
+    },
+    {
+      "expectedRoute": "/chinh-sach-van-chuyen-doi-tra",
+      "finalUrl": "https://aeck.vn/chinh-sach-van-chuyen-doi-tra",
+      "title": "Chính sách vận chuyển, kiểm tra và đổi trả - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 5690,
+        "bodyHeight": 5690,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 5575,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 901,
+          "width": 720,
+          "height": 179,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Chính sách vận chuyển - kiểm tra - đổi trả hàng"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Phạm vi áp dụng"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Giao nhận sản phẩm số"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Vận chuyển tài liệu của khoá học"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Đóng gói, chứng từ và trách nhiệm của các bên"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Kiểm tra hàng khi nhận"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Gửi bù tài liệu"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Học thử và chính sách không hoàn tiền khoá học"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Quy trình yêu cầu gửi bù tài liệu hoặc xét duyệt bất khả kháng"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅸ. Liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-van-chuyen-doi-tra",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-van-chuyen-doi-tra",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#pham-vi",
+          "text": "Ⅰ. Phạm vi áp dụng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#giao-san-pham-so",
+          "text": "Ⅱ. Giao nhận sản phẩm số",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#van-chuyen-vat-pham",
+          "text": "Ⅲ. Vận chuyển tài liệu của khoá học",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#dong-goi-chung-tu",
+          "text": "Ⅳ. Đóng gói, chứng từ và trách nhiệm của các bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#kiem-tra-khi-nhan",
+          "text": "Ⅴ. Kiểm tra hàng khi nhận",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#doi-tra-vat-pham",
+          "text": "Ⅵ. Gửi bù tài liệu",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#hoan-tien-san-pham-so",
+          "text": "Ⅶ. Học thử và chính sách không hoàn tiền khoá học",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quy-trinh-yeu-cau",
+          "text": "Ⅷ. Quy trình yêu cầu gửi bù tài liệu hoặc xét duyệt bất khả kháng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅸ. Liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-khieu-nai",
+          "text": "KHIẾU NẠI Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Giao nhận Chính sách vận chuyển - kiểm tra - đổi trả hàng CẬP NHẬT LẦN CUỐI: 03/09/2026 Thứ AECK bán là gói học tập trực tuyến, đư"
+    },
+    {
+      "expectedRoute": "/chinh-sach-khieu-nai",
+      "finalUrl": "https://aeck.vn/chinh-sach-khieu-nai",
+      "title": "Tiếp nhận và giải quyết khiếu nại - AECK",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "scroll": {
+        "documentHeight": 4226,
+        "bodyHeight": 4226,
+        "y": 0
+      },
+      "overflow": {
+        "html": "visible",
+        "body": "visible"
+      },
+      "geometry": {
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 81,
+          "position": "sticky",
+          "zIndex": "50",
+          "overflow": "visible",
+          "backgroundColor": "rgba(255, 255, 255, 0.8)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "main": null,
+        "footer": {
+          "x": 0,
+          "y": 4111,
+          "width": 1440,
+          "height": 115,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgb(249, 250, 251)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        },
+        "firstSection": {
+          "x": 360,
+          "y": 845,
+          "width": 720,
+          "height": 545,
+          "position": "static",
+          "zIndex": "auto",
+          "overflow": "visible",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(0, 0, 0)",
+          "fontFamily": "Lato, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "borderRadius": "0px"
+        }
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅰ. Kênh tiếp nhận"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅱ. Thông tin cần cung cấp"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅲ. Quy trình xử lý"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅳ. Thời hạn xử lý"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅴ. Trách nhiệm của người gửi và trường hợp từ chối giải quyết"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅵ. Nguyên tắc xử lý"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅶ. Giải quyết tranh chấp"
+        },
+        {
+          "level": "h2",
+          "text": "Ⅷ. Liên hệ"
+        },
+        {
+          "level": "h2",
+          "text": "Cần hỗ trợ thêm?"
+        },
+        {
+          "level": "h2",
+          "text": "ĐỌC TIẾP"
+        }
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/giao-vien",
+          "text": "Giáo viên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/goi-hoc-tap",
+          "text": "Gói học tập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-khieu-nai",
+          "text": "Đăng nhập",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://account.aeck.vn/signup?redirect=https%3A%2F%2Faeck.vn%2Fchinh-sach-khieu-nai",
+          "text": "Đăng ký",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/",
+          "text": "Trang chủ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#kenh-tiep-nhan",
+          "text": "Ⅰ. Kênh tiếp nhận",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thong-tin-can-co",
+          "text": "Ⅱ. Thông tin cần cung cấp",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#quy-trinh",
+          "text": "Ⅲ. Quy trình xử lý",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#thoi-han",
+          "text": "Ⅳ. Thời hạn xử lý",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#trach-nhiem-nguoi-gui",
+          "text": "Ⅴ. Trách nhiệm của người gửi và trường hợp từ chối giải quyết",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#nguyen-tac",
+          "text": "Ⅵ. Nguyên tắc xử lý",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#tranh-chap",
+          "text": "Ⅶ. Giải quyết tranh chấp",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "#lien-he",
+          "text": "Ⅷ. Liên hệ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-khoan-dich-vu",
+          "text": "ĐIỀU KHOẢN Điều khoản dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-bao-mat",
+          "text": "BẢO MẬT Chính sách bảo mật thông tin",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-thanh-toan",
+          "text": "THANH TOÁN Chính sách thanh toán",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-gia",
+          "text": "GIÁ DỊCH VỤ Chính sách giá",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/chinh-sach-van-chuyen-doi-tra",
+          "text": "GIAO NHẬN Chính sách vận chuyển - kiểm tra - đổi trả hàng",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/dieu-kien-han-che-cung-cap",
+          "text": "ĐIỀU KIỆN Các điều kiện hạn chế trong việc cung cấp hàng hoá, dịch vụ",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "/quyen-va-nghia-vu-hai-ben",
+          "text": "QUYỀN VÀ NGHĨA VỤ Quyền và nghĩa vụ của hai bên",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "mailto:hotro@aeck.vn",
+          "text": "hotro@aeck.vn",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "0776 362 944",
+          "aria": null,
+          "external": false
+        },
+        {
+          "href": "https://zalo.me/0776362944",
+          "text": "Chat Zalo Zalo",
+          "aria": "Chat Zalo",
+          "external": true
+        },
+        {
+          "href": "https://m.me/aeck.edu.vn",
+          "text": "Nhắn Messenger",
+          "aria": "Nhắn Messenger",
+          "external": true
+        },
+        {
+          "href": "https://www.facebook.com/aeck.edu.vn",
+          "text": "Fanpage AECK",
+          "aria": "Fanpage AECK",
+          "external": true
+        },
+        {
+          "href": "tel:0776362944",
+          "text": "Gọi 0776 362 944",
+          "aria": "Gọi 0776 362 944",
+          "external": false
+        }
+      ],
+      "buttons": [],
+      "controls": [],
+      "bodyTextSample": "Giáo viên Gói học tập Đăng nhập Đăng ký Trang chủ/Khiếu nại Phương thức tiếp nhận và giải quyết yêu cầu, phản ánh, khiếu nại CẬP NHẬT LẦN CUỐI: 03/09/2026 Khi có điều gì đó không đ"
+    }
+  ],
+  "screenshots": [
+    {
+      "route": "/",
+      "path": "RECON\\target\\public-routes\\home-1440.png"
+    },
+    {
+      "route": "/giao-vien",
+      "path": "RECON\\target\\public-routes\\giao-vien-1440.png"
+    },
+    {
+      "route": "/goi-hoc-tap",
+      "path": "RECON\\target\\public-routes\\goi-hoc-tap-1440.png"
+    },
+    {
+      "route": "/khoa-hoc?category=TSA",
+      "path": "RECON\\target\\public-routes\\khoa-hoc-category-tsa-1440.png"
+    },
+    {
+      "route": "/portal",
+      "path": "RECON\\target\\public-routes\\portal-1440.png"
+    },
+    {
+      "route": "/khoa-hoc?category=DGNL",
+      "path": "RECON\\target\\public-routes\\khoa-hoc-category-dgnl-1440.png"
+    },
+    {
+      "route": "/khoa-hoc?category=THPT",
+      "path": "RECON\\target\\public-routes\\khoa-hoc-category-thpt-1440.png"
+    },
+    {
+      "route": "/luyen-thi-tsa",
+      "path": "RECON\\target\\public-routes\\luyen-thi-tsa-1440.png"
+    },
+    {
+      "route": "/cau-truc-de-thi-tsa",
+      "path": "RECON\\target\\public-routes\\cau-truc-de-thi-tsa-1440.png"
+    },
+    {
+      "route": "/cach-tinh-diem-tsa",
+      "path": "RECON\\target\\public-routes\\cach-tinh-diem-tsa-1440.png"
+    },
+    {
+      "route": "/luyen-thi-hsa",
+      "path": "RECON\\target\\public-routes\\luyen-thi-hsa-1440.png"
+    },
+    {
+      "route": "/cau-truc-de-thi-hsa",
+      "path": "RECON\\target\\public-routes\\cau-truc-de-thi-hsa-1440.png"
+    },
+    {
+      "route": "/dang-ky-thi-hsa",
+      "path": "RECON\\target\\public-routes\\dang-ky-thi-hsa-1440.png"
+    },
+    {
+      "route": "/dieu-khoan-dich-vu",
+      "path": "RECON\\target\\public-routes\\dieu-khoan-dich-vu-1440.png"
+    },
+    {
+      "route": "/chinh-sach-bao-mat",
+      "path": "RECON\\target\\public-routes\\chinh-sach-bao-mat-1440.png"
+    },
+    {
+      "route": "/dieu-kien-han-che-cung-cap",
+      "path": "RECON\\target\\public-routes\\dieu-kien-han-che-cung-cap-1440.png"
+    },
+    {
+      "route": "/quyen-va-nghia-vu-hai-ben",
+      "path": "RECON\\target\\public-routes\\quyen-va-nghia-vu-hai-ben-1440.png"
+    },
+    {
+      "route": "/chinh-sach-thanh-toan",
+      "path": "RECON\\target\\public-routes\\chinh-sach-thanh-toan-1440.png"
+    },
+    {
+      "route": "/chinh-sach-gia",
+      "path": "RECON\\target\\public-routes\\chinh-sach-gia-1440.png"
+    },
+    {
+      "route": "/chinh-sach-van-chuyen-doi-tra",
+      "path": "RECON\\target\\public-routes\\chinh-sach-van-chuyen-doi-tra-1440.png"
+    },
+    {
+      "route": "/chinh-sach-khieu-nai",
+      "path": "RECON\\target\\public-routes\\chinh-sach-khieu-nai-1440.png"
+    }
+  ]
+}

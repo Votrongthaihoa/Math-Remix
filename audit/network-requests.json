@@ -1,0 +1,48 @@
+{
+  "captureStatus": "unavailable_after_site_protection",
+  "observedRedirect": "https://theajack.github.io/disable-devtool/404.html?h=hethonglab.com",
+  "excludedCapture": "All requests from the accidental localhost reload were discarded.",
+  "sensitiveHeadersStored": false,
+  "endpointsFromReferenceBundle": [
+    {
+      "method": "GET",
+      "endpoint": "/bags/public",
+      "trigger": "PartListPage list state; page_size=6, type=tsa, optional search"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/bags/:id",
+      "trigger": "Select a package; response supplies metadata and parts"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/parts",
+      "trigger": "Unbagged part listing/filtering"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/parts/tags",
+      "trigger": "PartListPage mount"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/parts/:id/start",
+      "trigger": "Vào làm; success navigates to /phan-thi-tsa/:attempt.id"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/attempts/parts/:id/history",
+      "trigger": "Xem lịch sử"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/attempts/:id/submit",
+      "trigger": "Confirm submit"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/attempts/:id/next",
+      "trigger": "Move to next part"
+    }
+  ]
+}

@@ -186,7 +186,7 @@
 }
 
 .zaloContact {
-  background: #0879f9;
+  background: #0868d7;
   font-size: 12px;
   font-weight: 900;
 }
@@ -655,7 +655,7 @@ button.teacherCard:hover img {
 
 .courseCardBody small {
   min-width: 0;
-  color: #969dab;
+  color: #667085;
   font-size: 11px;
   overflow-wrap: anywhere;
 }

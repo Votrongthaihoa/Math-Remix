@@ -357,7 +357,7 @@ function Modal({ title, onClose, children, wide = false }: { title: string; onCl
   );
 }
 
-function TeacherCard({ teacher, onOpen, compact = false }: { teacher: PublicTeacher; onOpen?: (teacher: PublicTeacher) => void; compact?: boolean }) {
+function TeacherCard({ teacher, onOpen, compact = false, priority = false }: { teacher: PublicTeacher; onOpen?: (teacher: PublicTeacher) => void; compact?: boolean; priority?: boolean }) {
   const image = (
     <Image
       src={publicAsset(`teachers/${teacher.slug}.webp`)}
@@ -365,6 +365,7 @@ function TeacherCard({ teacher, onOpen, compact = false }: { teacher: PublicTeac
       width={600}
       height={650}
       sizes={compact ? "(max-width: 640px) 44vw, 240px" : "(max-width: 640px) 46vw, (max-width: 1000px) 30vw, 260px"}
+      priority={priority}
     />
   );
   return teacher.profile && onOpen ? (
@@ -461,8 +462,8 @@ function HomePage() {
               <ChevronLeft aria-hidden="true" />
             </button>
             <div className={styles.homeTeacherGrid}>
-              {featuredTeachers.map((teacher) => (
-                <TeacherCard key={teacher.slug} teacher={teacher} compact onOpen={setSelectedTeacher} />
+              {featuredTeachers.map((teacher, index) => (
+                <TeacherCard key={teacher.slug} teacher={teacher} compact priority={index === 0} onOpen={setSelectedTeacher} />
               ))}
             </div>
             <button type="button" onClick={() => setTeacherOffset((value) => (value + 1) % publicTeachers.length)} aria-label="Giáo viên tiếp theo">

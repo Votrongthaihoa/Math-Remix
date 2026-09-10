@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import QRCode from "qrcode";
 import { ArrowLeft, ArrowRight, CalendarClock, Check, CheckCircle2, ClipboardCheck, Copy, ExternalLink, FileText, Link2, LockKeyhole, QrCode, ShieldCheck, UserRound } from "lucide-react";
-import MacAlert from "../components/macos/MacAlert";
+import AeckConfirmDialog from "../components/aeck/AeckConfirmDialog";
 import { authenticatedFetch } from "../lib/auth-client";
 import type { ExamPolicy } from "../lib/exam-policy";
 import { normalizeExamType } from "../lib/exam-config";
@@ -635,7 +635,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
 
   return <section className="admin-session-wizard">
     <header className="admin-session-wizard-header"><div><button type="button" className="admin-session-wizard-back" onClick={() => requestNavigation("/admin/sessions")}><ArrowLeft aria-hidden="true" />Đợt thi</button><span className="admin-session-wizard-kicker">TỔ CHỨC KỲ THI</span><h1>Tạo kíp thi</h1><p>Chọn đề trước, sau đó thiết lập thời gian và cách tham gia trong một luồng duy nhất.</p></div><div className="admin-session-wizard-header-icon" aria-hidden="true"><CalendarClock /></div></header>
-    <nav className="admin-session-stepper" aria-label="Các bước tạo kíp thi">{steps.map(item => <div className={step === item.id ? "active" : step > item.id ? "completed" : ""} aria-current={step === item.id ? "step" : undefined} key={item.id}><span>{step > item.id ? <Check aria-hidden="true" /> : item.id}</span><b>{item.label}</b></div>)}</nav>
+    <nav className="admin-session-stepper" aria-label="Các bước tạo kíp thi"><ol>{steps.map(item => <li className={step === item.id ? "active" : step > item.id ? "completed" : ""} aria-current={step === item.id ? "step" : undefined} key={item.id}><span>{step > item.id ? <Check aria-hidden="true" /> : item.id}</span><b>{item.label}</b></li>)}</ol></nav>
     <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcedStep ? `Bước ${announcedStep} trên 4: ${steps.find(item => item.id === announcedStep)?.label ?? ""}` : ""}</p>
     {error && !Object.values(fieldErrors).some(Boolean) && <div className="admin-session-wizard-error" role="alert">{error}</div>}
     {Object.values(fieldErrors).some(Boolean) && <div className="admin-session-field-error-summary" role="alert"><b>Kiểm tra lại thông tin:</b><ul>{Object.entries(fieldErrors).filter((entry): entry is [string, string] => Boolean(entry[1])).map(([field, message]) => <li key={field}>{message}</li>)}</ul></div>}
@@ -654,7 +654,7 @@ export default function AdminSessionWizard({ navigate }: { navigate: (path: stri
       {Object.entries(fieldErrors).some(([, message]) => Boolean(message)) && <div className="admin-session-inline-errors" aria-label="Các trường cần kiểm tra">{Object.entries(fieldErrors).filter((entry): entry is [WizardField, string] => Boolean(entry[1])).map(([field, message]) => <p id={`wizard-${field}-error`} key={field}>{message}</p>)}</div>}
       <footer className="admin-session-wizard-footer"><button type="button" className="admin-session-wizard-secondary" onClick={step === 1 ? () => requestNavigation("/admin/sessions") : previousStep}><ArrowLeft aria-hidden="true" />{step === 1 ? "Hủy" : "Quay lại"}</button><span className="admin-session-wizard-footer-hint">{step < 4 ? "Bạn có thể kiểm tra lại ở bước cuối." : "Các thay đổi chỉ áp dụng cho lượt thi mới."}</span>{step < 4 ? <button type="submit" className="admin-session-wizard-primary" disabled={loadingExam || !selectedExam}>{step === 1 ? "Tiếp tục" : "Tiếp tục"}<ArrowRight aria-hidden="true" /></button> : <button type="submit" className="admin-session-wizard-primary" disabled={saving || loadingGuestSettings}>{saving ? "Đang tạo…" : form.mode === "account" ? "Lưu lịch tài khoản" : "Tạo kíp & sinh link"}<Check aria-hidden="true" /></button>}</footer>
     </form>
-    {pendingNavigation ? <MacAlert open title="Rời trình tạo kíp thi?" description="Các thay đổi chưa lưu sẽ bị mất." secondaryAction={{ label: "Ở lại", onClick: () => setPendingNavigation("") }} primaryAction={{ label: "Rời trang", onClick: confirmNavigation }} onClose={() => setPendingNavigation("")} /> : null}
+    {pendingNavigation ? <AeckConfirmDialog open title="Rời trình tạo kíp thi?" description="Các thay đổi chưa lưu sẽ bị mất." secondaryAction={{ label: "Ở lại", onClick: () => setPendingNavigation("") }} primaryAction={{ label: "Rời trang", onClick: confirmNavigation }} onClose={() => setPendingNavigation("")} /> : null}
   </section>;
 }
 

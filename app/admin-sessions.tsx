@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { CalendarClock, CheckCircle2, ChevronRight, ClipboardCheck, FilePlus2, RefreshCw, Search, Trash2 } from "lucide-react";
-import MacAlert from "../components/macos/MacAlert";
+import AeckConfirmDialog from "../components/aeck/AeckConfirmDialog";
 import { authenticatedFetch } from "../lib/auth-client";
 import { sessionState, sessionStateLabel, type SessionState } from "../lib/session-catalog";
 import LoadingIndicator from "./loading-indicator";
@@ -70,6 +70,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pendingDelete, setPendingDelete] = useState<SessionRow | null>(null);
+  const [deleteError, setDeleteError] = useState("");
   const [deletingSessionId, setDeletingSessionId] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [resultTotal, setResultTotal] = useState(0);
@@ -175,7 +176,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
   async function deleteSession(session: SessionRow) {
     if (session.kind === "account" || deletingSessionId) return;
     setDeletingSessionId(session.id);
-    setError("");
+    setDeleteError("");
     setNotice("");
     try {
       const response = await authenticatedFetch("/api/admin/exam-access", {
@@ -190,8 +191,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
       if (sessions.length === 1 && page > 1) setPage(current => Math.max(1, current - 1));
       else await load();
     } catch (value) {
-      setPendingDelete(null);
-      setError(value instanceof Error ? value.message : "Không thể xóa kíp thi.");
+      setDeleteError(value instanceof Error ? value.message : "Không thể xóa kíp thi.");
     } finally {
       setDeletingSessionId("");
     }
@@ -231,14 +231,14 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
         </div>
         <span className="admin-session-count" role="status" aria-live="polite">{loading ? "Đang tải…" : `${resultTotal} kíp`}</span>
       </div>
-      {loading ? <div className="admin-session-loading"><LoadingIndicator label="Đang tải kíp thi…" /></div> : sessions.length ? <div className="admin-session-table" role="list">
+      {loading ? <div className="admin-session-loading"><LoadingIndicator label="Đang tải kíp thi…" /></div> : sessions.length ? <ul className="admin-session-table">
         {sessions.map(session => {
           const state = sessionState(session, now);
           const submitted = session.submitted_count;
           const totalAttempts = session.attempt_count;
           const actionLabel = state === "open" ? "Theo dõi" : state === "ended" ? "Xem kết quả" : "Xem kíp";
           const actionPath = `/admin/sessions/${encodeURIComponent(session.id)}/results?examId=${encodeURIComponent(session.exam_id)}${session.kind === "account" ? "" : `&slotId=${encodeURIComponent(session.id)}`}${session.kind === "both" ? "&mode=both" : session.kind === "link_qr" ? "&mode=link_qr" : "&mode=account"}`;
-          return <article className="admin-session-row" role="listitem" key={session.id}>
+          return <li className="admin-session-row" key={session.id}>
             <div className="admin-session-main">
               <div className="admin-session-title-row"><span className={`admin-session-status ${state}`}><i aria-hidden="true" />{sessionStateLabel(state)}</span><h3>{session.name}</h3></div>
               <p>{session.exam_title} · {session.room_title} · {modeLabel(session.kind)}</p>
@@ -248,22 +248,23 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
             <div className="admin-session-meta admin-session-results"><small>Kết quả</small><b>{session.results_released_at ? "Đã công bố" : "Chưa công bố"}</b><span>{state === "ended" && !session.results_released_at ? "Cần xem lại" : "Theo cấu hình kíp thi"}</span></div>
             <div className="admin-session-row-actions">
               <Link className="admin-session-action" href={actionPath} onClick={event => openPath(event, actionPath)}>{actionLabel}<ChevronRight aria-hidden="true" /></Link>
-              {session.kind !== "account" ? <button type="button" className="admin-session-action admin-session-delete" disabled={deletingSessionId === session.id} aria-label={`Xóa kíp ${session.name}`} onClick={() => setPendingDelete(session)}><Trash2 aria-hidden="true" />{deletingSessionId === session.id ? "Đang xóa…" : "Xóa kíp"}</button> : null}
+              {session.kind !== "account" ? <button type="button" className="admin-session-action admin-session-delete" disabled={deletingSessionId === session.id} aria-label={`Xóa kíp ${session.name}`} onClick={() => { setDeleteError(""); setPendingDelete(session); }}><Trash2 aria-hidden="true" />{deletingSessionId === session.id ? "Đang xóa…" : "Xóa kíp"}</button> : null}
             </div>
-          </article>;
+          </li>;
         })}
-      </div> : <div className="admin-session-empty"><span><CalendarClock aria-hidden="true" /></span><h3>{query || stateFilter ? "Không có kíp phù hợp" : "Chưa có kíp thi nào"}</h3><p>{query || stateFilter ? "Thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ kíp thi." : "Chọn phòng và đề để tạo kíp thi đầu tiên."}</p>{query || stateFilter ? <button type="button" className="admin-session-primary" onClick={() => { setQuery(""); updateFilter(""); }}>Xóa bộ lọc</button> : <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><ClipboardCheck aria-hidden="true" />Tạo kíp thi</Link>}</div>}
+      </ul> : <div className="admin-session-empty"><span><CalendarClock aria-hidden="true" /></span><h3>{query || stateFilter ? "Không có kíp phù hợp" : "Chưa có kíp thi nào"}</h3><p>{query || stateFilter ? "Thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ kíp thi." : "Chọn phòng và đề để tạo kíp thi đầu tiên."}</p>{query || stateFilter ? <button type="button" className="admin-session-primary" onClick={() => { setQuery(""); updateFilter(""); }}>Xóa bộ lọc</button> : <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><ClipboardCheck aria-hidden="true" />Tạo kíp thi</Link>}</div>}
       {!loading && resultTotal > 0 && <nav className="admin-session-pagination" aria-label="Phân trang kíp thi"><button type="button" onClick={() => setPage(current => Math.max(1, current - 1))} disabled={page <= 1}>Trang trước</button><span>Trang <b>{page}</b></span><button type="button" onClick={() => setPage(current => current + 1)} disabled={!hasNextPage}>Trang sau</button></nav>}
     </section>
 
     <p className="admin-session-note"><CheckCircle2 aria-hidden="true" />Sự kiện giám sát chỉ là dữ liệu kỹ thuật để giáo viên xem lại, không tự động kết luận gian lận.</p>
-    {pendingDelete ? <MacAlert
+    {pendingDelete ? <AeckConfirmDialog
       open
       title="Xóa kíp thi này?"
       description={`Xóa vĩnh viễn “${pendingDelete.name}” cùng toàn bộ bài làm, kết quả, danh sách thí sinh và dữ liệu vận hành liên quan? Nếu kíp đang hoạt động, hãy đóng kíp trước. Thao tác này không thể hoàn tác.`}
-      secondaryAction={{ label: "Hủy", onClick: () => setPendingDelete(null), disabled: Boolean(deletingSessionId) }}
+      errorMessage={deleteError}
+      secondaryAction={{ label: "Hủy", onClick: () => { setDeleteError(""); setPendingDelete(null); }, disabled: Boolean(deletingSessionId) }}
       primaryAction={{ label: deletingSessionId ? "Đang xóa…" : "Xóa kíp và dữ liệu", onClick: () => void deleteSession(pendingDelete), disabled: Boolean(deletingSessionId) }}
-      onClose={() => { if (!deletingSessionId) setPendingDelete(null); }}
+      onClose={() => { if (!deletingSessionId) { setDeleteError(""); setPendingDelete(null); } }}
     /> : null}
   </div>;
 }

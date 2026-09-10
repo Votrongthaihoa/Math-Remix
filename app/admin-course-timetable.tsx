@@ -19,6 +19,7 @@ import {
   Video,
   X,
 } from "lucide-react";
+import AeckConfirmDialog from "../components/aeck/AeckConfirmDialog";
 import { authenticatedFetch } from "../lib/auth-client";
 
 type Course = { id: string; title: string; published: boolean };
@@ -120,6 +121,8 @@ export default function AdminCourseTimetable() {
   const [notice, setNotice] = useState("");
   const [live, setLive] = useState({ title: "", description: "", lessonId: "", instructor: "", startAt: initialWindow.startAt, endAt: initialWindow.endAt, deliveryMode: "online", meetingUrl: "", published: true });
   const [editing, setEditing] = useState<EditableEvent | null>(null);
+  const [pendingEventDeletion, setPendingEventDeletion] = useState<CourseEvent | null>(null);
+  const [eventDeletionError, setEventDeletionError] = useState("");
   const [rule, setRule] = useState({ startDate: dateInput(), weekdays: [1, 3, 5], startTime: "19:00", durationMinutes: 90, published: true });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -205,7 +208,7 @@ export default function AdminCourseTimetable() {
 
   async function patchEvent(item: CourseEvent, changes: Record<string, unknown>, successMessage: string) {
     if (saving) return null;
-    setSaving(true); setBusyEventId(item.id); setError(""); setNotice("");
+    setSaving(true); setBusyEventId(item.id); setEventDeletionError(""); setNotice("");
     try {
       const response = await authenticatedFetch(`/api/admin/course-timetable/${encodeURIComponent(item.id)}`, {
         method: "PATCH",
@@ -256,14 +259,14 @@ export default function AdminCourseTimetable() {
   }
 
   async function removeEvent(item: CourseEvent) {
-    if (!window.confirm(`Xóa sự kiện “${item.title}”?`) || saving) return;
-    setSaving(true); setBusyEventId(item.id); setError(""); setNotice("");
+    if (saving) return;
+    setSaving(true); setBusyEventId(item.id); setEventDeletionError(""); setNotice("");
     try {
       const response = await authenticatedFetch(`/api/admin/course-timetable/${encodeURIComponent(item.id)}`, { method: "DELETE" });
       const payload = await response.json().catch(() => null) as { error?: string } | null;
       if (!response.ok) throw new Error(payload?.error ?? "Không thể xóa sự kiện.");
-      setEvents(current => current.filter(event => event.id !== item.id)); setNotice("Đã xóa sự kiện.");
-    } catch (value) { setError(value instanceof Error ? value.message : "Không thể xóa sự kiện."); }
+      setEvents(current => current.filter(event => event.id !== item.id)); setNotice("Đã xóa sự kiện."); setPendingEventDeletion(null);
+    } catch (value) { setEventDeletionError(value instanceof Error ? value.message : "Không thể xóa sự kiện."); }
     finally { setSaving(false); setBusyEventId(""); }
   }
 
@@ -331,9 +334,18 @@ export default function AdminCourseTimetable() {
           <button type="button" disabled={saving} onClick={() => startEdit(item)} aria-label={`Chỉnh sửa ${item.title}`} title="Chỉnh sửa"><Pencil aria-hidden="true" /></button>
           <button type="button" disabled={saving} onClick={() => void togglePublished(item)} aria-label={`${item.published ? "Ẩn" : "Hiện"} ${item.title} với học viên`} title={item.published ? "Ẩn với học viên" : "Hiện với học viên"}>{item.published ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button>
           <button type="button" disabled={saving} onClick={() => void toggleStatus(item)} aria-label={`${item.status === "cancelled" ? "Khôi phục" : "Hủy"} ${item.title}`} title={item.status === "cancelled" ? "Khôi phục sự kiện" : "Hủy sự kiện"}><RotateCcw aria-hidden="true" /></button>
-          <button type="button" disabled={saving} onClick={() => void removeEvent(item)} aria-label={`Xóa ${item.title}`} title="Xóa vĩnh viễn"><Trash2 aria-hidden="true" /></button>
+          <button type="button" disabled={saving} onClick={() => setPendingEventDeletion(item)} aria-label={`Xóa ${item.title}`} title="Xóa vĩnh viễn"><Trash2 aria-hidden="true" /></button>
         </div>
       </article>) : <p className="admin-timetable-inline-empty" role="status">Khóa học này chưa có lịch.</p>}
     </div>
+    {pendingEventDeletion ? <AeckConfirmDialog
+      open
+      title="Xóa sự kiện lịch?"
+      description={`Sự kiện “${pendingEventDeletion.title}” sẽ bị xóa vĩnh viễn khỏi lịch khóa học. Thao tác này không thể hoàn tác.`}
+      errorMessage={eventDeletionError}
+      secondaryAction={{ label: "Hủy", onClick: () => { setEventDeletionError(""); setPendingEventDeletion(null); }, disabled: saving }}
+      primaryAction={{ label: saving ? "Đang xóa…" : "Xóa sự kiện", onClick: () => void removeEvent(pendingEventDeletion), disabled: saving }}
+      onClose={() => { if (!saving) { setEventDeletionError(""); setPendingEventDeletion(null); } }}
+    /> : null}
   </section>;
 }

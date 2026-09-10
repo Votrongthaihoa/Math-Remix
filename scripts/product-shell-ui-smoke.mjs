@@ -134,6 +134,26 @@ const mockScheduleStart = new Date();
 mockScheduleStart.setHours(10, 0, 0, 0);
 const mockScheduleEnd = new Date(mockScheduleStart);
 mockScheduleEnd.setHours(12, 0, 0, 0);
+function createMockCourseEvent() {
+  return {
+    id: "mock-course-event",
+    course_id: mockCourse.id,
+    lesson_id: "mock-lesson",
+    title: "Ôn tập hàm số TSA",
+    description: "Buổi học trực tuyến thử nghiệm cho lịch khóa học.",
+    start_at: mockScheduleStart.toISOString(),
+    end_at: mockScheduleEnd.toISOString(),
+    instructor: "Nguyễn Minh Anh",
+    delivery_mode: "online",
+    meeting_url: "https://meet.example.test/mock-course-event",
+    event_kind: "live",
+    source: "manual",
+    generation_batch_id: null,
+    status: "scheduled",
+    published: true,
+  };
+}
+let mockCourseEvents = [createMockCourseEvent()];
 const mockRooms = [
   { id: "mock-room", title: "Kỳ thi thử tháng 8", description: "Lịch thi tổng hợp dành cho học viên đang ôn TSA và HSA.", exam_type: "HSA", registration_start: null, registration_end: null, exam_start: mockScheduleStart.toISOString(), exam_end: mockScheduleEnd.toISOString(), published: true, access_mode: "open", sort_order: 1 },
   { id: "mock-open-room", title: "Phòng luyện tự do", description: "Phòng luyện không giới hạn thời gian.", exam_type: "TSA", registration_start: null, registration_end: null, exam_start: null, exam_end: null, published: true, access_mode: "open", sort_order: 2 },
@@ -544,6 +564,19 @@ async function installMockAuth() {
         room.exam_start = body.startAt;
         room.exam_end = body.endAt;
         return route.fulfill(jsonResponse({ room: { ...room, created_at: "2026-08-08T08:00:00.000Z" } }));
+      }
+      if (requestUrl.pathname === "/api/admin/course-timetable" && route.request().method() === "GET") {
+        return route.fulfill(jsonResponse({
+          courses: [mockCourse],
+          chapters: [{ id: "mock-chapter", course_id: mockCourse.id, title: "Hàm số", sort_order: 0 }],
+          lessons: mockLessonRows,
+          events: mockCourseEvents,
+        }));
+      }
+      if (requestUrl.pathname.startsWith("/api/admin/course-timetable/") && route.request().method() === "DELETE") {
+        const eventId = decodeURIComponent(requestUrl.pathname.slice("/api/admin/course-timetable/".length));
+        mockCourseEvents = mockCourseEvents.filter(event => event.id !== eventId);
+        return route.fulfill(jsonResponse({ deleted: true }));
       }
       if (requestUrl.pathname === "/api/admin/audit") {
         const source = requestUrl.searchParams.get("source");
@@ -1515,6 +1548,17 @@ async function inspectAdminTimetable() {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/admin/timetable`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(1_200);
+    const courseTab = page.locator("#admin-timetable-course-tab");
+    await courseTab.focus();
+    await page.keyboard.press("ArrowRight");
+    const keyboardTabState = await page.evaluate(() => ({
+      examSelected: document.getElementById("admin-timetable-exam-tab")?.getAttribute("aria-selected") === "true",
+      focusOnExamTab: document.activeElement?.id === "admin-timetable-exam-tab",
+      viewInUrl: new URL(location.href).searchParams.get("view"),
+    }));
+    if (!keyboardTabState.examSelected || !keyboardTabState.focusOnExamTab || keyboardTabState.viewInUrl !== "exams") {
+      throw new Error(`Admin timetable keyboard tab navigation failed at ${width}px: ${JSON.stringify(keyboardTabState)}`);
+    }
     await page.getByRole("tab", { name: "Lịch phòng thi" }).click();
     await page.locator(".admin-timetable-page").waitFor({ state: "visible", timeout: 5_000 });
     await page.getByRole("button", { name: /Thiết lập/ }).first().click();
@@ -1558,9 +1602,40 @@ async function inspectAdminTimetable() {
       };
     });
     await page.screenshot({ path: join(outputDir, `admin-timetable-saved-${width}.png`), fullPage: false });
-    report.push({ name: "admin-timetable", path: "/admin/timetable", width, ...state });
+    report.push({ name: "admin-timetable", path: "/admin/timetable", width, ...keyboardTabState, ...state });
     if (state.weekDays !== 7 || state.summaryItems !== 4 || !state.editorVisible || !state.noticeVisible || state.skipLinkFocused || state.skipLinkVisible || !state.pageInsideViewport || state.horizontalOverflow) {
       throw new Error(`Admin timetable failed at ${width}px: ${JSON.stringify(state)}`);
+    }
+  }
+}
+
+async function inspectCourseTimetableDeletionConfirmation() {
+  for (const width of [1440, 390, 320]) {
+    mockCourseEvents = [createMockCourseEvent()];
+    await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
+    await page.goto(`${baseUrl}/admin/timetable`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(1_200);
+    const deleteButton = page.getByRole("button", { name: "Xóa Ôn tập hàm số TSA" });
+    await deleteButton.waitFor({ state: "visible", timeout: 5_000 });
+    await deleteButton.click();
+    const dialog = page.getByRole("dialog", { name: "Xóa sự kiện lịch?" });
+    await dialog.waitFor({ state: "visible", timeout: 5_000 });
+    const state = await page.evaluate(() => {
+      const root = document.documentElement;
+      const dialog = document.querySelector("dialog.aeck-confirm-dialog");
+      return {
+        dialogOpen: dialog instanceof HTMLDialogElement && dialog.open,
+        focusInDialog: dialog?.contains(document.activeElement) ?? false,
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+      };
+    });
+    await page.screenshot({ path: join(outputDir, `admin-course-timetable-delete-confirmation-${width}.png`), fullPage: false });
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "hidden", timeout: 5_000 });
+    const focusRestored = await deleteButton.evaluate(button => document.activeElement === button);
+    report.push({ name: "admin-course-timetable-delete-confirmation", path: "/admin/timetable", width, focusRestored, ...state });
+    if (!state.dialogOpen || !state.focusInDialog || state.horizontalOverflow || !focusRestored) {
+      throw new Error(`Course timetable deletion confirmation failed at ${width}px: ${JSON.stringify({ focusRestored, ...state })}`);
     }
   }
 }
@@ -1925,7 +2000,10 @@ if (authenticated) {
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-search"))) await inspectStudentSearch();
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-schedule"))) await inspectStudentSchedule();
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-progress"))) await inspectStudentProgress();
-    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-timetable"))) await inspectAdminTimetable();
+    if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-timetable"))) {
+      await inspectCourseTimetableDeletionConfirmation();
+      await inspectAdminTimetable();
+    }
     if (mockRole === "admin" && (!focusedAudit || requestedRoutes.has("admin-audit"))) await inspectAdminAudit();
     if (mockRole === "admin" && auditRoutes.some(([name]) => name === "admin-security")) await inspectSecurityDialogs();
     if (mockRole === "student" && (!focusedAudit || requestedRoutes.has("student-exam-list"))) await inspectExamHistoryDialog();
@@ -1960,6 +2038,30 @@ if (authenticated && protectedAuditRequested) {
       if (latest?.shell?.includes("ui-optimized-surface")) throw new Error(`${name} incorrectly opted into optimized content.`);
     }
   }
+}
+
+if (authenticated && mockAuth && process.env.SMOKE_CONTINUE_RECOVERY === "1") {
+  let continuePayload = {};
+  await page.route("**/api/learning/continue", route => route.fulfill(jsonResponse(continuePayload)));
+  await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Tải lại bài học gần đây" }).waitFor();
+  if (!await page.getByText("Chưa tải được bài học gần đây. Hãy thử lại.", { exact: true }).isVisible()) throw new Error("Continue learning hides its load failure");
+  await page.evaluate(userId => localStorage.setItem(`aeck.continue-learning.v1:${userId}`, JSON.stringify({ version: 1, lessonId: "mock-lesson", updatedAt: "2026-09-10T08:00:00.000Z" })), mockUser.id);
+  await page.getByRole("button", { name: "Tải lại bài học gần đây" }).click();
+  await page.getByText("Đang dùng bản lưu trên thiết bị; dữ liệu chưa được đồng bộ.", { exact: true }).waitFor();
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1, null, { timeout: 5_000 });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+    if (overflow) throw new Error(`Continue learning recovery overflows at ${width}px`);
+    await page.screenshot({ path: join(outputDir, `continue-recovery-${width}.png`), fullPage: true });
+  }
+  continuePayload = { item: null };
+  await page.getByRole("button", { name: "Tải lại bài học gần đây" }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByText("Chọn một khóa học để bắt đầu hành trình của bạn.", { exact: true }).waitFor();
+  if (await page.getByRole("button", { name: "Tải lại bài học gần đây" }).count()) throw new Error("Continue retry did not recover");
+  report.push({ name: "continue-learning-recovery", error: true, fallback: true, keyboardRetry: true, empty: true });
 }
 
 const layoutIssues = report.filter(item => item.horizontalOverflow || item.controlsOutsideViewport || item.unnamedControls);

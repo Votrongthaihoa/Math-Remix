@@ -2,9 +2,12 @@
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { resolveStudentReturnTo } from "../lib/student-return-to";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase";
 import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
+import { continueLearningStorageKey, serializeContinueLearningFallback } from "../lib/continue-learning";
 import VideoPlayer, { type SecureLessonResource } from "./video-player";
 import LoadingIndicator from "./loading-indicator";
 import AccountSecurityGuard from "./account-security-guard";
@@ -18,7 +21,7 @@ import { adminCourseIdFromPath } from "./admin-route-map";
 import "./study.css";
 import "./admin-redesign.css";
 import "./student-redesign.css";
-import "./admin-macos.css";
+import "./admin-product-shell.css";
 import "./product-polish.css";
 import "./text-overflow-polish.css";
 import "./product-shell-ux.css";
@@ -67,7 +70,7 @@ type View = "overview" | "exams" | "courses" | "history" | "progress" | "search"
 const viewsRequiringOverviewData: View[] = ["overview", "search", "profile", "progress"];
 type AuthMode = "login" | "signup" | "forgot" | "reset";
 type SignupErrorField = "name" | "password" | "confirmPassword" | null;
-type ProfileData = { full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
+type ProfileData = { id: string; full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
 type CourseData = { id: string | number; title: string; description: string; lessons: number; color: string; cover_url?: string | null; published?: boolean };
 type CourseRow = { id: string; title: string; description: string | null; cover_url: string | null; cover_color: string | null; published: boolean };
 type EnrollmentCourseRow = { courses: CourseRow | CourseRow[] | null };
@@ -494,8 +497,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname === "/login" && signedIn && profileData) router.replace("/dashboard");
-  }, [pathname, profileData, router, signedIn]);
+    if (pathname === "/login" && signedIn && profileData) router.replace(resolveStudentReturnTo(shellSearchParams.get("redirect")));
+  }, [pathname, profileData, router, signedIn, shellSearchParams]);
 
   useEffect(() => {
     if (uiRouteMode !== "optimized-content") return;
@@ -738,15 +741,15 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     };
   }, [currentView, overviewReloadKey, signedIn]);
 
-  async function loadUserData(user: { id: string; email?: string | null }, prefetchedProfile?: Omit<ProfileData, "email"> | null) {
+  async function loadUserData(user: { id: string; email?: string | null }, prefetchedProfile?: Omit<ProfileData, "email" | "id"> | null) {
     if (!supabase) return null;
     // Profile, role and account state are the only data required before the
     // shell can render. Everything else is intentionally deferred.
     const profile = prefetchedProfile === undefined
-      ? (await supabase.from("profiles").select("full_name,student_code,role,status").eq("id", user.id).single()).data as Omit<ProfileData, "email"> | null
+      ? (await supabase.from("profiles").select("full_name,student_code,role,status").eq("id", user.id).single()).data as Omit<ProfileData, "email" | "id"> | null
       : prefetchedProfile;
     const administrator = profile?.role === "admin" && profile.status === "active";
-    setProfileData(profile ? { ...profile, email: user.email ?? "" } : null);
+    setProfileData(profile ? { ...profile, id: user.id, email: user.email ?? "" } : null);
     setIsAdmin(administrator);
     if (!profile) {
       setAssignedCourses([]);
@@ -888,7 +891,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setSignedIn(true);
       const adminPath = loginContext === "admin";
       const adminDestination = window.location.pathname.startsWith("/admin") ? window.location.pathname : "/admin";
-      router.replace(adminPath ? adminDestination : "/dashboard");
+      const studentDestination = resolveStudentReturnTo(window.location.pathname === "/login"
+        ? new URLSearchParams(window.location.search).get("redirect")
+        : `${window.location.pathname}${window.location.search}${window.location.hash}`);
+      router.replace(adminPath ? adminDestination : studentDestination);
     } catch (error) {
       await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
       setSignedIn(false);
@@ -1116,9 +1122,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
       {!examRunnerSurface && (
         <aside ref={mobileSidebarRef} id="main-sidebar" className={`sidebar ${adminRouteRequested ? "admin-sidebar" : ""} ${mobileOpen ? "mobile-open" : ""}`} aria-label={adminRouteRequested ? "Điều hướng quản trị" : "Điều hướng chính"} aria-modal={mobileOpen && !examRunnerSurface ? "true" : undefined} role={mobileOpen && !examRunnerSurface ? "dialog" : undefined}>
-           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="mobile-sidebar-logo mobile-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><img className="mobile-sidebar-logo mobile-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
-          {!adminRouteRequested && currentView === "lesson" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link>}
-          {!adminRouteRequested && currentView === "course" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><img className="student-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><img className="student-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link>}
+           <div className="mobile-sidebar-head"><Link className="mobile-sidebar-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><Image className="mobile-sidebar-logo mobile-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><Image className="mobile-sidebar-logo mobile-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link><button type="button" className="mobile-sidebar-close" onClick={closeMobileMenu} aria-label="Đóng menu"><X aria-hidden="true"/></button></div>
+          {!adminRouteRequested && currentView === "lesson" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><Image className="student-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><Image className="student-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link>}
+          {!adminRouteRequested && currentView === "course" && <Link className="student-sidebar-brand" href="/dashboard" onClick={event => handleNavigationLink(event, "overview", "/dashboard")} aria-label="Về tổng quan"><Image className="student-sidebar-logo-full" src={shellLogoFull} alt="AECK" width={800} height={215}/><Image className="student-sidebar-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/></Link>}
           <nav className={adminRouteRequested ? undefined : "student-sidebar-nav"}>
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
@@ -1143,7 +1149,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       )}
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
-          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><img className="header-brand-logo header-brand-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/><img className="header-brand-logo header-brand-logo-full" src={shellLogoFull} alt="" width={180} height={48}/></Link>
+          <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><Image className="header-brand-logo header-brand-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/><Image className="header-brand-logo header-brand-logo-full" src={shellLogoFull} alt="" width={180} height={48}/></Link>
           <button type="button" className="header-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={event => openMobileMenu(event.currentTarget)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu aria-hidden="true" /></button>
           {adminRouteRequested && <nav className="admin-topbar-context" aria-label="Vị trí hiện tại"><Link href="/admin" onClick={event => handleNavigationLink(event, "admin", "/admin")}>Quản trị</Link><ChevronRight aria-hidden="true"/><span aria-current="page">{activeAdminNavigation.label}</span></nav>}
@@ -1163,10 +1169,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         </header>
       )}
       <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : currentView === "course" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
-        {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} profile={activeProfile} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
+        {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} onContinueLearning={(lessonId, resourceId) => go("lesson", `/lessons/${encodeURIComponent(lessonId)}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ""}`)} profile={activeProfile} userId={activeProfile.id} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
         {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} loading={coursesLoading} />}
         {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} loading={coursesLoading} />}
-        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} onOpenAppMenu={openMobileMenu} />}
+        {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} userId={activeProfile.id} onOpenAppMenu={openMobileMenu} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
@@ -1582,7 +1588,7 @@ function Courses({ courses: courseItems, isAdmin, loading }: { courses: CourseDa
         </label>
       </div>
     </div>
-    <div className="hidden" aria-hidden="true">
+    <div className="course-controls">
       <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch || selectedExamTab !== "ALL" ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
       <div className="course-exam-tabs" role="tablist" aria-label="Phân loại khóa học" onKeyDown={handleCourseTabKeyDown}>
         {([['ALL','Tất cả'],['TSA','TSA'],['HSA','HSA']] as const).map(([value,label])=><button id={`course-exam-tab-${value.toLowerCase()}`} type="button" role="tab" key={value} aria-selected={selectedExamTab===value} aria-controls="course-catalog-panel" tabIndex={selectedExamTab===value?0:-1} onClick={()=>updateCourseExamTab(value)}><span>{label}</span><b>{courseCounts[value]}</b></button>)}
@@ -1680,7 +1686,7 @@ function CourseDetail({ course, showDrafts, loading }: { course: CourseData | nu
   </div>;
 }
 
-function LessonViewer({ lessonId, onOpenAppMenu }: { lessonId: string; onOpenAppMenu: (trigger: HTMLButtonElement) => void }) {
+function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; userId: string; onOpenAppMenu: (trigger: HTMLButtonElement) => void }) {
   const router = useRouter();
   const viewerRef = useRef<HTMLElement | null>(null);
   const curriculumTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -1801,6 +1807,11 @@ function LessonViewer({ lessonId, onOpenAppMenu }: { lessonId: string; onOpenApp
   const lessonCount = curriculum.reduce((total, section) => total + section.lessons.length, 0);
   function selectResource(resourceId: string) {
     setSelectedResourceId(resourceId);
+    window.localStorage.setItem(continueLearningStorageKey(userId), serializeContinueLearningFallback({
+      lessonId,
+      resourceId,
+      updatedAt: new Date().toISOString(),
+    }));
     const url = new URL(window.location.href);
     url.searchParams.set("resource", resourceId);
     router.replace(`${url.pathname}${url.search}`, { scroll: false });

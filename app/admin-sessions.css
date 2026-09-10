@@ -26,7 +26,7 @@
 .ui-shell.admin-app .admin-session-search input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:var(--ui-ink);font:inherit;font-size:12px}
 .ui-shell.admin-app .admin-session-list-head h2{margin:5px 0 0;font-size:19px;letter-spacing:-.2px}
 .ui-shell.admin-app .admin-session-count{color:var(--ui-muted);font-size:12px;font-variant-numeric:tabular-nums}
-.ui-shell.admin-app .admin-session-table{display:flex;flex-direction:column}
+.ui-shell.admin-app .admin-session-table{display:flex;flex-direction:column;list-style:none;margin:0;padding:0}
 .ui-shell.admin-app .admin-session-row{display:grid;grid-template-columns:minmax(220px,1.25fr) minmax(180px,1fr) minmax(145px,.8fr) minmax(150px,.8fr) auto;align-items:center;gap:20px;padding:17px 22px;border-top:1px solid #edf1f5}
 .ui-shell.admin-app .admin-session-row:first-child{border-top:0}
 .ui-shell.admin-app .admin-session-row:hover{background:#fbfdff}

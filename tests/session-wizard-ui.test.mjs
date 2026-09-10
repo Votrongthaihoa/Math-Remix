@@ -16,6 +16,19 @@ test("session wizard exposes copy feedback and the current step", async () => {
   assert.match(wizard, /error && !Object\.values\(fieldErrors\)\.some\(Boolean\)/);
 });
 
+test("wizard stepper exposes its ordered progress as a list", async () => {
+  const [wizard, styles] = await Promise.all([
+    readFile(new URL("../app/admin-session-wizard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-session-wizard.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(wizard, /<nav className="admin-session-stepper" aria-label="Các bước tạo kíp thi"><ol>/);
+  assert.match(wizard, /<li className=\{step === item\.id \? "active" : step > item\.id \? "completed" : ""\}/);
+  assert.match(wizard, /aria-current=\{step === item\.id \? "step" : undefined\}/);
+  assert.match(styles, /\.admin-session-stepper\s*> ol > li\s*\{/);
+  assert.doesNotMatch(styles, /\.admin-session-stepper\s*> div\s*\{/);
+});
+
 test("session wizard uses native radio controls for exclusive choices", async () => {
   const wizard = await readFile(new URL("../app/admin-session-wizard.tsx", import.meta.url), "utf8");
 
@@ -53,7 +66,7 @@ test("session wizard warns before unloading dirty work and clears the guard afte
   assert.match(wizard, /event\.preventDefault\(\)/);
   assert.match(wizard, /setDirty\(false\);[\s\S]*?setCreated/);
   assert.match(wizard, /const \[pendingNavigation, setPendingNavigation\] = useState\(""\)/);
-  assert.match(wizard, /pendingNavigation \? <MacAlert/);
+  assert.match(wizard, /pendingNavigation \? <AeckConfirmDialog/);
   assert.match(wizard, /requestNavigation\("\/admin\/sessions"\)/);
   assert.match(wizard, /listenForProductNavigation\(event =>/);
   assert.match(wizard, /event\.preventDefault\(\)/);

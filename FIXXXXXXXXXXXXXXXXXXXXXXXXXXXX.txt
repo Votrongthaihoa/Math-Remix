@@ -1,0 +1,32 @@
+Nếu lỗi lại, làm theo quy trình này:
+
+  1. Chạy repair tự động:
+
+  cmd /c D:\Aeck_Pre\FIX_CODEX_CHROME_SAFE_AND_RUN.bat repair-only
+
+  2. Khởi động lại Codex và mở chat mới.
+  3. Test:
+
+  Use Chrome only. List my currently open tabs.
+
+  Sau đó test điều hướng example.com.
+
+  Phân loại nhanh theo lỗi:
+
+  - Transport closed, connector unavailable, native host out of date: runtime bị stale sau update → chạy lại
+    BAT.
+
+  - Codex auth token is unavailable: phiên ChatGPT hết hạn/bị thay bằng API key → đăng nhập ChatGPT lại rồi
+    chạy BAT.
+
+  - admin-enforced policy... hoặc không xác định được URL: lỗi safety upstream → không bypass; gửi tôi nguyên
+    văn lỗi để kiểm tra bản vá mới.
+
+  - Chrome extension mất kết nối: kiểm tra extension Codex vẫn Enabled rồi restart Codex.
+
+  BAT hiện đã tự đồng bộ phiên bản, junction, registry, manifest, trusted hash và auth. Log chẩn đoán nằm
+  trong:
+
+  %CODEX_HOME%\repair-logs\chrome-control-latest.md
+
+  Không cần tự sửa registry hay hash thủ công nữa.

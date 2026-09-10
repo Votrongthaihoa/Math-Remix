@@ -23,6 +23,12 @@ interface ExecutionContext {
 }
 
 const HLS_ENCODER_PATH = "/admin/hls-vault";
+const BASE_SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  "x-frame-options": "SAMEORIGIN",
+};
 const HLS_ENCODER_HEADERS = {
   "cross-origin-embedder-policy": "require-corp",
   "cross-origin-opener-policy": "same-origin",
@@ -50,18 +56,19 @@ const worker = {
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
-      return handleImageOptimization(request, {
+      const response = await handleImageOptimization(request, {
         fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
         transformImage: async (body, { width, format, quality }) => {
           const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
           return result.response();
         },
       }, allowedWidths);
+      return withHeaders(response, BASE_SECURITY_HEADERS);
     }
 
     const response = await handler.fetch(request, env, ctx);
-    if (request.method === "GET" && url.pathname === HLS_ENCODER_PATH && url.searchParams.get("isolated") === "1") return withHeaders(response, HLS_ENCODER_HEADERS);
-    return response;
+    if (request.method === "GET" && url.pathname === HLS_ENCODER_PATH && url.searchParams.get("isolated") === "1") return withHeaders(response, { ...BASE_SECURITY_HEADERS, ...HLS_ENCODER_HEADERS });
+    return withHeaders(response, BASE_SECURITY_HEADERS);
   },
 };
 

@@ -1,0 +1,573 @@
+{
+  "generatedFromUserSuppliedHtml": true,
+  "captures": [
+    {
+      "captureId": "capture-01",
+      "bytes": 27827,
+      "sourceSha256": "039e5e9bd1f9b0db14f5db1aab3a6e366025633676e739cefcf21b5faf07a395",
+      "duplicateOf": null,
+      "classification": [
+        "completion/recommendations"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 4,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Kết thúc",
+        "Ngày sinh",
+        "Đúng",
+        "Thả",
+        "Luyện đề"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-02",
+      "bytes": 23423,
+      "sourceSha256": "d2b715a9e8160243e5509e1f8f84593b9a993adfb6863631803773643b8a0c86",
+      "duplicateOf": null,
+      "classification": [
+        "confirmation"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "No reliable viewport evidence was embedded in the capture."
+      },
+      "controls": {
+        "buttons": 1,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Quay lại",
+        "Xác nhận",
+        "Bắt đầu",
+        "Thời gian làm bài"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-03",
+      "bytes": 48115,
+      "sourceSha256": "9e10fa7513db6a3d685fb517e05c108e1da51bda39d5e73f948bd6e4fe740e63",
+      "duplicateOf": null,
+      "classification": [
+        "fill-blank"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 1,
+        "inputTypes": [
+          "text"
+        ],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-04",
+      "bytes": 51020,
+      "sourceSha256": "b8ae28ffced64901972968911821ff4486165034a7fc9f3ba1063e1ef13b6984",
+      "duplicateOf": null,
+      "classification": [
+        "drag-drop/order"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Kéo",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-05",
+      "bytes": 47388,
+      "sourceSha256": "167518876881a6bbc0342532c94372bffe7dfc80cf04eac500933d007a90928c",
+      "duplicateOf": null,
+      "classification": [
+        "true-false-matrix",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 48,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Đúng",
+        "Sai",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-06",
+      "bytes": 140906,
+      "sourceSha256": "d6818bd4c4954153f1ed0930ac36ac250e9d77b7d33e649c4c6dafc2cb0b90b4",
+      "duplicateOf": null,
+      "classification": [
+        "true-false-matrix",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 49,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 4,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Đúng",
+        "Sai",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-07",
+      "bytes": 140021,
+      "sourceSha256": "319a180f04237cfcfb60d201330670f9dacf0ec25cc7cc61718ec4822636cadb",
+      "duplicateOf": null,
+      "classification": [
+        "drag-drop/order"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 45,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 3,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Đúng",
+        "Kéo",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-08",
+      "bytes": 131275,
+      "sourceSha256": "b911c1f0a1021429f50e1df5016e466f42ec65001fb267a98b9f9a22bf01049d",
+      "duplicateOf": null,
+      "classification": [
+        "single-choice",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 45,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 3,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-09",
+      "bytes": 136401,
+      "sourceSha256": "2bbee6a639a91eab98e1de11b2d932f06432b451fb00f03666e0357483872457",
+      "duplicateOf": null,
+      "classification": [
+        "true-false-matrix",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 51,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 3,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Đúng",
+        "Sai",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-10",
+      "bytes": 128733,
+      "sourceSha256": "22c460c03388c192dbd0a819f4e709f5a520f88df902b01ba2b03eb8d294bf41",
+      "duplicateOf": null,
+      "classification": [
+        "fill-blank"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 1,
+        "inputTypes": [
+          "text"
+        ],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-11",
+      "bytes": 134862,
+      "sourceSha256": "0121d58694c5233ca4f0638302ba5fde107b82a3e6df2f0667a5b75f0ffb5704",
+      "duplicateOf": null,
+      "classification": [
+        "single-choice",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-12",
+      "bytes": 126369,
+      "sourceSha256": "eeabd03231dc32963da4174e0eb734378dfe83108be11cc2b7d2b82df8e3b0eb",
+      "duplicateOf": null,
+      "classification": [
+        "fill-blank"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 1,
+        "inputTypes": [
+          "text"
+        ],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Đúng",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-13",
+      "bytes": 135884,
+      "sourceSha256": "8a9ec7a5535b03a92b1b50a11522b0bc17acb6fe57038f1f33215631a6c3506f",
+      "duplicateOf": null,
+      "classification": [
+        "single-choice",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Đúng",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-14",
+      "bytes": 133873,
+      "sourceSha256": "343c00a2b994a759ed643c64bcc546bc2febfc54298346f1b9a175493269a548",
+      "duplicateOf": null,
+      "classification": [
+        "single-choice",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-15",
+      "bytes": 133873,
+      "sourceSha256": "343c00a2b994a759ed643c64bcc546bc2febfc54298346f1b9a175493269a548",
+      "duplicateOf": "capture-14",
+      "classification": [
+        "single-choice",
+        "unselected-answer"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 0,
+        "inputTypes": [],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    },
+    {
+      "captureId": "capture-16",
+      "bytes": 132755,
+      "sourceSha256": "fadee2da2269e53edec6e59c02ccfecb45efc4b81d42d5732f342172c3ca8b95",
+      "duplicateOf": null,
+      "classification": [
+        "fill-blank"
+      ],
+      "viewport": {
+        "classification": "unknown-from-serialized-dom",
+        "responsiveEvidence": "Responsive utility classes are present; no viewport dimensions were embedded in the capture."
+      },
+      "controls": {
+        "buttons": 44,
+        "inputs": 2,
+        "inputTypes": [
+          "text"
+        ],
+        "images": 1,
+        "tables": 0
+      },
+      "safeLabels": [
+        "Nộp bài",
+        "Câu",
+        "Thời gian còn lại",
+        "Thông tin thí sinh",
+        "Thả",
+        "Nối"
+      ],
+      "sanitization": {
+        "scriptsRemoved": 7,
+        "extensionReferencesRemoved": 1,
+        "arbitraryTextStored": false,
+        "formValuesStored": false
+      }
+    }
+  ]
+}

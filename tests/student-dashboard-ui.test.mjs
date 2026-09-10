@@ -12,6 +12,8 @@ test("alpha student dashboard is a native product-surface component", async () =
   assert.match(component, /className="alpha-dashboard-summary"/);
   assert.match(component, /className="alpha-dashboard-resource-grid"/);
   assert.match(component, /className="alpha-dashboard-activity"/);
+  assert.match(component, /className="alpha-dashboard-continue"/);
+  assert.match(component, /Tiếp tục học/);
   assert.match(component, /href={`\/exam\/result\/\$\{encodeURIComponent\(item\.id\)\}`}/);
   assert.match(platform, /<StudentDashboard/);
 });

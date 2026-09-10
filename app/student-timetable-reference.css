@@ -42,6 +42,12 @@
   min-width: 0;
 }
 
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-legends {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-legend {
   min-height: 20px;
   border-radius: 999px;
@@ -110,6 +116,26 @@
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-scroll {
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-scroll:focus-visible {
+  outline: 2px solid rgba(205, 22, 39, .45);
+  outline-offset: 2px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-scroll-hint {
+  display: none;
+  margin: 0;
+  padding: 8px 20px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-scroll-hint {
+    display: block;
+  }
 }
 
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-canvas {

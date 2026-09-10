@@ -83,8 +83,21 @@ test("shared shell transitions declare the properties they animate", async () =>
   assert.doesNotMatch(globals, /transition\s*:\s*all\b/);
 });
 
+test("account menu actions preserve a visible keyboard focus indicator", async () => {
+  const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(globals, /\.account-dropdown button:focus-visible\{[^}]*outline:2px solid #007aff;[^}]*outline-offset:2px;/);
+  assert.doesNotMatch(globals, /\.account-dropdown button:hover,\.account-dropdown button:focus\{/);
+});
+
+test("account menu honors reduced-motion preferences without changing exam surfaces", async () => {
+  const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(globals, /@media\(prefers-reduced-motion:reduce\)\{\.account-dropdown,\.account-trigger,\.account-trigger svg\{transition:none!important\}\}/);
+});
+
 test("keeps dashboard routes, Supabase data, and responsive reference styling", async () => {
-  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminExams, adminExamsCss, adminWorkspace, adminWorkspaceCss, adminWorkspaceLayoutCss, adminUsersRoute, r2Server] = await Promise.all([
+  const [platform, css, studyCss, lessonFilesRoute, lessonResourcesRoute, videoTokenRoute, resourceContentRoute, pdfDownloadRoute, videoPlayer, contentToken, vidstackHtml, pdfViewerHtml, examRoom, examCss, examsRoute, examMigration, adminWorkspace, adminWorkspaceCss, adminWorkspaceLayoutCss, adminUsersRoute, r2Server] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/study.css", import.meta.url), "utf8"),
@@ -101,8 +114,6 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
     readFile(new URL("../app/exam-room.css", import.meta.url), "utf8"),
     readFile(new URL("../app/api/exams/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../supabase/migrations/006_exam_room_module.sql", import.meta.url), "utf8"),
-    readFile(new URL("../app/admin-exams.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/admin-exams.css", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exam-workspace.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exam-latex-import.css", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-exam-workspace.css", import.meta.url), "utf8"),
@@ -237,10 +248,10 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(resourceContentRoute, guardCall("view"));
   assert.match(videoTokenRoute, guardCall("view"));
   assert.match(videoPlayer, /authenticatedFetch\("\/api\/video-token"/);
-  assert.match(videoPlayer, /\/yt-embed-player\.html\?v=/);
-  assert.match(videoPlayer, /\/yt-embed-player\.html\?mode=native/);
+  assert.match(videoPlayer, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=youtube/);
+  assert.match(videoPlayer, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=native/);
   assert.match(videoPlayer, /remix:set-video-source/);
-  assert.match(videoPlayer, /\/pdf-viewer\.html\?file=/);
+  assert.match(videoPlayer, /MEDIA_VIEWER_ORIGIN\}\/viewer\/pdf/);
   assert.match(videoPlayer, /protectedContent/);
   assert.match(videoPlayer, /authenticatedFetch\("\/api\/resource-content"/);
   assert.match(videoPlayer, /atob\(payload\.data\)/);
@@ -278,13 +289,6 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(examMigration, /create table if not exists public\.exam_question_keys/);
   assert.match(platform, /lazy\(\(\) => import\("\.\/admin-exam-workspace"\)\)/);
   assert.match(platform, /id: "exams" as const,[^\n]+label: "Đề thi"/);
-  assert.match(adminExams, /from\("exam_rooms"\)\.insert/);
-  assert.match(adminExams, /from\("exams"\)\.insert/);
-  assert.match(adminExams, /dashboard_title: dashboardTitle/);
-  assert.match(adminExams, /from\("exam_sections"\)\.insert/);
-  assert.match(adminExams, /from\("exam_questions"\)\.insert/);
-  assert.match(adminExams, /from\("exam_question_keys"\)\.insert/);
-  assert.match(adminExamsCss, /@media\(max-width:767px\)/);
   assert.match(adminWorkspace, /splitLatexQuestions/);
   assert.match(adminWorkspace, /accept="\.tex,text\/plain"/);
   assert.match(adminWorkspace, /LearnerExamPreview/);
@@ -312,6 +316,5 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /student-name-email/);
   assert.match(adminUsersRoute, /export async function GET/);
   assert.match(adminUsersRoute, /admin\.auth\.admin\.listUsers/);
-  assert.doesNotMatch(adminExams, /Phân quyền học viên/);
   assert.doesNotMatch(pdfViewerHtml, /Mở file gốc|Mở tài liệu trong tab mới/);
 });

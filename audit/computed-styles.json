@@ -1,0 +1,82 @@
+{
+  "status": "Derived from exact utility classes in the reference bundle and supplied serialized DOM. These are not represented as live getComputedStyle output.",
+  "breakpoints": {
+    "sm": "640px",
+    "md": "768px",
+    "lg": "1024px",
+    "xl": "1280px",
+    "2xl": "1536px"
+  },
+  "viewportEvidence": "Serialized DOM contains responsive utility classes but no viewport dimensions; desktop/tablet/mobile capture assignment would be speculative.",
+  "regions": {
+    "pageHeading": {
+      "fontSize": "18px; 20px at >=1024",
+      "lineHeight": "28px",
+      "fontWeight": 600,
+      "color": "rgb(17,24,39)"
+    },
+    "partCard": {
+      "display": "flex",
+      "flexDirection": "column; row at >=768",
+      "padding": "20px",
+      "gap": "16px",
+      "background": "#fff",
+      "border": "1px solid rgb(243,244,246)",
+      "borderRadius": "12px",
+      "transition": "all 300ms"
+    },
+    "examSidebar": {
+      "width": "480px at >=768",
+      "height": "100vh",
+      "background": "#fff",
+      "padding": "16px; 24px 15px at >=1024"
+    },
+    "singleChoiceMarker": {
+      "width": "32px",
+      "height": "32px",
+      "borderWidth": "2px",
+      "borderRadius": "9999px",
+      "unselectedBackground": "#E8E8E8",
+      "selectedBackground": "#1980FF (bundle-proven; not present in supplied captures)"
+    },
+    "trueFalseMarker": {
+      "width": "28px; 32px at >=640",
+      "height": "28px; 32px at >=640",
+      "borderRadius": "9999px",
+      "unselectedBackground": "#E8E8E8"
+    },
+    "fillBlank": {
+      "display": "inline",
+      "marginInline": "4px",
+      "paddingInline": "4px",
+      "borderBottom": "2px solid rgb(96,165,250)",
+      "textAlign": "center",
+      "fontWeight": 500
+    },
+    "dragItem": {
+      "padding": "4px 12px",
+      "borderRadius": "4px",
+      "color": "#23282c",
+      "fontSize": "14px",
+      "cursor": "move",
+      "background": "rgb(243,244,246)"
+    },
+    "submitButton": {
+      "height": "44px",
+      "background": "#CE1628",
+      "hoverBackground": "#ce5964",
+      "borderRadius": "6px",
+      "color": "#fff"
+    },
+    "submitOverlay": {
+      "position": "fixed",
+      "inset": 0,
+      "zIndex": 50,
+      "background": "rgba(0,0,0,.5)",
+      "panelMaxWidth": "448px"
+    }
+  },
+  "pseudoElements": {
+    "status": "No route-specific ::before/::after rule was verified; only global/vendor pseudo selectors were found."
+  }
+}

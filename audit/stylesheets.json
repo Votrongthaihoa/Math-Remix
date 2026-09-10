@@ -1,0 +1,21 @@
+[
+  {
+    "urlOrFile": "index-IpwJzEAT.css",
+    "size": 289605,
+    "sha256": "558a3726d2d88e20e12cd3e4401b0bd73ef5a0269f606289c95f85e9255a4157",
+    "kind": "Tailwind/vendor/KaTeX bundle",
+    "classification": "same-application reference variant; exact network match not proven"
+  },
+  {
+    "urlOrFile": "index-9eYssA5U.css",
+    "kind": "stylesheet referenced by saved HTML",
+    "classification": "network-era filename only; file absent locally"
+  },
+  {
+    "urlOrFile": "output.css",
+    "size": 4546,
+    "sha256": "accb06f16263023b044b35cddd21a32f2cf9a299a60f0c6ae224974997f125b8",
+    "kind": "HTML document saved with .css extension",
+    "classification": "reference document, not a stylesheet"
+  }
+]

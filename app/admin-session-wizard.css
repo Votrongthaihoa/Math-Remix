@@ -93,9 +93,6 @@
 }
 
 .ui-shell.admin-app.product-shell .admin-session-stepper {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
   margin-bottom: 18px;
   border: 1px solid var(--wizard-line);
   border-radius: 12px;
@@ -103,7 +100,16 @@
   box-shadow: 0 1px 2px rgba(24, 32, 48, .03);
 }
 
-.ui-shell.admin-app.product-shell .admin-session-stepper > div {
+.ui-shell.admin-app.product-shell .admin-session-stepper > ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-shell.admin-app.product-shell .admin-session-stepper > ol > li {
   position: relative;
   display: flex;
   align-items: center;
@@ -115,7 +121,7 @@
   font-size: 11px;
 }
 
-.ui-shell.admin-app.product-shell .admin-session-stepper > div:first-child { border-inline-start: 0; }
+.ui-shell.admin-app.product-shell .admin-session-stepper > ol > li:first-child { border-inline-start: 0; }
 
 .ui-shell.admin-app.product-shell .admin-session-stepper span {
   display: grid;
@@ -372,8 +378,8 @@
   .ui-shell.admin-app.product-shell .admin-session-wizard-header { gap: 14px; }
   .ui-shell.admin-app.product-shell .admin-session-wizard-header h1 { font-size: 26px; }
   .ui-shell.admin-app.product-shell .admin-session-wizard-header-icon { width: 44px; height: 44px; }
-  .ui-shell.admin-app.product-shell .admin-session-stepper { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .ui-shell.admin-app.product-shell .admin-session-stepper > div { justify-content: center; padding: 10px 4px; }
+  .ui-shell.admin-app.product-shell .admin-session-stepper > ol { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ui-shell.admin-app.product-shell .admin-session-stepper > ol > li { justify-content: center; padding: 10px 4px; }
   .ui-shell.admin-app.product-shell .admin-session-stepper b { display: none; }
   .ui-shell.admin-app.product-shell .admin-session-mode-grid { grid-template-columns: 1fr; }
   .ui-shell.admin-app.product-shell .admin-session-randomization-review { grid-template-columns: 1fr; }

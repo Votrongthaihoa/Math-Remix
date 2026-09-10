@@ -328,6 +328,10 @@
     width: 100%;
     justify-content: center;
   }
+
+  .app-shell.ui-shell.admin-app.product-shell.ui-optimized-surface .admin-security-page .security-admin-head > div:first-child {
+    flex: 0 1 auto;
+  }
 }
 
 /* Admin Security local layout. This intentionally does not style shared or exam UI. */

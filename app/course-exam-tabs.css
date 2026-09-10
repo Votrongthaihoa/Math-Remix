@@ -93,6 +93,8 @@
   }
 
   .ui-shell.student-app.product-shell .courses-page .course-exam-tabs > button {
-    flex: 1 0 auto;
+    min-width: 0;
+    flex: 1 1 0;
+    padding-inline: 8px;
   }
 }

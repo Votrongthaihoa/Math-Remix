@@ -438,6 +438,9 @@
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form { padding: 14px; }
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions { flex-wrap: wrap; }
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-form-actions button { flex: 1 1 130px; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-list article { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-state { grid-column: auto; }
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-course-timetable-row-actions { grid-column: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {

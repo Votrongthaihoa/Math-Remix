@@ -330,6 +330,13 @@
   white-space: nowrap;
 }
 
+.admin-hls-vault-dropzone.is-dragging {
+  border-color: var(--hls-red);
+  background: var(--hls-soft);
+  box-shadow: 0 0 0 3px rgba(200, 22, 43, 0.12);
+  user-select: none;
+}
+
 .ui-shell.admin-app.product-shell.ui-optimized-surface .admin-hls-vault-page .admin-hls-vault-field-error {
   color: #a7192d;
   font-size: 12px;
@@ -407,6 +414,7 @@
 .admin-hls-vault-agent-status > span { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
 .admin-hls-vault-agent-status > span svg { width: 15px; height: 15px; }
 .admin-hls-vault-agent-status b { min-width: 0; overflow-wrap: break-word; }
+.admin-hls-vault-agent-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
 .admin-hls-vault-agent-refresh { display: inline-flex; align-items: center; flex: 0 0 auto; gap: 5px; padding: 4px 0; border: 0; color: var(--hls-red); background: transparent; font-size: 11px; font-weight: 750; cursor: pointer; }
 .admin-hls-vault-agent-refresh:disabled { cursor: wait; opacity: .55; }
 .admin-hls-vault-agent-refresh svg { width: 14px; height: 14px; }
@@ -451,6 +459,7 @@
   .admin-hls-vault-engine-option { grid-template-columns: auto minmax(0, 1fr); }
   .admin-hls-vault-agent-pill { grid-column: 2; justify-self: start; }
   .admin-hls-vault-agent-status { align-items: flex-start; flex-direction: column; }
+  .admin-hls-vault-agent-actions { justify-content: flex-start; }
 }
 
 /* UI optimized neutral/crimson surface */

@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardCheck, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, BookOpenCheck, ClipboardCheck, UserRound } from "lucide-react";
+import { authenticatedFetch } from "../lib/auth-client";
+import { continueLearningStorageKey, loadContinueLearningResult, type ContinueLearningResult } from "../lib/continue-learning";
 import { buildActivityCalendar, summarizeDashboardAttempts, type DashboardAttempt } from "../lib/student-dashboard";
 import { formatUiActivityDate, formatUiDate } from "./ui-format";
 
@@ -25,6 +28,7 @@ type StudentDashboardRoom = {
 
 type StudentDashboardProps = {
   profile: StudentDashboardProfile;
+  userId: string;
   userCourses: readonly StudentDashboardCourse[];
   practiceRooms: readonly StudentDashboardRoom[];
   attempts: readonly DashboardAttempt[];
@@ -32,6 +36,7 @@ type StudentDashboardProps = {
   onExams: () => void;
  onOpenRoom: (roomId: string) => void;
  onOpenAttempt: (attemptId: string) => void;
+ onContinueLearning: (lessonId: string, resourceId?: string) => void;
   loading?: boolean;
   error?: string;
   onRetry?: () => void;
@@ -47,10 +52,30 @@ function followLink(event: React.MouseEvent<HTMLAnchorElement>, action: () => vo
   action();
 }
 
-export default function StudentDashboard({ profile, userCourses, practiceRooms, attempts, onCourses, onExams, onOpenRoom, onOpenAttempt, loading = false, error = "", onRetry }: StudentDashboardProps) {
+export default function StudentDashboard({ profile, userId, userCourses, practiceRooms, attempts, onCourses, onExams, onOpenRoom, onOpenAttempt, onContinueLearning, loading = false, error = "", onRetry }: StudentDashboardProps) {
   const year = new Date().getFullYear();
   const summary = summarizeDashboardAttempts(attempts, new Date());
   const activityDays = buildActivityCalendar(year, summary.currentYear);
+  const [continueRetry, setContinueRetry] = useState(0);
+  const [continueResult, setContinueResult] = useState<{ userId: string; request: number; result: ContinueLearningResult } | null>(null);
+  const activeContinueResult = continueResult?.userId === userId && continueResult.request === continueRetry ? continueResult.result : null;
+  const continueItem = activeContinueResult?.item ?? null;
+  const continueStatus = activeContinueResult?.status ?? "loading";
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    void loadContinueLearningResult({
+      request: signal => authenticatedFetch("/api/learning/continue", { cache: "no-store", signal }),
+      readFallback: () => window.localStorage.getItem(continueLearningStorageKey(userId)),
+      signal: controller.signal,
+    }).then(result => {
+      if (!cancelled) setContinueResult({ userId, request: continueRetry, result });
+    }).catch(() => {
+      if (!cancelled) setContinueResult({ userId, request: continueRetry, result: { status: "error", item: null } });
+    });
+    return () => { cancelled = true; controller.abort(); };
+  }, [userId, continueRetry]);
 
   return <div className="alpha-dashboard" data-testid="student-dashboard" aria-busy={loading}>
     {loading && <p className="alpha-dashboard-status" role="status" aria-live="polite">Đang cập nhật tổng quan…</p>}
@@ -80,6 +105,18 @@ export default function StudentDashboard({ profile, userCourses, practiceRooms, 
         <span>{profile.student_code}</span>
       </div>
     </section>
+
+    <section className="alpha-dashboard-continue" aria-labelledby="alpha-dashboard-continue-title" aria-busy={continueStatus === "loading"}>
+      <div className="alpha-dashboard-continue-icon" aria-hidden="true"><BookOpenCheck /></div>
+      <div className="alpha-dashboard-continue-copy">
+        <p>Học tập</p>
+        <h2 id="alpha-dashboard-continue-title">Tiếp tục học</h2>
+        {continueItem ? <><strong title={continueItem.lessonTitle}>{continueItem.lessonTitle}</strong><span title={continueItem.resourceTitle ?? continueItem.courseTitle}>{continueItem.resourceTitle ?? continueItem.courseTitle}</span></> : continueStatus === "ready" ? <span>Chọn một khóa học để bắt đầu hành trình của bạn.</span> : null}
+        <p role="status">{continueStatus === "loading" ? "Đang tải bài học gần đây…" : continueStatus === "fallback" ? "Đang dùng bản lưu trên thiết bị; dữ liệu chưa được đồng bộ." : continueStatus === "error" ? "Chưa tải được bài học gần đây. Hãy thử lại." : ""}</p>
+      </div>
+      {continueItem ? <Link className="alpha-dashboard-continue-action" href={`/lessons/${encodeURIComponent(continueItem.lessonId)}${continueItem.resourceId ? `?resource=${encodeURIComponent(continueItem.resourceId)}` : ""}`} onClick={event => followLink(event, () => onContinueLearning(continueItem.lessonId, continueItem.resourceId))}>Tiếp tục <ArrowRight aria-hidden="true" /></Link> : <Link className="alpha-dashboard-continue-action" href="/courses" onClick={event => followLink(event, onCourses)}>Khám phá khóa học <ArrowRight aria-hidden="true" /></Link>}
+    </section>
+    {(continueStatus === "error" || continueStatus === "fallback") && <div className="alpha-dashboard-error"><button type="button" onClick={() => setContinueRetry(value => value + 1)}>Tải lại bài học gần đây</button></div>}
 
     <section className="alpha-dashboard-resource-grid" aria-label="Tài nguyên học tập">
       <article className="alpha-dashboard-list-card">

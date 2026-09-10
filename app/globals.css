@@ -3,13 +3,13 @@
 /* Keep the application typography deterministic across browsers. These files are
    served from public/fonts, so using /assets here silently fell back to a
    different system font on pages that did not load the exam-room stylesheet. */
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Medium.ttf') format('truetype');font-weight:600;font-style:normal;font-display:swap}
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Bold.ttf') format('truetype');font-weight:800;font-style:normal;font-display:swap}
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Bold.ttf') format('truetype');font-weight:900;font-style:normal;font-display:swap}
-@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Italic.ttf') format('truetype');font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Medium.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Bold.woff2') format('woff2');font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Bold.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}
+@font-face{font-family:Lato;src:url('/fonts/lato-source/Lato-Italic.woff2') format('woff2');font-weight:400;font-style:italic;font-display:swap}
 @font-face{font-family:"RemixStudyEdu Roboto";src:url('/fonts/roboto/Roboto-400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:"RemixStudyEdu Roboto";src:url('/fonts/roboto/Roboto-500.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
 @font-face{font-family:"RemixStudyEdu Roboto";src:url('/fonts/roboto/Roboto-600.ttf') format('truetype');font-weight:600;font-style:normal;font-display:swap}
@@ -70,8 +70,9 @@ input::placeholder,textarea::placeholder{color:#667085;opacity:1}
 
 /* Account hover menu */
 .account-menu-wrap{position:relative;padding-bottom:8px;margin-bottom:-8px}.account-trigger{background:#f9fafb;border:0;border-radius:8px;padding:8px;display:flex;align-items:center;gap:4px;transition:background-color .2s ease,color .2s ease;color:var(--red)}.account-trigger:hover,.account-menu-wrap.open .account-trigger{background:#f3f4f6}.account-trigger span{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;line-height:22px;font-weight:500}.account-trigger svg{width:20px;height:20px;margin-left:4px;transition:transform .2s}.account-menu-wrap:hover .account-trigger svg,.account-menu-wrap:focus-within .account-trigger svg,.account-menu-wrap.open .account-trigger svg{transform:rotate(180deg)}
-.account-dropdown{position:absolute;top:calc(100% + 0px);right:0;z-index:1050;min-width:200px;padding:4px;background:#fff;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05);opacity:0;visibility:hidden;transform:translateY(-5px);transition:opacity .16s,transform .16s,visibility .16s}.account-menu-wrap:hover .account-dropdown,.account-menu-wrap:focus-within .account-dropdown,.account-menu-wrap.open .account-dropdown{opacity:1;visibility:visible;transform:translateY(0)}.account-dropdown button{width:100%;border:0;background:#fff;border-radius:4px;padding:8px 12px;display:flex;align-items:center;text-align:left;color:#374151;transition:background .2s}.account-dropdown button:hover,.account-dropdown button:focus{background:rgba(0,0,0,.06);outline:none}.account-dropdown button svg{width:18px;height:18px;color:#4b5563;margin-right:8px}.account-dropdown button span{font-size:16px;line-height:24px;margin-left:8px}
+.account-dropdown{position:absolute;top:calc(100% + 0px);right:0;z-index:1050;min-width:200px;padding:4px;background:#fff;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05);opacity:0;visibility:hidden;transform:translateY(-5px);transition:opacity .16s,transform .16s,visibility .16s}.account-menu-wrap:hover .account-dropdown,.account-menu-wrap:focus-within .account-dropdown,.account-menu-wrap.open .account-dropdown{opacity:1;visibility:visible;transform:translateY(0)}.account-dropdown button{width:100%;border:0;background:#fff;border-radius:4px;padding:8px 12px;display:flex;align-items:center;text-align:left;color:#374151;transition:background .2s}.account-dropdown button:hover{background:rgba(0,0,0,.06)}.account-dropdown button:focus-visible{background:rgba(0,0,0,.06);outline:2px solid #007aff;outline-offset:2px;}.account-dropdown button svg{width:18px;height:18px;color:#4b5563;margin-right:8px}.account-dropdown button span{font-size:16px;line-height:24px;margin-left:8px}
 @media(max-width:720px){.account-trigger span{max-width:105px;font-size:14px}.account-dropdown{right:-4px}}
+@media(prefers-reduced-motion:reduce){.account-dropdown,.account-trigger,.account-trigger svg{transition:none!important}}
 .password-modal .primary-btn{margin-top:18px}.form-success{font-size:12px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;padding:10px;border-radius:8px}
 
 /* Dashboard fidelity pass: measurements taken from the authorized reference UI. */

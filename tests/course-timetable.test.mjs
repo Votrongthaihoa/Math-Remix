@@ -72,6 +72,17 @@ test("admin timetable supports a bounded date window and complete event manageme
   assert.doesNotMatch(courseUi, /setMonth\(to\.getMonth\(\) \+ 6\)/);
 });
 
+test("deleting a course timetable event requires the accessible product confirmation", async () => {
+  const courseUi = await source("app/admin-course-timetable.tsx");
+
+  assert.doesNotMatch(courseUi, /window\.confirm/);
+  assert.match(courseUi, /import AeckConfirmDialog from "\.\.\/components\/aeck\/AeckConfirmDialog";/);
+  assert.match(courseUi, /const \[pendingEventDeletion, setPendingEventDeletion\] = useState<CourseEvent \| null>\(null\);/);
+  assert.match(courseUi, /pendingEventDeletion \? <AeckConfirmDialog/);
+  assert.match(courseUi, /onClick=\{\(\) => setPendingEventDeletion\(item\)\}/);
+  assert.match(courseUi, /onClick: \(\) => void removeEvent\(pendingEventDeletion\)/);
+});
+
 test("course timetable filters collapse before the tablet admin shell clips date controls", async () => {
   const theme = await source("app/red-white-theme.css");
 
@@ -83,6 +94,48 @@ test("course timetable filters collapse before the tablet admin shell clips date
   assert.match(compactCss, /\.admin-course-timetable-filters\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
   assert.match(compactCss, /\.admin-course-timetable-form\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
   assert.match(compactCss, /\.admin-course-timetable-head\s*\{[\s\S]*?flex-direction:\s*column;/);
+});
+
+test("course timetable events use a single reading column on narrow mobile screens", async () => {
+  const theme = await source("app/red-white-theme.css");
+  const phoneStart = theme.indexOf("@media (max-width: 480px)");
+  const phoneCss = theme.slice(phoneStart);
+
+  assert.ok(phoneStart >= 0, "missing the phone timetable breakpoint");
+  assert.match(phoneCss, /\.admin-course-timetable-list article\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);/);
+  assert.match(phoneCss, /\.admin-course-timetable-state\s*\{[\s\S]*?grid-column:\s*auto;/);
+  assert.match(phoneCss, /\.admin-course-timetable-row-actions\s*\{[\s\S]*?grid-column:\s*auto;/);
+});
+
+test("timetable tabs connect to their panels and support standard keyboard navigation", async () => {
+  const timetable = await source("app/admin-timetable.tsx");
+
+  assert.match(timetable, /function handleTimetableTabKeyDown/);
+  assert.match(timetable, /event\.key === "ArrowRight"/);
+  assert.match(timetable, /event\.key === "ArrowLeft"/);
+  assert.match(timetable, /event\.key === "Home"/);
+  assert.match(timetable, /event\.key === "End"/);
+  assert.match(timetable, /id="admin-timetable-course-tab"[\s\S]*?aria-controls="admin-timetable-course-panel"/);
+  assert.match(timetable, /id="admin-timetable-exam-tab"[\s\S]*?aria-controls="admin-timetable-exam-panel"/);
+  assert.match(timetable, /role="tabpanel"[\s\S]*?aria-labelledby=\{activeView === "courses" \? "admin-timetable-course-tab" : "admin-timetable-exam-tab"\}/);
+});
+
+test("exam-room weekly controls are exposed as a named navigation landmark", async () => {
+  const timetable = await source("app/admin-timetable.tsx");
+
+  assert.match(timetable, /<nav className="admin-timetable-week-controls" aria-label="Điều hướng tuần">/);
+  assert.match(timetable, /aria-label="Tuần trước"[\s\S]*?className="admin-timetable-current-week"[\s\S]*?aria-label="Tuần sau"/);
+});
+
+test("timetable view is deep-linkable and follows browser history", async () => {
+  const timetable = await source("app/admin-timetable.tsx");
+
+  assert.match(timetable, /function timetableViewFromUrl/);
+  assert.match(timetable, /url\.searchParams\.get\("view"\) === "exams"/);
+  assert.match(timetable, /window\.addEventListener\("popstate", syncViewFromUrl\)/);
+  assert.match(timetable, /window\.history\.pushState/);
+  assert.match(timetable, /url\.searchParams\.set\("view", view\)/);
+  assert.match(timetable, /url\.searchParams\.delete\("view"\)/);
 });
 
 test("admin timetable smoke enters the exam-room tab before exercising its schedule editor", async () => {

@@ -1,0 +1,18 @@
+{
+  "found": [],
+  "checks": [
+    {
+      "file": "index-rqS3kNQ4.js",
+      "sourceMappingURL": false
+    },
+    {
+      "file": "index-IpwJzEAT.css",
+      "sourceMappingURL": false
+    },
+    {
+      "file": "output.css (HTML)",
+      "referencedModule": "/assets/index-CvGeGVj1.js",
+      "sourceMapReference": false
+    }
+  ]
+}

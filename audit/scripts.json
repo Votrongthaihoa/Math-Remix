@@ -1,0 +1,26 @@
+[
+  {
+    "urlOrFile": "index-rqS3kNQ4.js",
+    "size": 6316848,
+    "sha256": "1a4c8f1ec2dc628de560f2ac9499beef41270ee583be5a71e51ca0b286864585",
+    "framework": "React + React Router + Axios-style apiClient + KaTeX + Tailwind utilities",
+    "classification": "same-application reference variant; exact network match not proven",
+    "sourceMap": null
+  },
+  {
+    "urlOrFile": "/assets/index-CvGeGVj1.js",
+    "kind": "module script referenced by saved HTML",
+    "classification": "different hashed build; absent locally",
+    "sourceMap": null
+  },
+  {
+    "urlOrFile": "/disable-devtool.js",
+    "kind": "site protection script referenced by saved HTML",
+    "classification": "observed protection; file absent locally"
+  },
+  {
+    "urlOrFile": "chrome-extension://…",
+    "kind": "browser-extension injection in supplied captures",
+    "classification": "removed from every audit artifact"
+  }
+]

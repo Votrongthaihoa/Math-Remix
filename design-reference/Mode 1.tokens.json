@@ -1,0 +1,275 @@
+{
+  "Component Fill": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "srgb",
+      "components": [
+        0.9607843160629272,
+        0.9607843160629272,
+        0.9607843160629272
+      ],
+      "alpha": 1,
+      "hex": "#F5F5F5"
+    },
+    "$extensions": {
+      "com.figma.variableId": "VariableID:474:106",
+      "com.figma.hiddenFromPublishing": true,
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Component Stroke": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "srgb",
+      "components": [
+        0.3803921639919281,
+        0.3333333432674408,
+        0.9607843160629272
+      ],
+      "alpha": 1,
+      "hex": "#6155F5"
+    },
+    "$extensions": {
+      "com.figma.variableId": "VariableID:475:941",
+      "com.figma.hiddenFromPublishing": true,
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ],
+      "com.figma.aliasData": {
+        "targetVariableId": "VariableID:d5c42a1e4fa1d94c3d34eb18c7dc9a42953c4057/-1:-1",
+        "targetVariableName": "Accents/Indigo",
+        "targetVariableSetId": "VariableCollectionId:a96d256a4149512ea8158c4a2606d55fa27a61db/-1:-1",
+        "targetVariableSetName": "Appearance"
+      }
+    }
+  },
+  "Subcomponent Fill": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "srgb",
+      "components": [
+        0.6666666865348816,
+        0.6666666865348816,
+        0.6666666865348816
+      ],
+      "alpha": 1,
+      "hex": "#AAAAAA"
+    },
+    "$extensions": {
+      "com.figma.variableId": "VariableID:475:942",
+      "com.figma.hiddenFromPublishing": true,
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Subcomponent Stroke": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "srgb",
+      "components": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 0.4000000059604645,
+      "hex": "#000000"
+    },
+    "$extensions": {
+      "com.figma.variableId": "VariableID:475:943",
+      "com.figma.hiddenFromPublishing": true,
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Section Fill": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "srgb",
+      "components": [
+        0.9607843160629272,
+        0.9607843160629272,
+        0.9607843160629272
+      ],
+      "alpha": 1,
+      "hex": "#F5F5F5"
+    },
+    "$extensions": {
+      "com.figma.variableId": "VariableID:475:944",
+      "com.figma.hiddenFromPublishing": true,
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Section Stroke": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "srgb",
+      "components": [
+        0,
+        0,
+        0
+      ],
+      "alpha": 0.4000000059604645,
+      "hex": "#000000"
+    },
+    "$extensions": {
+      "com.figma.variableId": "VariableID:475:945",
+      "com.figma.hiddenFromPublishing": true,
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Shadow - Blur - Layer": {
+    "$type": "number",
+    "$value": 30,
+    "$extensions": {
+      "com.figma.variableId": "VariableID:2484:869",
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Shadow - Blur - BG": {
+    "$type": "number",
+    "$value": 60,
+    "$extensions": {
+      "com.figma.variableId": "VariableID:2484:870",
+      "com.figma.scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "Scroll Edge Effect": {
+    "Blur Radius": {
+      "$type": "number",
+      "$value": 10,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:475:946",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    }
+  },
+  "Liquid Glass": {
+    "Light Angle": {
+      "$type": "number",
+      "$value": -45,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:298",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Opacity": {
+      "$type": "number",
+      "$value": 60,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2486:12628",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Refraction": {
+      "$type": "number",
+      "$value": 100,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:299",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Depth - Regular": {
+      "$type": "number",
+      "$value": 16,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:294",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Depth - Medium and Large": {
+      "$type": "number",
+      "$value": 16,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:301",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Dispersion": {
+      "$type": "number",
+      "$value": 0,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:295",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Frost - Regular": {
+      "$type": "number",
+      "$value": 7,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:296",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Frost - Medium": {
+      "$type": "number",
+      "$value": 12,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:300",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Frost - Large": {
+      "$type": "number",
+      "$value": 14,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:302",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Splay - Regular": {
+      "$type": "number",
+      "$value": 6,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:297",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    },
+    "Splay - Medium and Large": {
+      "$type": "number",
+      "$value": 6,
+      "$extensions": {
+        "com.figma.variableId": "VariableID:2447:303",
+        "com.figma.scopes": [
+          "ALL_SCOPES"
+        ]
+      }
+    }
+  },
+  "$extensions": {
+    "com.figma.modeName": "Mode 1"
+  }
+}

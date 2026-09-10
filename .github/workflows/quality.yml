@@ -15,12 +15,12 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Use Node.js 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22.13.0
           cache: npm
@@ -32,14 +32,62 @@ jobs:
         run: npm run lint
       - name: Test and build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.invalid
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
+          NEXT_PUBLIC_SUPABASE_URL: https://synthetic.supabase.test
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: synthetic-publishable-key
+          NEXT_PUBLIC_API_URL: ""
+          WRANGLER_ENV_FILE: e2e/fixtures/synthetic-worker.env
         run: npm test
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=high
       - name: Worker runtime smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://synthetic.supabase.test
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: synthetic-publishable-key
+          NEXT_PUBLIC_API_URL: ""
+          WRANGLER_ENV_FILE: e2e/fixtures/synthetic-worker.env
         run: npm run smoke:worker
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
-      - name: Public browser smoke
-        run: npm run test:e2e -- --project=chromium --project=mobile-390 --project=mobile-360
+      - name: Public and synthetic student browser smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://synthetic.supabase.test
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: synthetic-publishable-key
+          NEXT_PUBLIC_API_URL: ""
+          WRANGLER_ENV_FILE: e2e/fixtures/synthetic-worker.env
+        run: |
+          set -euo pipefail
+          for project in chromium tablet-768 mobile-390 mobile-360 mobile-320 webkit; do
+            echo "Running synthetic browser project: ${project}"
+            PW_REPORT_ROOT="playwright-report/${project}" \
+            PW_JSON_OUTPUT="test-results/${project}/results.json" \
+              npm run test:e2e -- critical-flow.spec.ts student-flow.spec.ts --project="${project}" --workers=1 --output="test-results/${project}"
+          done
+      - name: Runtime coverage evidence
+        if: always()
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://synthetic.supabase.test
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: synthetic-publishable-key
+        run: npm run coverage:runtime -- --output=artifacts/coverage/runtime
+      - name: P0 coverage release gate
+        if: always()
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://synthetic.supabase.test
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: synthetic-publishable-key
+        run: npm run coverage:p0 -- --output=artifacts/coverage/p0
+      - name: Test evidence manifest
+        if: always()
+        run: npm run evidence:manifest -- --skip-gh --output=audit/coverage-source-manifest.json
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: test-evidence-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+            artifacts/coverage/
+            audit/baseline-manifest.json
+            audit/coverage-source-manifest.json
+          if-no-files-found: ignore
+          retention-days: 7

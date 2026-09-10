@@ -23,6 +23,9 @@ test("public auth and product chrome use the canonical AECK identity", async () 
   assert.match(platform, /student-sidebar-logo-compact" src=\{shellLogoCompact\}/);
   assert.match(platform, /mobile-sidebar-logo-compact" src=\{shellLogoCompact\}/);
   assert.match(platform, /header-brand-logo-compact" src=\{shellLogoCompact\}/);
+  assert.match(platform, /import Image from ["']next\/image["']/);
+  assert.doesNotMatch(platform, /<img[^>]+className="(?:student-sidebar-logo|mobile-sidebar-logo|header-brand-logo)/);
+  assert.match(platform, /<Image[^>]+className="header-brand-logo/);
   assert.doesNotMatch(platform, /src="\/logo_tsa\.svg"/);
   assert.match(layout, /title:\s*"AECK"/);
   assert.match(layout, /icon:\s*\[/);

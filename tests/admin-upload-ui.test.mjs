@@ -23,14 +23,27 @@ test("public image library keeps load failures separate from the empty state", a
   assert.match(component, /!images\.length \? \(libraryError \? null : <div className="admin-upload-empty">/);
 });
 
-test("private image deletion uses the accessible MacAlert confirmation", async () => {
+test("private image deletion uses the accessible AECK confirmation", async () => {
   const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
 
   assert.doesNotMatch(component, /window\.confirm/);
   assert.match(component, /const \[pendingExamImage, setPendingExamImage\] = useState<ExamUploadedImage \| null>\(null\);/);
-  assert.match(component, /pendingExamImage \? <MacAlert/);
+  assert.match(component, /pendingExamImage \? <AeckConfirmDialog/);
   assert.match(component, /removeExamImage\(pendingExamImage\)/);
   assert.match(component, /onClick=\{\(\) => requestExamImageRemoval\(image\)\}/);
+});
+
+test("image deletion dialogs retain context while requests run or fail", async () => {
+  const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /async function removeImage\(image: UploadedImage\) \{\s*if \(deletingAsset\) return;/);
+  assert.match(component, /setNotice\("Đã xóa ảnh khỏi kho công khai\."\);\s*setPendingImage\(null\);/);
+  assert.match(component, /async function removeExamImage\(image: ExamUploadedImage\) \{\s*if \(image\.used \|\| deletingExamAsset\) return;/);
+  assert.match(component, /setNotice\("Đã xoá ảnh đề thi không còn được sử dụng khỏi R2\."\);\s*setPendingExamImage\(null\);/);
+  assert.match(component, /secondaryAction=\{\{ label: "Hủy", onClick: closeImageRemoval, disabled: Boolean\(deletingAsset\) \}\}/);
+  assert.match(component, /primaryAction=\{\{ label: deletingAsset \? "Đang xóa…" : "Xóa ảnh", onClick: \(\) => void removeImage\(pendingImage\), disabled: Boolean\(deletingAsset\) \}\}/);
+  assert.match(component, /secondaryAction=\{\{ label: "Hủy", onClick: closeExamImageRemoval, disabled: Boolean\(deletingExamAsset\) \}\}/);
+  assert.match(component, /primaryAction=\{\{ label: deletingExamAsset \? "Đang xoá…" : "Xóa ảnh", onClick: \(\) => void removeExamImage\(pendingExamImage\), disabled: Boolean\(deletingExamAsset\) \}\}/);
 });
 
 test("upload controls and metadata formatting stay accessible and date-safe", async () => {
@@ -60,6 +73,18 @@ test("image libraries use URL-driven tabs, search, pagination, and namespaced co
   assert.match(component, /Number\.isFinite\(parsed\)/);
   assert.match(component, /setPublicPage\(page => Math\.min\(page, publicPageCount\)\)/);
   assert.match(component, /setPrivatePage\(page => Math\.min\(page, privatePageCount\)\)/);
+});
+
+test("image library tabs follow the keyboard-accessible tabs pattern", async () => {
+  const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
+
+  assert.match(component, /role="tablist" aria-label="Chọn thư viện ảnh"/);
+  assert.match(component, /id="admin-upload-library-tab-public" role="tab"[\s\S]*?aria-controls="admin-upload-library-panel-public"[\s\S]*?tabIndex=\{activeLibrary === "public" \? 0 : -1\}/);
+  assert.match(component, /id="admin-upload-library-tab-private" role="tab"[\s\S]*?aria-controls="admin-upload-library-panel-private"[\s\S]*?tabIndex=\{activeLibrary === "private" \? 0 : -1\}/);
+  assert.match(component, /function handleLibraryTabKeyDown\(event: KeyboardEvent<HTMLButtonElement>\)/);
+  assert.match(component, /\["ArrowLeft", "ArrowRight", "Home", "End"\]\.includes\(event\.key\)/);
+  assert.match(component, /role="tabpanel" id="admin-upload-library-panel-public" aria-labelledby="admin-upload-library-tab-public"/);
+  assert.match(component, /role="tabpanel" id="admin-upload-library-panel-private" aria-labelledby="admin-upload-library-tab-private"/);
 });
 
 test("copy confirmations use a dedicated repeatable live announcement", async () => {
@@ -133,9 +158,9 @@ test("Microsoft Graph lesson video creation stays behind the active admin server
   assert.match(player, /<iframe/);
   assert.doesNotMatch(player, /Mở video trên Microsoft|playbackMode === "external"/);
   assert.match(player, /setResolutionNonce\(value => value \+ 1\)/);
-  assert.match(player, /yt-embed-player\.html\?mode=native/);
+  assert.match(player, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=native/);
   assert.match(player, /remix:set-video-source/);
-  assert.match(player, /event\.origin !== window\.location\.origin/);
+  assert.match(player, /event\.origin !== MEDIA_VIEWER_ORIGIN/);
   assert.match(sharedVideoPlayer, /\["native", "hls"\]/);
   assert.match(sharedVideoPlayer, /remix:video-player-ready/);
   assert.match(sharedVideoPlayer, /allowedMicrosoftHostSuffixes/);

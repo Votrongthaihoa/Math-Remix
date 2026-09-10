@@ -1,0 +1,489 @@
+{
+  "capturedAt": "2026-09-06T07:07:08.761Z",
+  "source": "public-visible-route-crawl",
+  "requests": [
+    {
+      "route": "https://aeck.vn/",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/index-NRXYzPkT.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/rolldown-runtime-Bhmf7a9N.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/vendor-antd-BXSstzUq.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/vendor-misc-CsS1jTpw.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/vendor-react-BpwDwyVL.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/useAuthStore-2GM6LZLp.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/legalPages-DE6HLtT-.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "stylesheet",
+      "origin": "https://aeck.vn",
+      "path": "/assets/vendor-misc-QLmc7JW0.css"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "stylesheet",
+      "origin": "https://aeck.vn",
+      "path": "/assets/index-JfStd7bz.css"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/useAuthStore-DwC96AwR.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/LandingPage-HYAGmKTm.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/vendor-motion-DHLdbOrS.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/TeachersTitle-B8lsYwDS.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/logo-short-DESqYVx1.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/courseGroups-BoQKnurI.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/TopNav-Ey_ThiIf.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/teachers-C5MHHQA2.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/CourseService-2SRuT7Sj.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://aeck.vn",
+      "path": "/assets/Lato-Medium_0-DwnuWpLC.woff2"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://aeck.vn",
+      "path": "/assets/Lato-Bold_2-B_OkuJaC.woff2"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://aeck.vn",
+      "path": "/assets/Lato-Heavy_1-Blvc-G5K.woff2"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://aeck.vn",
+      "path": "/assets/Lato-Black_2-gFXKR_uK.woff2"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://aeck.vn",
+      "path": "/assets/Lato-Regular_2-DldjFvPZ.woff2"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "POST",
+      "resourceType": "xhr",
+      "origin": "https://server.aeck.vn",
+      "path": "/api/v2/auth/refresh-token"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "xhr",
+      "origin": "https://server.aeck.vn",
+      "path": "/api/v2/public-key/server-public-key"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "POST",
+      "resourceType": "xhr",
+      "origin": "https://server.aeck.vn",
+      "path": "/api/v2/public-key/register-client-key"
+    },
+    {
+      "route": "https://aeck.vn/khoa-hoc?category=THPT",
+      "method": "GET",
+      "resourceType": "xhr",
+      "origin": "https://server.aeck.vn",
+      "path": "/api/v2/courses?<query>"
+    },
+    {
+      "route": "https://aeck.vn/",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/giao-vien"
+    },
+    {
+      "route": "https://aeck.vn/giao-vien",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/TeachersPage-CrDc22L5.js"
+    },
+    {
+      "route": "https://aeck.vn/giao-vien",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/goi-hoc-tap"
+    },
+    {
+      "route": "https://aeck.vn/goi-hoc-tap",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/SubscriptionPage-DK_ndNTd.js"
+    },
+    {
+      "route": "https://aeck.vn/goi-hoc-tap",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/TopNavLayout-DEYA6mhw.js"
+    },
+    {
+      "route": "https://aeck.vn/goi-hoc-tap",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/SubscriptionService-CgYFz_U7.js"
+    },
+    {
+      "route": "https://aeck.vn/goi-hoc-tap",
+      "method": "GET",
+      "resourceType": "xhr",
+      "origin": "https://server.aeck.vn",
+      "path": "/api/v2/subscription-packages/public"
+    },
+    {
+      "route": "https://aeck.vn/khoa-hoc?category=DGNL",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/khoa-hoc?<query>"
+    },
+    {
+      "route": "https://aeck.vn/khoa-hoc?category=THPT",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/CoursesPage-CJ92uu0I.js"
+    },
+    {
+      "route": "https://aeck.vn/khoa-hoc?category=TSA",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/portal"
+    },
+    {
+      "route": "https://aeck.vn/portal",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://account.aeck.vn",
+      "path": "/login?<query>"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "stylesheet",
+      "origin": "https://fonts.googleapis.com",
+      "path": "/css2?<query>"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/index-BitT0Zrc.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/rolldown-runtime-B1FJdls4.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/vendor-antd-BMxkYy07.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/vendor-misc-CyP56OhO.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/vendor-react-YTWw0uAx.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "stylesheet",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/vendor-misc-QLmc7JW0.css"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "stylesheet",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/index-CHPuXLga.css"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/useAuthStore-BRB_k-p3.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/LoginForm-C_zFcWaN.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/logo-full-B7cRzxBE.js"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/Lato-Medium_0-DG1Y4T2A.ttf"
+    },
+    {
+      "route": "https://account.aeck.vn/login?redirect=https%3A%2F%2Faeck.vn%2Fportal",
+      "method": "GET",
+      "resourceType": "font",
+      "origin": "https://account.aeck.vn",
+      "path": "/assets/Lato-Regular_2-B4qwZox_.ttf"
+    },
+    {
+      "route": "https://aeck.vn/khoa-hoc?category=THPT",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/luyen-thi-tsa"
+    },
+    {
+      "route": "https://aeck.vn/dang-ky-thi-hsa",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/ExamGuidePage-DLUGijfe.js"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/ContentBlocks-DTPwRnbo.js"
+    },
+    {
+      "route": "https://aeck.vn/luyen-thi-tsa",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/cau-truc-de-thi-tsa"
+    },
+    {
+      "route": "https://aeck.vn/cau-truc-de-thi-tsa",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/cach-tinh-diem-tsa"
+    },
+    {
+      "route": "https://aeck.vn/cach-tinh-diem-tsa",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/luyen-thi-hsa"
+    },
+    {
+      "route": "https://aeck.vn/luyen-thi-hsa",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/cau-truc-de-thi-hsa"
+    },
+    {
+      "route": "https://aeck.vn/cau-truc-de-thi-hsa",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/dang-ky-thi-hsa"
+    },
+    {
+      "route": "https://aeck.vn/dang-ky-thi-hsa",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/dieu-khoan-dich-vu"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-khieu-nai",
+      "method": "GET",
+      "resourceType": "script",
+      "origin": "https://aeck.vn",
+      "path": "/assets/LegalPage-BKZsrTrR.js"
+    },
+    {
+      "route": "https://aeck.vn/dieu-khoan-dich-vu",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/chinh-sach-bao-mat"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-bao-mat",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/dieu-kien-han-che-cung-cap"
+    },
+    {
+      "route": "https://aeck.vn/dieu-kien-han-che-cung-cap",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/quyen-va-nghia-vu-hai-ben"
+    },
+    {
+      "route": "https://aeck.vn/quyen-va-nghia-vu-hai-ben",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/chinh-sach-thanh-toan"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-thanh-toan",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/chinh-sach-gia"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-gia",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/chinh-sach-van-chuyen-doi-tra"
+    },
+    {
+      "route": "https://aeck.vn/chinh-sach-van-chuyen-doi-tra",
+      "method": "GET",
+      "resourceType": "document",
+      "origin": "https://aeck.vn",
+      "path": "/chinh-sach-khieu-nai"
+    }
+  ]
+}

@@ -378,7 +378,7 @@
   word-break: break-word;
 }
 
-/* admin-macos.css uses a more specific :has() rule for this metadata. Keep
+/* admin-product-shell.css uses a more specific :has() rule for this metadata. Keep
  * the same intent with a stronger, still catalog-only selector. */
 .app-shell.ui-shell.admin-app.product-shell .workspace-page:has(.room-catalog-grid) .reference-room-card-body .exam-meta-item > b {
   min-width: 0;

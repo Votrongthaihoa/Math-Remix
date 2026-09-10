@@ -1,0 +1,86 @@
+[
+  {
+    "region": "page heading",
+    "observedText": "Gói đề: Phòng Luyện Miễn Phí",
+    "selectorEvidence": "PartListPage h1",
+    "className": "text-lg lg:text-xl font-semibold text-gray-900",
+    "source": "bundle + directly observed DOM"
+  },
+  {
+    "region": "search",
+    "observedText": "Tìm kiếm đề thi...",
+    "selectorEvidence": "PartListPage input[type='text']",
+    "className": "w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#902d2d] focus:border-[#902d2d] outline-none",
+    "source": "bundle + directly observed placeholder"
+  },
+  {
+    "region": "part card",
+    "observedText": "Đề Số 01",
+    "selectorEvidence": "PartListRow root",
+    "className": "bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4 hover:shadow-lg transition-all duration-300 group",
+    "source": "bundle + directly observed DOM"
+  },
+  {
+    "region": "start button",
+    "observedText": "Vào làm",
+    "selectorEvidence": "PartListRow final action",
+    "className": "text-white text-sm font-bold px-6 py-2.5 rounded-lg shadow-sm transition-all hover:-translate-y-0.5 bg-[#cc3232]",
+    "source": "bundle + directly observed DOM"
+  },
+  {
+    "region": "confirmation submit",
+    "observedText": "Bắt đầu thi",
+    "selectorEvidence": "confirmation capture button",
+    "className": "w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded transition-colors mb-4",
+    "source": "user-supplied serialized DOM"
+  },
+  {
+    "region": "exam sidebar",
+    "observedText": "Thông tin thí sinh",
+    "selectorEvidence": "ExamSidebar",
+    "className": "bg-white flex flex-col h-screen; inner p-4 lg:py-6 lg:px-[15px] md:w-[480px]",
+    "source": "bundle + repeated serialized DOM"
+  },
+  {
+    "region": "single-choice option",
+    "observedText": "[REDACTED_OPTION_TEXT]",
+    "selectorEvidence": "SingleChoiceQuestion option marker",
+    "className": "w-8 h-8 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all bg-[#E8E8E8]",
+    "source": "user-supplied serialized DOM"
+  },
+  {
+    "region": "true/false matrix control",
+    "observedText": "Đúng / Sai",
+    "selectorEvidence": "TrueFalseQuestion row control",
+    "className": "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all bg-[#E8E8E8]",
+    "source": "user-supplied serialized DOM"
+  },
+  {
+    "region": "fill-in-blank input",
+    "observedText": "[REDACTED_FORM_VALUE]",
+    "selectorEvidence": "FillInBlankQuestion input[type='text']",
+    "className": "inline mx-1 px-1 py-0 border-b-2 border-blue-400 focus:border-blue-600 focus:outline-none text-center font-medium",
+    "source": "user-supplied serialized DOM"
+  },
+  {
+    "region": "drag/drop item",
+    "observedText": "[REDACTED_ITEM_TEXT]",
+    "selectorEvidence": "DragAndDropQuestion [draggable='true']",
+    "className": "px-3 py-1 text-center rounded text-[#23282c] text-sm font-medium cursor-move transition-all select-none bg-gray-100",
+    "source": "user-supplied serialized DOM"
+  },
+  {
+    "region": "submit button",
+    "observedText": "Nộp bài",
+    "selectorEvidence": "ExamSidebar submit trigger",
+    "className": "bg-[#CE1628] hover:bg-[#ce5964] text-white h-[44px] px-3 lg:px-4 rounded-md",
+    "source": "bundle + repeated serialized DOM"
+  },
+  {
+    "region": "submit modal",
+    "observedText": "Làm bài tiếp / Nộp bài thi",
+    "selectorEvidence": "SubmitModal",
+    "className": "fixed inset-0 bg-black bg-opacity-50 z-50; panel max-w-md bg-white rounded-lg",
+    "source": "reference bundle; modal not present in supplied captures"
+  }
+]

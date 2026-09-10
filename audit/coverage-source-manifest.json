@@ -1,0 +1,5040 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-10T19:40:18.120Z",
+  "runtime": {
+    "node": "v24.11.1",
+    "platform": "win32",
+    "architecture": "x64"
+  },
+  "git": {
+    "commit": "e43c58ff0d62453e690d8d1306990150fe97bb2b",
+    "changes": [
+      {
+        "status": "M",
+        "path": ".github/workflows/quality.yml"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-audit-log.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-course-timetable.tsx"
+      },
+      {
+        "status": "D",
+        "path": "app/admin-exams.css"
+      },
+      {
+        "status": "D",
+        "path": "app/admin-exams.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-hls-vault.css"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-hls-vault.tsx"
+      },
+      {
+        "status": "D",
+        "path": "app/admin-macos.css"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-reference-suite.css"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-security.css"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-session-wizard.css"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-session-wizard.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-sessions.css"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-sessions.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-timetable.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/admin-upload.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/aeck-public-site.module.css"
+      },
+      {
+        "status": "M",
+        "path": "app/aeck-public-site.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/alpha-reference-portal.css"
+      },
+      {
+        "status": "M",
+        "path": "app/api/hls/[resourceId]/[...path]/route.ts"
+      },
+      {
+        "status": "M",
+        "path": "app/course-exam-tabs.css"
+      },
+      {
+        "status": "M",
+        "path": "app/globals.css"
+      },
+      {
+        "status": "M",
+        "path": "app/platform.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/red-white-theme.css"
+      },
+      {
+        "status": "M",
+        "path": "app/student-dashboard.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/student-discovery.tsx"
+      },
+      {
+        "status": "M",
+        "path": "app/student-reference-fidelity.css"
+      },
+      {
+        "status": "M",
+        "path": "app/student-timetable-reference.css"
+      },
+      {
+        "status": "M",
+        "path": "app/text-overflow-polish.css"
+      },
+      {
+        "status": "M",
+        "path": "app/ui-format.ts"
+      },
+      {
+        "status": "M",
+        "path": "app/ui-system.css"
+      },
+      {
+        "status": "M",
+        "path": "app/video-player.tsx"
+      },
+      {
+        "status": "D",
+        "path": "components/macos/MacAlert.tsx"
+      },
+      {
+        "status": "D",
+        "path": "components/macos/macos-alert.css"
+      },
+      {
+        "status": "M",
+        "path": "e2e/critical-flow.spec.ts"
+      },
+      {
+        "status": "M",
+        "path": "package-lock.json"
+      },
+      {
+        "status": "M",
+        "path": "package.json"
+      },
+      {
+        "status": "M",
+        "path": "playwright.config.ts"
+      },
+      {
+        "status": "M",
+        "path": "scripts/product-shell-ui-smoke.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/admin-audit.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/admin-upload-ui.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/aeck-brand-unification.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/course-timetable.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/hls-vault.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/http-server.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/product-shell-layout.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/product-shell-student-v2.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/product-shell-ui.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/rate-limit.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/reference-suite.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/rendered-html.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/request-retry.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/session-list-ui.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/session-wizard-ui.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "tests/student-dashboard-ui.test.mjs"
+      },
+      {
+        "status": "M",
+        "path": "worker/index.ts"
+      },
+      {
+        "status": "M",
+        "path": "workers/media-proxy/src/index.ts"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/focus-and-keyboard.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/forms.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/hit-areas.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/motion-and-zoom.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/screen-readers.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-accessibility/semantics-and-aria.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/accessibility-contrast.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/color-conversion.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/color-usage.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/gamut-and-tailwind.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-colors/palette-generation.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-interface/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-interface/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-layout/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-layout/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-layout/grouping-and-alignment.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-layout/spacing-and-adaptivity.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/choosing-fonts.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/css-cheat-sheet.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/details-and-accessibility.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/spacing-and-sizing.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/variable-fonts-and-opentype.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-typography/wrapping-and-punctuation.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-ui/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-ui/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-ui/animations.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-ui/icons.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-ui/performance.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-ui/surfaces.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-writing/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/better-writing/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/improve-react/AUDIT.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/improve-react/PLAN-TEMPLATE.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/improve-react/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/interface-review/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/interface-review/agents/openai.yaml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/interface-review/removed-signals.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/interface-review/scope-resolution.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/CHANGELOG.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/_contributing.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/_sections.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/_template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/conn-limits.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/conn-pooling.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/data-pagination.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/data-upsert.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/lock-advisory.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/query-index-types.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/schema-constraints.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/schema-data-types.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/schema-partitioning.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/schema-primary-keys.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/security-privileges.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase/CHANGELOG.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase/assets/feedback-issue-template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/supabase/references/skill-feedback.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/.gitattributes"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/.github/workflows/auto-rebuild-skill.yml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/.github/workflows/build-skill.yml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/.github/workflows/main.yml"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/.gitignore"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/CHANGELOG.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/CONTRIBUTING.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/LICENSE"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/README.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/VERSIONING.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/build-skill.sh"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/claude-ux-writing-skill-demo.mp4"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/codex-ux-writing-skill-demo.mp4"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/dist/ux-writing-skill.zip"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/docs/figma-integration.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/examples/real-world-improvements.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/index.html"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/references/accessibility-guidelines.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/references/content-usability-checklist.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/references/patterns-detailed.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/references/voice-chart-template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/templates/empty-state-template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/templates/error-message-template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/ux-writing/templates/onboarding-flow-template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/AGENTS.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/README.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/metadata.json"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/_sections.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/_template.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/advanced-effect-event-deps.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/advanced-event-handler-refs.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/advanced-init-once.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/advanced-use-latest.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/async-api-routes.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/async-cheap-condition-before-await.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/async-defer-await.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/async-dependencies.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/async-parallel.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/async-suspense-boundaries.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/bundle-analyzable-paths.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/bundle-barrel-imports.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/bundle-conditional.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/bundle-defer-third-party.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/bundle-dynamic-imports.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/bundle-preload.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/client-event-listeners.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/client-localstorage-schema.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/client-passive-event-listeners.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/client-swr-dedup.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-batch-dom-css.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-cache-function-results.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-cache-property-access.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-cache-storage.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-combine-iterations.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-early-exit.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-flatmap-filter.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-hoist-regexp.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-index-maps.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-length-check-first.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-min-max-loop.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-request-idle-callback.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-set-map-lookups.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/js-tosorted-immutable.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-activity.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-animate-svg-wrapper.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-conditional-render.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-content-visibility.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-hoist-jsx.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-hydration-no-flicker.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-hydration-suppress-warning.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-resource-hints.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-script-defer-async.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-svg-precision.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rendering-usetransition-loading.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-defer-reads.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-dependencies.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-derived-state-no-effect.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-derived-state.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-functional-setstate.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-lazy-state-init.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-memo-with-default-value.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-memo.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-move-effect-to-event.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-no-inline-components.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-simple-expression-in-memo.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-split-combined-hooks.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-transitions.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-use-deferred-value.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/rerender-use-ref-transient-values.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-after-nonblocking.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-auth-actions.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-cache-lru.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-cache-react.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-dedup-props.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-hoist-static-io.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-no-shared-module-state.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-parallel-fetching.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-parallel-nested-fetching.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/vercel-react-best-practices/rules/server-serialization.md"
+      },
+      {
+        "status": "??",
+        "path": ".agents/skills/web-design-guidelines/SKILL.md"
+      },
+      {
+        "status": "??",
+        "path": "FIXXXXXXXXXXXXXXXXXXXXXXXXXXXX.txt"
+      },
+      {
+        "status": "??",
+        "path": "FIX_CODEX_CHROME_SAFE_AND_RUN.bat"
+      },
+      {
+        "status": "??",
+        "path": "Protm.txt"
+      },
+      {
+        "status": "??",
+        "path": "RECON/README.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/api-contracts.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/assets.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/auth-permissions.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/bugs-or-ambiguities.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/chrome-final-check.txt"
+      },
+      {
+        "status": "??",
+        "path": "RECON/completion.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/component-map.json"
+      },
+      {
+        "status": "??",
+        "path": "RECON/components.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/data-model.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/design-system.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/diffs/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "RECON/dom/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "RECON/dom/app-shell-recon.json"
+      },
+      {
+        "status": "??",
+        "path": "RECON/dom/public-home-recon.json"
+      },
+      {
+        "status": "??",
+        "path": "RECON/dom/public-routes-recon.json"
+      },
+      {
+        "status": "??",
+        "path": "RECON/implementation-map.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/interactions.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/layout.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/local/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "RECON/network/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "RECON/network/public-routes-network.json"
+      },
+      {
+        "status": "??",
+        "path": "RECON/responsive.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/route-map.json"
+      },
+      {
+        "status": "??",
+        "path": "RECON/routes.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/scope.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/screenshots/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "RECON/sidebar.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/skills-used.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/states.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-courses-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-dashboard-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-exam-history-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-exam-room-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-landing-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-mobile-390.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-profile-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/app-tkb-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-home-1920.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-home-390.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-home-768.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/cach-tinh-diem-tsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/cau-truc-de-thi-hsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/cau-truc-de-thi-tsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/chinh-sach-bao-mat-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/chinh-sach-gia-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/chinh-sach-khieu-nai-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/chinh-sach-thanh-toan-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/chinh-sach-van-chuyen-doi-tra-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/dang-ky-thi-hsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/dieu-khoan-dich-vu-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/dieu-kien-han-che-cung-cap-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/giao-vien-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/goi-hoc-tap-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/home-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/khoa-hoc-category-dgnl-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/khoa-hoc-category-thpt-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/khoa-hoc-category-tsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/luyen-thi-hsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/luyen-thi-tsa-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/portal-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/target/public-routes/quyen-va-nghia-vu-hai-ben-1440.png"
+      },
+      {
+        "status": "??",
+        "path": "RECON/topbar.md"
+      },
+      {
+        "status": "??",
+        "path": "RECON/traces/.gitkeep"
+      },
+      {
+        "status": "??",
+        "path": "app/admin-product-shell.css"
+      },
+      {
+        "status": "??",
+        "path": "app/api/learning/continue/route.ts"
+      },
+      {
+        "status": "??",
+        "path": "audit/assets.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/baseline-manifest.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/capture-analysis.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/component-analysis.md"
+      },
+      {
+        "status": "??",
+        "path": "audit/computed-styles.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/coverage-final-report.md"
+      },
+      {
+        "status": "??",
+        "path": "audit/coverage-run-summary.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/coverage-source-manifest.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/dom-tree.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/elements.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/exam-room-custom-debug.png"
+      },
+      {
+        "status": "??",
+        "path": "audit/final-report.md"
+      },
+      {
+        "status": "??",
+        "path": "audit/local-reference-files.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/network-requests.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/network-responses.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/react-doctor-current.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/react-doctor-design-current.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/rendered-dom.html"
+      },
+      {
+        "status": "??",
+        "path": "audit/scripts.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/source-maps.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/student-browser-matrix.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/stylesheets.json"
+      },
+      {
+        "status": "??",
+        "path": "audit/ui-state-changes.json"
+      },
+      {
+        "status": "??",
+        "path": "components/aeck/AeckConfirmDialog.tsx"
+      },
+      {
+        "status": "??",
+        "path": "components/aeck/aeck-confirm-dialog.css"
+      },
+      {
+        "status": "??",
+        "path": "debug.log"
+      },
+      {
+        "status": "??",
+        "path": "design-reference/Alert.png"
+      },
+      {
+        "status": "??",
+        "path": "design-reference/Mode 1.tokens.json"
+      },
+      {
+        "status": "??",
+        "path": "design-reference/macos-alert.png"
+      },
+      {
+        "status": "??",
+        "path": "e2e/fixtures/public-boundary.ts"
+      },
+      {
+        "status": "??",
+        "path": "e2e/fixtures/student.ts"
+      },
+      {
+        "status": "??",
+        "path": "e2e/fixtures/synthetic-worker.env"
+      },
+      {
+        "status": "??",
+        "path": "e2e/student-flow.spec.ts"
+      },
+      {
+        "status": "??",
+        "path": "lib/continue-learning.ts"
+      },
+      {
+        "status": "??",
+        "path": "lib/student-return-to.ts"
+      },
+      {
+        "status": "??",
+        "path": "plans/001-admin-timetable-confirmation.md"
+      },
+      {
+        "status": "??",
+        "path": "plans/002-admin-timetable-native-table.md"
+      },
+      {
+        "status": "??",
+        "path": "plans/003-student-schedule-stable-date-format.md"
+      },
+      {
+        "status": "??",
+        "path": "plans/004-student-flow-implementation-status.md"
+      },
+      {
+        "status": "??",
+        "path": "plans/README.md"
+      },
+      {
+        "status": "??",
+        "path": "public/fonts/lato-source/Lato-Bold.woff2"
+      },
+      {
+        "status": "??",
+        "path": "public/fonts/lato-source/Lato-Italic.woff2"
+      },
+      {
+        "status": "??",
+        "path": "public/fonts/lato-source/Lato-Medium.woff2"
+      },
+      {
+        "status": "??",
+        "path": "public/fonts/lato-source/Lato-Regular.woff2"
+      },
+      {
+        "status": "??",
+        "path": "react-doctor-report.json"
+      },
+      {
+        "status": "??",
+        "path": "scripts/generate-test-evidence-manifest.mjs"
+      },
+      {
+        "status": "??",
+        "path": "scripts/recon-check.mjs"
+      },
+      {
+        "status": "??",
+        "path": "scripts/recon-deep.mjs"
+      },
+      {
+        "status": "??",
+        "path": "scripts/recon-public-routes.mjs"
+      },
+      {
+        "status": "??",
+        "path": "scripts/run-node-coverage.mjs"
+      },
+      {
+        "status": "??",
+        "path": "start-chrome-control.ps1"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/cli-latest"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/gotrue-version"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/linked-project.json"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/postgres-version"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/project-ref"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/rest-version"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/storage-migration"
+      },
+      {
+        "status": "??",
+        "path": "supabase/.temp/storage-version"
+      },
+      {
+        "status": "??",
+        "path": "supabase/supabase/.temp/cli-latest"
+      },
+      {
+        "status": "??",
+        "path": "supabase/supabase/.temp/linked-project.json"
+      },
+      {
+        "status": "??",
+        "path": "tests/api-url.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/auth-client.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/ci-quality-workflow.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/content-token.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/continue-learning-request.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/continue-learning.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/exam-preflight-server.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/hls-route-behavior.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/media-viewer-isolation.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/media-worker-behavior.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/resource-access-server.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/security-server.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/student-return-to.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/support/supabase-auth-stub.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/support/test-loader-hooks.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/support/test-loader.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/test-evidence-infrastructure.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/ui-format.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/ux-reliability-regression.test.mjs"
+      },
+      {
+        "status": "??",
+        "path": "tests/worker-entry-behavior.test.mjs"
+      }
+    ]
+  },
+  "lockfile": {
+    "path": "package-lock.json",
+    "sha256": "5aca5c5e2467b3b0911e8b2945faf28cc28d0bf71dc67839806ff9230b5d09aa"
+  },
+  "qualityRun": {
+    "status": "not_requested"
+  },
+  "coverageRuns": [
+    {
+      "path": "artifacts/coverage/all/summary.json",
+      "status": "BLOCKED_BY_TODO",
+      "counts": {
+        "tests": 921,
+        "failed": 0,
+        "passed": 889,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 32,
+        "topLevel": 921,
+        "suites": 0
+      },
+      "runtime": "v24.11.1",
+      "generatedAt": "2026-09-10T19:37:56.571Z",
+      "coverage": {
+        "lines": 90.30493641460413,
+        "branches": 78.08716707021792,
+        "functions": 83.80809595202399
+      },
+      "freshness": "not_proven_for_current_tree"
+    },
+    {
+      "path": "artifacts/coverage/p0/summary.json",
+      "status": "BLOCKED_BY_TODO",
+      "counts": {
+        "tests": 92,
+        "failed": 0,
+        "passed": 67,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 25,
+        "topLevel": 92,
+        "suites": 0
+      },
+      "runtime": "v24.11.1",
+      "generatedAt": "2026-09-10T19:37:38.301Z",
+      "coverage": {
+        "lines": 100,
+        "branches": 100,
+        "functions": 100
+      },
+      "freshness": "not_proven_for_current_tree"
+    },
+    {
+      "path": "artifacts/coverage/runtime/summary.json",
+      "status": "BLOCKED_BY_TODO",
+      "counts": {
+        "tests": 187,
+        "failed": 0,
+        "passed": 180,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 7,
+        "topLevel": 187,
+        "suites": 0
+      },
+      "runtime": "v24.11.1",
+      "generatedAt": "2026-09-10T19:37:09.374Z",
+      "coverage": {
+        "lines": 100,
+        "branches": 94.23423423423424,
+        "functions": 100
+      },
+      "freshness": "not_proven_for_current_tree"
+    }
+  ],
+  "boundaries": [
+    "Inventory and import/reference mapping are static evidence, not proof of behavioral coverage.",
+    "Risk tiers are path-based triage heuristics requiring human review.",
+    "Browser route-to-test mapping remains unknown until actual browser evidence is recorded.",
+    "No source bodies, environment values, credentials, request payloads, or git diffs are retained.",
+    "Live production services are not contacted; optional gh lookup reads CI workflow status only."
+  ],
+  "sources": [
+    {
+      "path": "app/[...slug]/page.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs",
+        "tests/alpha-reference-portal.test.mjs",
+        "tests/guest-link.test.mjs",
+        "tests/reference-fidelity-ui.test.mjs",
+        "tests/reference-integration.test.mjs",
+        "tests/reference-route-parity.test.mjs",
+        "tests/reference-suite.test.mjs",
+        "tests/session-results.test.mjs",
+        "tests/session-wizard.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/account-auth-reference.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-ui-primitives.test.mjs",
+        "tests/alpha-reference-portal.test.mjs",
+        "tests/product-shell-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/account-learning-polish.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-ui.test.mjs",
+        "tests/study-experience.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/account-security-guard.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/auth-session.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-audit-log.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-capability-center.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-capability-center.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-brand-unification.test.mjs",
+        "tests/course-timetable.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-course-timetable.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-dialog.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-access.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/exam-monitor.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-access.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/session-wizard.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-latex-import.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-operations.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-monitor.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-operations.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-monitor.test.mjs",
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-policy.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-policy.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-workspace.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hsa-exam.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-exam-workspace.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/admin-exam-content.test.mjs",
+        "tests/exam-release-history.test.mjs",
+        "tests/hsa-exam.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-hls-vault.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-flow-visual-ui.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-hls-vault.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hls-vault-admin.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-operation-polish.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-product-shell.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-layout.test.mjs",
+        "tests/product-shell-ui.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-question-bank.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-layout.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-question-bank.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-redesign.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-reference-suite.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-room-standard.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-route-map.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/reference-route-parity.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/product-shell-navigation.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-security.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-security-ui.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-security.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/admin-security-ui.test.mjs",
+        "tests/auth-session.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-session-results.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-monitor.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-session-results.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-monitor.test.mjs",
+        "tests/session-results.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-session-wizard.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/guest-link.test.mjs",
+        "tests/session-wizard-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-session-wizard.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/guest-link.test.mjs",
+        "tests/session-wizard-ui.test.mjs",
+        "tests/session-wizard.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-sessions.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-flow-visual-ui.test.mjs",
+        "tests/session-list-ui.test.mjs",
+        "tests/session-results.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-sessions.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/session-list-ui.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-timetable.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs",
+        "tests/reference-suite.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-upload.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-flow-visual-ui.test.mjs",
+        "tests/admin-upload-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/admin-upload.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-upload-ui.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-public-data.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-public-legal-secondary.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-public-routes.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-public-site.module.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-public-site.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-reference-ui.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-layout.test.mjs",
+        "tests/reference-fidelity-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-ui.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-ui-primitives.test.mjs",
+        "tests/product-shell-route-mode.test.mjs",
+        "tests/product-shell-ui.test.mjs",
+        "tests/protected-ui-boundary.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/aeck-ui.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-ui-primitives.test.mjs",
+        "tests/product-shell-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/alpha-reference-portal.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-brand-unification.test.mjs",
+        "tests/alpha-reference-portal.test.mjs",
+        "tests/product-shell-layout.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/audit/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/course-covers/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-navigation.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/course-timetable/[id]/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/course-timetable/generate/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/course-timetable/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-access/export/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-access/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/guest-link.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-candidates/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-content/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-exam-content.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-export/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-history/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-images/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-operations/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-policy/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/exam-regrade/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/hls-vault/key/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hls-vault-admin.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/hls-vault/upload/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/images/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/lesson-files/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/admin-upload-ui.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/lesson-hls/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hls-vault.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/lesson-videos/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-upload-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/microsoft/callback/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/microsoft/connect/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-upload-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/question-banks/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/question-bank.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/security/route.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/admin-security-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/server-health/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/session-catalog/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/sessions/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/timetable/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/admin/users/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/course-covers/[asset]/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-navigation.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/exam-images/[sectionId]/[asset]/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/exam-image-performance.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/exams/content/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/auth-session.test.mjs",
+        "tests/exam-content-security.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/exams/result-content/route.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/auth-session.test.mjs",
+        "tests/exam-content-security.test.mjs",
+        "tests/exam-policy.test.mjs",
+        "tests/exam-release-history.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/exams/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/auth-session.test.mjs",
+        "tests/exam-content-security.test.mjs",
+        "tests/exam-monitor.test.mjs",
+        "tests/exam-policy.test.mjs",
+        "tests/hsa-exam.test.mjs",
+        "tests/reference-integration.test.mjs",
+        "tests/reference-source-port.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/guest-exams/images/[sectionId]/[asset]/route.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-audit.test.mjs",
+        "tests/exam-image-performance.test.mjs",
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/guest-exams/route.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-monitor.test.mjs",
+        "tests/exam-policy.test.mjs",
+        "tests/exam-release-history.test.mjs",
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/hls/[resourceId]/[...path]/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hls-route-behavior.test.mjs",
+        "tests/hls-vault.test.mjs",
+        "tests/media-viewer-isolation.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/images/[asset]/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/learning/continue/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/lesson-pdf-download/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/aeck-brand-unification.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/lesson-resources/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/resource-content/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/security/session/route.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/timetable/[id]/join/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/timetable/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/api/video-token/route.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/hls-vault.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/auth-ui-v2.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/chatgpt-auth.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/course-exam-tabs.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-catalog-redesign.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-catalog-layout.test.mjs",
+        "tests/reference-source-port.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-fullscreen-guard.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-fullscreen-guard.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-result-product.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-room.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-room.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/exam-catalog-layout.test.mjs",
+        "tests/exam-content-security.test.mjs",
+        "tests/exam-image-performance.test.mjs",
+        "tests/exam-monitor.test.mjs",
+        "tests/exam-release-history.test.mjs",
+        "tests/hsa-exam.test.mjs",
+        "tests/reference-source-port.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/exam-themes.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/globals.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/guest-exam.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/guest-link.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/guest-exam.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/api-domain.test.mjs",
+        "tests/exam-monitor.test.mjs",
+        "tests/guest-exam.test.mjs",
+        "tests/guest-link.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/layout.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-brand-unification.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/loading-indicator.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/not-found.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/page.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/platform.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/account-security.test.mjs",
+        "tests/admin-upload-ui.test.mjs",
+        "tests/aeck-brand-unification.test.mjs",
+        "tests/aeck-public-site.test.mjs",
+        "tests/aeck-ui-primitives.test.mjs",
+        "tests/alpha-reference-portal.test.mjs",
+        "tests/auth-session.test.mjs",
+        "tests/product-shell-navigation.test.mjs",
+        "tests/product-shell-route-mode.test.mjs",
+        "tests/product-shell-student-v2.test.mjs",
+        "tests/product-shell-ui.test.mjs",
+        "tests/protected-ui-boundary.test.mjs",
+        "tests/red-white-theme.test.mjs",
+        "tests/reference-fidelity-ui.test.mjs",
+        "tests/reference-integration.test.mjs",
+        "tests/reference-route-parity.test.mjs",
+        "tests/reference-suite.test.mjs",
+        "tests/rendered-html.test.mjs",
+        "tests/session-results.test.mjs",
+        "tests/session-wizard-ui.test.mjs",
+        "tests/session-wizard.test.mjs",
+        "tests/student-dashboard-ui.test.mjs",
+        "tests/study-experience.test.mjs",
+        "tests/turnstile-login.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/product-design-system.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/aeck-brand-unification.test.mjs",
+        "tests/alpha-reference-portal.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/product-navigation-guard.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/session-wizard-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/product-polish.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/product-shell-ux.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/product-ui-v2.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-student-v2.test.mjs",
+        "tests/product-shell-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/red-white-theme.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/course-timetable.test.mjs",
+        "tests/red-white-theme.test.mjs",
+        "tests/reference-fidelity-ui.test.mjs",
+        "tests/study-experience.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/reference-integration.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/reference-integration.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/student-dashboard.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/student-dashboard-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/student-discovery.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-student-v2.test.mjs",
+        "tests/reference-fidelity-ui.test.mjs",
+        "tests/reference-integration.test.mjs",
+        "tests/reference-source-port.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/student-progress.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/student-redesign.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/student-reference-fidelity.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-ui.test.mjs",
+        "tests/reference-fidelity-ui.test.mjs",
+        "tests/study-experience.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/student-timetable-reference.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-student-v2.test.mjs",
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/study.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/target-route-aliases.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/target-route-aliases.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/aeck-public-site.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/text-overflow-polish.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/product-shell-ui.test.mjs",
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/thptqg-admin.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/turnstile-login.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/turnstile-login.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/turnstile-login.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/ui-format.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/ui-format.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/admin-upload-ui.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/ui-route-mode.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/product-shell-route-mode.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/alpha-reference-portal.test.mjs",
+        "tests/reference-integration.test.mjs",
+        "tests/reference-suite.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/ui-system.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "app/video-player.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/admin-upload-ui.test.mjs",
+        "tests/aeck-brand-unification.test.mjs",
+        "tests/auth-session.test.mjs",
+        "tests/hls-vault.test.mjs",
+        "tests/media-viewer-isolation.test.mjs",
+        "tests/product-shell-ui.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/ExamImagePicker.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/aeck/AeckConfirmDialog.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/aeck/aeck-confirm-dialog.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/ux-reliability-regression.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/ExamRendererAdapter.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/HsaCombinationPicker.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/HsaConfirmation.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/HsaExamRenderer.jsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/LearnerExamPreview.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/MathExam.jsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-image-performance.test.mjs",
+        "tests/exam-release-history.test.mjs",
+        "tests/guest-exam.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/RemixStudyEduReviewPreview.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/hsa-exam.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/learner-preview.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/math-exam.css",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/tsa-result-overrides.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/tsa-result.css",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/remixstudyedu/tsa-review-preview.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/GuestThptqgResult.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/ThptqgConfirmation.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/ThptqgExamRenderer.tsx",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs",
+        "tests/guest-exam.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/ThptqgPreview.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/ThptqgResult.tsx",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/ThptqgSubjectDashboard.tsx",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/thptqg-dashboard-reference.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/thptqg-preview.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "components/thptqg/thptqg.css",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-release-history.test.mjs",
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/admin-audit-server.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/admin-audit.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/api-url.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/api-url.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/api-domain.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/auth-client.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/api-domain.test.mjs",
+        "tests/auth-client.test.mjs",
+        "tests/auth-session.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/content-server.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/content-token.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/content-token.test.mjs",
+        "tests/hls-route-behavior.test.mjs",
+        "tests/test-evidence-infrastructure.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/continue-learning.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/continue-learning-request.test.mjs",
+        "tests/continue-learning.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/course-covers-server.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/course-schedule.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/course-schedule.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/course-timetable-server.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/course-timetable.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-answers.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/exam-answers.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-config.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/exam-answers.test.mjs",
+        "tests/guest-exam.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-content-crypto.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/exam-content-security.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-content-server.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-policy.test.mjs",
+        "tests/exam-release-history.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-identity.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-image-client.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-image-performance.test.mjs",
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-images-server.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-image-performance.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-latex.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/exam-latex.test.mjs",
+        "tests/hsa-exam.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-monitor.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/exam-monitor.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/guest-exam.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-option-display.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/exam-answers.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-policy.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/exam-policy.test.mjs",
+        "tests/exam-release-history.test.mjs",
+        "tests/guest-exam.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/exam-preflight-server.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/exam-preflight-server.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/test-evidence-infrastructure.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/guest-exam-server.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/guest-exam.test.mjs",
+        "tests/guest-link.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/guest-identity.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/guest-exam.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/hls-key.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/hls-vault-admin.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/hls-vault.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/hls-upload.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/hls-vault-admin.test.mjs",
+        "tests/hls-vault.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/hls-vault.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/hls-route-behavior.test.mjs",
+        "tests/hls-vault.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/hsa-exam.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/hsa-latex-template.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/hsa-exam.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/http-server.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/http-server.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/microsoft-graph-hls.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/microsoft-graph-server.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/microsoft-graph-video.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/microsoft-public-video.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/microsoft-public-video.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/microsoft-share-url.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/microsoft-public-video.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/question-bank.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/question-bank.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/r2-server.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/exam-image-performance.test.mjs",
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/rate-limit-server.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/rate-limit.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/request-retry.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/request-retry.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/resource-access-server.ts",
+      "riskTier": "P0",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/resource-access-server.test.mjs",
+        "tests/test-evidence-infrastructure.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/resource-access.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/resource-access.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/rendered-html.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/security-server.ts",
+      "riskTier": "P0",
+      "directImportTests": [
+        "tests/security-server.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/auth-session.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/session-catalog.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/session-catalog.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/student-dashboard.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/student-dashboard-data.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/student-return-to.ts",
+      "riskTier": "P2",
+      "directImportTests": [
+        "tests/student-return-to.test.mjs"
+      ],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "lib/supabase.ts",
+      "riskTier": "P2",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "worker/index.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [
+        "tests/hls-vault-admin.test.mjs",
+        "tests/ux-reliability-regression.test.mjs",
+        "tests/worker-entry-behavior.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "workers/media-proxy/src/index.ts",
+      "riskTier": "P1",
+      "directImportTests": [
+        "tests/media-worker-behavior.test.mjs"
+      ],
+      "sourceReferenceTests": [
+        "tests/hls-vault.test.mjs",
+        "tests/media-viewer-isolation.test.mjs"
+      ],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "workers/media-proxy/worker-configuration.d.ts",
+      "riskTier": "P1",
+      "directImportTests": [],
+      "sourceReferenceTests": [],
+      "browserMapping": "unknown",
+      "executionStatus": "unknown_requires_run_artifact"
+    }
+  ],
+  "tests": [
+    {
+      "path": "e2e/critical-flow.spec.ts",
+      "kind": "browser_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "e2e/staging-release-gate.spec.ts",
+      "kind": "browser_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "e2e/student-flow.spec.ts",
+      "kind": "browser_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/account-security.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/account-security-guard.tsx",
+        "app/admin-security.tsx",
+        "app/api/admin/lesson-files/route.ts",
+        "app/api/admin/security/route.ts",
+        "app/api/admin/users/route.ts",
+        "app/api/exams/route.ts",
+        "app/api/lesson-pdf-download/route.ts",
+        "app/api/lesson-resources/route.ts",
+        "app/api/resource-content/route.ts",
+        "app/api/security/session/route.ts",
+        "app/api/video-token/route.ts",
+        "app/exam-room.tsx",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/admin-audit.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/admin-audit-server.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/admin-audit-log.tsx",
+        "app/admin-exam-access.css",
+        "app/admin-exam-access.tsx",
+        "app/admin-exam-workspace.tsx",
+        "app/admin-reference-suite.css",
+        "app/api/admin/exam-access/export/route.ts",
+        "app/api/admin/exam-access/route.ts",
+        "app/api/admin/exam-policy/route.ts",
+        "app/api/exam-images/[sectionId]/[asset]/route.ts",
+        "app/api/guest-exams/images/[sectionId]/[asset]/route.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/admin-exam-content.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-exam-workspace.tsx",
+        "app/api/admin/exam-content/route.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/admin-flow-visual-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-hls-vault.css",
+        "app/admin-sessions.css",
+        "app/admin-upload.css"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/admin-security-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-security.css",
+        "app/admin-security.tsx",
+        "app/api/admin/security/route.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/admin-upload-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-upload.css",
+        "app/admin-upload.tsx",
+        "app/api/admin/lesson-files/route.ts",
+        "app/api/admin/lesson-videos/route.ts",
+        "app/api/admin/microsoft/connect/route.ts",
+        "app/platform.tsx",
+        "app/ui-format.ts",
+        "app/video-player.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/aeck-brand-unification.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-capability-center.tsx",
+        "app/alpha-reference-portal.css",
+        "app/api/lesson-pdf-download/route.ts",
+        "app/layout.tsx",
+        "app/platform.tsx",
+        "app/product-design-system.css",
+        "app/video-player.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/aeck-public-site.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/aeck-public-routes.ts",
+        "app/aeck-public-site.module.css",
+        "app/aeck-public-site.tsx",
+        "app/course-exam-tabs.css",
+        "app/page.tsx",
+        "app/platform.tsx",
+        "app/target-route-aliases.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/aeck-ui-primitives.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/account-auth-reference.css",
+        "app/aeck-ui.css",
+        "app/aeck-ui.tsx",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/alpha-reference-portal.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/account-auth-reference.css",
+        "app/alpha-reference-portal.css",
+        "app/platform.tsx",
+        "app/product-design-system.css",
+        "app/ui-route-mode.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/api-domain.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/guest-exam.tsx",
+        "lib/api-url.ts",
+        "lib/auth-client.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/api-url.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/api-url.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/auth-client.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "lib/auth-client.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/auth-session.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/account-security-guard.tsx",
+        "app/admin-security.tsx",
+        "app/api/exams/content/route.ts",
+        "app/api/exams/result-content/route.ts",
+        "app/api/exams/route.ts",
+        "app/platform.tsx",
+        "app/video-player.tsx",
+        "lib/auth-client.ts",
+        "lib/security-server.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/ci-quality-workflow.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/content-token.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/content-token.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/continue-learning-request.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/continue-learning.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/continue-learning.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/continue-learning.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/course-schedule.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/course-schedule.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/course-timetable.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/course-timetable-server.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/admin-capability-center.tsx",
+        "app/admin-course-timetable.tsx",
+        "app/admin-timetable.tsx",
+        "app/api/admin/course-timetable/[id]/route.ts",
+        "app/api/admin/course-timetable/generate/route.ts",
+        "app/api/admin/course-timetable/route.ts",
+        "app/api/timetable/route.ts",
+        "app/red-white-theme.css"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-answers.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-answers.ts",
+        "lib/exam-config.ts",
+        "lib/exam-option-display.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-catalog-layout.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/exam-catalog-redesign.css",
+        "app/exam-room.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-content-security.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-content-crypto.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/api/exams/content/route.ts",
+        "app/api/exams/result-content/route.ts",
+        "app/api/exams/route.ts",
+        "app/exam-room.tsx"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-image-performance.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/api/exam-images/[sectionId]/[asset]/route.ts",
+        "app/api/guest-exams/images/[sectionId]/[asset]/route.ts",
+        "app/exam-room.tsx",
+        "components/remixstudyedu/MathExam.jsx",
+        "lib/exam-image-client.ts",
+        "lib/exam-images-server.ts",
+        "lib/r2-server.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-latex.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-latex.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-monitor.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-monitor.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/admin-exam-access.css",
+        "app/admin-exam-operations.css",
+        "app/admin-exam-operations.tsx",
+        "app/admin-session-results.css",
+        "app/admin-session-results.tsx",
+        "app/api/exams/route.ts",
+        "app/api/guest-exams/route.ts",
+        "app/exam-room.tsx",
+        "app/guest-exam.tsx"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-policy.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-policy.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/api/exams/result-content/route.ts",
+        "app/api/exams/route.ts",
+        "app/api/guest-exams/route.ts",
+        "lib/exam-content-server.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-preflight-server.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-preflight-server.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/exam-release-history.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-policy.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/admin-exam-operations.tsx",
+        "app/admin-exam-workspace.tsx",
+        "app/api/admin/exam-history/route.ts",
+        "app/api/admin/exam-operations/route.ts",
+        "app/api/admin/exam-policy/route.ts",
+        "app/api/exams/result-content/route.ts",
+        "app/api/guest-exams/route.ts",
+        "app/exam-room.tsx",
+        "components/remixstudyedu/LearnerExamPreview.tsx",
+        "components/remixstudyedu/MathExam.jsx",
+        "components/remixstudyedu/RemixStudyEduReviewPreview.tsx",
+        "components/remixstudyedu/tsa-result-overrides.css",
+        "components/remixstudyedu/tsa-review-preview.css",
+        "components/thptqg/ThptqgExamRenderer.tsx",
+        "components/thptqg/thptqg.css",
+        "lib/exam-content-server.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/guest-exam.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-config.ts",
+        "lib/exam-policy.ts",
+        "lib/guest-exam-server.ts",
+        "lib/guest-identity.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/api/guest-exams/images/[sectionId]/[asset]/route.ts",
+        "app/api/guest-exams/route.ts",
+        "app/guest-exam.tsx",
+        "components/remixstudyedu/MathExam.jsx",
+        "components/thptqg/GuestThptqgResult.tsx",
+        "components/thptqg/ThptqgConfirmation.tsx",
+        "components/thptqg/ThptqgExamRenderer.tsx",
+        "components/thptqg/thptqg.css",
+        "lib/exam-image-client.ts",
+        "lib/exam-monitor.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/guest-link.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/guest-exam-server.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/admin-session-wizard.css",
+        "app/admin-session-wizard.tsx",
+        "app/api/admin/exam-access/route.ts",
+        "app/guest-exam.css",
+        "app/guest-exam.tsx"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/hls-route-behavior.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/content-token.ts",
+        "lib/hls-vault.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/api/hls/[resourceId]/[...path]/route.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/hls-vault-admin.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/hls-key.ts",
+        "lib/hls-upload.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/admin-hls-vault.tsx",
+        "app/api/admin/hls-vault/key/route.ts",
+        "worker/index.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/hls-vault.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/hls-upload.ts",
+        "lib/hls-vault.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/api/admin/lesson-hls/route.ts",
+        "app/api/hls/[resourceId]/[...path]/route.ts",
+        "app/api/video-token/route.ts",
+        "app/video-player.tsx",
+        "lib/hls-key.ts",
+        "workers/media-proxy/src/index.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/hsa-exam.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/exam-config.ts",
+        "lib/exam-latex.ts",
+        "lib/hsa-exam.ts",
+        "lib/hsa-latex-template.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/admin-exam-workspace.css",
+        "app/admin-exam-workspace.tsx",
+        "app/api/exams/content/route.ts",
+        "app/api/exams/result-content/route.ts",
+        "app/api/exams/route.ts",
+        "app/exam-room.tsx",
+        "components/remixstudyedu/ExamRendererAdapter.tsx",
+        "components/remixstudyedu/HsaConfirmation.tsx",
+        "components/remixstudyedu/HsaExamRenderer.jsx",
+        "components/remixstudyedu/LearnerExamPreview.tsx",
+        "components/remixstudyedu/MathExam.jsx",
+        "components/remixstudyedu/hsa-exam.css",
+        "components/remixstudyedu/math-exam.css",
+        "components/thptqg/ThptqgExamRenderer.tsx"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/http-server.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/http-server.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/media-viewer-isolation.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/api/hls/[resourceId]/[...path]/route.ts",
+        "app/video-player.tsx",
+        "workers/media-proxy/src/index.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/media-worker-behavior.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "workers/media-proxy/src/index.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/microsoft-graph-video.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/microsoft-graph-server.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/microsoft-public-video.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/microsoft-public-video.ts",
+        "lib/microsoft-share-url.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/native-hls-agent.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/native-hls-encoder.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/node-test-runner.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/onedrive-video-migration.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/product-shell-layout.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-product-shell.css",
+        "app/admin-question-bank.css",
+        "app/aeck-reference-ui.css",
+        "app/alpha-reference-portal.css"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/product-shell-navigation.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-route-map.ts",
+        "app/api/admin/course-covers/route.ts",
+        "app/api/course-covers/[asset]/route.ts",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/product-shell-route-mode.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "app/ui-route-mode.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/aeck-ui.css",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/product-shell-student-v2.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/platform.tsx",
+        "app/product-ui-v2.css",
+        "app/student-discovery.tsx",
+        "app/student-timetable-reference.css"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/product-shell-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/account-auth-reference.css",
+        "app/account-learning-polish.css",
+        "app/admin-product-shell.css",
+        "app/aeck-ui.css",
+        "app/aeck-ui.tsx",
+        "app/platform.tsx",
+        "app/product-shell-ux.css",
+        "app/product-ui-v2.css",
+        "app/student-reference-fidelity.css",
+        "app/text-overflow-polish.css",
+        "app/video-player.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/protected-ui-boundary.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/aeck-ui.css",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/question-bank.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/question-bank.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/api/admin/question-banks/route.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/rate-limit.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/rate-limit-server.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/red-white-theme.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/platform.tsx",
+        "app/red-white-theme.css"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/reference-fidelity-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/aeck-reference-ui.css",
+        "app/platform.tsx",
+        "app/red-white-theme.css",
+        "app/student-discovery.tsx",
+        "app/student-reference-fidelity.css"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/reference-integration.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/api/exams/route.ts",
+        "app/platform.tsx",
+        "app/reference-integration.css",
+        "app/student-discovery.tsx",
+        "app/ui-route-mode.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/reference-route-parity.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "app/admin-route-map.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/reference-source-port.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/api/exams/route.ts",
+        "app/exam-catalog-redesign.css",
+        "app/exam-room.tsx",
+        "app/student-discovery.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/reference-suite.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/admin-audit-log.tsx",
+        "app/admin-reference-suite.css",
+        "app/admin-timetable.tsx",
+        "app/api/admin/audit/route.ts",
+        "app/api/admin/timetable/route.ts",
+        "app/platform.tsx",
+        "app/student-progress.tsx",
+        "app/text-overflow-polish.css",
+        "app/ui-route-mode.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/rendered-html.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-exam-latex-import.css",
+        "app/admin-exam-workspace.css",
+        "app/admin-exam-workspace.tsx",
+        "app/api/admin/lesson-files/route.ts",
+        "app/api/admin/users/route.ts",
+        "app/api/exams/route.ts",
+        "app/api/lesson-pdf-download/route.ts",
+        "app/api/lesson-resources/route.ts",
+        "app/api/resource-content/route.ts",
+        "app/api/video-token/route.ts",
+        "app/exam-room.css",
+        "app/exam-room.tsx",
+        "app/globals.css",
+        "app/not-found.tsx",
+        "app/platform.tsx",
+        "app/study.css",
+        "app/video-player.tsx",
+        "lib/content-token.ts",
+        "lib/r2-server.ts",
+        "lib/resource-access.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/request-retry.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/request-retry.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/resource-access-server.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "lib/resource-access-server.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/resource-access.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/resource-access.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/security-server.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/security-server.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/session-catalog.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/session-catalog.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/session-list-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-sessions.css",
+        "app/admin-sessions.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/session-results.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/admin-session-results.tsx",
+        "app/admin-sessions.css",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/session-wizard-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-session-wizard.css",
+        "app/admin-session-wizard.tsx",
+        "app/platform.tsx",
+        "app/product-navigation-guard.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/session-wizard.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/[...slug]/page.tsx",
+        "app/admin-exam-access.tsx",
+        "app/admin-session-wizard.tsx",
+        "app/platform.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/student-dashboard-data.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/student-dashboard.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/student-dashboard-ui.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/platform.tsx",
+        "app/student-dashboard.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/student-return-to.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/student-return-to.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/study-experience.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/account-learning-polish.css",
+        "app/platform.tsx",
+        "app/red-white-theme.css",
+        "app/student-reference-fidelity.css"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/target-route-aliases.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "app/target-route-aliases.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/test-evidence-infrastructure.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "lib/content-token.ts"
+      ],
+      "sourceReferenceCandidates": [
+        "lib/exam-preflight-server.ts",
+        "lib/resource-access-server.ts"
+      ],
+      "evidenceType": "mixed_direct_import_and_source_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/tsa-response-seed.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/turnstile-login.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/platform.tsx",
+        "app/turnstile-login.tsx"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/ui-format.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [
+        "app/ui-format.ts"
+      ],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "direct_import",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/ux-reliability-regression.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "app/admin-course-timetable.tsx",
+        "app/admin-hls-vault.css",
+        "app/admin-hls-vault.tsx",
+        "app/admin-product-shell.css",
+        "app/admin-security.css",
+        "app/admin-sessions.tsx",
+        "app/admin-timetable.tsx",
+        "app/admin-upload.tsx",
+        "app/aeck-public-site.module.css",
+        "app/aeck-public-site.tsx",
+        "app/course-exam-tabs.css",
+        "app/globals.css",
+        "app/student-discovery.tsx",
+        "app/student-reference-fidelity.css",
+        "app/student-timetable-reference.css",
+        "app/ui-system.css",
+        "components/aeck/AeckConfirmDialog.tsx",
+        "components/aeck/aeck-confirm-dialog.css",
+        "worker/index.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/vercel-install-policy.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/worker-entry-behavior.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [
+        "worker/index.ts"
+      ],
+      "evidenceType": "source_static_reference",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    },
+    {
+      "path": "tests/worker-runtime.test.mjs",
+      "kind": "node_test_definition",
+      "directImportCandidates": [],
+      "sourceReferenceCandidates": [],
+      "evidenceType": "unmapped",
+      "browserMapping": "unknown_not_inferred_from_names_or_source",
+      "executionStatus": "unknown_requires_run_artifact"
+    }
+  ]
+}

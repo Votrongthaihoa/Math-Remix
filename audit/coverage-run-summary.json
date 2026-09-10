@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-11T02:42:37+07:00",
+  "runs": [
+    {
+      "group": "p0",
+      "status": "BLOCKED_BY_TODO",
+      "tests": 92,
+      "passed": 67,
+      "failed": 0,
+      "todo": 25,
+      "totals": { "lines": 100, "branches": 100, "functions": 100 },
+      "thresholds": { "lines": 90, "branches": 80, "functions": 90 },
+      "summary": "artifacts/coverage/p0/summary.json"
+    },
+    {
+      "group": "runtime",
+      "status": "BLOCKED_BY_TODO",
+      "tests": 187,
+      "passed": 180,
+      "failed": 0,
+      "todo": 7,
+      "totals": { "lines": 100.00, "branches": 94.23, "functions": 100.00 },
+      "thresholds": { "lines": 85, "branches": 75, "functions": 85 },
+      "summary": "artifacts/coverage/runtime/summary.json"
+    },
+    {
+      "group": "all",
+      "status": "BLOCKED_BY_TODO",
+      "tests": 921,
+      "passed": 889,
+      "failed": 0,
+      "todo": 32,
+      "totals": { "lines": 90.30, "branches": 78.09, "functions": 83.81 },
+      "thresholds": { "lines": 0, "branches": 0, "functions": 0 },
+      "summary": "artifacts/coverage/all/summary.json"
+    }
+  ],
+  "interpretation": "Coverage percentages are over loaded production modules only. TODO and threshold failures remain visible and intentionally prevent release-ready status; no production fix was inferred or applied."
+}

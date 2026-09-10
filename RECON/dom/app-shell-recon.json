@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-09-06T15:00:00+07:00",
+  "shellGeometry": {
+    "sidebar": {
+      "desktopExpandedWidth": 288,
+      "desktopCollapsedWidth": 80,
+      "mobileWidth": 256,
+      "mobileOffCanvasX": -256,
+      "position": "fixed"
+    },
+    "topbar": {
+      "expandedHeightApprox": 81,
+      "collapsedHeightApprox": 73,
+      "position": "sticky"
+    },
+    "main": {
+      "desktopExpandedMarginLeft": 288,
+      "desktopCollapsedMarginLeft": 80,
+      "desktopScrollOwner": "document"
+    }
+  },
+  "verifiedRoutes": [
+    "/dashboard",
+    "/courses",
+    "/course/study/[redacted]",
+    "/history",
+    "/tkb",
+    "/portal",
+    "/exam-rooms/hsa"
+  ],
+  "responsiveObservation": {
+    "route": "/exam-rooms/hsa",
+    "viewport": { "width": 390, "height": 844 },
+    "horizontalDocumentOverflow": false,
+    "viewportRestoredTo": { "width": 1428, "height": 847 }
+  },
+  "finalChromeControlCheck": {
+    "route": "/exam-rooms/hsa",
+    "viewport": { "width": 1428, "height": 847 },
+    "horizontalDocumentOverflow": false,
+    "consoleWarnings": 0,
+    "consoleErrors": 0
+  },
+  "console": { "warnings": 0, "errors": 0 },
+  "privacy": "No cookies, storage, authorization headers, request bodies, or personal values retained."
+}

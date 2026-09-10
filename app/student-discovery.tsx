@@ -10,7 +10,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { formatUiDate } from "./ui-format";
+import { formatUiDate, formatUiWeekRange } from "./ui-format";
 import { authenticatedFetch } from "../lib/auth-client";
 
 type SearchCourse = {
@@ -143,7 +143,7 @@ export function StudentSearchPage({
           />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label="Xóa từ khóa"><X aria-hidden="true" /></button> : null}
         </label>
-        <div className="reference-search-filters" aria-label="Lọc loại nội dung">
+        <div className="reference-search-filters" role="group" aria-label="Lọc loại nội dung">
           {searchCategories.map(item => (
             <button
               key={item.id}
@@ -286,17 +286,19 @@ const timetablePalettes: Record<TimetableFormat, { label: string; background: st
   video: { label: "Tự học", background: "#ffffff", border: "#cd1627", text: "#4b5563", pillBackground: "#ffffff", pillText: "#4b5563", icon: "play-circle" },
 };
 
+const timetablePartsFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
 function timetableParts(value: string) {
   const date = new Date(value);
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
+  const parts = timetablePartsFormatter.formatToParts(date);
   const read = (type: Intl.DateTimeFormatPartTypes) => parts.find(part => part.type === type)?.value ?? "";
   return { date: `${read("year")}-${read("month")}-${read("day")}`, time: `${read("hour")}:${read("minute")}` };
 }
@@ -450,7 +452,7 @@ export function StudentSchedulePage({ entries: suppliedEntries }: { entries?: Ti
     return result;
   }, [days, entries]);
   const hasEntries = [...entriesByDate.values()].some(dayEntries => dayEntries.length > 0);
-  const weekLabel = `${days[0].toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })} – ${days[6].toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  const weekLabel = formatUiWeekRange(days[0], days[6]);
   const returnLabel = weekOffset !== 0 ? "Tuần này" : "Hôm nay";
 
   useEffect(() => {
@@ -499,20 +501,21 @@ export function StudentSchedulePage({ entries: suppliedEntries }: { entries?: Ti
       <div className="student-timetable-toolbar px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
         <h1 id="student-timetable-title" className="student-timetable-title text-base font-semibold text-gray-800 flex items-center gap-2"><TimetableIcon name="calendar" size={16} />Thời Khóa Biểu</h1>
         <div className="student-timetable-tools flex items-center gap-2 flex-wrap">
-          <div className="student-timetable-legends hidden sm:flex items-center gap-2" aria-label="Loại lịch học">
-            {(Object.entries(timetablePalettes) as Array<[TimetableFormat, typeof timetablePalettes[TimetableFormat]]>).map(([format, palette]) => <span className="student-timetable-legend inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: palette.pillBackground, color: palette.pillText }} key={format}><TimetableIcon name={palette.icon} />{palette.label}</span>)}
-          </div>
-          <div className="student-timetable-week-controls flex items-center gap-1" aria-label="Điều hướng tuần">
+          <ul className="student-timetable-legends hidden sm:flex items-center gap-2" aria-label="Loại lịch học">
+            {(Object.entries(timetablePalettes) as Array<[TimetableFormat, typeof timetablePalettes[TimetableFormat]]>).map(([format, palette]) => <li className="student-timetable-legend inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: palette.pillBackground, color: palette.pillText }} key={format}><TimetableIcon name={palette.icon} />{palette.label}</li>)}
+          </ul>
+          <nav className="student-timetable-week-controls flex items-center gap-1" aria-label="Điều hướng tuần">
             <button type="button" className="student-timetable-button ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value - 1)} aria-label="Xem tuần trước"><TimetableIcon name="left" /></button>
             <span className="student-timetable-week-label text-xs font-medium text-gray-600 px-1 min-w-[140px] text-center" aria-live="polite">{weekLabel}</span>
             <button type="button" className="student-timetable-button ant-btn ant-btn-default ant-btn-sm ant-btn-icon-only" onClick={() => setWeekOffset(value => value + 1)} aria-label="Xem tuần sau"><TimetableIcon name="right" /></button>
-          </div>
+          </nav>
           {weekOffset !== 0 || currentTimeVisible ? <button type="button" className="student-timetable-button student-timetable-today ant-btn ant-btn-default ant-btn-sm" onClick={() => { if (weekOffset !== 0) setWeekOffset(0); else scrollToNow(); }}>{weekOffset === 0 ? <TimetableIcon name="aim" /> : null}<span>{returnLabel}</span></button> : null}
         </div>
       </div>
       {loadError ? <p className="student-timetable-notice" role="alert">{loadError}<button type="button" onClick={() => setReloadKey(value => value + 1)}>Thử lại</button></p> : null}
       {joinError ? <p className="student-timetable-notice" role="alert">{joinError}</p> : null}
-      <div ref={scrollRef} className="student-timetable-scroll overflow-y-auto overflow-x-auto" style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
+      <p id="student-timetable-scroll-hint" className="student-timetable-scroll-hint">Vuốt ngang để xem cả tuần.</p>
+      <div ref={scrollRef} className="student-timetable-scroll overflow-y-auto overflow-x-auto" role="region" aria-label="Lịch học theo tuần" aria-describedby="student-timetable-scroll-hint" tabIndex={0} style={{ height: "calc(100vh - 220px)", minHeight: 400 }}>
         <div className="student-timetable-canvas" style={{ minWidth: 560 }}>
           <div className="student-timetable-days flex border-b border-gray-200 bg-white sticky top-0 z-10">
             <div className="student-timetable-axis-head flex-shrink-0 border-r border-gray-100" style={{ width: 52 }} />
