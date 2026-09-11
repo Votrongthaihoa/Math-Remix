@@ -129,7 +129,7 @@ boundaries and intentionally unchanged; **Redirect** has no independent UI;
 | `/admin/exams/:examId/sections/:sectionId/editor` | LaTeX section editor | Protected |
 | `/admin/exams/:examId/preview` | standalone exam preview | Protected |
 | `/admin/exams/:examId/sections/:sectionId/preview` | standalone section preview | Protected |
-| `/admin/question-bank` | bank/node/item authoring state machine | Protected |
+| `/admin/question-bank` | bank/node/item authoring state machine | Source Admin shell; business logic preserved |
 | `/admin/sessions/:sessionId/results` | participant monitoring/results | Protected |
 
 ### Legacy redirects and isolated documents
@@ -248,7 +248,7 @@ at desktop and mobile before merge.
 | Student product | 9 product patterns + 2 exam catalogue patterns at 8 widths | Migrated and visually checked |
 | Account/guest exam boundary | 6 route templates at 1440/768/390/320 | Regression checked; protected internals unchanged |
 | Admin operations | 14 route templates at 8 widths | Migrated and visually checked |
-| Admin exam/authoring boundary | 15 route templates at 1440/768/390/320 | Regression checked; protected internals unchanged |
+| Admin exam/authoring boundary | 14 protected route templates at 1440/768/390/320 | Regression checked; protected internals unchanged |
 | Compatibility | 22 redirect patterns, including root/detail/deep course variants | Browser redirect checked |
 | Standalone | PDF viewer, video embed and 404 canvas | Audited at desktop and mobile |
 

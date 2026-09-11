@@ -55,6 +55,8 @@ test("safe admin operations are explicit while authoring and result routes stay 
     "/admin/upload",
     "/admin/enrollments",
     "/admin/security",
+    "/admin/question-bank",
+    "/admin/question-bank/bank-01",
   ]) {
     assert.equal(classifyUiRoute(pathname), "optimized-content", pathname);
   }
@@ -65,8 +67,6 @@ test("safe admin operations are explicit while authoring and result routes stay 
     "/admin/exams/exam-01/questions/question-01",
     "/admin/exams/exam-01/sections/section-01/editor",
     "/admin/exams/exam-01/preview",
-    "/admin/question-bank",
-    "/admin/question-bank/bank-01",
     "/admin/sessions/session-01/results",
   ]) {
     assert.equal(classifyUiRoute(pathname), "protected", pathname);

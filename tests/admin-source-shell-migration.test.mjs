@@ -25,7 +25,7 @@ test("admin product shell reuses the supplied HTML shell contract outside protec
   assert.match(css, /> \.topbar\s*\{[^}]*position:\s*sticky;[^}]*z-index:\s*50;/s);
   assert.match(css, /\.source-sidebar-header-divider\s*\{[^}]*inset-inline-start:\s*287px;[^}]*border-inline-end:\s*2px solid rgba\(229,\s*231,\s*235,\s*\.5\);/s);
   assert.match(css, /\.admin-sidebar-nav-item\.active\s*\{[^}]*border-inline-end-color:\s*var\(--source-accent\);[^}]*background:\s*#fef2f2;/s);
-  assert.doesNotMatch(css, /\.exam-shell|\.question-bank|\.answer-|\.result-|\.review-|\.solution-/i);
+  assert.doesNotMatch(css, /\.exam-shell|\.answer-|\.result-|\.review-|\.solution-/i);
 });
 
 test("admin content primitives use the supplied card, control, field, table and modal values", async () => {

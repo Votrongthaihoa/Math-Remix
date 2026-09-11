@@ -103,7 +103,6 @@ test("protected UI regression uses the four repository validation viewports", as
     "protected-admin-section-editor",
     "protected-admin-exam-preview",
     "protected-admin-section-preview",
-    "protected-admin-question-bank",
     "protected-admin-session-results",
   ]) assert.ok(smoke.includes(`"${name}"`), `protected smoke missing ${name}`);
   assert.match(smoke, /if \(authenticated && protectedAuditRequested\)/);
@@ -318,7 +317,7 @@ test("secure lesson viewer cancels stale requests and owns temporary downloads",
 
   assert.match(player, /const pendingDownloadUrlsRef = useRef\(new Map<string, number>\(\)\)/);
   assert.match(player, /for \(const \[url, timer\] of pendingDownloadUrlsRef\.current\)[\s\S]*?window\.clearTimeout\(timer\);[\s\S]*?URL\.revokeObjectURL\(url\);/);
-  assert.match(player, /const \{ data: userData \} = await supabase\.auth\.getUser\(accessToken\);\s*if \(cancelled\) return;\s*setWatermarkEmail/);
+  assert.match(player, /const \{ data: userData \} = await supabase\.auth\.getUser\(accessToken\);\s*if \(cancelled\) return;\s*const accountEmail = userData\.user\?\.email\?\.trim\(\);[\s\S]*?setWatermarkEmail\(accountEmail\);/);
   assert.ok((player.match(/const controller = new AbortController\(\);/g) ?? []).length >= 3);
   assert.ok((player.match(/signal: controller\.signal/g) ?? []).length >= 3);
   assert.ok((player.match(/controller\.abort\(\)/g) ?? []).length >= 3);

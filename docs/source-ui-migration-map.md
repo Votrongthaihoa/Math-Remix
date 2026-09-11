@@ -50,7 +50,7 @@ The shared source shell is used without changing URLs or route state on:
 - `/admin/capabilities`
 - `/admin/server-health`
 
-Protected routes such as `/admin/exams`, `/admin/question-bank`, exam runners, results, previews, and authoring workspaces keep their protected presentation boundary.
+Protected routes such as `/admin/exams`, exam runners, results, previews, and exam authoring workspaces keep their protected presentation boundary. `/admin/question-bank` was explicitly approved for presentation migration and now uses the source Admin shell while retaining its bank/node/item state and API behavior.
 
 ## Complete source inventory
 

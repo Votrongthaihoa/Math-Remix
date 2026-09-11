@@ -14,7 +14,7 @@ test("the final theme chain ends with the scoped source admin layer and excludes
   assert.match(theme, /\.ui-shell\.student-app\.product-shell:not\(\.protected-exam-surface\)/);
   assert.match(theme, /\.ui-shell\.admin-app\.product-shell:not\(\.protected-exam-surface\)/);
   assert.match(adminSourceTheme, /\.source-admin-shell:not\(\.protected-exam-surface\)/);
-  assert.doesNotMatch(adminSourceTheme, /\.exam-shell|\.question-|\.answer-|\.exam-result|\.solution-/);
+  assert.doesNotMatch(adminSourceTheme, /\.exam-shell|\.question-(?!bank)|\.answer-|\.exam-result|\.solution-/);
   assert.match(theme, /--brand-red:\s*#cd1627/);
   assert.doesNotMatch(theme, /\.exam-shell|\.question-|\.answer-|\.exam-result|\.solution-/);
   assert.doesNotMatch(theme, /(^|\n)\s*(button|input|textarea|select|svg|body|h1)\s*[{,]/m);

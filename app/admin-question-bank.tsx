@@ -292,7 +292,7 @@ export default function AdminQuestionBank({ navigate }: { navigate: Navigate }) 
   return <div className="question-bank-page">
     <header className="question-bank-header">
       <div>
-        <span className="editor-eyebrow">AUTHORING LIBRARY · macOS WORKSPACE</span>
+        <span className="editor-eyebrow">AUTHORING LIBRARY</span>
         <h1>Ngân hàng câu hỏi</h1>
         <p>Tạo cấu trúc, phân loại và tái sử dụng câu hỏi để sinh đề nhanh hơn.</p>
       </div>

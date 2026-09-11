@@ -361,6 +361,116 @@
   color: var(--source-accent);
 }
 
+/* Question-bank business logic stays intact; only its former macOS
+ * presentation is adapted to the copied source Admin primitives. */
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-page {
+  width: 100%;
+  max-width: 1280px;
+  min-width: 0;
+  margin-inline: auto;
+  --admin-primary: var(--source-accent);
+  --admin-primary-strong: var(--source-accent-hover);
+  --admin-primary-soft: var(--source-accent-soft);
+  --admin-success: var(--source-accent);
+  --admin-surface: var(--source-surface);
+  --admin-surface-muted: #fafafa;
+  --admin-ink: var(--source-ink);
+  --admin-body: var(--source-body);
+  --admin-muted: var(--source-muted);
+  --admin-subtle: var(--source-subtle);
+  --admin-line: var(--source-line-solid);
+  --admin-border-strong: #d1d5db;
+  --admin-shadow: var(--source-shadow-card);
+  --admin-radius-md: 12px;
+  --admin-focus: 0 0 0 2px rgba(205, 22, 39, .1);
+  color: var(--source-ink);
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-header {
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 0 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-header h1 {
+  max-width: 100%;
+  margin: 0;
+  color: var(--source-ink);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 36px;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-header p {
+  max-width: 100%;
+  margin: 8px 0 0;
+  color: var(--source-muted);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) :where(
+  .question-bank-sidebar,
+  .question-bank-stage,
+  .question-bank-form,
+  .question-bank-inline-form,
+  .question-bank-attach-form,
+  .question-bank-node-panel,
+  .question-bank-items
+) {
+  min-width: 0;
+  border: 1px solid var(--source-line-solid);
+  border-radius: 12px;
+  background: var(--source-surface);
+  box-shadow: var(--source-shadow-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-layout {
+  gap: 24px;
+  margin-top: 0;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-stage {
+  padding: 24px;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-toolbar {
+  border: 1px solid var(--source-line-solid);
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-attach-form {
+  background: var(--source-surface);
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-item-card {
+  border-color: var(--source-line-solid);
+  background: var(--source-surface);
+  box-shadow: none;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-item-card:hover,
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-item-card.selected {
+  border-color: #fecaca;
+  background: var(--source-accent-soft);
+  box-shadow: none;
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .question-bank-status.active {
+  border-color: #fee2e2;
+  background: var(--source-accent-soft);
+  color: var(--source-accent-hover);
+}
+
 @media (min-width: 768px) {
   .app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) > .sidebar {
     position: fixed;

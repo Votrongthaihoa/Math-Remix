@@ -62,7 +62,6 @@ const protectedRegressionRoutes = [
   ["protected-admin-section-editor", "/admin/exams/mock-exam/sections/mock-section/editor", ".question-editor-page"],
   ["protected-admin-exam-preview", "/admin/exams/mock-exam/preview", ".exam-preview-page"],
   ["protected-admin-section-preview", "/admin/exams/mock-exam/sections/mock-section/preview?draft=mock-draft", ".section-preview-page"],
-  ["protected-admin-question-bank", "/admin/question-bank", ".question-bank-page"],
   ["protected-admin-session-results", "/admin/sessions/mock-session/results?examId=mock-exam&slotId=mock-slot&mode=both", ".admin-session-results"],
 ];
 const protectedRegressionWidths = [1440, 768, 390, 320];
