@@ -338,6 +338,65 @@
   background: var(--brand-red);
 }
 
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) .courses-page .course-exam-tabs > button:hover,
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) .courses-page .course-exam-tabs > button[aria-selected="true"] {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) .courses-page .course-exam-tabs > button[aria-selected="true"] b {
+  background: var(--brand-red);
+  color: var(--brand-white);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) .courses-page .course-exam-panel > span {
+  color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav :where(
+  .student-nav-primary.active,
+  .student-nav-disclosure.active-parent > summary,
+  .student-nav-children > a.active
+) {
+  border-inline-end-color: var(--brand-red);
+  background: var(--brand-red-soft);
+  color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.alpha-reference-surface:not(.protected-exam-surface):not(.study-mode) .student-sidebar-nav :where(
+  .student-nav-disclosure > summary:hover,
+  .student-nav-children > a:hover
+),
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) > .compact-nav-popover > a.active,
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) > .compact-nav-popover > a > span:first-child {
+  color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) > .compact-nav-popover > a.active {
+  background: var(--brand-red-soft);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) > .compact-nav-popover > a:focus-visible {
+  outline-color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme.study-mode:not(.protected-exam-surface) {
+  --study-accent: var(--brand-red);
+  --study-accent-hover: var(--brand-red-hover);
+  --study-accent-soft: var(--brand-red-soft);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) :where(.status, .history-status > span, .microsoft-video-check.ready) {
+  border-color: var(--brand-red-selected);
+  background: var(--brand-red-soft);
+  color: var(--brand-red-hover);
+}
+
+.ui-shell.student-app.product-shell.learner-red-theme:not(.protected-exam-surface) :where(.status i, .active-dot) {
+  background: var(--brand-red);
+}
+
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event,
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event button { font: inherit; }
 .ui-shell.student-app.product-shell:not(.protected-exam-surface) .student-timetable-event:focus-visible,

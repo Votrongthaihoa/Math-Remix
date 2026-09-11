@@ -38,6 +38,7 @@ import "./account-learning-polish.css";
 import "./student-reference-fidelity.css";
 import "./student-timetable-reference.css";
 import "./red-white-theme.css";
+import "./admin-source-reference.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
@@ -363,20 +364,20 @@ function isProtectedProductPath(pathname: string) {
 }
 
 const adminNav = [
-  { id: "dashboard" as const, section: "Tổng quan", label: "Tổng quan", path: "/admin", icon: LayoutDashboard },
-  { id: "content" as const, section: "Nội dung", label: "Tài nguyên", path: "/admin/content", icon: Library },
-  { id: "hls-vault" as const, section: "Nội dung", label: "Encode HLS", path: "/admin/hls-vault", icon: FileVideo },
-  { id: "question-bank" as const, section: "Nội dung", label: "Ngân hàng câu hỏi", path: "/admin/question-bank", icon: ListChecks },
-  { id: "exams" as const, section: "Kỳ thi", label: "Đề thi", path: "/admin/exams", icon: ClipboardCheck },
-  { id: "sessions" as const, section: "Kỳ thi", label: "Kíp thi", path: "/admin/sessions", icon: CalendarClock },
-  { id: "timetable" as const, section: "Kỳ thi", label: "Lịch vận hành", path: "/admin/timetable", icon: CalendarClock },
-  { id: "students" as const, section: "Quản lý", label: "Học viên", path: "/admin/students", icon: Users },
-  { id: "enrollments" as const, section: "Quản lý", label: "Phân quyền", path: "/admin/enrollments", icon: ShieldCheck },
-  { id: "upload" as const, section: "Quản lý", label: "Kho ảnh", path: "/admin/upload", icon: ImagePlus },
-  { id: "settings" as const, section: "Quản lý", label: "Bảo mật", path: "/admin/security", icon: LockKeyhole },
-  { id: "audit" as const, section: "Quản lý", label: "Nhật ký", path: "/admin/audit", icon: Activity },
-  { id: "capabilities" as const, section: "Hệ thống", label: "Phạm vi chức năng", path: "/admin/capabilities", icon: LayoutGrid },
-  { id: "server-health" as const, section: "Hệ thống", label: "Sức khỏe hệ thống", path: "/admin/server-health", icon: Server },
+  { id: "dashboard" as const, section: "Tổng quan", label: "Tổng quan", path: "/admin", icon: LayoutDashboard, sourceIcon: "appstore" as ReferenceSidebarIconName },
+  { id: "content" as const, section: "Nội dung", label: "Tài nguyên", path: "/admin/content", icon: Library, sourceIcon: "play-square" as ReferenceSidebarIconName },
+  { id: "hls-vault" as const, section: "Nội dung", label: "Encode HLS", path: "/admin/hls-vault", icon: FileVideo, sourceIcon: "play-square" as ReferenceSidebarIconName },
+  { id: "question-bank" as const, section: "Nội dung", label: "Ngân hàng câu hỏi", path: "/admin/question-bank", icon: ListChecks, sourceIcon: null },
+  { id: "exams" as const, section: "Kỳ thi", label: "Đề thi", path: "/admin/exams", icon: ClipboardCheck, sourceIcon: "read" as ReferenceSidebarIconName },
+  { id: "sessions" as const, section: "Kỳ thi", label: "Kíp thi", path: "/admin/sessions", icon: CalendarClock, sourceIcon: "calendar" as ReferenceSidebarIconName },
+  { id: "timetable" as const, section: "Kỳ thi", label: "Lịch vận hành", path: "/admin/timetable", icon: CalendarClock, sourceIcon: "calendar" as ReferenceSidebarIconName },
+  { id: "students" as const, section: "Quản lý", label: "Học viên", path: "/admin/students", icon: Users, sourceIcon: null },
+  { id: "enrollments" as const, section: "Quản lý", label: "Phân quyền", path: "/admin/enrollments", icon: ShieldCheck, sourceIcon: null },
+  { id: "upload" as const, section: "Quản lý", label: "Kho ảnh", path: "/admin/upload", icon: ImagePlus, sourceIcon: null },
+  { id: "settings" as const, section: "Quản lý", label: "Bảo mật", path: "/admin/security", icon: LockKeyhole, sourceIcon: null },
+  { id: "audit" as const, section: "Quản lý", label: "Nhật ký", path: "/admin/audit", icon: Activity, sourceIcon: "history" as ReferenceSidebarIconName },
+  { id: "capabilities" as const, section: "Hệ thống", label: "Phạm vi chức năng", path: "/admin/capabilities", icon: LayoutGrid, sourceIcon: "appstore" as ReferenceSidebarIconName },
+  { id: "server-health" as const, section: "Hệ thống", label: "Sức khỏe hệ thống", path: "/admin/server-health", icon: Server, sourceIcon: "bar-chart" as ReferenceSidebarIconName },
 ];
 type AdminTab = typeof adminNav[number]["id"] | "students" | "upload" | "enrollments" | "security";
 
@@ -1116,7 +1117,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     return <Profile profile={activeProfile} courses={visibleCourses} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />;
   }
   return (
-    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${learnerThemeClass} ${currentView === "course" ? "study-mode course-study-mode" : currentView === "lesson" ? "study-mode" : currentView === "schedule" ? "schedule-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
+    <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${adminRouteRequested && !protectedProductSurface ? "source-admin-shell" : ""} ${learnerThemeClass} ${currentView === "course" ? "study-mode course-study-mode" : currentView === "lesson" ? "study-mode" : currentView === "schedule" ? "schedule-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
       {!examRunnerSurface && !protectedProductSurface && <a className="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>}
       <button type="button" className={`mobile-shade ${mobileOpen ? "show" : ""}`} onClick={closeMobileMenu} aria-label="Đóng menu" tabIndex={mobileOpen ? 0 : -1} />
       {!examRunnerSurface && (uiRouteMode === "optimized-content" || uiRouteMode === "optimized-chrome-only") && <div className="student-global-bg" aria-hidden="true" />}
@@ -1129,7 +1130,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
             {adminRouteRequested ? <>
               {adminNavGroups.map(group => <div className="admin-sidebar-group" key={group.section}>
                 <div className="admin-sidebar-section-label">{group.section}</div>
-                {group.items.map(item => <Link key={`admin-${item.id}`} href={item.path} className={`admin-sidebar-nav-item ${currentAdminTab === item.id ? "active" : ""}`} onClick={event => handleNavigationLink(event, "admin", item.path)} title={item.label} aria-label={item.label} aria-current={currentAdminTab === item.id ? "page" : undefined}><item.icon aria-hidden="true" /><span>{item.label}</span></Link>)}
+                {group.items.map(item => <Link key={`admin-${item.id}`} href={item.path} className={`admin-sidebar-nav-item ${currentAdminTab === item.id ? "active" : ""}`} onClick={event => handleNavigationLink(event, "admin", item.path)} title={item.label} aria-label={item.label} aria-current={currentAdminTab === item.id ? "page" : undefined}>{!protectedProductSurface && item.sourceIcon ? <ReferenceSidebarIcon name={item.sourceIcon} /> : <item.icon aria-hidden="true" />}<span>{item.label}</span></Link>)}
               </div>)}
             </> : <>
               <Link key="overview" href="/dashboard" className={`student-nav-primary ${currentView === "overview" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "overview", "/dashboard")} title="Tổng quan" aria-label="Tổng quan" aria-current={currentView === "overview" ? "page" : undefined}><ReferenceSidebarIcon name="appstore" /><span>Tổng quan</span></Link>
@@ -1149,6 +1150,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       )}
       {!examRunnerSurface && (
         <header className={`topbar ${adminRouteRequested ? "admin-topbar" : ""}`}>
+          {adminRouteRequested && !protectedProductSurface ? <div className="source-sidebar-header-divider" aria-hidden="true" /> : null}
           <Link className="header-brand" href={adminRouteRequested ? "/admin" : "/dashboard"} onClick={event => handleNavigationLink(event, adminRouteRequested ? "admin" : "overview", adminRouteRequested ? "/admin" : "/dashboard")} aria-label={adminRouteRequested ? "Về tổng quan quản trị" : "Về tổng quan"}><Image className="header-brand-logo header-brand-logo-compact" src={shellLogoCompact} alt="" width={42} height={42}/><Image className="header-brand-logo header-brand-logo-full" src={shellLogoFull} alt="" width={180} height={48}/></Link>
           <button type="button" className="header-sidebar-toggle" onClick={toggleSidebar} aria-label={sidebarOpen ? "Thu gọn menu" : "Mở rộng menu"} aria-controls="main-sidebar" aria-expanded={sidebarOpen}>{sidebarOpen ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button>
           <button ref={mobileMenuRef} type="button" className="mobile-menu" onClick={event => openMobileMenu(event.currentTarget)} aria-label="Mở menu" aria-controls="main-sidebar" aria-expanded={mobileOpen}><Menu aria-hidden="true" /></button>

@@ -401,6 +401,9 @@ async function installMockAuth() {
 
   await page.route("**/*", async route => {
     const requestUrl = new URL(route.request().url());
+    if (mockAuth && requestUrl.origin === "http://127.0.0.1:49321") {
+      return route.fulfill(jsonResponse({ ready: false }));
+    }
     if (requestUrl.origin === new URL(supabaseUrl).origin) {
       if (requestUrl.pathname === "/auth/v1/user") return route.fulfill(jsonResponse({ user: mockUser }));
       if (requestUrl.pathname === "/auth/v1/logout") {
@@ -625,8 +628,13 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
     const referenceSidebar = shell?.querySelector(":scope > .sidebar");
     const referenceTopbar = shell?.querySelector(":scope > .topbar");
     const referenceMain = shell?.querySelector(":scope > .main-content");
+    const sourceDivider = shell?.querySelector(".source-sidebar-header-divider");
+    const sourceToggle = shell?.querySelector(".header-sidebar-toggle");
     const referenceSidebarRect = referenceSidebar?.getBoundingClientRect();
     const referenceTopbarRect = referenceTopbar?.getBoundingClientRect();
+    const referenceMainRect = referenceMain?.getBoundingClientRect();
+    const sourceDividerRect = sourceDivider?.getBoundingClientRect();
+    const sourceToggleRect = sourceToggle?.getBoundingClientRect();
     const referenceMainStyle = referenceMain ? getComputedStyle(referenceMain) : null;
     const referenceVisibleLogoSources = [...(shell?.querySelectorAll("img[src*='logo_aeck']") ?? [])]
       .filter(logo => {
@@ -647,6 +655,29 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
     const activeStudentNav = document.querySelector(".student-sidebar-nav .student-nav-primary.active, .student-sidebar-nav .student-nav-children a.active, .student-sidebar-nav .student-nav-disclosure.active-parent > summary");
     const activeStudentNavStyle = activeStudentNav ? getComputedStyle(activeStudentNav) : null;
     const adminNavItems = [...document.querySelectorAll(".admin-sidebar-nav-item")];
+    const activeAdminNav = document.querySelector(".admin-sidebar-nav-item.active");
+    const activeAdminNavStyle = activeAdminNav ? getComputedStyle(activeAdminNav) : null;
+    const greenStyleDetails = [...document.querySelectorAll(".ui-shell:not(.protected-exam-surface) *")].flatMap(element => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      if (rect.width <= 0 || rect.height <= 0 || style.display === "none" || style.visibility === "hidden") return [];
+      const greenish = value => {
+        const channels = value.match(/[\d.]+/g)?.map(Number) ?? [];
+        if (channels.length < 3 || channels.length > 3 && channels[3] === 0) return false;
+        const [red, green, blue] = channels;
+        return green >= red + 18 && green >= blue + 10;
+      };
+      const properties = ["color", "backgroundColor", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor"];
+      const matches = properties.filter(property => greenish(style[property]));
+      return matches.length ? [{
+        tag: element.tagName.toLowerCase(),
+        className: typeof element.className === "string" ? element.className : "",
+        parentClassName: typeof element.parentElement?.className === "string" ? element.parentElement.className : "",
+        ancestorClassName: typeof element.parentElement?.parentElement?.className === "string" ? element.parentElement.parentElement.className : "",
+        text: element.textContent?.trim().slice(0, 60) ?? "",
+        colors: Object.fromEntries(matches.map(property => [property, style[property]])),
+      }] : [];
+    });
     const adminNavItemGeometry = adminNavItems.map(item => {
       const icon = [...item.children].find(child => child.tagName.toLowerCase() === "svg");
       const label = [...item.children].find(child => child.tagName.toLowerCase() === "span");
@@ -670,7 +701,7 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       return rect.width > 0 && (rect.left < -1 || rect.right > window.innerWidth + 1);
     }).map(control => {
       const rect = control.getBoundingClientRect();
-      const scrollContainer = control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .history-date-frame, .exam-part-sidebar, .access-table-wrap");
+      const scrollContainer = control.closest(".student-timetable-scroll, .admin-timetable-week-grid, .history-date-frame, .exam-part-sidebar, .access-table-wrap, .admin-table");
       return {
         tag: control.tagName.toLowerCase(),
         className: control.className,
@@ -687,6 +718,8 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
             ? "exam-part-sidebar"
             : scrollContainer?.classList.contains("access-table-wrap")
               ? "access-table-wrap"
+              : scrollContainer?.classList.contains("admin-table")
+                ? "admin-table"
               : null,
       };
     });
@@ -698,8 +731,15 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       shell: shell?.className ?? null,
       referenceSidebarWidth: referenceSidebarRect ? Math.round(referenceSidebarRect.width) : null,
+      referenceTopbarLeft: referenceTopbarRect ? Math.round(referenceTopbarRect.left) : null,
+      referenceTopbarWidth: referenceTopbarRect ? Math.round(referenceTopbarRect.width) : null,
       referenceTopbarHeight: referenceTopbarRect && getComputedStyle(referenceTopbar).display !== "none" ? Math.round(referenceTopbarRect.height) : null,
+      referenceMainLeft: referenceMainRect ? Math.round(referenceMainRect.left) : null,
       referenceMainPaddingInlineStart: referenceMainStyle?.paddingInlineStart ?? null,
+      sourceDividerLeft: sourceDividerRect && getComputedStyle(sourceDivider).display !== "none" ? Math.round(sourceDividerRect.left) : null,
+      sourceDividerWidth: sourceDividerRect && getComputedStyle(sourceDivider).display !== "none" ? Math.round(sourceDividerRect.width) : null,
+      sourceToggleLeft: sourceToggleRect && getComputedStyle(sourceToggle).display !== "none" ? Math.round(sourceToggleRect.left) : null,
+      sourceToggleWidth: sourceToggleRect && getComputedStyle(sourceToggle).display !== "none" ? Math.round(sourceToggleRect.width) : null,
       referenceVisibleLogoSources,
       referencePrimaryActionBackground: referencePrimaryActionStyle?.backgroundColor ?? null,
       guestExam: Boolean(document.querySelector(".guest-exam-page")),
@@ -708,6 +748,10 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       adminNavItemsWithIcons: adminNavItemGeometry.filter(item => item.iconPresent).length,
       adminNavItemsWithVisibleIcons: adminNavItemGeometry.filter(item => item.iconVisible).length,
       adminNavItemsWithLabels: adminNavItemGeometry.filter(item => item.labelPresent).length,
+      activeAdminNavColor: activeAdminNavStyle?.color ?? null,
+      activeAdminNavBackground: activeAdminNavStyle?.backgroundColor ?? null,
+      greenUiColors: greenStyleDetails.length,
+      greenStyleDetails: greenStyleDetails.slice(0, 20),
       unnamedControls: unnamed.length,
       unnamedControlDetails: unnamed.map(control => ({ tag: control.tagName.toLowerCase(), type: control.getAttribute("type"), className: control.className, id: control.id })),
       controlsOutsideViewport: outsideViewportControls.filter(control => !control.scrollRegion).length,
@@ -748,6 +792,37 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
   )) {
     throw new Error(`Admin sidebar icon/label geometry failed at ${width}px: ${JSON.stringify(state)}`);
   }
+  const sourceAdminProduct = mockRole === "admin"
+    && state.shell?.includes("admin-app")
+    && state.shell.includes("product-shell")
+    && state.shell.includes("source-admin-shell")
+    && !state.shell.includes("protected-exam-surface");
+  if (sourceAdminProduct) {
+    const failures = [];
+    if (width >= 768) {
+      const expanded = state.shell.includes("sidebar-expanded");
+      const expectedSidebarWidth = expanded ? 288 : 80;
+      const expectedTopbarHeight = expanded ? 81 : 73;
+      const expectedDividerLeft = expanded ? 287 : 79;
+      const expectedToggleLeft = expanded ? 295 : 85;
+      const expectedPadding = width >= 1536 ? "56px" : width < 1200 ? "32px" : "48px";
+      if (state.referenceSidebarWidth !== expectedSidebarWidth) failures.push(`sidebar=${state.referenceSidebarWidth}/${expectedSidebarWidth}`);
+      if (state.referenceTopbarHeight !== expectedTopbarHeight) failures.push(`topbar=${state.referenceTopbarHeight}/${expectedTopbarHeight}`);
+      if (state.referenceMainLeft !== expectedSidebarWidth) failures.push(`main-left=${state.referenceMainLeft}/${expectedSidebarWidth}`);
+      if (state.referenceMainPaddingInlineStart !== expectedPadding) failures.push(`main-padding=${state.referenceMainPaddingInlineStart}/${expectedPadding}`);
+      if (state.sourceDividerLeft !== expectedDividerLeft || state.sourceDividerWidth !== 2) failures.push(`divider=${state.sourceDividerLeft}x${state.sourceDividerWidth}/${expectedDividerLeft}x2`);
+      if (state.sourceToggleLeft !== expectedToggleLeft || state.sourceToggleWidth !== 32) failures.push(`toggle=${state.sourceToggleLeft}x${state.sourceToggleWidth}/${expectedToggleLeft}x32`);
+    } else {
+      if (state.referenceTopbarHeight !== 65) failures.push(`mobile-topbar=${state.referenceTopbarHeight}/65`);
+      if (state.referenceTopbarLeft !== 0 || state.referenceTopbarWidth !== width) failures.push(`mobile-topbar-geometry=${state.referenceTopbarLeft}x${state.referenceTopbarWidth}/0x${width}`);
+      if (state.referenceMainLeft !== 0) failures.push(`mobile-main-left=${state.referenceMainLeft}/0`);
+      if (state.referenceMainPaddingInlineStart !== "16px") failures.push(`mobile-main-padding=${state.referenceMainPaddingInlineStart}/16px`);
+    }
+    if (state.activeAdminNavColor !== "rgb(205, 22, 39)") failures.push(`active-color=${state.activeAdminNavColor}`);
+    if (state.activeAdminNavBackground !== "rgb(254, 242, 242)") failures.push(`active-background=${state.activeAdminNavBackground}`);
+    if (state.greenUiColors) failures.push(`green-ui=${JSON.stringify(state.greenStyleDetails)}`);
+    if (failures.length) throw new Error(`Source admin contract failed for ${path} at ${width}px: ${failures.join("; ")}`);
+  }
   const learnerReferenceProduct = mockRole === "student"
     && state.shell?.includes("student-app")
     && state.shell.includes("product-shell")
@@ -773,6 +848,7 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
     const expectedLogoFragment = "_red";
     if ((!studyMode || width >= 1200) && !state.referenceVisibleLogoSources.some(source => source?.includes(expectedLogoFragment))) failures.push(`logo=${state.referenceVisibleLogoSources.join(",")}`);
     if (path.startsWith("/exam-room") && state.referencePrimaryActionBackground !== "rgb(205, 22, 39)") failures.push(`action=${state.referencePrimaryActionBackground}`);
+    if (state.greenUiColors) failures.push(`green-ui=${JSON.stringify(state.greenStyleDetails)}`);
     if (failures.length) throw new Error(`Learner reference contract failed for ${path} at ${width}px: ${failures.join("; ")}`);
   }
   if (screenshot) await page.screenshot({ path: join(outputDir, `${name}-${width}.png`), fullPage: true });
@@ -878,6 +954,8 @@ async function inspectAccountMenu() {
         firstItemFocused: document.activeElement?.matches('[data-account-menu-item]:first-of-type') ?? false,
         avatarVisible: Boolean(avatar && getComputedStyle(avatar).display === "grid" && avatarRect && avatarRect.width > 0 && avatarRect.height > 0),
         menuInsideViewport: Boolean(menuRect && menuRect.left >= -1 && menuRect.right <= innerWidth + 1),
+        menuRect: menuRect ? { left: Math.round(menuRect.left), right: Math.round(menuRect.right), width: Math.round(menuRect.width) } : null,
+        viewportWidth: innerWidth,
         horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       };
     });
@@ -894,7 +972,7 @@ async function inspectAccountMenu() {
     await page.screenshot({ path: join(outputDir, `${mockRole}-account-menu-${width}.png`), fullPage: true });
     const result = { name: `${mockRole}-account-menu-keyboard`, path: accountMenuPath, width, ...opened, secondItemFocused, escapeRestoredTrigger, focusOutsideClosed };
     report.push(result);
-    const avatarMatchesReference = mockRole === "admin" ? opened.avatarVisible : !opened.avatarVisible;
+    const avatarMatchesReference = mockRole === "admin" && width < 768 ? opened.avatarVisible : !opened.avatarVisible;
     if (!opened.firstItemFocused || !avatarMatchesReference || !opened.menuInsideViewport || opened.horizontalOverflow || !secondItemFocused || !escapeRestoredTrigger || !focusOutsideClosed) {
       throw new Error(`Account menu keyboard flow failed at ${width}px: ${JSON.stringify(result)}`);
     }
@@ -1277,7 +1355,7 @@ async function inspectCollapsedAdminSidebar() {
     const shell = document.querySelector(".ui-shell");
     const sidebar = document.querySelector(".ui-shell.admin-app.product-shell > .sidebar");
     const sidebarRect = sidebar?.getBoundingClientRect();
-    const visibleSidebarLogo = [...(sidebar?.querySelectorAll(".mobile-sidebar-logo-compact, .mobile-sidebar-logo-full") ?? [])]
+    const visibleSidebarLogo = [...(shell?.querySelectorAll(":scope > .topbar .header-brand-logo-compact, :scope > .topbar .header-brand-logo-full") ?? [])]
       .find(candidate => {
         const style = getComputedStyle(candidate);
         const rect = candidate.getBoundingClientRect();

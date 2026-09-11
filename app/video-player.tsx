@@ -315,7 +315,7 @@ export default function VideoPlayer({ resource }: { resource: SecureLessonResour
     if (!content.playbackUrl) return <SecureViewerError message="Không lấy được nguồn phát HLS." onRetry={retryVideoSource}/>;
     if (content.playbackMode === "hls-vault") {
       if (videoPlaybackError) return <SecureViewerError message={videoPlaybackError} onRetry={retryVideoSource}/>;
-      return <iframe ref={hlsFrameRef} key={`${resource.id}:${resolutionNonce}`} className="lesson-frame lesson-video" src="/yt-embed-player.html?mode=hls" title={content.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/>;
+      return <iframe ref={hlsFrameRef} key={`${resource.id}:${resolutionNonce}`} className="lesson-frame lesson-video" src={`/yt-embed-player.html?mode=hls&wm=${encodeURIComponent(watermarkEmail)}`} title={content.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerPolicy="no-referrer" onLoad={event => initializeViewer(event.currentTarget)}/>;
     }
 
   }
