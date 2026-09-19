@@ -28,16 +28,49 @@ test("learner reference fidelity layer uses one red-white theme without touching
   assert.doesNotMatch(finalTheme, /(?:exam-shell|question-|answer-|exam-result|review-|solution-)/i);
 });
 
-test("profile renders the supplied portal structure with URL-backed information and course tabs", async () => {
-  const platform = await readFile(new URL("../app/platform.tsx", import.meta.url), "utf8");
+test("profile renders the supplied portal structure, recoverable data states, and a keyboard skip link", async () => {
+  const [platform, styles] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+  ]);
   const profileSource = platform.slice(platform.indexOf("function Profile"), platform.indexOf("function Detail"));
+  const profileMounts = [...platform.matchAll(/<Profile\b[\s\S]*?\/>/g)].map(match => match[0]);
+  const historyIssueStart = profileSource.indexOf("Chưa tải được lịch sử làm bài. Hãy thử lại.");
+  const historyIssue = historyIssueStart >= 0 ? profileSource.slice(Math.max(0, historyIssueStart - 400), historyIssueStart + 500) : "";
+  const skipLinkStart = profileSource.indexOf("profile-portal-skip-link");
+  const skipLink = skipLinkStart >= 0 ? profileSource.slice(Math.max(0, skipLinkStart - 100), skipLinkStart + 600) : "";
 
-  assert.match(platform, /<Profile profile=\{activeProfile\} courses=\{visibleCourses\} attempts=\{attempts\}/);
+  assert.ok(profileMounts.length > 0, "profile state should be forwarded by the product shell");
+  for (const profileMount of profileMounts) {
+    assert.match(profileMount, /\bcoursesLoading\s*=\s*\{\s*coursesLoading\s*\}/);
+    assert.match(profileMount, /\bcoursesError\s*=\s*\{\s*coursesError\s*\}/);
+    assert.match(profileMount, /\bonRetryCourses\s*=\s*\{[^}]+\}/);
+    assert.match(profileMount, /\boverviewLoading\s*=\s*\{\s*overviewLoading\s*\}/);
+    assert.match(profileMount, /\battemptsError\s*=\s*\{\s*overviewAttemptsError\s*\}/);
+    assert.match(profileMount, /\bonRetryOverview\s*=\s*\{[^}]+\}/);
+  }
   assert.match(profileSource, /className="profile-portal-reference ui-shell student-app product-shell learner-red-theme"/);
   assert.match(profileSource, /const activeTab = searchParams\.get\("tab"\) === "courses" \? "courses" : "info"/);
   assert.match(profileSource, /className="profile-portal-sidebar lg:w-72 lg:shrink-0"/);
   assert.match(profileSource, /className="profile-portal-content min-w-0 flex-1"/);
   assert.match(profileSource, /Khóa học của tôi/);
+  assert.ok(skipLinkStart >= 0, "profile should expose a skip link before its repeated navigation");
+  assert.match(skipLink, /<a\b/);
+  assert.match(skipLink, /href\s*=\s*["']#profile-main["']/);
+  assert.match(skipLink, /Bỏ qua đến nội dung chính/);
+  assert.match(profileSource, /<main\b[^>]*\bid\s*=\s*["']profile-main["']/);
+  assert.match(profileSource, /<main\b[^>]*\btabIndex\s*=\s*\{\s*-1\s*\}/);
+  assert.match(profileSource, /\bcoursesLoading\b/);
+  assert.match(profileSource, /\bcoursesError\b/);
+  assert.match(profileSource, /\battemptsError\b/);
+  assert.match(profileSource, /\boverviewLoading\b/);
+  assert.match(profileSource, /Chưa tải được lịch sử làm bài\. Hãy thử lại\./);
+  assert.match(historyIssue, /role="alert"/);
+  assert.match(historyIssue, /onClick\s*=\s*\{\s*(?:onRetryOverview|\(\s*\)\s*=>\s*onRetryOverview\(\s*\))\s*\}/);
+  assert.match(profileSource, /Tải lại thống kê/);
+  assert.match(styles, /\.profile-portal-reference[^{]{0,80}\.profile-portal-skip-link\s*\{/);
+  assert.match(styles, /\.profile-portal-reference[^{]{0,80}\.profile-portal-skip-link:focus-visible\s*\{/);
+  assert.match(styles, /\.profile-portal-reference[^{]{0,80}#profile-main\s*\{[^}]*scroll-margin-(?:top|block-start)\s*:/s);
 });
 
 test("exam history follows the supplied date-grouped table structure", async () => {
@@ -178,4 +211,33 @@ test("learner sidebar uses direct routes and the original filled reference icons
   assert.match(learnerNavigation, /href="\/courses"[\s\S]*?<ReferenceSidebarIcon name="play-square"/);
   assert.doesNotMatch(learnerNavigation, /student-nav-disclosure|student-nav-children|availableExamTypes\.map|visibleCourses\.map/);
   assert.match(styles, /nav\.student-sidebar-nav\s*\{[^}]*padding:\s*12px 0 16px !important;/s);
+});
+
+test("learner shell expands small visual controls without changing reference geometry", async () => {
+  const [platform, styles] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+  ]);
+  const courseDetailSource = platform.slice(platform.indexOf("function CourseDetail"), platform.indexOf("function LessonViewer"));
+
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell:not\(\.protected-exam-surface\) \.mobile-sidebar-close\s*\{[^}]*position:\s*relative;/s);
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell:not\(\.protected-exam-surface\) \.mobile-sidebar-close::after\s*\{[^}]*content:\s*"";[^}]*position:\s*absolute;[^}]*inset:\s*-10px;/s);
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell\.course-study-mode:not\(\.protected-exam-surface\) \.course-detail-breadcrumb a\[href="\/courses"\]\s*\{[^}]*position:\s*relative;/s);
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell\.course-study-mode:not\(\.protected-exam-surface\) \.course-detail-breadcrumb a\[href="\/courses"\]::after\s*\{[^}]*content:\s*"";[^}]*position:\s*absolute;[^}]*inset:\s*-10px;/s);
+  assert.match(courseDetailSource, /href="\/courses"\s+aria-label="Quay lại khóa học"/);
+});
+
+test("course detail exposes one full semantic title that can grow beyond the compact breadcrumb", async () => {
+  const [platform, styles] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/student-reference-fidelity.css", import.meta.url), "utf8"),
+  ]);
+  const courseDetailSource = platform.slice(platform.indexOf("function CourseDetail"), platform.indexOf("function LessonViewer"));
+
+  assert.match(courseDetailSource, /<h1\b[^>]*\bclassName="[^"]*\bcourse-detail-title\b[^"]*"[^>]*>\{course\.title\}<\/h1>/);
+  assert.equal((courseDetailSource.match(/<h1\b/g) ?? []).length, 1);
+  assert.doesNotMatch(courseDetailSource, /truncate max-w-\[200px\]/);
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell\.course-study-mode:not\(\.protected-exam-surface\) \.course-detail-breadcrumb\s*\{[^}]*height:\s*auto;[^}]*min-height:\s*72px;/s);
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell\.course-study-mode:not\(\.protected-exam-surface\) \.course-detail-breadcrumb-inner\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;/s);
+  assert.match(styles, /\.ui-shell\.student-app\.product-shell\.course-study-mode:not\(\.protected-exam-surface\) \.course-detail-title\s*\{[^}]*min-width:\s*0;[^}]*overflow-wrap:\s*anywhere;[^}]*white-space:\s*normal;/s);
 });

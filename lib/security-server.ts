@@ -238,3 +238,83 @@ export function riskScore(input: { verifiedDevice: boolean; sameDevice: boolean;
   if (input.trustedByAdmin) score -= 50;
   return Math.max(0, score);
 }
+
+export const EXAM_RISK_BLOCK_THRESHOLD = 100;
+
+export function examRiskBlockPayload(riskScoreValue: number) {
+  return {
+    allowed: false,
+    code: "EXAM_RISK_BLOCKED" as const,
+    riskScore: Math.max(0, Math.min(999, Math.floor(Number(riskScoreValue) || 0))),
+    message: "Phát hiện đăng nhập bất thường. Phiên thi hiện tại đã bị khóa.",
+  };
+}
+
+type ExamRiskSession = {
+  id: string;
+  device_id: string;
+  activity_type: ActivityType;
+  current_resource_id: string | null;
+  last_seen_at: string;
+  region_code: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  risk_score: number | null;
+};
+
+/**
+ * Server-side backstop for exam start. The browser security guard remains the
+ * first signal, but a client can skip that component, so the exam API must
+ * independently revoke active sessions when the calculated score crosses the
+ * hard block threshold.
+ */
+export async function guardExamStartRisk(admin: SupabaseClient, userId: string, request: Request) {
+  const recentSince = new Date(Date.now() - 2 * 60_000).toISOString();
+  const sessions = await admin
+    .from("user_sessions")
+    .select("id,device_id,activity_type,current_resource_id,last_seen_at,region_code,city,latitude,longitude,risk_score")
+    .eq("user_id", userId)
+    .is("revoked_at", null)
+    .gte("last_seen_at", recentSince);
+  if (sessions.error) {
+    return { ok: false as const, response: Response.json({ error: "Không thể kiểm tra trạng thái bảo mật phiên thi.", code: "RISK_SERVICE_UNAVAILABLE" }, { status: 503, headers: { "cache-control": "private, no-store" } }) };
+  }
+
+  const rows = (sessions.data ?? []) as ExamRiskSession[];
+  const knownRisk = rows.reduce((highest, row) => Math.max(highest, Number(row.risk_score) || 0), 0);
+  const deviceId = request.headers.get("x-remix-device-id")?.trim() || "";
+  let score = knownRisk;
+  if (deviceId) {
+    const conflict = rows.find(row => row.device_id !== deviceId);
+    if (conflict) {
+      const [trustedResult, repeated7dResult, repeated24hResult, crossAccountResult] = await Promise.all([
+        admin.from("trusted_devices").select("verified_at,revoked_at,trusted_by_admin").eq("user_id", userId).eq("device_id", deviceId).maybeSingle(),
+        admin.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("event_type", "concurrent_session").gte("created_at", new Date(Date.now() - 7 * 86400_000).toISOString()),
+        admin.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("event_type", "concurrent_session").gte("created_at", new Date(Date.now() - 86400_000).toISOString()),
+        admin.from("trusted_devices").select("id", { count: "exact", head: true }).eq("device_id", deviceId).neq("user_id", userId).not("verified_at", "is", null),
+      ]);
+      const location = requestLocation(request);
+      const distanceKm = haversineKm(location, { latitude: conflict.latitude, longitude: conflict.longitude });
+      score = riskScore({
+        verifiedDevice: Boolean(trustedResult.data?.verified_at && !trustedResult.data.revoked_at),
+        sameDevice: false,
+        activeConflict: true,
+        sameActivity: conflict.activity_type === "exam",
+        activityType: "exam",
+        distanceKm,
+        regionChanged: Boolean(location.regionCode && conflict.region_code && location.regionCode !== conflict.region_code),
+        repeated7d: Number(repeated7dResult.count ?? 0) > 0,
+        repeated24h: Number(repeated24hResult.count ?? 0) > 0,
+        trustedByAdmin: Boolean(trustedResult.data?.trusted_by_admin),
+        previousInactive: false,
+      }) + (Number(crossAccountResult.count ?? 0) > 0 ? 30 : 0);
+    }
+  }
+
+  if (score < EXAM_RISK_BLOCK_THRESHOLD) return { ok: true as const, riskScore: score };
+  const now = new Date().toISOString();
+  await admin.from("user_sessions").update({ revoked_at: now, risk_score: score }).eq("user_id", userId).is("revoked_at", null);
+  await admin.from("security_events").insert({ user_id: userId, event_type: "violation", risk_score: score, reason: "Phát hiện đăng nhập bất thường khi bắt đầu bài thi.", device_id: deviceId || null, evidence: { source: "exam_start", threshold: EXAM_RISK_BLOCK_THRESHOLD } });
+  return { ok: false as const, response: Response.json(examRiskBlockPayload(score), { status: 403, headers: { "cache-control": "private, no-store" } }) };
+}

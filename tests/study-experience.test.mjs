@@ -236,6 +236,18 @@ test("phone study context names the selected resource and its lesson", async () 
   assert.match(studySource, /<p>\{formatLessonTitle\(lesson\.title, lesson\.sort_order\)\}<\/p>/);
 });
 
+test("selected-resource context keeps its semantic H1 available on desktop", async () => {
+  const [source, css] = await Promise.all([
+    readFile(platformUrl, "utf8"),
+    readFile(learningCssUrl, "utf8"),
+  ]);
+  const studySource = source.slice(source.indexOf("function LessonViewer"), source.indexOf("function ExamHistory"));
+
+  assert.match(studySource, /<section className="study-lesson-context" aria-labelledby="study-lesson-title">/);
+  assert.match(studySource, /<h1 id="study-lesson-title">\{selectedResource\?\.title \|\| formatLessonTitle\(lesson\.title, lesson\.sort_order\)\}<\/h1>/);
+  assert.doesNotMatch(css, /\.study-lesson-context\s*\{[^}]*display:\s*none/);
+});
+
 test("a newly opened lesson waits for an explicit resource selection", async () => {
   const source = await readFile(platformUrl, "utf8");
   const studySource = source.slice(source.indexOf("function LessonViewer"), source.indexOf("function ExamHistory"));
@@ -251,9 +263,26 @@ test("the initial lesson state uses the picker markup copied from the HTML refer
 
   assert.match(studySource, /lesson-resource-picker flex-1 w-full overflow-hidden/);
   assert.match(studySource, /w-full min-h-\[50vh\] md:min-h-\[60vh\] rounded-xl bg-white border border-gray-200 shadow-sm p-8 md:p-12 flex flex-col justify-center/);
-  assert.match(studySource, /Bài học này bao gồm \{resources\.length\} nội dung\. Vui lòng chọn một mục bên dưới để bắt đầu học\./);
+  assert.match(studySource, /<h1 id="lesson-resource-picker-title"/);
+  assert.match(studySource, /resources\.length \? `Bài học này bao gồm \$\{resources\.length\} nội dung\. Vui lòng chọn một mục bên dưới để bắt đầu học\.` : "Bài học này chưa có bài giảng hoặc tài liệu\."/);
+  assert.match(studySource, /<MiniEmpty text="Chưa có nội dung để bắt đầu\."\/>/);
   assert.match(studySource, /lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4/);
   assert.match(studySource, /lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-\[#cd1627\] hover:shadow-md active:scale-\[0\.96\] transition-\[background-color,border-color,box-shadow,transform\] cursor-pointer group\/card/);
+});
+
+test("lesson loading distinguishes missing lessons from resource failures and exposes recovery copy", async () => {
+  const source = await readFile(platformUrl, "utf8");
+  const studySource = source.slice(source.indexOf("function LessonViewer"), source.indexOf("function ExamHistory"));
+
+  assert.match(studySource, /const \[lessonMissing, setLessonMissing\] = useState\(false\);/);
+  assert.match(studySource, /const \[resourceError, setResourceError\] = useState\(""\);/);
+  assert.match(studySource, /setLessonMissing\(status === 404 \|\| code === "PGRST116" \|\| \/không tìm thấy\|không tồn tại\|not found\/i\.test\(lessonErrorMessage\)\)/);
+  assert.match(studySource, /const resourceErrorMessage = resourceOutcome\.error[\s\S]*?setResourceError\(resourceErrorMessage\)/);
+  assert.match(studySource, /const resourcePayload = resourceResult[\s\S]*?: null;/);
+  assert.match(studySource, /const title = sessionExpired \? "Phiên đăng nhập hết hạn" : missingLesson \? "Không tìm thấy bài học" : "Không thể tải bài học"/);
+  assert.match(studySource, /<h2 id="lesson-resource-error-title">Không thể tải nội dung bài học<\/h2>/);
+  assert.match(studySource, /<p className="lesson-curriculum-error">Chưa tải được nội dung giáo trình\.<\/p>/);
+  assert.match(studySource, /setLessonReloadVersion\(version => version \+ 1\)/);
 });
 
 test("lesson resources use the exact play-circle and file-pdf icons from the HTML reference", async () => {
@@ -300,7 +329,7 @@ test("course catalogue and detail use the supplied HTML reference classes", asyn
 
   assert.match(source, /w-full min-h-\[calc\(100vh-120px\)\] bg-transparent/);
   assert.match(source, /grid grid-cols-\[repeat\(auto-fill,minmax\(280px,1fr\)\)\] gap-6/);
-  assert.match(source, /ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-\[350px\]/);
+  assert.match(source, /ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-\[transform,box-shadow\] duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-\[350px\]/);
   assert.match(source, /flex flex-col lg:flex-row flex-1 gap-8 pt-2 items-start/);
   assert.match(source, /w-full aspect-video rounded-xl overflow-hidden bg-gray-900 relative flex items-center justify-center shadow-lg/);
   assert.match(source, /w-full lg:w-\[400px\] shrink-0/);

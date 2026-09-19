@@ -110,6 +110,10 @@ const mockUser = {
   aud: "authenticated",
   role: "authenticated",
   email: mockRole === "admin" ? "teacher@example.com" : "student@example.com",
+  app_metadata: mockRole === "admin"
+    ? { role: "admin", is_super_admin: true, admin_permissions: [] }
+    : {},
+  user_metadata: {},
 };
 const mockProfile = {
   id: mockUser.id,
@@ -117,6 +121,8 @@ const mockProfile = {
   student_code: mockRole === "admin" ? "REMIX000001" : "REMIX000128",
   role: mockRole,
   status: "active",
+  account_status: "active",
+  banned_until: null,
   created_at: "2026-08-08T08:00:00.000Z",
 };
 const mockCourse = {
@@ -391,7 +397,7 @@ async function installMockAuth() {
   const projectRef = new URL(supabaseUrl).hostname.split(".")[0];
   const expiresAt = Math.floor(Date.now() / 1000) + 3600;
   const encode = value => Buffer.from(JSON.stringify(value)).toString("base64url");
-  const accessToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub: mockUser.id, exp: expiresAt, role: "authenticated" })}.mock-signature`;
+  const accessToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub: mockUser.id, exp: expiresAt, role: "authenticated", app_metadata: mockUser.app_metadata })}.mock-signature`;
   mockAuthStorage = { storageKey: `sb-${projectRef}-auth-token`, session: { access_token: accessToken, refresh_token: "mock-refresh", expires_in: 3600, expires_at: expiresAt, token_type: "bearer", user: mockUser } };
   await page.addInitScript(({ storageKey, user, accessToken, expiresAt, sectionPreviewDraft }) => {
     localStorage.setItem(storageKey, JSON.stringify({ access_token: accessToken, refresh_token: "mock-refresh", expires_in: 3600, expires_at: expiresAt, token_type: "bearer", user }));
@@ -587,6 +593,22 @@ async function installMockAuth() {
         const items = mockAuditItems.filter(item => (!source || item.source === source) && (!status || item.status === status) && (!query || JSON.stringify(item).toLocaleLowerCase("vi-VN").includes(query)));
         return route.fulfill(jsonResponse({ items, summary: { total: mockAuditItems.length, exam: 2, account: 1, failed: 1, pending: 0 }, total: items.length, page: 1, limit: 20, hasNextPage: false, serverTime: "2026-08-09T08:21:00.000Z" }));
       }
+      if (requestUrl.pathname === "/api/admin/server-health") return route.fulfill(jsonResponse({
+        status: "degraded",
+        checkedAt: "2026-09-18T08:00:00.000Z",
+        latencyMs: 42,
+        checks: [
+          { id: "profiles", label: "Hồ sơ người dùng", status: "healthy", detail: "2 hồ sơ có thể truy vấn.", durationMs: 12 },
+          { id: "courses", label: "Kho khóa học", status: "healthy", detail: "1 khóa học trong hệ thống.", durationMs: 14 },
+          { id: "exam_rooms", label: "Phòng khảo thí", status: "healthy", detail: "2 phòng thi trong hệ thống.", durationMs: 16 },
+        ],
+        integrations: [
+          { id: "supabase-auth", label: "Supabase Auth", configured: true, detail: "Xác thực token server-side bằng getUser." },
+          { id: "r2-media", label: "R2 Media", configured: true, detail: "Kho ảnh/PDF/HLS tùy flow đã bật." },
+          { id: "microsoft-graph", label: "Microsoft Graph", configured: false, detail: "Nguồn video Microsoft trong lesson resource." },
+          { id: "legacy-aeck", label: "Legacy AECK API", configured: false, detail: "Cần URL và token/exchange riêng cho IRT, iLearn, gói học và giao hàng." },
+        ],
+      }));
       if (requestUrl.pathname === "/api/admin/exam-access") return route.fulfill(jsonResponse({ exam: { settings: {} }, sections: mockAdminSections, slots: [{ id: "mock-slot", exam_id: "mock-exam", section_id: null, name: "Kíp thi sáng", starts_at: "2026-08-10T08:00:00.000Z", ends_at: "2026-08-10T10:00:00.000Z", enabled: true, results_released_at: null, export_open_at: null, export_close_at: null, grace_period_minutes: 30, token_hint: "ABCD", created_at: "2026-08-08T08:00:00.000Z" }], attempts: [] }));
       if (requestUrl.pathname === "/api/admin/images" || requestUrl.pathname === "/api/admin/exam-images") return route.fulfill(jsonResponse({ images: [] }));
       return route.fulfill(jsonResponse({}));
@@ -656,6 +678,16 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
     const adminNavItems = [...document.querySelectorAll(".admin-sidebar-nav-item")];
     const activeAdminNav = document.querySelector(".admin-sidebar-nav-item.active");
     const activeAdminNavStyle = activeAdminNav ? getComputedStyle(activeAdminNav) : null;
+    const studentPasswordButtons = [...document.querySelectorAll(".student-table .student-password-btn")].map(button => {
+      const rect = button.getBoundingClientRect();
+      const style = getComputedStyle(button);
+      return {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        fontSize: style.fontSize,
+        ariaLabel: button.getAttribute("aria-label"),
+      };
+    });
     const greenStyleDetails = [...document.querySelectorAll(".ui-shell:not(.protected-exam-surface) *")].flatMap(element => {
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
@@ -749,6 +781,7 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
       adminNavItemsWithLabels: adminNavItemGeometry.filter(item => item.labelPresent).length,
       activeAdminNavColor: activeAdminNavStyle?.color ?? null,
       activeAdminNavBackground: activeAdminNavStyle?.backgroundColor ?? null,
+      studentPasswordButtons,
       greenUiColors: greenStyleDetails.length,
       greenStyleDetails: greenStyleDetails.slice(0, 20),
       unnamedControls: unnamed.length,
@@ -819,6 +852,10 @@ async function inspect(name, path, width, screenshot = false, expectedSurface = 
     }
     if (state.activeAdminNavColor !== "rgb(205, 22, 39)") failures.push(`active-color=${state.activeAdminNavColor}`);
     if (state.activeAdminNavBackground !== "rgb(254, 242, 242)") failures.push(`active-background=${state.activeAdminNavBackground}`);
+    if (path.startsWith("/admin/students") && width <= 575 && state.studentPasswordButtons.length > 0) {
+      const compactButtonFailure = state.studentPasswordButtons.find(button => button.width !== 36 || button.height !== 36 || button.fontSize !== "0px" || !button.ariaLabel);
+      if (compactButtonFailure) failures.push(`student-password-button=${JSON.stringify(compactButtonFailure)}`);
+    }
     if (state.greenUiColors) failures.push(`green-ui=${JSON.stringify(state.greenStyleDetails)}`);
     if (failures.length) throw new Error(`Source admin contract failed for ${path} at ${width}px: ${failures.join("; ")}`);
   }
@@ -1718,7 +1755,7 @@ async function inspectCourseTimetableDeletionConfirmation() {
 }
 
 async function inspectAdminAudit() {
-  for (const width of [1440, 390, 320]) {
+  for (const width of [1440, 1100, 390, 320]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto(`${baseUrl}/admin/audit`, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(1_200);
@@ -1743,13 +1780,20 @@ async function inspectAdminAudit() {
         summaryItems: document.querySelectorAll(".admin-audit-summary > div").length,
         auditRows: document.querySelectorAll(".admin-audit-row:not(.admin-audit-row-head)").length,
         accountResult: document.querySelector(".admin-audit-row:not(.admin-audit-row-head)")?.textContent?.includes("Lê Gia Bảo") ?? false,
+        targetVisible: (() => {
+          const target = document.querySelector(".admin-audit-row:not(.admin-audit-row-head) td:nth-child(4)");
+          if (!(target instanceof HTMLElement)) return false;
+          const style = getComputedStyle(target);
+          const rect = target.getBoundingClientRect();
+          return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        })(),
         pageInsideViewport: Boolean(pageRect && pageRect.left >= -1 && pageRect.right <= innerWidth + 1),
         horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       };
     });
     await page.screenshot({ path: join(outputDir, `admin-audit-filtered-${width}.png`), fullPage: false });
     report.push({ name: "admin-audit", path: "/admin/audit", width, ...state });
-    if (!state.url.includes("source=account") || state.summaryItems !== 4 || state.auditRows !== 1 || !state.accountResult || !state.pageInsideViewport || state.horizontalOverflow) {
+    if (!state.url.includes("source=account") || state.summaryItems !== 4 || state.auditRows !== 1 || !state.accountResult || !state.targetVisible || !state.pageInsideViewport || state.horizontalOverflow) {
       throw new Error(`Admin audit failed at ${width}px: ${JSON.stringify(state)}`);
     }
   }

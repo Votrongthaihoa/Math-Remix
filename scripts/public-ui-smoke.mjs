@@ -39,7 +39,7 @@ const standaloneRoutes = [
   ["/404-eyes.html", "404 Eyes", "canvas"],
 ];
 const redirectRoutes = [
-  ["/portal", "/courses"],
+  ["/portal", "/profile"],
   ["/exam-result/mock-attempt-latest", "/exam/result/mock-attempt-latest"],
   ["/question-bank/example", "/admin/question-bank"],
   ["/item/create/example", "/admin/question-bank"],
@@ -135,7 +135,7 @@ async function inspect(path, width, options = {}) {
       brokenImages,
       frameworkOverlay: /Application error|Unhandled Runtime Error|Internal Server Error|Next\.js.*error/i.test(bodyText),
       staticSurfaceFound: staticSurface === "canvas" ? Boolean(document.querySelector("canvas")) : true,
-      externalAccountSignup: Boolean(document.querySelector('a[href*="account.aeck.vn/signup"]')),
+      externalAccountSignup: Boolean(document.querySelector('a[href^="https://account."][href$="/signup"]')),
     };
   }, { expectedHeading: options.expectedHeading ?? "", expectedTitle: options.expectedTitle ?? "", staticSurface: options.staticSurface ?? "" });
   Object.assign(check, { status: response?.status() ?? null, ...state });

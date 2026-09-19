@@ -111,7 +111,7 @@ function ProtectedImageThumbnail({ image }: { image: ExamUploadedImage }) {
     : <span className="admin-upload-private-thumb admin-upload-private-thumb-placeholder"><FileImage /></span>;
 }
 
-export default function AdminUploadPage() {
+export default function AdminUploadPage({ canManageExamImages }: { canManageExamImages: boolean }) {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [examImages, setExamImages] = useState<ExamUploadedImage[]>([]);
   const [file, setFile] = useState<File | null>(null);
@@ -122,7 +122,7 @@ export default function AdminUploadPage() {
   const [privatePage, setPrivatePage] = useState(1);
   const [urlReady, setUrlReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [examLoading, setExamLoading] = useState(true);
+  const [examLoading, setExamLoading] = useState(canManageExamImages);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingAsset, setDeletingAsset] = useState("");
@@ -148,13 +148,13 @@ export default function AdminUploadPage() {
 
   const readUrlState = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
-    setActiveLibrary(params.get("library") === "private" ? "private" : "public");
+    setActiveLibrary(canManageExamImages && params.get("library") === "private" ? "private" : "public");
     setSearchTerm(params.get("publicQ") ?? "");
     setExamSearchTerm(params.get("privateQ") ?? "");
     setPublicPage(positivePage(params.get("publicPage")));
     setPrivatePage(positivePage(params.get("privatePage")));
     setUrlReady(true);
-  }, []);
+  }, [canManageExamImages]);
 
   useEffect(() => {
     // URL state is hydrated after mount to keep the server and first client
@@ -168,13 +168,13 @@ export default function AdminUploadPage() {
   useEffect(() => {
     if (!urlReady) return;
     const url = new URL(window.location.href);
-    url.searchParams.set("library", activeLibrary);
+    url.searchParams.set("library", canManageExamImages ? activeLibrary : "public");
     if (searchTerm) url.searchParams.set("publicQ", searchTerm); else url.searchParams.delete("publicQ");
     if (examSearchTerm) url.searchParams.set("privateQ", examSearchTerm); else url.searchParams.delete("privateQ");
     url.searchParams.set("publicPage", String(publicPage));
     url.searchParams.set("privatePage", String(privatePage));
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [activeLibrary, examSearchTerm, privatePage, publicPage, searchTerm, urlReady]);
+  }, [activeLibrary, canManageExamImages, examSearchTerm, privatePage, publicPage, searchTerm, urlReady]);
 
   const loadImages = useCallback(async () => {
     libraryAbortControllerRef.current?.abort();
@@ -219,8 +219,8 @@ export default function AdminUploadPage() {
   }, []);
 
   const loadAllImages = useCallback(async () => {
-    await Promise.all([loadImages(), loadExamImages()]);
-  }, [loadExamImages, loadImages]);
+    await Promise.all([loadImages(), canManageExamImages ? loadExamImages() : Promise.resolve()]);
+  }, [canManageExamImages, loadExamImages, loadImages]);
 
   useEffect(() => {
     // The first request synchronizes the protected image library with the API.
@@ -338,14 +338,15 @@ export default function AdminUploadPage() {
   function handleLibraryTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    const currentTab = event.currentTarget.dataset.library === "private" ? "private" : "public";
-    const currentIndex = libraryTabs.indexOf(currentTab);
+    const availableTabs: LibraryTab[] = canManageExamImages ? libraryTabs : ["public"];
+    const currentTab = event.currentTarget.dataset.library === "private" && canManageExamImages ? "private" : "public";
+    const currentIndex = availableTabs.indexOf(currentTab);
     const nextIndex = event.key === "Home"
       ? 0
       : event.key === "End"
-        ? libraryTabs.length - 1
-        : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + libraryTabs.length) % libraryTabs.length;
-    const nextTab = libraryTabs[nextIndex];
+        ? availableTabs.length - 1
+      : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + availableTabs.length) % availableTabs.length;
+    const nextTab = availableTabs[nextIndex];
     setActiveLibrary(nextTab);
     libraryTabRefs.current[nextTab]?.focus();
   }
@@ -470,7 +471,7 @@ export default function AdminUploadPage() {
       </button>
     </header>
 
-    <section className="admin-upload-stats" aria-label="Thống kê kho ảnh">
+    <section className={`admin-upload-stats${canManageExamImages ? "" : " admin-upload-stats-public-only"}`} aria-label="Thống kê kho ảnh">
       <article className="admin-upload-stat-card">
         <span className="admin-upload-stat-icon red"><Images /></span>
         <div><strong>{loading && !images.length ? "—" : images.length}</strong><span>Tổng ảnh</span></div>
@@ -486,17 +487,17 @@ export default function AdminUploadPage() {
         <div><strong>{loading && !images.length ? "—" : usedCount}</strong><span>Đang sử dụng</span></div>
         <small>Được khóa xóa</small>
       </article>
-      <article className="admin-upload-stat-card">
+      {canManageExamImages && <article className="admin-upload-stat-card">
         <span className="admin-upload-stat-icon purple"><FolderOpen /></span>
         <div><strong>{examLoading && !examImages.length ? "—" : examImages.length}</strong><span>Ảnh đề thi</span></div>
         <small>{formatBytes(examBytes)} · kho riêng tư</small>
-      </article>
+      </article>}
     </section>
 
     {error && <p className="form-error admin-upload-message" role="alert">{error}</p>}
     {notice && <p className="form-success admin-upload-message">{notice}</p>}
     <p className="admin-upload-live-region" role="status" aria-live="polite" aria-atomic="true">{copyAnnouncement}</p>
-    <p className="admin-upload-live-region admin-upload-library-live-region" role="status" aria-live="polite" aria-atomic="true">{notice || (activeLibrary === "public" ? loading ? "Đang đồng bộ kho ảnh công khai." : `Kho ảnh công khai có ${filteredImages.length} file.` : examLoading ? "Đang đồng bộ kho ảnh đề thi." : `Kho ảnh đề thi có ${filteredExamImages.length} file.`)}</p>
+    <p className="admin-upload-live-region admin-upload-library-live-region" role="status" aria-live="polite" aria-atomic="true">{notice || (activeLibrary === "public" ? loading ? "Đang đồng bộ kho ảnh công khai." : `Kho ảnh công khai có ${filteredImages.length} file.` : examLoading ? "Đang đồng bộ kho ảnh đề thi." : examError ? "Không thể đồng bộ kho ảnh đề thi. Hãy thử lại." : `Kho ảnh đề thi có ${filteredExamImages.length} file.`)}</p>
 
     <section className="admin-upload-upload-card">
       <div className="admin-upload-section-heading">
@@ -541,7 +542,7 @@ export default function AdminUploadPage() {
 
     <div className="admin-upload-library-tabs" role="tablist" aria-label="Chọn thư viện ảnh">
       <button id="admin-upload-library-tab-public" role="tab" type="button" data-library="public" aria-selected={activeLibrary === "public"} aria-controls="admin-upload-library-panel-public" tabIndex={activeLibrary === "public" ? 0 : -1} className={activeLibrary === "public" ? "active" : ""} ref={element => { libraryTabRefs.current.public = element; }} onClick={() => setActiveLibrary("public")} onKeyDown={handleLibraryTabKeyDown}><Images aria-hidden="true" />Kho công khai</button>
-      <button id="admin-upload-library-tab-private" role="tab" type="button" data-library="private" aria-selected={activeLibrary === "private"} aria-controls="admin-upload-library-panel-private" tabIndex={activeLibrary === "private" ? 0 : -1} className={activeLibrary === "private" ? "active" : ""} ref={element => { libraryTabRefs.current.private = element; }} onClick={() => setActiveLibrary("private")} onKeyDown={handleLibraryTabKeyDown}><FolderOpen aria-hidden="true" />Ảnh đề thi</button>
+      {canManageExamImages && <button id="admin-upload-library-tab-private" role="tab" type="button" data-library="private" aria-selected={activeLibrary === "private"} aria-controls="admin-upload-library-panel-private" tabIndex={activeLibrary === "private" ? 0 : -1} className={activeLibrary === "private" ? "active" : ""} ref={element => { libraryTabRefs.current.private = element; }} onClick={() => setActiveLibrary("private")} onKeyDown={handleLibraryTabKeyDown}><FolderOpen aria-hidden="true" />Ảnh đề thi</button>}
     </div>
 
     {activeLibrary === "public" && <section className="admin-upload-library" role="tabpanel" id="admin-upload-library-panel-public" aria-labelledby="admin-upload-library-tab-public" aria-busy={loading}>
@@ -639,7 +640,7 @@ export default function AdminUploadPage() {
       onClose={closeExamImageRemoval}
     /> : null}
 
-    {activeLibrary === "private" && <section className="admin-upload-library admin-upload-private-library" role="tabpanel" id="admin-upload-library-panel-private" aria-labelledby="admin-upload-library-tab-private" aria-busy={examLoading}>
+    {canManageExamImages && activeLibrary === "private" && <section className="admin-upload-library admin-upload-private-library" role="tabpanel" id="admin-upload-library-panel-private" aria-labelledby="admin-upload-library-tab-private" aria-busy={examLoading}>
       <div className="admin-upload-library-head">
         <div>
           <span className="eyebrow">PRIVATE EXAM ASSET LIBRARY</span>
@@ -655,10 +656,15 @@ export default function AdminUploadPage() {
           <span className="admin-upload-count"><b>{filteredExamImages.length}</b> / {examImages.length} file</span>
         </div>
       </div>
-      <div className="admin-upload-library-status">
-        <span>{examLoading ? <><LoaderCircle className="admin-upload-spin" /> Đang đọc thư mục exam-images…</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(examLastLoadedAt)} · {formatBytes(examBytes)}</>}</span>
+      <div className={`admin-upload-library-status${examError ? " is-error" : ""}`}>
+        <span>{examLoading ? <><LoaderCircle className="admin-upload-spin" /> Đang đọc thư mục exam-images…</> : examError ? <><Info /> Không thể đồng bộ kho ảnh đề thi</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(examLastLoadedAt)} · {formatBytes(examBytes)}</>}</span>
       </div>
-      {examError && <p className="form-error admin-upload-private-error" role="alert">{examError}</p>}
+      {examError && <div className="admin-upload-empty admin-upload-load-error admin-upload-private-error admin-upload-private-load-error" role="alert">
+        <span className="admin-upload-empty-icon"><Info /></span>
+        <h3>Không thể tải kho ảnh đề thi</h3>
+        <p>{examError}</p>
+        <button type="button" className="outline-btn" onClick={() => void loadExamImages()} disabled={examLoading}><RefreshCw /> Thử lại</button>
+      </div>}
 
       {examLoading && !examImages.length ? <div className="admin-upload-skeleton-grid" aria-label="Đang tải kho ảnh đề thi">
         {[0, 1, 2].map((item) => <div className="admin-upload-skeleton-card" key={item}><span /><div><i /><i /></div></div>)}

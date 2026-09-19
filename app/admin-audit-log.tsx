@@ -19,7 +19,8 @@ import { authenticatedFetch } from "../lib/auth-client";
 import { formatUiDateTime } from "./ui-format";
 
 type AuditSource = "all" | "exam" | "account";
-type AuditStatus = "all" | "started" | "succeeded" | "failed";
+type AuditStatus = "all" | "started" | "succeeded" | "failed" | "recorded";
+type AuditAction = "all" | string;
 
 type AdminAuditItem = {
   id: string;
@@ -44,6 +45,11 @@ type AuditPayload = {
   page?: number;
   limit?: number;
   hasNextPage?: boolean;
+  truncation?: {
+    hasTruncatedSources?: boolean;
+    sources?: { exam?: boolean; account?: boolean };
+    sourceLimit?: number;
+  };
   error?: string;
 };
 
@@ -58,6 +64,7 @@ const statusFilters: Array<{ id: AuditStatus; label: string }> = [
   { id: "succeeded", label: "Thành công" },
   { id: "started", label: "Đang xử lý" },
   { id: "failed", label: "Thất bại" },
+  { id: "recorded", label: "Đã ghi nhận" },
 ];
 
 const actionLabels: Record<string, string> = {
@@ -85,6 +92,11 @@ const actionLabels: Record<string, string> = {
   reset_violation_count: "Điều chỉnh mức vi phạm",
 };
 
+const actionFilters: Array<{ id: AuditAction; label: string }> = [
+  { id: "all", label: "Tất cả thao tác" },
+  ...Object.entries(actionLabels).map(([id, label]) => ({ id, label })),
+];
+
 function actionLabel(value: string) {
   return actionLabels[value] ?? value.replaceAll("_", " ");
 }
@@ -109,7 +121,10 @@ export default function AdminAuditLog() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
   const [source, setSource] = useState<AuditSource>(() => initialFilter(searchParams, "source", ["all", "exam", "account"] as const, "all"));
-  const [status, setStatus] = useState<AuditStatus>(() => initialFilter(searchParams, "status", ["all", "started", "succeeded", "failed"] as const, "all"));
+  const [status, setStatus] = useState<AuditStatus>(() => initialFilter(searchParams, "status", ["all", "started", "succeeded", "failed", "recorded"] as const, "all"));
+  const [action, setAction] = useState<AuditAction>(() => initialFilter(searchParams, "action", actionFilters.map(item => item.id), "all"));
+  const [from, setFrom] = useState(() => searchParams.get("from") ?? "");
+  const [to, setTo] = useState(() => searchParams.get("to") ?? "");
   const [page, setPage] = useState(1);
   const [payload, setPayload] = useState<AuditPayload>({ items: [], summary: { total: 0, exam: 0, account: 0, failed: 0, pending: 0 }, total: 0, limit: 20 });
   const [loading, setLoading] = useState(true);
@@ -129,12 +144,25 @@ export default function AdminAuditLog() {
   }, [query, source, status]);
 
   useEffect(() => {
+    const url = new URL(window.location.href);
+    if (action !== "all") url.searchParams.set("action", action); else url.searchParams.delete("action");
+    if (from) url.searchParams.set("from", from); else url.searchParams.delete("from");
+    if (to) url.searchParams.set("to", to); else url.searchParams.delete("to");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}`);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- filter changes invalidate the request and use the existing abortable loader
+    setReloadKey(value => value + 1);
+  }, [action, from, to]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let active = true;
     const params = new URLSearchParams({ page: String(page), limit: "20" });
     if (deferredQuery) params.set("q", deferredQuery);
     if (source !== "all") params.set("source", source);
     if (status !== "all") params.set("status", status);
+    if (action !== "all") params.set("action", action);
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
 
     async function load() {
       setLoading(true);
@@ -157,10 +185,18 @@ export default function AdminAuditLog() {
       active = false;
       controller.abort();
     };
+  // Extra date/action filters invalidate the same request through reloadKey.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredQuery, page, reloadKey, source, status]);
 
   const items = payload.items ?? [];
   const summary = payload.summary ?? { total: 0, exam: 0, account: 0, failed: 0, pending: 0 };
+  const truncation = payload.truncation;
+  const truncatedSources = [
+    truncation?.sources?.exam ? "kỳ thi" : "",
+    truncation?.sources?.account ? "tài khoản" : "",
+  ].filter(Boolean).join(" và ");
+  const sourceLimit = truncation?.sourceLimit ?? 500;
   const totalPages = Math.max(1, Math.ceil((payload.total ?? 0) / (payload.limit ?? 20)));
   const resultStatus = useMemo(() => loading
     ? "Đang đồng bộ nhật ký quản trị"
@@ -178,10 +214,18 @@ export default function AdminAuditLog() {
     setPage(1);
   }
 
+  function changeAction(value: AuditAction) {
+    setAction(value);
+    setPage(1);
+  }
+
   function clearFilters() {
     setQuery("");
     setSource("all");
     setStatus("all");
+    setAction("all");
+    setFrom("");
+    setTo("");
     setPage(1);
   }
 
@@ -204,12 +248,16 @@ export default function AdminAuditLog() {
         <label className="admin-audit-search"><Search aria-hidden="true" /><span className="admin-audit-visually-hidden">Từ khóa nhật ký</span><input name="auditSearch" type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm thao tác, quản trị viên, đối tượng…" autoComplete="off" />{query ? <button type="button" aria-label="Xóa từ khóa" onClick={() => { setQuery(""); setPage(1); }}><X aria-hidden="true" /></button> : null}</label>
         <label className="admin-audit-select">Nguồn<select name="source" value={source} onChange={event => changeSource(event.target.value as AuditSource)}>{sourceFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
         <label className="admin-audit-select">Trạng thái<select name="status" value={status} onChange={event => changeStatus(event.target.value as AuditStatus)}>{statusFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
+        <label className="admin-audit-select">Thao tác<select name="action" value={action} onChange={event => changeAction(event.target.value)}>{actionFilters.map(option => <option value={option.id} key={option.id}>{option.label}</option>)}</select></label>
+        <label className="admin-audit-select">Từ ngày<input name="from" type="date" value={from} onChange={event => { setFrom(event.target.value); setPage(1); }} /></label>
+        <label className="admin-audit-select">Đến ngày<input name="to" type="date" value={to} onChange={event => { setTo(event.target.value); setPage(1); }} /></label>
         <p className="admin-audit-result-status" role="status" aria-live="polite">{resultStatus}</p>
       </section>
 
       {error ? <section className="admin-audit-error" role="alert"><CircleAlert aria-hidden="true" /><div><h2>Không thể tải nhật ký</h2><p>{error}</p></div><button type="button" onClick={() => setReloadKey(value => value + 1)}>Thử lại</button></section> : (
         <section className="admin-audit-list-panel" aria-labelledby="admin-audit-list-title" aria-busy={loading}>
           <div className="admin-audit-list-heading"><div><h2 id="admin-audit-list-title">Dòng thời gian thao tác</h2><p>Hiển thị mới nhất trước.</p></div><span>{payload.total ?? 0} bản ghi</span></div>
+          {!loading && truncation?.hasTruncatedSources ? <aside className="admin-audit-warning" role="status" aria-label="Giới hạn nhật ký"><CircleAlert aria-hidden="true" /><p>Nhật ký {truncatedSources || "quản trị"} chỉ tải {sourceLimit} bản ghi mới nhất mỗi nguồn. Bộ lọc và phân trang có thể chưa bao quát dữ liệu cũ; hãy thu hẹp nguồn hoặc khoảng ngày để tra cứu chính xác hơn.</p></aside> : null}
           {loading ? <div className="admin-audit-loading" role="status"><RefreshCw className="is-spinning" aria-hidden="true" />Đang tải nhật ký…</div> : items.length ? (
             <table className="admin-audit-table">
               <caption className="admin-audit-visually-hidden">Nhật ký thao tác quản trị</caption>

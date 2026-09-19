@@ -36,6 +36,15 @@ test("admin dashboard quick finder searches existing operational data", async ()
   assert.match(finder, /aria-live="polite"/);
 });
 
+test("student search history results retain a real result URL", async () => {
+  const finder = await readFile(new URL("../app/student-discovery.tsx", import.meta.url), "utf8");
+  const historyResults = finder.slice(finder.indexOf("results.history.map"), finder.indexOf("      ) : ("));
+
+  assert.match(historyResults, /<Link key=\{attempt\.id\} href=\{`\/exam\/result\/\$\{encodeURIComponent\(attempt\.id\)\}`\} onClick=\{event => followAttemptLink\(event, attempt\.id\)\}>/);
+  assert.doesNotMatch(historyResults, /<button\b/);
+  assert.match(finder, /event\.button !== 0 \|\| event\.metaKey \|\| event\.ctrlKey \|\| event\.shiftKey \|\| event\.altKey/);
+});
+
 test("visual smoke includes the new student discovery routes", async () => {
   const smoke = await readFile(new URL("../scripts/product-shell-ui-smoke.mjs", import.meta.url), "utf8");
 

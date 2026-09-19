@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
+import { type MouseEvent as ReactMouseEvent, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatUiDate, formatUiWeekRange } from "./ui-format";
 import { authenticatedFetch } from "../lib/auth-client";
+import QuestionSearch from "../components/question-search";
 
 type SearchCourse = {
   id: string | number;
@@ -112,6 +113,11 @@ export function StudentSearchPage({
   }, [attempts, category, courses, queryKey, rooms]);
 
   const resultCount = results.courses.length + results.rooms.length + results.history.length;
+  const followAttemptLink = (event: ReactMouseEvent<HTMLAnchorElement>, attemptId: string) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    onOpenAttempt(attemptId);
+  };
 
   return (
     <div className="reference-search-page">
@@ -127,6 +133,8 @@ export function StudentSearchPage({
           <span><b>{attempts.filter(item => item.status !== "in_progress").length}</b> lượt làm</span>
         </div>
       </header>
+
+      <QuestionSearch />
 
       <section className="reference-search-console" aria-labelledby="student-search-title">
         <h2 id="student-search-title" className="reference-visually-hidden">Công cụ tra cứu</h2>
@@ -199,12 +207,12 @@ export function StudentSearchPage({
               <div className="reference-result-head"><span><History aria-hidden="true" /></span><div><h2 id="history-result-title">Lịch sử làm bài</h2><p>{results.history.length} kết quả</p></div></div>
               <div className="reference-result-list">
                 {results.history.map(attempt => (
-                  <button key={attempt.id} type="button" onClick={() => onOpenAttempt(attempt.id)}>
+                  <Link key={attempt.id} href={`/exam/result/${encodeURIComponent(attempt.id)}`} onClick={event => followAttemptLink(event, attempt.id)}>
                     <span className="reference-result-icon"><History aria-hidden="true" /></span>
                     <span className="reference-result-copy"><b>{attempt.title}</b><small>Hoàn thành ngày {formatDate(attempt.submitted_at)}</small></span>
                     <span className="reference-result-score">{attempt.score}</span>
                     <ChevronRight aria-hidden="true" />
-                  </button>
+                  </Link>
                 ))}
               </div>
             </section>

@@ -47,8 +47,10 @@ test("question bank migration protects answers and adds exam snapshots", async (
   assert.match(migration, /source_item_id uuid references public\.question_bank_items/i);
   assert.match(migration, /revoke all on table public\.question_banks[\s\S]*from public, anon, authenticated/i);
   assert.match(schema, /question_bank_item_versions/i);
-  assert.match(route, /ensureActiveAccount/);
+  assert.match(route, /ensureAdminPermission\(request, "question-bank"\)/);
   assert.match(route, /action === "attach_to_exam"/);
   assert.match(route, /source_item_version/);
+  assert.match(route, /findPotentialDuplicatesForItem/);
+  assert.match(route, /code: "potential_duplicates"/);
+  assert.match(route, /allowPotentialDuplicates/);
 });
-

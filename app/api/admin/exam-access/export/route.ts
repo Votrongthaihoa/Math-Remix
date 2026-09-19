@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { answersMatch, hasAnswerValue } from "../../../../../lib/exam-answers";
-import { ensureActiveAccount } from "../../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../../lib/admin-authorization-server";
 import {
   applyGuestOrdering,
   GUEST_ATTEMPT_SELECT,
@@ -182,9 +182,8 @@ function improveColumnWidths(sheet: XLSX.WorkSheet) {
 }
 
 export async function GET(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "exams");
   if (!security.ok) return security.response;
-  if (security.profile.role !== "admin") return Response.json({ error: "Bạn không có quyền xuất dữ liệu." }, { status: 403, headers });
   const admin = guestServerClient();
   if (!admin) return Response.json({ error: "Chưa cấu hình máy chủ khảo thí." }, { status: 503, headers });
   const params = new URL(request.url).searchParams;

@@ -1,0 +1,82 @@
+/* AECK reference DNA extracted from the supplied portal/history/course/TKB
+   captures. Keep tokens and utilities in one place; feature styles stay in
+   their route-specific files. */
+:root {
+  --aeck-brand: #cd1627;
+  --aeck-brand-dark: #a8121f;
+  --aeck-surface: #ffffff;
+  --aeck-surface-raised: #f8fafc;
+  --aeck-border: #e5e7eb;
+  --aeck-text: #111827;
+  --aeck-text-secondary: #6b7280;
+  --aeck-text-muted: #9ca3af;
+  --aeck-radius-sm: 6px;
+  --aeck-radius-md: 10px;
+  --aeck-radius-lg: 16px;
+  --aeck-shadow-card: 0 1px 3px rgba(17, 24, 39, 0.1);
+  --aeck-shadow-modal: 0 10px 40px rgba(17, 24, 39, 0.15);
+  --aeck-space-1: 4px;
+  --aeck-space-2: 8px;
+  --aeck-space-3: 12px;
+  --aeck-space-4: 16px;
+  --aeck-space-6: 24px;
+  --aeck-space-8: 32px;
+  --aeck-motion-fast: 160ms;
+  --aeck-motion-standard: 240ms;
+}
+
+.aeck-theme > .aeck-shell,
+.aeck-theme > .ui-shell.product-shell:not(.exam-shell):not(.protected-exam-surface) {
+  background: var(--aeck-surface-raised);
+  color: var(--aeck-text);
+}
+
+.aeck-theme .aeck-fade-in { animation: aeck-fade-in var(--aeck-motion-fast) ease both; }
+.aeck-theme .aeck-slide-up { animation: aeck-slide-up var(--aeck-motion-standard) cubic-bezier(.16, 1, .3, 1) both; }
+.aeck-theme .aeck-button[aria-busy="true"] { pointer-events: none; opacity: .7; }
+
+@keyframes aeck-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes aeck-slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .aeck-theme .aeck-fade-in,
+  .aeck-theme .aeck-slide-up { animation: none; }
+}
+
+.aeck-theme .aeck-offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: var(--aeck-space-2) var(--aeck-space-4);
+  background: #fff1f2;
+  color: #991b1b;
+  border-bottom: 1px solid #fecaca;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.aeck-error-boundary { display: grid; place-items: center; min-height: 100vh; padding: var(--aeck-space-6); background: var(--aeck-surface-raised); }
+
+.aeck-theme .aeck-shell-sidebar {
+  background: var(--aeck-surface);
+  border-inline-end: 1px solid var(--aeck-border);
+  box-shadow: var(--aeck-shadow-card);
+}
+
+.aeck-admin-dashboard { max-width: 1180px; margin: 0 auto; }
+.aeck-admin-dashboard-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--aeck-space-4); }
+@media (max-width: 900px) { .aeck-admin-dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) { .aeck-admin-dashboard-grid { grid-template-columns: 1fr; } }
+
+.aeck-theme .aeck-shell-topnav {
+  background: color-mix(in srgb, var(--aeck-surface) 92%, transparent);
+  border-bottom: 1px solid var(--aeck-border);
+  backdrop-filter: blur(14px);
+}
+
+.aeck-theme :where(.aeck-shell-sidebar a, .aeck-shell-topnav a, .aeck-shell-topnav button):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--aeck-brand) 30%, transparent);
+  outline-offset: 2px;
+}

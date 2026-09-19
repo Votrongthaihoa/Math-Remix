@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 import { applyQuestionSnapshotOrder } from "../../../../lib/exam-content-server";
 import { finishExamAdminAudit, startExamAdminAudit } from "../../../../lib/admin-audit-server";
 
@@ -10,9 +10,8 @@ function label(value: unknown) { if (Array.isArray(value)) return value.join(", 
 function safeName(value: string) { return value.replace(/[\\/:*?"<>|]+/g, "-").trim().slice(0, 80) || "exam"; }
 
 export async function GET(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "exams");
   if (!security.ok) return security.response;
-  if (security.profile.role !== "admin") return Response.json({ error: "Bạn không có quyền xuất dữ liệu." }, { status: 403, headers });
   const params = new URL(request.url).searchParams;
   const examId = params.get("examId") ?? "";
   if (!UUID.test(examId)) return Response.json({ error: "Thiếu mã đề thi." }, { status: 400, headers });

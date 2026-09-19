@@ -24,6 +24,17 @@ async function refreshAuthSession() {
   return refreshPromise;
 }
 
+/** Explicit SSO refresh hook used by route guards and legacy-compatible auth stores. */
+export async function trySsoRefresh() {
+  const session = await refreshAuthSession();
+  if (!session) return null;
+  const role = String(session.user?.app_metadata?.role ?? "").toLocaleLowerCase("en-US");
+  // The reference SSO flow is for learners; admin sessions stay in the
+  // admin app and must not be silently crossed into the learner shell.
+  if (role === "admin") return null;
+  return session;
+}
+
 async function clearInvalidLocalSession(expectedToken?: string) {
   if (!supabase) return;
   if (expectedToken) {
@@ -34,6 +45,21 @@ async function clearInvalidLocalSession(expectedToken?: string) {
   await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
 }
 
+async function refreshStillBelongsToCurrentSession(refreshed: Session, previousToken: string) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    const current = data.session;
+    // A refresh can finish after the user logs out or signs into another
+    // account. Never replay the previous request under that newer identity.
+    if (error || !current || current.user.id !== refreshed.user.id) return false;
+    return current.access_token === previousToken || current.access_token === refreshed.access_token;
+  } catch {
+    // When current ownership cannot be proven, preserve the original 401.
+    return false;
+  }
+}
+
 export async function activeSessionToken() {
   if (!supabase) throw new Error("Chưa cấu hình Supabase.");
   const { data, error } = await supabase.auth.getSession();
@@ -41,7 +67,12 @@ export async function activeSessionToken() {
 
   let session = data.session;
   if (!session || (session.expires_at && session.expires_at * 1000 <= Date.now() + SESSION_EXPIRY_SKEW_MS)) {
-    session = await refreshAuthSession();
+    const previousToken = session?.access_token ?? "";
+    const refreshed = await refreshAuthSession();
+    if (!refreshed || !await refreshStillBelongsToCurrentSession(refreshed, previousToken)) {
+      throw sessionExpiredError();
+    }
+    session = refreshed;
   }
 
   const token = session?.access_token;
@@ -56,6 +87,17 @@ function withAuthorization(init: RequestInit | undefined, token: string): Reques
   // header to the route handler. Keep a private duplicate for that adapter;
   // the server still validates the token with Supabase before serving data.
   headers.set("x-supabase-access-token", token);
+  if (typeof window !== "undefined") {
+    try {
+      const deviceId = window.localStorage.getItem("remix.security.device-id.v1")?.trim() ?? "";
+      const sessionId = window.sessionStorage.getItem("remix.security.learning-session.v1")?.trim() ?? "";
+      if (/^[0-9a-f-]{36}$/i.test(deviceId)) headers.set("x-remix-device-id", deviceId);
+      if (/^[0-9a-f-]{36}$/i.test(sessionId)) headers.set("x-remix-security-session-id", sessionId);
+    } catch {
+      // Storage can be unavailable in privacy mode; the server still applies
+      // the risk backstop to active sessions it can see.
+    }
+  }
   return { ...init, headers };
 }
 
@@ -80,6 +122,9 @@ export async function authenticatedFetch(input: RequestInfo | URL, init?: Reques
     await clearInvalidLocalSession(token);
     return response;
   }
+  init?.signal?.throwIfAborted();
+  if (!await refreshStillBelongsToCurrentSession(refreshed, token)) return response;
+  init?.signal?.throwIfAborted();
   response = await fetch(requestUrl, withAuthorization(init, refreshedToken));
   if (response.status === 401) {
     try {

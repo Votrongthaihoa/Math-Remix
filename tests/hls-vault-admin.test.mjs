@@ -56,7 +56,7 @@ test("admin HLS tool encodes locally and never embeds the master secret", async 
   assert.match(component, /clearAttachedBytes\(ffmpegKey\)/);
   assert.doesNotMatch(component, /ffmpegKey\.fill\(0\)/);
   assert.doesNotMatch(component, /MEDIA_MASTER_KEY_HEX/);
-  assert.match(keyRoute, /ensureActiveAccount/);
+  assert.match(keyRoute, /ensureAdminPermission\(request, "courses"\)/);
   assert.match(keyRoute, /hlsMediaKeyFromEnvironment/);
   assert.doesNotMatch(keyRoute, /console\.log\([^)]*key/i);
 });
@@ -85,6 +85,19 @@ test("admin HLS tool keeps one root playlist and never creates a 720p rendition"
   assert.match(component, /index\.m3u8/);
   assert.doesNotMatch(component, /master\.m3u8/);
   assert.doesNotMatch(component, /720p/);
+});
+
+test("admin HLS logs remain fully readable and keyboard-scrollable", async () => {
+  const [component, css] = await Promise.all([
+    readFile(new URL("../app/admin-hls-vault.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-hls-vault.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(component, /<pre className="admin-hls-vault-log" role="log" aria-label="Nhật ký FFmpeg" tabIndex=\{0\}>\{ffmpegLog\}<\/pre>/);
+  assert.doesNotMatch(component, /className="admin-hls-vault-log" title=\{ffmpegLog\}/);
+  assert.match(css, /\.admin-hls-vault-log\s*\{[\s\S]*?max-height:\s*180px;[\s\S]*?overflow:\s*auto;[\s\S]*?white-space:\s*pre-wrap;[\s\S]*?overflow-wrap:\s*anywhere;/);
+  assert.doesNotMatch(css, /\.admin-hls-vault-log\s*\{[^}]*text-overflow:\s*ellipsis/);
+  assert.match(css, /\.admin-hls-vault-log:focus-visible\s*\{[\s\S]*?outline:\s*2px/);
 });
 
 test("HLS encoder route enables browser cross-origin isolation", async () => {

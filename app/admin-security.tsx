@@ -266,9 +266,9 @@ export default function AdminSecurity() {
     setError("");
     setNotice("");
     try {
-      await api("/api/admin/security", { method: "POST", body: JSON.stringify({ action, userId: targetUserId, reason, ...extra }) });
+      const result = await api<{ partial?: boolean; warning?: string }>("/api/admin/security", { method: "POST", body: JSON.stringify({ action, userId: targetUserId, reason, ...extra }) });
       await Promise.all([loadUsers(listState), loadDetail(targetUserId)]);
-      return true;
+      return result.partial ? (result.warning || "Thao tác đã thực hiện nhưng một số bước phụ chưa hoàn tất.") : true;
     } catch (value) {
       setActionError(value instanceof Error ? value.message : "Không thể thực hiện thao tác.");
       return false;
@@ -291,7 +291,7 @@ export default function AdminSecurity() {
     const succeeded = await act(request.userId, request.action, request.extra, reasonDraft);
     if (succeeded) {
       closeActionDialog();
-      window.requestAnimationFrame(() => setNotice("Đã cập nhật và ghi nhật ký quản trị."));
+      window.requestAnimationFrame(() => setNotice(typeof succeeded === "string" ? succeeded : "Đã cập nhật và ghi nhật ký quản trị."));
     }
   }
 

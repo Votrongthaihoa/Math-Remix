@@ -10,9 +10,12 @@ export const resources = [
 ];
 type FixtureState = {
   payload: unknown; status: number; raw: string | null; delay: number;
+  courseEnrollmentStatus: number; courseEnrollmentPayload: unknown;
   lessonStatus: number; lessonError: string; chapterStatus: number;
-  resourceStatus: number; resourceError: string; resources: typeof resources;
+  resourceStatus: number; resourceError: string; resourceNetworkFailure: boolean; resources: typeof resources;
   tokenStatus: number; tokenError: string;
+  historyStatus: number; historyPayload: unknown;
+  roomsStatus: number; roomsPayload: unknown;
   blockedRequests: string[]; externalResponses: string[]; apiRequests: string[];
 };
 const installed = new WeakMap<BrowserContext, FixtureState>();
@@ -36,9 +39,12 @@ export async function installStudentFixture(context: BrowserContext, baseURL: st
   });
   const state: FixtureState = {
     payload: { item: null }, status: 200, raw: null, delay: 0,
+    courseEnrollmentStatus: 200, courseEnrollmentPayload: [{ course_id: course.id, courses: course }],
     lessonStatus: 200, lessonError: "Không tìm thấy bài học thử nghiệm.", chapterStatus: 200,
-    resourceStatus: 200, resourceError: "Không thể tải nội dung bài học thử nghiệm.", resources: [],
+    resourceStatus: 200, resourceError: "Không thể tải nội dung bài học thử nghiệm.", resourceNetworkFailure: false, resources: [],
     tokenStatus: 404, tokenError: "Không tìm thấy tài liệu thử nghiệm.",
+    historyStatus: 200, historyPayload: { attempts: [] },
+    roomsStatus: 200, roomsPayload: { rooms: [], exams: [] },
     blockedRequests: [], externalResponses: [], apiRequests: [],
   };
   installed.set(context, state);
@@ -64,8 +70,10 @@ export async function installStudentFixture(context: BrowserContext, baseURL: st
       if (url.pathname === "/auth/v1/user") return json(user);
       if (url.pathname.startsWith("/auth/")) return json({ error: "Synthetic auth endpoint unavailable" }, 401);
       const table = url.pathname.replace("/rest/v1/", "");
-      if (table === "profiles") return json({ ...user, full_name: "Học viên thử nghiệm", student_code: "TEST001", status: "active", role: "student" });
-      if (table === "course_enrollments") return json([{ course_id: course.id, courses: course }]);
+      if (table === "profiles") return json({ ...user, full_name: "Học viên thử nghiệm", student_code: "TEST001", status: "active", account_status: "active", banned_until: null, role: "student" });
+      if (table === "course_enrollments") return state.courseEnrollmentStatus === 200
+        ? json(state.courseEnrollmentPayload)
+        : json({ code: "SYNTHETIC", message: "Không thể tải danh sách khóa học thử nghiệm." }, state.courseEnrollmentStatus);
       if (table === "courses") return json([course]);
       if (table === "chapters") {
         // The shell first asks only for ids to compute course counts, then the
@@ -94,10 +102,18 @@ export async function installStudentFixture(context: BrowserContext, baseURL: st
         return snapshot.raw === null ? json(snapshot.payload, snapshot.status) : route.fulfill({ status: snapshot.status, contentType: "application/json", body: snapshot.raw });
       }
       if (url.pathname === "/api/security/session") return json({ allowed: true, exempt: true, serverTime: new Date().toISOString() });
-      if (url.pathname === "/api/exams") return json({ rooms: [], exams: [], attempts: [] });
-      if (url.pathname === "/api/lesson-resources") return state.resourceStatus === 200
+      if (url.pathname === "/api/exams") {
+        const scope = url.searchParams.get("scope");
+        if (scope === "history") return json(state.historyPayload, state.historyStatus);
+        if (scope === "rooms") return json(state.roomsPayload, state.roomsStatus);
+        return json({ rooms: [], exams: [], attempts: [] });
+      }
+      if (url.pathname === "/api/lesson-resources") {
+        if (state.resourceNetworkFailure) return route.abort("failed");
+        return state.resourceStatus === 200
         ? json({ resources: state.resources, curriculum: [{ ...chapter, lessons: [{ ...lesson, resources: state.resources }] }] })
         : json({ error: state.resourceError }, state.resourceStatus);
+      }
       if (url.pathname === "/api/video-token") return json({ error: state.tokenError }, state.tokenStatus);
       return json({ error: "Unimplemented synthetic endpoint" }, 404);
     }

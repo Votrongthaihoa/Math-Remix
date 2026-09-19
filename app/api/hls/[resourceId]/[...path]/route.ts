@@ -9,6 +9,7 @@ import { activeAccount, hashedRequestIp, type SecurityProfile } from "../../../.
 
 type RouteContext = { params: Promise<{ resourceId: string; path: string[] }> };
 const MAX_MANIFEST_BYTES = 4 * 1024 * 1024;
+const UPSTREAM_TIMEOUT_MS = 15_000;
 const PRODUCTION_WEB_ORIGINS = new Set([
   "https://mathremix.pro.vn",
   "https://www.mathremix.pro.vn",
@@ -161,7 +162,11 @@ export async function GET(request: Request, context: RouteContext) {
     const origin = await getHlsOriginRedirect(videoId, relative, admin);
     const upstreamHeaders = new Headers({ accept: "application/vnd.apple.mpegurl,text/plain,*/*" });
     if (range) upstreamHeaders.set("range", range);
-    const source = await fetch(origin, { headers: upstreamHeaders, cache: "no-store" });
+    const source = await fetch(origin, {
+      headers: upstreamHeaders,
+      cache: "no-store",
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)]),
+    });
     if (!source.ok) return jsonError(request, isManifest ? "hls_manifest_unavailable" : "hls_segment_unavailable", 502);
     if (!isManifest) {
       const headers = new Headers(corsHeaders(request, {
@@ -174,7 +179,11 @@ export async function GET(request: Request, context: RouteContext) {
       }
       return new Response(source.body, { status: source.status, headers });
     }
-    const rewritten = rewriteHlsManifest(await readLimited(source), params.resourceId, relative, token);
+    const manifest = (await readLimited(source)).replace(/^\uFEFF/, "");
+    if (!manifest.startsWith("#EXTM3U\n") && !manifest.startsWith("#EXTM3U\r\n") && manifest !== "#EXTM3U") {
+      return jsonError(request, "hls_manifest_unavailable", 502);
+    }
+    const rewritten = rewriteHlsManifest(manifest, params.resourceId, relative, token);
     return new Response(rewritten, { status: 200, headers: corsHeaders(request, { "content-type": "application/vnd.apple.mpegurl; charset=utf-8" }) });
   } catch (error) {
     console.error("[hls] request failed", { resourceId: params.resourceId, relative, error: error instanceof Error ? error.message : "unknown_error" });

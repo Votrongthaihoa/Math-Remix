@@ -1,6 +1,7 @@
+import { ensureAdminPermission } from "../../../../../lib/admin-authorization-server";
 import { jsonBodyError, readJsonBody } from "../../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../../lib/security-server";
+import { hashedRequestIp } from "../../../../../lib/security-server";
 import {
   courseTimetableHeaders,
   courseTimetableUuid,
@@ -24,10 +25,7 @@ type EventPatch = {
 };
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") return { ok: false as const, response: errorResponse("Bạn không có quyền quản trị.", 403) };
-  return security;
+  return ensureAdminPermission(request, "tkb");
 }
 
 async function mutationBudget(
@@ -74,6 +72,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   const start = new Date(startAt);
   const end = new Date(endAt);
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) return errorResponse("Khoảng thời gian sự kiện không hợp lệ.");
+  if (end.getTime() - start.getTime() > 24 * 60 * 60 * 1000) return errorResponse("Một sự kiện lịch không thể kéo dài quá 24 giờ.");
   const mode = deliveryMode(parsed.body.deliveryMode, current.delivery_mode);
   const meetingUrl = parsed.body.meetingUrl === undefined ? current.meeting_url : safeMeetingUrl(parsed.body.meetingUrl);
   if (current.event_kind === "live" && ["online", "hybrid"].includes(mode) && !meetingUrl) return errorResponse("Buổi học trực tuyến cần link HTTP hoặc HTTPS hợp lệ.");

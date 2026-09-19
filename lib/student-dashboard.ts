@@ -1,5 +1,6 @@
 export type DashboardAttempt = {
   id: string;
+  exam_id?: string | null;
   title?: string | null;
   score?: number | null;
   correct_answers?: number | null;
@@ -58,6 +59,14 @@ export function buildActivityCalendar(
   });
 }
 
+export function dashboardActivityLevel(count: number) {
+  if (count <= 0) return 0;
+  if (count <= 2) return 1;
+  if (count <= 4) return 2;
+  if (count <= 6) return 3;
+  return 4;
+}
+
 export function summarizeDashboardAttempts(
   attempts: readonly DashboardAttempt[],
   now = new Date(),
@@ -67,8 +76,17 @@ export function summarizeDashboardAttempts(
     .slice()
     .sort((left, right) => submittedTime(right) - submittedTime(left))
     .slice(0, 5);
-  const top = completed
-    .slice()
+  const bestByExam = new Map<string, DashboardAttempt>();
+  completed.forEach(attempt => {
+    const groupKey = attempt.exam_id?.trim() ? `exam:${attempt.exam_id}` : `attempt:${attempt.id}`;
+    const current = bestByExam.get(groupKey);
+    const score = Number(attempt.score ?? 0);
+    const currentScore = Number(current?.score ?? 0);
+    if (!current || score > currentScore || score === currentScore && submittedTime(attempt) > submittedTime(current)) {
+      bestByExam.set(groupKey, attempt);
+    }
+  });
+  const top = [...bestByExam.values()]
     .sort((left, right) => Number(right.score ?? 0) - Number(left.score ?? 0))
     .slice(0, 5);
   const currentYear = completed.filter(attempt => new Date(submittedTime(attempt)).getFullYear() === now.getFullYear());

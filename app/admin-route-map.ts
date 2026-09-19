@@ -30,6 +30,7 @@ export const LEGACY_ADMIN_ROUTES: readonly AdminRouteEntry[] = [
   { prefix: "/subscription-package-management", module: "subscriptions" },
   { prefix: "/group-user-management", module: "groups" },
   { prefix: "/exam-result-management", module: "results" },
+  { prefix: "/admin-session-wizard", module: "exam-rooms" },
   { prefix: "/irt-exam-management", module: "irt" },
   { prefix: "/course-management", module: "courses" },
   { prefix: "/media-management", module: "media" },
@@ -84,8 +85,10 @@ export function isLegacyAdminPath(value: string) {
 export function legacyAdminRedirectPath(value: string) {
  const pathname = normalizePathname(value);
   if (matchesPrefix(pathname, "/admin/all")) return "/admin/capabilities";
+ if (matchesPrefix(pathname, "/question-bank/dedup")) return "/admin/question-bank/dedup";
  if (matchesPrefix(pathname, "/question-bank") || matchesPrefix(pathname, "/item/create")) return "/admin/question-bank";
   if (matchesPrefix(pathname, "/exam-management")) return "/admin/exams";
+  if (matchesPrefix(pathname, "/admin-session-wizard")) return "/admin/sessions/new";
   if (matchesPrefix(pathname, "/assessment-management") || matchesPrefix(pathname, "/exam-room-management")) return "/admin/sessions";
   if (matchesPrefix(pathname, "/user-management")) return "/admin/students";
   if (matchesPrefix(pathname, "/group-user-management")) return "/admin/enrollments";
@@ -93,6 +96,11 @@ export function legacyAdminRedirectPath(value: string) {
   const courseMatch = pathname.match(/^\/course-management\/([^/]+)$/);
   if (courseMatch?.[1]) return `/admin/content/courses/${encodeURIComponent(decodeURIComponent(courseMatch[1]))}`;
   if (matchesPrefix(pathname, "/media-management")) return "/admin/upload";
+  const resultStatsMatch = pathname.match(/^\/exam-result-management\/([^/]+)\/stats$/);
+  if (resultStatsMatch?.[1]) {
+    const resultId = encodeURIComponent(resultStatsMatch[1]);
+    return `/admin/sessions/${resultId}/results?examId=${resultId}&mode=account`;
+  }
   if (matchesPrefix(pathname, "/exam-result-management")) return "/admin/sessions";
   if (matchesPrefix(pathname, "/tkb-management")) return "/admin/timetable";
   if (matchesPrefix(pathname, "/admin-log")) return "/admin/audit";

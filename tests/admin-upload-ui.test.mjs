@@ -33,6 +33,26 @@ test("private image deletion uses the accessible AECK confirmation", async () =>
   assert.match(component, /onClick=\{\(\) => requestExamImageRemoval\(image\)\}/);
 });
 
+test("private image library is permission-scoped and exposes an honest retry state", async () => {
+  const [component, platform, styles] = await Promise.all([
+    readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-upload.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(component, /export default function AdminUploadPage\(\{ canManageExamImages \}: \{ canManageExamImages: boolean \}\)/);
+  assert.match(component, /canManageExamImages \? loadExamImages\(\) : Promise\.resolve\(\)/);
+  assert.match(component, /canManageExamImages && <button id="admin-upload-library-tab-private"/);
+  assert.match(component, /canManageExamImages && activeLibrary === "private"/);
+  assert.match(component, /admin-upload-stats\$\{canManageExamImages \? "" : " admin-upload-stats-public-only"\}/);
+  assert.match(component, /examError \? <><Info \/> Không thể đồng bộ kho ảnh đề thi/);
+  assert.match(component, /admin-upload-private-load-error/);
+  assert.match(component, /onClick=\{\(\) => void loadExamImages\(\)\}/);
+  assert.match(platform, /<AdminUploadManager canManageExamImages=\{canAccessAdminPermission\(permissionUser, "exams"\)\}/);
+  assert.match(styles, /\.admin-upload-library-status\.is-error/);
+  assert.match(styles, /\.admin-upload-stats-public-only\s*\{\s*grid-template-columns:\s*repeat\(3,/);
+});
+
 test("image deletion dialogs retain context while requests run or fail", async () => {
   const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
 
@@ -62,7 +82,7 @@ test("image libraries use URL-driven tabs, search, pagination, and namespaced co
   const component = await readFile(new URL("../app/admin-upload.tsx", import.meta.url), "utf8");
 
   assert.match(component, /type LibraryTab = "public" \| "private"/);
-  assert.match(component, /url\.searchParams\.set\("library", activeLibrary\)/);
+  assert.match(component, /url\.searchParams\.set\("library", canManageExamImages \? activeLibrary : "public"\)/);
   assert.match(component, /url\.searchParams\.set\("publicQ", searchTerm\)/);
   assert.match(component, /url\.searchParams\.set\("privateQ", examSearchTerm\)/);
   assert.match(component, /url\.searchParams\.set\("publicPage", String\(publicPage\)\)/);
@@ -113,6 +133,27 @@ test("lesson PDF upload validates course ownership and binds confirmation path",
   assert.match(route, /consumeRequestBudget/);
 });
 
+test("lesson PDF deletion is bound to the canonical resource and lesson prefix", async () => {
+  const [route, platform] = await Promise.all([
+    readFile(new URL("../app/api/admin/lesson-files/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(route, /resourceId\?: string; courseId\?: string; lessonId\?: string/);
+  assert.match(route, /deleteCanonicalLessonFile\(authorization\.admin, resourceId, courseId, lessonId\)/);
+  assert.match(route, /row\.resource_type !== "storage_pdf"/);
+  assert.match(route, /chapter\?\.course_id !== courseId/);
+  assert.match(route, /scopedUploadPath\(key, courseId, lessonId\)/);
+  assert.match(route, /scopedUploadPath\(path, courseId, lessonId\)/);
+  assert.match(platform, /storedResource\.id, course\.id, storedResource\.lesson_id/);
+  assert.match(platform, /let resourceSaved = false/);
+  assert.match(route, /storage\?: "r2" \| "legacy"/);
+  assert.ok(route.includes('body.storage === "r2" || reference.startsWith("r2://")'));
+  assert.match(route, /const cleanupKey = body\.storage === "r2" \? suppliedPath : key/);
+  assert.match(platform, /if \(uploadedPath && !resourceSaved\) await deleteStoredLessonFile\(url, uploadedPath, undefined, course\.id, targetLessonId, "r2"\)/);
+  assert.match(platform, /body: JSON\.stringify\(\{ reference, path, resourceId, courseId, lessonId, storage \}\)/);
+});
+
 test("course builder separates content sources and reports R2 cleanup failures", async () => {
   const [platform, cors] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
@@ -145,13 +186,13 @@ test("Microsoft Graph lesson video creation stays behind the active admin server
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../public/yt-embed-player.html", import.meta.url), "utf8"),
   ]);
-  assert.match(route, /ensureActiveAccount/);
-  assert.match(route, /profile\.role !== "admin"/);
+  assert.match(route, /ensureAdminPermission\(request, "courses"\)/);
+  assert.doesNotMatch(route, /profile\.role !== "admin"/);
   assert.match(route, /consumeRequestBudget/);
   assert.match(route, /inspectMicrosoftGraphVideo/);
   assert.match(route, /resource_type: "onedrive_video"/);
   assert.match(route, /provider_drive_id: metadata\.driveId/);
-  assert.match(connectRoute, /ensureActiveAccount/);
+  assert.match(connectRoute, /ensureAdminPermission\(request, "courses"\)/);
   assert.match(connectRoute, /createMicrosoftAuthorizationUrl/);
   assert.doesNotMatch(platform, /NEXT_PUBLIC_MICROSOFT|MICROSOFT_CLIENT_SECRET/);
   assert.doesNotMatch(route, /MICROSOFT_TENANT_ID|MICROSOFT_CLIENT_ID|MICROSOFT_CLIENT_SECRET|authorization: `Bearer/);

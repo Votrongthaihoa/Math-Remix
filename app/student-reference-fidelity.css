@@ -229,6 +229,51 @@
   min-height: 72px;
 }
 
+.ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) .course-detail-breadcrumb {
+  height: auto;
+  min-height: 72px;
+}
+
+.ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) .course-detail-breadcrumb-inner {
+  width: 100%;
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) .course-detail-title {
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Preserve the supplied 20px visual geometry while providing a 40px pointer
+ * target. These selectors stay inside the non-exam learner shell. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .mobile-sidebar-close {
+  position: relative;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .mobile-sidebar-close::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+.ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) .course-detail-breadcrumb a[href="/courses"] {
+  position: relative;
+}
+
+.ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) .course-detail-breadcrumb a[href="/courses"]::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
 .ui-shell.student-app.product-shell.course-study-mode:not(.protected-exam-surface) > .main-content {
   padding: 0 24px 56px;
 }
@@ -440,6 +485,89 @@
   outline-color: var(--learner-accent);
 }
 
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-status {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  margin: 0 0 20px;
+  padding: 20px;
+  border: 1px solid #f1c5c5;
+  border-radius: 16px;
+  background: #fff8f8;
+  color: #8f2027;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  background: #ffe5e5;
+  place-items: center;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-copy {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-copy h2,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-copy p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-copy h2 {
+  color: #8f2027;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-copy p {
+  margin-top: 4px;
+  color: #7f3137;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback .outline-btn {
+  min-height: 40px;
+  margin: 0;
+  border-color: #d88d93;
+  color: #8f2027;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-compact .course-load-feedback-copy h2 {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-compact .course-load-feedback-copy p {
+  font-size: 13px;
+  line-height: 18px;
+}
+
 /* Standalone profile portal: structure and geometry mirror portal/*.htm. */
 .profile-portal-reference {
   --learner-accent: #cd1627;
@@ -449,6 +577,36 @@
   background: #fff !important;
   color: #1f2937;
   font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.profile-portal-reference > .profile-portal-skip-link {
+  position: fixed;
+  z-index: 80;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  display: inline-flex;
+  min-height: 40px;
+  max-inline-size: calc(100vw - 24px);
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--learner-accent-hover);
+  border-radius: 8px;
+  background: var(--learner-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 24px));
+}
+
+.profile-portal-reference > .profile-portal-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.profile-portal-reference > #profile-main {
+  scroll-margin-top: 96px;
 }
 
 .profile-portal-header {
@@ -940,6 +1098,58 @@
   font-size: 12px;
 }
 
+.profile-portal-load-status {
+  margin: 16px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.profile-portal-data-issue {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid #f1c5c5;
+  border-radius: 12px;
+  background: #fff8f8;
+  color: #8f2027;
+}
+
+.profile-portal-data-issue p {
+  min-width: 0;
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.profile-portal-data-issue button {
+  min-height: 40px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d88d93;
+  border-radius: 8px;
+  background: #fff;
+  color: #8f2027;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.profile-portal-data-issue button:hover:not(:disabled) {
+  border-color: #b75a63;
+  background: #fff0f0;
+}
+
 .profile-portal-section-title {
   display: flex;
   align-items: center;
@@ -1116,6 +1326,19 @@
 }
 
 @media (max-width: 640px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback-compact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-load-feedback .outline-btn {
+    width: 100%;
+  }
+
+  .profile-portal-reference > #profile-main {
+    scroll-margin-top: 77px;
+  }
+
   .profile-portal-header {
     height: 65px;
   }
@@ -1208,6 +1431,10 @@
   .profile-course-cover {
     width: 96px;
     flex-basis: 96px;
+  }
+
+  .profile-portal-data-issue button {
+    width: 100%;
   }
 
   .profile-portal-contact {

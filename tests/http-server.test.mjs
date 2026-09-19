@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { jsonBodyError, readJsonBody } from "../lib/http-server.ts";
+import { jsonBodyError, MULTIPART_OVERHEAD_BYTES, readJsonBody, readMultipartFormData } from "../lib/http-server.ts";
 
 test("readJsonBody accepts bounded JSON objects", async () => {
   const result = await readJsonBody(new Request("http://localhost/api", {
@@ -110,4 +110,73 @@ test("readJsonBody currently parses JSON regardless of content-type", async () =
 test("jsonBodyError maps parser failures to the intended localized messages", () => {
   assert.deepEqual(jsonBodyError("invalid_json"), { error: "Nội dung JSON không hợp lệ." });
   assert.deepEqual(jsonBodyError("payload_too_large"), { error: "Dữ liệu gửi lên quá lớn." });
+});
+
+test("readMultipartFormData parses bounded forms and preserves fields", async () => {
+  const form = new FormData();
+  form.set("courseId", "course-1");
+  form.set("file", new File([new Uint8Array([1, 2, 3])], "cover.png", { type: "image/png" }));
+  const request = new Request("http://localhost/api", { method: "POST", body: form });
+  const result = await readMultipartFormData(request, 4096);
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.form.get("courseId"), "course-1");
+    assert.equal(result.form.get("file")?.size, 3);
+  }
+});
+
+test("readMultipartFormData rejects an oversized declared body before reading it", async () => {
+  let reads = 0;
+  const request = {
+    headers: new Headers({
+      "content-length": "1001",
+      "content-type": "multipart/form-data; boundary=synthetic",
+    }),
+    body: {
+      getReader() {
+        reads += 1;
+        throw new Error("body must not be read");
+      },
+    },
+  };
+  const result = await readMultipartFormData(request, 1000);
+  assert.deepEqual(result, { ok: false, error: "payload_too_large" });
+  assert.equal(reads, 0);
+});
+
+test("readMultipartFormData maps malformed multipart and invalid budgets safely", async () => {
+  const malformed = await readMultipartFormData(new Request("http://localhost/api", {
+    method: "POST",
+    body: "not multipart",
+    headers: { "content-type": "multipart/form-data; boundary=synthetic" },
+  }), 4096);
+  assert.deepEqual(malformed, { ok: false, error: "invalid_multipart" });
+  assert.deepEqual(await readMultipartFormData(new Request("http://localhost/api", { method: "POST" }), 0), { ok: false, error: "payload_too_large" });
+  assert.equal(MULTIPART_OVERHEAD_BYTES, 64 * 1024);
+});
+
+test("readMultipartFormData stops a chunked body that exceeds the cap", async () => {
+  const boundary = "bounded-test";
+  const raw = `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="large.txt"\r\nContent-Type: text/plain\r\n\r\n${"x".repeat(200)}\r\n--${boundary}--\r\n`;
+  const bytes = new TextEncoder().encode(raw);
+  let offset = 0;
+  const stream = new ReadableStream({
+    pull(controller) {
+      if (offset >= bytes.length) {
+        controller.close();
+        return;
+      }
+      const next = Math.min(offset + 32, bytes.length);
+      controller.enqueue(bytes.slice(offset, next));
+      offset = next;
+    },
+  });
+  const request = new Request("http://localhost/api", {
+    method: "POST",
+    body: stream,
+    headers: { "content-type": `multipart/form-data; boundary=${boundary}` },
+    duplex: "half",
+  });
+  const result = await readMultipartFormData(request, bytes.byteLength - 1);
+  assert.deepEqual(result, { ok: false, error: "payload_too_large" });
 });

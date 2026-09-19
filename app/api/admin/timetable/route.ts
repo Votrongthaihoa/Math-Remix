@@ -1,6 +1,7 @@
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
+import { hashedRequestIp } from "../../../../lib/security-server";
 
 const headers = {
   "cache-control": "private, no-store, max-age=0",
@@ -14,15 +15,7 @@ type TimetableMutation = {
 };
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") {
-    return {
-      ok: false as const,
-      response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }),
-    };
-  }
-  return security;
+  return ensureAdminPermission(request, "tkb");
 }
 
 function errorResponse(message: string, status = 400) {

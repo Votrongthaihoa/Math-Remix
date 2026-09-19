@@ -1,16 +1,11 @@
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 import { normalizeExamPolicy } from "../../../../lib/exam-policy";
 import { normalizeSessionLimit, sessionSearchText, sessionState, type SessionState } from "../../../../lib/session-catalog";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") {
-    return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }) };
-  }
-  return security;
+  return ensureAdminPermission(request, "exam-rooms");
 }
 
 function errorResponse(message: string, status = 400) {
@@ -97,6 +92,7 @@ export async function GET(request: Request) {
   const roomMap = new Map(rooms.map(room => [room.id, room]));
   const slotRows = slotResult.data ?? [];
   const slotIds = slotRows.map(slot => slot.id);
+  const examIdsWithSlots = new Set(slotRows.map(slot => slot.exam_id));
   const examIds = exams.map(exam => exam.id);
 
   const [guestAttemptsResult, accountAttemptsResult] = await Promise.all([
@@ -144,7 +140,7 @@ export async function GET(request: Request) {
     const scheduled = accountWindow(exam);
     const room = roomMap.get(exam.room_id);
     if (!scheduled || !room) continue;
-    if (scheduled.policy.access.audience === "both" && slotRows.some(slot => slot.exam_id === exam.id)) continue;
+    if (scheduled.policy.access.audience === "both" && examIdsWithSlots.has(exam.id)) continue;
     const counts = accountCounts.get(exam.id) ?? { total: 0, submitted: 0 };
     rows.push({
       id: `account:${exam.id}`,

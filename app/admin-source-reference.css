@@ -930,6 +930,36 @@
   }
 }
 
+@media (max-width: 575px) {
+  .app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .student-table .student-password-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    gap: 0;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  .app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .student-table .student-password-btn > svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+  }
+}
+
+.app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) .student-data-warning {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #f1dfb8;
+  border-radius: 9px;
+  background: #fffbf1;
+  color: #80653f;
+  font-size: 11px;
+  line-height: 17px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) > :where(.sidebar, .topbar, .main-content),
   .app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) :where(.source-sidebar-header-divider, .header-sidebar-toggle, .admin-sidebar-nav-item, .account-trigger) {

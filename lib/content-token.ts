@@ -37,9 +37,16 @@ export async function verifyContentToken(token: string, secret: string): Promise
   if (parts.length !== 3 || parts[0] !== "v1") return null;
   try {
     const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64Url(parts[1]) }, await getKey(secret, ["decrypt"]), fromBase64Url(parts[2]));
-    const payload = JSON.parse(new TextDecoder().decode(decrypted)) as ContentTokenPayload;
-    if (!payload.rid || !payload.sub || !payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) return null;
-    return payload;
+    const parsed = JSON.parse(new TextDecoder().decode(decrypted)) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const payload = parsed as Record<string, unknown>;
+    if (typeof payload.rid !== "string" || !payload.rid) return null;
+    if (typeof payload.sub !== "string" || !payload.sub) return null;
+    if (!Number.isSafeInteger(payload.iat) || !Number.isSafeInteger(payload.exp)) return null;
+    const issuedAt = payload.iat as number;
+    const expiresAt = payload.exp as number;
+    if (expiresAt <= issuedAt || expiresAt <= Math.floor(Date.now() / 1000)) return null;
+    return { rid: payload.rid, sub: payload.sub, iat: issuedAt, exp: expiresAt };
   } catch {
     return null;
   }

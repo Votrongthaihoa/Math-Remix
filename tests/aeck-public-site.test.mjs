@@ -15,7 +15,7 @@ test("public AECK routes use the isolated reference implementation", async () =>
 
   assert.match(home, /<AeckPublicSite\s*\/>/);
   assert.match(catchAll, /<AeckPublicSite route=\{publicRoute\}\s*\/>/);
-  assert.match(catchAll, /targetRouteRedirect\(slug\)/);
+  assert.match(catchAll, /targetRouteRedirect\(slug, queryValues\)/);
   const aliases = await source("app/target-route-aliases.ts");
   assert.match(aliases, /slug\[0\] === "portal"\) return "\/profile"/);
   for (const route of [
@@ -76,6 +76,29 @@ test("public mobile navigation traps focus and isolates the background", async (
   assert.match(site, /element\.inert = original/);
 });
 
+test("public site exposes a keyboard-visible skip link to every primary-content landmark", async () => {
+  const [site, css] = await Promise.all([
+    source("app/aeck-public-site.tsx"),
+    source("app/aeck-public-site.module.css"),
+  ]);
+
+  assert.match(site, /const publicMainContentId = "aeck-public-main-content";/);
+  assert.match(site, /<a className=\{styles\.skipLink\} href=\{`#\$\{publicMainContentId\}`\}>[\s\S]*?Chuyển đến nội dung chính[\s\S]*?<\/a>/);
+  assert.equal((site.match(/<main id=\{publicMainContentId\}/g) ?? []).length, 6);
+  assert.equal((site.match(/tabIndex=\{-1\}/g) ?? []).length, 6);
+  assert.match(css, /\.site \.skipLink\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?transform:\s*translate\(-50%, -180%\);/);
+  assert.match(css, /\.site \.skipLink:focus-visible\s*\{[\s\S]*?transform:\s*translate\(-50%, 0\);/);
+  assert.match(css, /\.primaryContent\s*\{[\s\S]*?scroll-margin-top:\s*96px;/);
+});
+
+test("public signed-out primary action keeps the supplied TSA red identity", async () => {
+  const css = await source("app/aeck-public-site.module.css");
+
+  assert.match(css, /\.loginButton\s*\{[^}]*background:\s*var\(--public-red\);[^}]*color:\s*#fff\s*!important;/s);
+  assert.match(css, /\.loginButton:hover\s*\{[^}]*background:\s*var\(--public-red-dark\);/s);
+  assert.doesNotMatch(css, /\.loginButton\s*\{[^}]*background:\s*#050505;/s);
+});
+
 test("a course shared by TSA and HSA is available from both tabs", async () => {
   const [site, platform] = await Promise.all([
     source("app/aeck-public-site.tsx"),
@@ -117,6 +140,13 @@ test("public browser smoke covers every public route, auth state, modal, menu, a
     assert.ok(smoke.includes(JSON.stringify(route)), `redirect smoke missing ${route}`);
   }
   assert.match(smoke, /inspectRedirects/);
+});
+
+test("public compatibility smoke follows the reference portal destination", async () => {
+  const smoke = await source("scripts/public-ui-smoke.mjs");
+
+  assert.match(smoke, /\["\/portal", "\/profile"\]/);
+  assert.doesNotMatch(smoke, /\["\/portal", "\/courses"\]/);
 });
 
 test("public interaction smoke waits for hydration before clicking controls", async () => {

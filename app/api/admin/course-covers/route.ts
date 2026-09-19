@@ -8,7 +8,9 @@ import {
   COURSE_COVER_MAX_UPLOAD_BYTES,
   validateImageUpload,
 } from "../../../../lib/course-covers-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
+import { jsonBodyError, MULTIPART_OVERHEAD_BYTES, readJsonBody, readMultipartFormData } from "../../../../lib/http-server";
+import { hashedRequestIp } from "../../../../lib/security-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -18,12 +20,7 @@ const noStore = {
 };
 
 async function requireCourseAdmin(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") {
-    return { ok: false as const, response: Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore }) };
-  }
-  return security;
+  return ensureAdminPermission(request, "courses");
 }
 
 async function loadCourse(admin: SupabaseClient, courseId: string) {
@@ -46,7 +43,11 @@ export async function POST(request: Request) {
   const budgetResponse = await coverBudgetResponse(authentication, request, "admin-course-covers-upload", 8);
   if (budgetResponse) return budgetResponse;
 
-  const form = await request.formData().catch(() => null);
+  const multipart = await readMultipartFormData(request, COURSE_COVER_MAX_UPLOAD_BYTES + MULTIPART_OVERHEAD_BYTES);
+  if (!multipart.ok) {
+    return Response.json({ error: multipart.error === "payload_too_large" ? "Ảnh bìa vượt quá giới hạn tải lên." : "Dữ liệu ảnh bìa không hợp lệ." }, { status: multipart.error === "payload_too_large" ? 413 : 400, headers: noStore });
+  }
+  const form = multipart.form;
   const courseId = String(form?.get("courseId") ?? "").trim();
   const file = form?.get("file");
   if (!uuid.test(courseId)) return Response.json({ error: "Khóa học không hợp lệ." }, { status: 400, headers: noStore });
@@ -98,8 +99,9 @@ export async function DELETE(request: Request) {
   if (!authentication.ok) return authentication.response;
   const budgetResponse = await coverBudgetResponse(authentication, request, "admin-course-covers-delete", 12);
   if (budgetResponse) return budgetResponse;
-  const body = await request.json().catch(() => null) as { courseId?: unknown } | null;
-  const courseId = String(body?.courseId ?? "").trim();
+  const parsed = await readJsonBody<{ courseId?: unknown }>(request, 8 * 1024);
+  if (!parsed.ok) return Response.json(jsonBodyError(parsed.error), { status: parsed.error === "payload_too_large" ? 413 : 400, headers: noStore });
+  const courseId = String(parsed.body.courseId ?? "").trim();
   if (!uuid.test(courseId)) return Response.json({ error: "Khóa học không hợp lệ." }, { status: 400, headers: noStore });
 
   const courseResult = await loadCourse(authentication.admin, courseId);

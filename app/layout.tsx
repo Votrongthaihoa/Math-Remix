@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import "./ui-system.css";
+import "./theme.css";
 
 export const metadata: Metadata = {
   title: "AECK",
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi">
-      <body>{children}</body>
+      <body className="aeck-theme">{children}</body>
     </html>
   );
 }

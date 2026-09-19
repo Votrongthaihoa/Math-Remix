@@ -55,7 +55,15 @@ function modeLabel(kind: SessionRow["kind"]) {
   return kind === "account" ? "Tài khoản" : kind === "both" ? "Tài khoản + Link/QR" : "Link/QR";
 }
 
-export default function AdminSessionList({ navigate }: { navigate: (path: string) => void }) {
+export default function AdminSessionList({
+  navigate,
+  canManageExams,
+  canOpenResults,
+}: {
+  navigate: (path: string) => void;
+  canManageExams: boolean;
+  canOpenResults: boolean;
+}) {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [summary, setSummary] = useState<Record<SessionState, number>>({ upcoming: 0, open: 0, ended: 0, disabled: 0 });
   const [query, setQuery] = useState("");
@@ -174,7 +182,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
   }
 
   async function deleteSession(session: SessionRow) {
-    if (session.kind === "account" || deletingSessionId) return;
+    if (!canManageExams || session.kind === "account" || deletingSessionId) return;
     setDeletingSessionId(session.id);
     setDeleteError("");
     setNotice("");
@@ -206,7 +214,7 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
       </div>
       <div className="admin-session-header-actions">
         <button type="button" className="admin-session-refresh" onClick={() => void load()} disabled={refreshing}><RefreshCw aria-hidden="true" />{refreshing ? "Đang tải…" : "Làm mới"}</button>
-        <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><FilePlus2 aria-hidden="true" />Tạo kíp thi</Link>
+        {canManageExams ? <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><FilePlus2 aria-hidden="true" />Tạo kíp thi</Link> : null}
       </div>
     </header>
 
@@ -247,12 +255,12 @@ export default function AdminSessionList({ navigate }: { navigate: (path: string
             <div className="admin-session-meta admin-session-progress"><small>Người tham gia</small><b>{submitted}/{totalAttempts} đã nộp</b><span className="admin-progress-track"><i style={{ width: `${totalAttempts ? Math.round((submitted / totalAttempts) * 100) : 0}%` }} /></span></div>
             <div className="admin-session-meta admin-session-results"><small>Kết quả</small><b>{session.results_released_at ? "Đã công bố" : "Chưa công bố"}</b><span>{state === "ended" && !session.results_released_at ? "Cần xem lại" : "Theo cấu hình kíp thi"}</span></div>
             <div className="admin-session-row-actions">
-              <Link className="admin-session-action" href={actionPath} onClick={event => openPath(event, actionPath)}>{actionLabel}<ChevronRight aria-hidden="true" /></Link>
-              {session.kind !== "account" ? <button type="button" className="admin-session-action admin-session-delete" disabled={deletingSessionId === session.id} aria-label={`Xóa kíp ${session.name}`} onClick={() => { setDeleteError(""); setPendingDelete(session); }}><Trash2 aria-hidden="true" />{deletingSessionId === session.id ? "Đang xóa…" : "Xóa kíp"}</button> : null}
+              {canOpenResults ? <Link className="admin-session-action" href={actionPath} onClick={event => openPath(event, actionPath)}>{actionLabel}<ChevronRight aria-hidden="true" /></Link> : null}
+              {canManageExams && session.kind !== "account" ? <button type="button" className="admin-session-action admin-session-delete" disabled={deletingSessionId === session.id} aria-label={`Xóa kíp ${session.name}`} onClick={() => { setDeleteError(""); setPendingDelete(session); }}><Trash2 aria-hidden="true" />{deletingSessionId === session.id ? "Đang xóa…" : "Xóa kíp"}</button> : null}
             </div>
           </li>;
         })}
-      </ul> : <div className="admin-session-empty"><span><CalendarClock aria-hidden="true" /></span><h3>{query || stateFilter ? "Không có kíp phù hợp" : "Chưa có kíp thi nào"}</h3><p>{query || stateFilter ? "Thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ kíp thi." : "Chọn phòng và đề để tạo kíp thi đầu tiên."}</p>{query || stateFilter ? <button type="button" className="admin-session-primary" onClick={() => { setQuery(""); updateFilter(""); }}>Xóa bộ lọc</button> : <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><ClipboardCheck aria-hidden="true" />Tạo kíp thi</Link>}</div>}
+      </ul> : <div className="admin-session-empty"><span><CalendarClock aria-hidden="true" /></span><h3>{query || stateFilter ? "Không có kíp phù hợp" : "Chưa có kíp thi nào"}</h3><p>{query || stateFilter ? "Thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ kíp thi." : canManageExams ? "Chọn phòng và đề để tạo kíp thi đầu tiên." : "Bạn có thể xem danh sách kíp; cần thêm quyền quản lý đề thi để tạo hoặc xóa kíp."}</p>{query || stateFilter ? <button type="button" className="admin-session-primary" onClick={() => { setQuery(""); updateFilter(""); }}>Xóa bộ lọc</button> : canManageExams ? <Link className="admin-session-primary" href="/admin/sessions/new" onClick={event => openPath(event, "/admin/sessions/new")}><ClipboardCheck aria-hidden="true" />Tạo kíp thi</Link> : null}</div>}
       {!loading && resultTotal > 0 && <nav className="admin-session-pagination" aria-label="Phân trang kíp thi"><button type="button" onClick={() => setPage(current => Math.max(1, current - 1))} disabled={page <= 1}>Trang trước</button><span>Trang <b>{page}</b></span><button type="button" onClick={() => setPage(current => current + 1)} disabled={!hasNextPage}>Trang sau</button></nav>}
     </section>
 

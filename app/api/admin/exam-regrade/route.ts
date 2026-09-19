@@ -1,7 +1,7 @@
 import { readAnswerKeySnapshot, scoreExamQuestionsWithOverridesForContext, type QuestionScoringOverride } from "../../../../lib/exam-answers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { applyQuestionSnapshotOrder } from "../../../../lib/exam-content-server";
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { finishExamAdminAudit, startExamAdminAudit } from "../../../../lib/admin-audit-server";
 
@@ -9,10 +9,7 @@ const headers = { "cache-control": "private, no-store, max-age=0", "x-content-ty
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }) };
-  return security;
+  return ensureAdminPermission(request, "exam-results");
 }
 function errorResponse(message: string, status = 400) { return Response.json({ error: message }, { status, headers }); }
 function reasonValue(value: unknown) { const reason = String(value ?? "").trim().slice(0, 500); return reason || null; }

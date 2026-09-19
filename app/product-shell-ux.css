@@ -782,29 +782,31 @@
   height: 15px;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-grid.reference-course-grid.course-list-view {
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .reference-course-grid.course-list-view {
   grid-template-columns: minmax(0, 1fr);
   gap: var(--ux-space-md);
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card {
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card {
   height: auto;
   min-height: 0;
   overflow: visible;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-card-action {
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action {
   display: grid;
   grid-template-columns: minmax(180px, 250px) minmax(0, 1fr);
   align-items: stretch;
+  min-width: 0;
+  min-height: 148px;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-cover {
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action > .ant-card-cover > div {
   min-height: 148px;
   aspect-ratio: auto;
 }
 
-.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-body {
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action > .ant-card-body {
   justify-content: center;
   min-height: 148px;
 }
@@ -1021,12 +1023,13 @@
     flex: 1 1 0;
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-card-action {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action {
     grid-template-columns: minmax(120px, 34%) minmax(0, 1fr);
+    min-height: 120px;
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-cover,
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-body {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action > .ant-card-cover > div,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action > .ant-card-body {
     min-height: 120px;
   }
 
@@ -1051,11 +1054,12 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-card-action {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action {
     grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
   }
 
-  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view .reference-course-card .course-cover {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .course-list-view > .ant-card > .course-card-action > .ant-card-cover > div {
     min-height: 0;
     aspect-ratio: 16 / 9;
   }

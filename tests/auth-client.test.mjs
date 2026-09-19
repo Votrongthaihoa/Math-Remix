@@ -73,6 +73,22 @@ test("unexpired session returns its token without refreshing", async t => {
   assert.equal(h.calls.refreshSession.length, 0);
 });
 
+test("SSO role isolation trusts app_metadata instead of editable user_metadata", async t => {
+  const forgedUserMetadataAdmin = session("fresh-token");
+  forgedUserMetadataAdmin.user.user_metadata = { role: "admin" };
+  forgedUserMetadataAdmin.user.app_metadata = { role: "student" };
+  const learnerHarness = await harness(t, {
+    refreshSession: async () => authResult(forgedUserMetadataAdmin),
+  });
+  assert.equal((await learnerHarness.trySsoRefresh())?.access_token, "fresh-token");
+
+  const verifiedAdmin = session("admin-token");
+  verifiedAdmin.user.user_metadata = { role: "student" };
+  verifiedAdmin.user.app_metadata = { role: "admin" };
+  learnerHarness.implementations.refreshSession = async () => authResult(verifiedAdmin);
+  assert.equal(await learnerHarness.trySsoRefresh(), null);
+});
+
 test("parallel near-expiry requests share one refresh and the single-flight resets afterward", async t => {
   const started = deferred();
   const refresh = deferred();
@@ -87,6 +103,22 @@ test("parallel near-expiry requests share one refresh and the single-flight rese
   assert.equal(await h.activeSessionToken(), "next-refresh");
   assert.equal(h.calls.refreshSession.length, 2);
 });
+
+for (const switched of [false, true]) {
+  test(`a proactive near-expiry refresh cannot return an old token after ${switched ? "user switch" : "logout"}`, async t => {
+    const started = deferred();
+    const refresh = deferred();
+    const h = await harness(t, { refreshSession: () => { started.resolve(); return refresh.promise; } });
+    h.state.session = session("expiring-old-token", "user-a", NOW / 1000 + 30);
+
+    const pending = h.activeSessionToken();
+    await started.promise;
+    h.state.session = switched ? session("new-user-token", "user-b") : null;
+    refresh.resolve(authResult(session("late-old-user-token", "user-a")));
+
+    await assert.rejects(pending, error => error?.name === "AuthSessionError");
+  });
+}
 
 test("first 401 refreshes and retries exactly once with both new auth headers", async t => {
   const first = new Response("expired", { status: 401 });
@@ -267,11 +299,8 @@ test("invalid-session cleanup tolerates storage and sign-out failures", async t 
   assert.equal(reads, 2);
 });
 
-// Intended session-generation safety contracts: the client currently has no
-// generation/logout signal. These executable TODOs expose the gap rather than
-// asserting that replay under a stale identity is correct.
 for (const switched of [false, true]) {
-  test.todo(`a late refresh must not replay the old request after ${switched ? "user switch" : "logout"}`, async t => {
+  test(`a late refresh must not replay the old request after ${switched ? "user switch" : "logout"}`, async t => {
     const started = deferred();
     const refresh = deferred();
     const h = await harness(t, { refreshSession: () => { started.resolve(); return refresh.promise; } });

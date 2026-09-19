@@ -187,7 +187,8 @@ test("exam history cleanup is admin-only, audited, and not callable through the 
   ]);
   assert.match(migration, /revoke delete on table public\.exam_attempts from anon, authenticated/i);
   assert.match(migration, /'delete_exam_history'/);
-  assert.match(route, /security\.profile\.role !== "admin"/);
+  assert.match(route, /ensureAdminPermission\(request, "exam-results"\)/);
+  assert.doesNotMatch(route, /security\.profile\.role !== "admin"/);
   assert.match(route, /confirm !== true/);
   assert.match(route, /startExamAdminAudit/);
   assert.match(route, /from\("exam_attempts"\)\.delete\(\)/);

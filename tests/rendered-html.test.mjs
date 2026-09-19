@@ -129,7 +129,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /supabase\.from\("profiles"\)/);
   assert.match(platform, /authenticatedFetch\("\/api\/exams\?scope=rooms"/);
   assert.match(platform, /authenticatedFetch\("\/api\/exams\?scope=history"/);
-  assert.match(platform, /setAttempts\(payload\.attempts\)/);
+  assert.match(platform, /const historyAttempts = Array\.isArray\(historyPayload\?\.attempts\) \? historyPayload\.attempts : null/);
+  assert.match(platform, /if \(historyAttempts\) setAttempts\(historyAttempts\)/);
   assert.doesNotMatch(platform, /supabase\.from\("exam_attempts"\)/);
   assert.match(platform, /<Profile profile=\{activeProfile\} attempts=\{attempts\}/);
   assert.match(platform, /supabase\.from\("profiles"\)\.update\(\{ full_name: nextName/);
@@ -139,14 +140,15 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(platform, /function AdminLoginPage/);
   assert.match(platform, /adminRouteRequested && \(!signedIn \|\| !isAdmin\)/);
   assert.match(platform, /loginContext === "admin" && profile\.role !== "admin"/);
-  assert.match(platform, /adminRouteRequested \? adminNav\.map/);
+  assert.match(platform, /adminNav\.filter\(item =>/);
+  assert.match(platform, /canOpenAdminNavigationItem\(item, adminPermissionUser\)/);
   assert.match(platform, /admin-sidebar-nav-item/);
   assert.match(platform, /next === "admin" && !isAdmin/);
-  assert.match(platform, /currentView === "admin" && isAdmin && <RealAdminDashboard/);
+  assert.match(platform, /currentView === "admin" && isAdmin && adminPermissionUser && <RealAdminDashboard pathname=\{pathname\} permissionUser=\{adminPermissionUser\}/);
   assert.match(platform, /aria-controls="main-sidebar"/);
   assert.match(platform, /mobile-sidebar-close/);
   assert.match(platform, /document\.body\.style\.overflow = "hidden"/);
-  assert.match(platform, /profile\?\.role === "admin" && profile\.status === "active"/);
+  assert.match(platform, /profile\?\.role === "admin" && isActiveProfileState\(profile\)/);
   assert.doesNotMatch(platform, /profileData \?\?/);
   assert.match(platform, /supabase\.from\("profiles"\)\.select\("id,full_name,student_code,role,status,created_at"\)/);
   assert.match(platform, /supabase\.from\("courses"\)\.select\("id,title,description,cover_url,cover_color,published,sort_order,created_at"\)/);
@@ -206,8 +208,8 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(studyCss, /curriculum-lesson:not\(\.current\) \.curriculum-resource\{display:none\}/);
   assert.match(studyCss, /scroll|overflow-y:auto/);
 
-  assert.match(lessonFilesRoute, /ensureActiveAccount\(request\)/);
-  assert.match(lessonFilesRoute, /profile\.role !== "admin"/);
+  assert.match(lessonFilesRoute, /ensureAdminPermission\(request, "courses"\)/);
+  assert.doesNotMatch(lessonFilesRoute, /profile\.role !== "admin"/);
   assert.match(lessonFilesRoute, /createPdfUpload\(path\)/);
   assert.match(lessonFilesRoute, /verifyPdfObject\(path, size, MAX_PDF_SIZE\)/);
   assert.match(r2Server, /function signedR2Request/);
@@ -248,7 +250,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.match(resourceContentRoute, guardCall("view"));
   assert.match(videoTokenRoute, guardCall("view"));
   assert.match(videoPlayer, /authenticatedFetch\("\/api\/video-token"/);
-  assert.match(videoPlayer, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=youtube/);
+  assert.match(videoPlayer, /\/yt-embed-player\.html\?v=\$\{encodeURIComponent\(content\.youtubeId\)\}/);
   assert.match(videoPlayer, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=native/);
   assert.match(videoPlayer, /remix:set-video-source/);
   assert.match(videoPlayer, /MEDIA_VIEWER_ORIGIN\}\/viewer\/pdf/);
@@ -263,6 +265,7 @@ test("keeps dashboard routes, Supabase data, and responsive reference styling", 
   assert.doesNotMatch(videoPlayer, /Mở tài liệu gốc/);
   assert.match(vidstackHtml, /import "https:\/\/cdn\.vidstack\.io\/player"/);
   assert.match(vidstackHtml, /media-video-layout/);
+  assert.match(vidstackHtml, /mountPlayer\(`youtube\/\$\{videoId\}`/);
   assert.match(vidstackHtml, /remix:video-player-ready/);
   assert.match(vidstackHtml, /event\.origin !== location\.origin/);
   assert.match(vidstackHtml, /allowedMicrosoftHostSuffixes/);

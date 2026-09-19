@@ -74,6 +74,7 @@ type LegalDocument = {
 const articleBySlug = articleDocuments as Record<string, ArticleDocument>;
 const legalBySlug = { ...legalDocuments, ...supplementalLegalDocuments } as Record<string, LegalDocument>;
 const publicAsset = (path: string) => `/aeck-public/${path}`;
+const publicMainContentId = "aeck-public-main-content";
 
 const publicLegalLinks = [
   ["dieu-khoan-dich-vu", "ĐIỀU KHOẢN", "Điều khoản dịch vụ"],
@@ -442,7 +443,7 @@ function HomePage() {
 
   return (
     <>
-      <main>
+      <main id={publicMainContentId} className={styles.primaryContent} tabIndex={-1}>
         <section className={styles.homeHero}>
           <div className={styles.heroIntro}>
             <p>Bạn sẽ được trải nghiệm <strong>NGUỒN ĐỀ PHONG PHÚ</strong></p>
@@ -522,7 +523,7 @@ function HomePage() {
 function TeachersPage() {
   const [selectedTeacher, setSelectedTeacher] = useState<PublicTeacher | null>(null);
   return (
-    <main className={styles.teachersPage}>
+    <main id={publicMainContentId} className={`${styles.primaryContent} ${styles.teachersPage}`} tabIndex={-1}>
       <div className={styles.teacherBannerTitle}>
         <span>SÁNG TẠO - TIÊN PHONG</span>
         <div><h1>ĐỘI NGŨ GIÁO VIÊN</h1><Image src={publicAsset("logo-wordmark-red.svg")} alt="AECK" width={150} height={40} /></div>
@@ -538,7 +539,7 @@ function TeachersPage() {
 function PackagesPage() {
   const [selectedPackage, setSelectedPackage] = useState<(typeof learningPackages)[number] | null>(null);
   return (
-    <main className={styles.packagesPage}>
+    <main id={publicMainContentId} className={`${styles.primaryContent} ${styles.packagesPage}`} tabIndex={-1}>
       <div className={styles.packagesInner}>
         <header>
           <h1>Gói học tập</h1>
@@ -578,7 +579,7 @@ function PackagesPage() {
 
 function EvidenceRegistrationPage() {
   return (
-    <main className={styles.evidencePage}>
+    <main id={publicMainContentId} className={`${styles.primaryContent} ${styles.evidencePage}`} tabIndex={-1}>
       <div className={styles.evidenceInner}>
         <header>
           <h1>Đăng ký minh chứng</h1>
@@ -635,7 +636,7 @@ function ArticlePage({ document }: { document: ArticleDocument }) {
   const faq = document.sections.find((section) => section.faq?.length);
   return (
     <>
-      <main className={styles.contentPage}>
+      <main id={publicMainContentId} className={`${styles.primaryContent} ${styles.contentPage}`} tabIndex={-1}>
         <header className={styles.contentHero}>
           <nav aria-label="Đường dẫn"><Link href="/">Trang chủ</Link><span>/</span><span>{document.eyebrow}</span></nav>
           <h1>{document.title}</h1>
@@ -686,7 +687,7 @@ function ArticlePage({ document }: { document: ArticleDocument }) {
 function LegalPage({ document }: { document: LegalDocument }) {
   return (
     <>
-      <main className={`${styles.contentPage} ${styles.legalPage}`}>
+      <main id={publicMainContentId} className={`${styles.primaryContent} ${styles.contentPage} ${styles.legalPage}`} tabIndex={-1}>
         <header className={styles.contentHero}>
           <nav aria-label="Đường dẫn"><Link href="/">Trang chủ</Link><span>/</span><span>{document.title.replace(" dịch vụ", "")}</span></nav>
           <h1>{document.title}</h1>
@@ -741,6 +742,9 @@ export function handlePublicArrowNavigation(event: ReactKeyboardEvent<HTMLElemen
 export default function AeckPublicSite({ route = "home" }: { route?: AeckPublicRoute }) {
   return (
     <div className={styles.site}>
+      <a className={styles.skipLink} href={`#${publicMainContentId}`}>
+        Chuyển đến nội dung chính
+      </a>
       <SiteHeader route={route} />
       <PublicPageBody route={route} />
       <FloatingContacts />

@@ -5,8 +5,22 @@ import Link from "next/link";
 import { resolveStudentReturnTo } from "../lib/student-return-to";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { activeSessionToken, authenticatedFetch } from "../lib/auth-client";
+import { authUserFromSupabaseUser, useAuthStore } from "../lib/auth-store";
+import { isActiveProfileState } from "../lib/active-profile";
+import { loginSessionMatches, persistSecuritySessionId, startLoginSecuritySession } from "../lib/security-session-client";
+import {
+  adminPermissionUserFromMetadata,
+  canAccessAdminRoute,
+  canAccessAllAdminPermissions,
+  canAccessAdminPermission,
+  permissionsForUser,
+  requiredPermissionsForAdminRoute,
+  type AdminPermissionUser,
+} from "../lib/admin-permissions";
+import { adminDataScopeForTab } from "../lib/admin-data-scope";
 import { continueLearningStorageKey, serializeContinueLearningFallback } from "../lib/continue-learning";
 import VideoPlayer, { type SecureLessonResource } from "./video-player";
 import LoadingIndicator from "./loading-indicator";
@@ -42,6 +56,8 @@ import "./admin-source-reference.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
 import StudentDashboard from "./student-dashboard";
+import EmailVerificationBanner from "./email-verification-banner";
+import RealtimeSystemEvents from "./realtime-system-events";
 import { formatUiActivityDate, formatUiDate, formatUiShortDateTime } from "./ui-format";
 import {
   LayoutDashboard, BookOpen, ClipboardCheck, History, Menu, LogOut, UserRound, ChevronRight, CalendarClock,
@@ -56,6 +72,7 @@ const AdminExamManager = lazy(() => import("./admin-exam-workspace"));
 const AdminSessionWizard = lazy(() => import("./admin-session-wizard"));
 const AdminSessionResults = lazy(() => import("./admin-session-results"));
 const AdminQuestionBank = lazy(() => import("./admin-question-bank"));
+const AdminQuestionBankDedup = lazy(() => import("./admin/question-bank/dedup/client").then(module => ({ default: module.DedupContent })));
 const AdminUploadManager = lazy(() => import("./admin-upload"));
 const AdminHlsVault = lazy(() => import("./admin-hls-vault"));
 const AdminTimetable = lazy(() => import("./admin-timetable"));
@@ -71,7 +88,16 @@ type View = "overview" | "exams" | "courses" | "history" | "progress" | "search"
 const viewsRequiringOverviewData: View[] = ["overview", "search", "profile", "progress"];
 type AuthMode = "login" | "signup" | "forgot" | "reset";
 type SignupErrorField = "name" | "password" | "confirmPassword" | null;
-type ProfileData = { id: string; full_name: string; student_code: string; role: "student" | "admin"; status: "active" | "locked"; email: string };
+type ProfileData = {
+  id: string;
+  full_name: string;
+  student_code: string;
+  role: "student" | "admin";
+  status: "active" | "locked";
+  account_status: "active" | "temporarily_banned" | "permanently_banned";
+  banned_until: string | null;
+  email: string;
+};
 type CourseData = { id: string | number; title: string; description: string; lessons: number; color: string; cover_url?: string | null; published?: boolean };
 type CourseRow = { id: string; title: string; description: string | null; cover_url: string | null; cover_color: string | null; published: boolean };
 type EnrollmentCourseRow = { courses: CourseRow | CourseRow[] | null };
@@ -381,24 +407,34 @@ const adminNav = [
 ];
 type AdminTab = typeof adminNav[number]["id"] | "students" | "upload" | "enrollments" | "security";
 
-const adminNavGroups = ["Tổng quan", "Nội dung", "Kỳ thi", "Quản lý", "Hệ thống"].map(section => ({
-  section,
-  items: adminNav.filter(item => item.section === section),
-}));
-
+function canOpenAdminNavigationItem(
+  item: (typeof adminNav)[number],
+  permissionUser: AdminPermissionUser | null,
+) {
+  // The aggregate dashboard intentionally crosses every admin data domain and
+  // therefore remains a super-admin-only surface. Granular admins enter the
+  // first module explicitly granted by Auth-owned app_metadata instead.
+  if (item.id === "dashboard") return permissionUser?.isSuperAdmin === true;
+  return canAccessAdminRoute(permissionUser, item.path);
+}
 
 export default function PlatformApp({ initialAdminRoute = false, initialGuestToken }: { initialAdminRoute?: boolean; initialStandaloneAdminPreview?: boolean; initialGuestToken?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const shellSearchParams = useSearchParams();
+  const authLogin = useAuthStore(state => state.login);
+  const authLogout = useAuthStore(state => state.logout);
+  const authUpdateUser = useAuthStore(state => state.updateUser);
   const uiRouteMode = classifyUiRoute(pathname);
   const currentView = viewFromPath(pathname);
   const adminRouteRequested = pathname.startsWith("/admin");
+  const requiredAdminPermissions = adminRouteRequested ? requiredPermissionsForAdminRoute(pathname) : [];
   const standaloneAdminPreview = /^\/admin\/exams\/[^/]+\/preview$/.test(pathname) || /^\/admin\/exams\/[^/]+\/sections\/[^/]+\/preview$/.test(pathname);
   const [signedIn, setSignedIn] = useState(false);
   const [checkingSession, setCheckingSession] = useState(() => Boolean(supabase));
   const [, setAuthReady] = useState(() => !supabase);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPermissionUser, setAdminPermissionUser] = useState<AdminPermissionUser | null>(null);
   const [productSidebarOpen, setProductSidebarOpen] = useState(true);
   const [studySidebarOpen, setStudySidebarOpen] = useState(false);
   const sidebarOpen = currentView === "schedule" ? false : currentView === "course" ? false : currentView === "lesson" ? studySidebarOpen : productSidebarOpen;
@@ -418,16 +454,22 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [assignedCourses, setAssignedCourses] = useState<CourseData[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [coursesError, setCoursesError] = useState("");
  const [practiceRooms, setPracticeRooms] = useState<PracticeRoomData[]>([]);
- const [attempts, setAttempts] = useState<AttemptData[]>([]);
- const [overviewLoading, setOverviewLoading] = useState(false);
- const [overviewError, setOverviewError] = useState("");
+  const [attempts, setAttempts] = useState<AttemptData[]>([]);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewError, setOverviewError] = useState("");
+  const [overviewAttemptsError, setOverviewAttemptsError] = useState("");
+  const [overviewRoomsError, setOverviewRoomsError] = useState("");
   const [overviewReloadKey, setOverviewReloadKey] = useState(0);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [loginContext, setLoginContext] = useState<"student" | "admin">(initialAdminRoute ? "admin" : "student");
   const authOperationRef = useRef(0);
+  const courseRequestRef = useRef(0);
+  const courseScopeRef = useRef<string | null>(null);
+  const interactiveAuthRef = useRef<number | null>(null);
   const lastFocusedRouteRef = useRef<string | null>(null);
   const popstateNavigationRef = useRef(false);
   const accountTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -497,6 +539,38 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     lastAllowedRouteRef.current = `${pathname}${window.location.search}${window.location.hash}`;
   }, [pathname]);
 
+  const adminPermissionDenied = Boolean(
+    signedIn
+    && isAdmin
+    && adminPermissionUser
+    && requiredAdminPermissions.length > 0
+    && !canAccessAllAdminPermissions(adminPermissionUser, requiredAdminPermissions),
+  );
+  const deniedAdminPermission = requiredAdminPermissions.find(permission => !canAccessAdminPermission(adminPermissionUser, permission)) ?? null;
+  const adminNavigation = adminRouteRequested
+    ? adminNav.filter(item => canOpenAdminNavigationItem(item, adminPermissionUser))
+    : [];
+  const restrictedAdminLandingPath = adminPermissionUser?.isSuperAdmin === true
+    ? "/admin"
+    : adminNavigation[0]?.path ?? null;
+  const restrictedAdminAtRoot = Boolean(
+    signedIn
+    && isAdmin
+    && adminPermissionUser
+    && adminPermissionUser.isSuperAdmin !== true
+    && pathname === "/admin",
+  );
+
+  useEffect(() => {
+    if (!adminPermissionDenied || !deniedAdminPermission) return;
+    router.replace(`/admin?permissionDenied=${encodeURIComponent(deniedAdminPermission)}`);
+  }, [adminPermissionDenied, deniedAdminPermission, router]);
+
+  useEffect(() => {
+    if (!restrictedAdminAtRoot || !restrictedAdminLandingPath) return;
+    router.replace(restrictedAdminLandingPath);
+  }, [restrictedAdminAtRoot, restrictedAdminLandingPath, router]);
+
   useEffect(() => {
     if (pathname === "/login" && signedIn && profileData) router.replace(resolveStudentReturnTo(shellSearchParams.get("redirect")));
   }, [pathname, profileData, router, signedIn, shellSearchParams]);
@@ -565,68 +639,128 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     window.addEventListener("popstate", syncRoute);
     if (!supabase) return () => window.removeEventListener("popstate", syncRoute);
     let active = true;
-    const operationId = authOperationRef.current;
-    const isCurrentOperation = () => active && authOperationRef.current === operationId;
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!isCurrentOperation()) return;
-      if (!data.session) { setSignedIn(false); setAuthReady(true); setCheckingSession(false); return; }
-      // Verify the restored token once. getClaims() uses the local JWKS cache
-      // for asymmetric projects and falls back to the Auth server for legacy
-      // symmetric signing keys; unlike getSession(), its result is safe to
-      // use for establishing the identity of the shell.
-      const accessToken = data.session.access_token;
-      const [claimsResult, profileResult] = await Promise.all([
-        supabase!.auth.getClaims(accessToken).catch(() => ({ data: null, error: new Error("claims_unavailable") })),
-        supabase!.from("profiles").select("full_name,student_code,role,status").eq("id", data.session.user.id).single(),
-      ]);
-      const claims = claimsResult.data?.claims;
-      const verifiedId = claims?.sub;
-      if (!isCurrentOperation()) return;
-      if (!verifiedId || verifiedId !== data.session.user.id) {
-        await supabase!.auth.signOut({ scope: "local" }).catch(() => undefined);
+    const clearShellSession = (operationId: number) => {
+      if (!active || authOperationRef.current !== operationId) return;
+      persistSecuritySessionId(null);
+      void authLogout({ silent: true, skipAuthProvider: true });
+      setSignedIn(false);
+      setProfileData(null);
+      setIsAdmin(false);
+      setAdminPermissionUser(null);
+      clearCourseData();
+      setPracticeRooms([]);
+      setAttempts([]);
+      setOverviewError("");
+      setOverviewAttemptsError("");
+      setOverviewRoomsError("");
+      setAuthReady(true);
+      setCheckingSession(false);
+      setLoading(false);
+    };
+    const validateShellSession = async (session: Session, operationId: number) => {
+      const isCurrentOperation = () => active && authOperationRef.current === operationId;
+      try {
+        // Verify identity and authorization from Auth-owned claims plus the
+        // server profile. Never admit the local getSession snapshot alone.
+        const accessToken = session.access_token;
+        const [claimsResult, profileResult] = await Promise.all([
+          supabase!.auth.getClaims(accessToken).catch(() => ({ data: null, error: new Error("claims_unavailable") })),
+          supabase!.from("profiles").select("full_name,student_code,role,status,account_status,banned_until").eq("id", session.user.id).single(),
+        ]);
         if (!isCurrentOperation()) return;
-        setSignedIn(false);
-        setProfileData(null);
-        setIsAdmin(false);
+        const claims = claimsResult.data?.claims;
+        const verifiedId = claims?.sub;
+        const profile = profileResult.data as Omit<ProfileData, "email" | "id"> | null;
+        const latest = await supabase!.auth.getSession().catch(() => ({ data: { session: null } }));
+        if (!isCurrentOperation()) return;
+        const sameSession = loginSessionMatches(latest.data.session, session.user.id, accessToken);
+        if (!verifiedId || verifiedId !== session.user.id || !sameSession || !isActiveProfileState(profile)) {
+          // Only revoke the exact session that failed validation. An account
+          // switch that happened during these awaits belongs to a newer event.
+          if (sameSession) await supabase!.auth.signOut({ scope: "local" }).catch(() => undefined);
+          if (isCurrentOperation()) clearShellSession(operationId);
+          return;
+        }
+
+        const verifiedUser = {
+          id: verifiedId,
+          email: typeof claims?.email === "string" ? claims.email : session.user.email,
+        };
+        const verifiedAuthUser = authUserFromSupabaseUser({
+          ...session.user,
+          id: verifiedId,
+          email: verifiedUser.email,
+          app_metadata: claims?.app_metadata as Record<string, unknown> | undefined,
+        });
+        authLogin(
+          { token: accessToken, refreshToken: session.refresh_token },
+          verifiedAuthUser,
+        );
+        const loadedProfile = await loadUserData(verifiedUser, profileResult.data as Omit<ProfileData, "email" | "id"> | null, claims?.app_metadata);
+        if (!isCurrentOperation()) return;
+        if (!loadedProfile || !isActiveProfileState(loadedProfile)) {
+          clearShellSession(operationId);
+          return;
+        }
+        setSignedIn(true);
         setAuthReady(true);
         setCheckingSession(false);
+      } catch {
+        if (isCurrentOperation()) clearShellSession(operationId);
+      }
+    };
+    const pendingValidationTimers = new Set<number>();
+    const deferValidation = (session: Session, operationId: number) => {
+      // Supabase Auth serializes state-change callbacks behind an internal
+      // lock. Do not start getClaims(), PostgREST, or another auth method
+      // synchronously from the callback; a macrotask lets that lock release
+      // before the validation pipeline begins.
+      const timer = window.setTimeout(() => {
+        pendingValidationTimers.delete(timer);
+        if (!active || authOperationRef.current !== operationId) return;
+        void validateShellSession(session, operationId);
+      }, 0);
+      pendingValidationTimers.add(timer);
+    };
+
+    const bootstrapOperationId = ++authOperationRef.current;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active || authOperationRef.current !== bootstrapOperationId) return;
+      if (!data.session) {
+        clearShellSession(bootstrapOperationId);
         return;
       }
-      const verifiedUser = { id: verifiedId, email: typeof claims?.email === "string" ? claims.email : data.session.user.email };
-      const profile = await loadUserData(verifiedUser, profileResult.data as Omit<ProfileData, "email"> | null);
-      if (!isCurrentOperation()) return;
-      if (!profile || profile.status === "locked") {
-        await supabase!.auth.signOut({ scope: "local" }).catch(() => undefined);
-        if (!isCurrentOperation()) return;
-        setSignedIn(false);
-        setProfileData(null);
-        setIsAdmin(false);
-      } else setSignedIn(true);
-      // The profile is the critical gate. Course, exam and lesson data are
-      // deliberately loaded by loadUserData in the background.
-      setAuthReady(true);
-      setCheckingSession(false);
-    }).catch(() => {
-      if (!active) return;
-      setSignedIn(false);
-      setAuthReady(true);
-      setCheckingSession(false);
-    });
+      void validateShellSession(data.session, bootstrapOperationId);
+    }).catch(() => clearShellSession(bootstrapOperationId));
+
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") setAuthMode("reset");
       if (event === "SIGNED_OUT" || !session) {
-        setSignedIn(false);
-        setProfileData(null);
-        setIsAdmin(false);
-        setAssignedCourses([]);
-        setCoursesLoading(false);
-        setPracticeRooms([]);
-        setAttempts([]);
-        setAuthReady(true);
-        setCheckingSession(false);
+        const signedOutOperationId = ++authOperationRef.current;
+        interactiveAuthRef.current = null;
+        clearShellSession(signedOutOperationId);
+        return;
       }
+      if (!(["SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED"] as string[]).includes(event)) return;
+      // The password/signup handlers perform their own risk and profile gates.
+      // Let that single flow own the session until it settles.
+      if (interactiveAuthRef.current === authOperationRef.current) return;
+      const eventOperationId = ++authOperationRef.current;
+      setSignedIn(false);
+      setAuthReady(false);
+      setCheckingSession(true);
+      deferValidation(session, eventOperationId);
     });
-    return () => { active = false; data.subscription.unsubscribe(); window.removeEventListener("popstate", syncRoute); };
+    return () => {
+      active = false;
+      pendingValidationTimers.forEach(timer => window.clearTimeout(timer));
+      pendingValidationTimers.clear();
+      data.subscription.unsubscribe();
+      window.removeEventListener("popstate", syncRoute);
+    };
+    // Auth bootstrap intentionally runs once; session callbacks update the
+    // external auth store without re-registering the Supabase listener.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -699,40 +833,53 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     if (!signedIn || !viewsRequiringOverviewData.includes(currentView)) return;
    let active = true;
    const controller = new AbortController();
-   const refreshOverviewData = async () => {
-     setOverviewLoading(true);
-     setOverviewError("");
-     const [historyResponse, roomsResponse] = await Promise.all([
-       authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal }).catch(() => null),
-       authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store", signal: controller.signal }).catch(() => null),
-     ]);
-     if (!active || controller.signal.aborted) return;
-      if (!historyResponse?.ok && !roomsResponse?.ok) {
-        setOverviewError("Không thể tải dữ liệu tổng quan. Hãy kiểm tra kết nối rồi thử lại.");
-      }
-     if (historyResponse?.ok) {
-       const payload = await historyResponse.json().catch(() => null) as { attempts?: AttemptData[] } | null;
-       if (active && !controller.signal.aborted && payload?.attempts) setAttempts(payload.attempts);
-     }
-    if (roomsResponse?.ok) {
-      const payload = await roomsResponse.json().catch(() => null) as ExamRoomsPayload | null;
-       if (!active || controller.signal.aborted) return;
-       if (payload) {
-       const examRows = payload.exams ?? [];
-       setPracticeRooms((payload.rooms ?? []).map(room => ({
-        id: room.id,
-        title: room.title,
-        description: room.description ?? null,
+    const refreshOverviewData = async () => {
+      setOverviewLoading(true);
+      setOverviewError("");
+      setOverviewAttemptsError("");
+      setOverviewRoomsError("");
+      const [historyResponse, roomsResponse] = await Promise.all([
+        authenticatedFetch("/api/exams?scope=history", { cache: "no-store", signal: controller.signal }).catch(() => null),
+        authenticatedFetch("/api/exams?scope=rooms", { cache: "no-store", signal: controller.signal }).catch(() => null),
+      ]);
+      if (!active || controller.signal.aborted) return;
+      const [historyPayload, roomsPayload] = await Promise.all([
+        historyResponse?.ok
+          ? historyResponse.json().catch(() => null) as Promise<{ attempts?: AttemptData[] } | null>
+          : Promise.resolve(null),
+        roomsResponse?.ok
+          ? roomsResponse.json().catch(() => null) as Promise<ExamRoomsPayload | null>
+          : Promise.resolve(null),
+      ]);
+      if (!active || controller.signal.aborted) return;
+      const historyAttempts = Array.isArray(historyPayload?.attempts) ? historyPayload.attempts : null;
+      const roomRows = Array.isArray(roomsPayload?.rooms) ? roomsPayload.rooms : null;
+      const examRows = Array.isArray(roomsPayload?.exams) ? roomsPayload.exams : null;
+      const historyLoaded = historyAttempts !== null;
+      const roomsLoaded = roomRows !== null && examRows !== null;
+      if (historyAttempts) setAttempts(historyAttempts);
+      else setOverviewAttemptsError("Chưa tải được lịch sử làm bài. Hãy thử lại.");
+      if (roomRows && examRows) {
+        setPracticeRooms(roomRows.map(room => ({
+         id: room.id,
+         title: room.title,
+         description: room.description ?? null,
         exam_type: room.exam_type ?? null,
         registration_start: room.registration_start ?? null,
         registration_end: room.registration_end ?? null,
         exam_start: room.exam_start ?? null,
-        exam_end: room.exam_end ?? null,
-        examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
-      })));
-       }
-     }
-     if (active && !controller.signal.aborted) setOverviewLoading(false);
+         exam_end: room.exam_end ?? null,
+         examCount: examRows.filter(exam => exam.room_id === room.id && exam.published !== false).length,
+       })));
+      } else setOverviewRoomsError("Chưa tải được danh sách phòng luyện. Hãy thử lại.");
+      if (!historyLoaded || !roomsLoaded) {
+        setOverviewError(
+          historyLoaded || roomsLoaded
+            ? "Một phần dữ liệu tổng quan chưa tải được. Hãy thử lại."
+            : "Không thể tải dữ liệu tổng quan. Hãy kiểm tra kết nối rồi thử lại.",
+        );
+      }
+      if (active && !controller.signal.aborted) setOverviewLoading(false);
    };
    const timer = window.setTimeout(() => { void refreshOverviewData(); }, 0);
     return () => {
@@ -742,35 +889,100 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     };
   }, [currentView, overviewReloadKey, signedIn]);
 
-  async function loadUserData(user: { id: string; email?: string | null }, prefetchedProfile?: Omit<ProfileData, "email" | "id"> | null) {
+  async function loadUserData(
+    user: { id: string; email?: string | null },
+    prefetchedProfile?: Omit<ProfileData, "email" | "id"> | null,
+    appMetadata?: unknown,
+  ) {
     if (!supabase) return null;
+    const operationId = authOperationRef.current;
     // Profile, role and account state are the only data required before the
     // shell can render. Everything else is intentionally deferred.
     const profile = prefetchedProfile === undefined
-      ? (await supabase.from("profiles").select("full_name,student_code,role,status").eq("id", user.id).single()).data as Omit<ProfileData, "email" | "id"> | null
+      ? (await supabase.from("profiles").select("full_name,student_code,role,status,account_status,banned_until").eq("id", user.id).single()).data as Omit<ProfileData, "email" | "id"> | null
       : prefetchedProfile;
-    const administrator = profile?.role === "admin" && profile.status === "active";
+    if (authOperationRef.current !== operationId) return null;
+    const administrator = profile?.role === "admin" && isActiveProfileState(profile);
+    const permissionUser = adminPermissionUserFromMetadata(profile?.role, appMetadata);
     setProfileData(profile ? { ...profile, id: user.id, email: user.email ?? "" } : null);
     setIsAdmin(administrator);
+    setAdminPermissionUser(administrator ? permissionUser : null);
+    if (profile) {
+      authUpdateUser({
+        role: profile.role,
+        isSuperAdmin: permissionUser.isSuperAdmin === true,
+        adminPermissions: permissionUser.adminPermissions === undefined
+          ? undefined
+          : permissionsForUser(permissionUser),
+      });
+    }
     if (!profile) {
-      setAssignedCourses([]);
-      setCoursesLoading(false);
+      clearCourseData();
       return null;
     }
-    const operationId = authOperationRef.current;
-    setCoursesLoading(true);
-    void loadCourseData(user, administrator).catch(() => {
-        if (authOperationRef.current === operationId) setAssignedCourses([]);
-      })
-      .finally(() => {
-        if (authOperationRef.current === operationId) setCoursesLoading(false);
-      });
+    // The admin shell has its own route-scoped loader below. Loading the
+    // learner catalogue here would disclose and transfer every course before
+    // a granular administrator's active module is known.
+    if (administrator && window.location.pathname.startsWith("/admin")) {
+      clearCourseData();
+      return profile;
+    }
+    // Profile/overview routes need a truthful loading state in the same render
+    // that admits the shell. The effect below owns the request itself, but it
+    // runs after this initial paint; without this preflight the profile could
+    // briefly present a zero-attempt empty state before its canonical history
+    // request begins.
+    if (viewsRequiringOverviewData.includes(currentView)) {
+      setOverviewLoading(true);
+      setOverviewError("");
+      setOverviewAttemptsError("");
+      setOverviewRoomsError("");
+    }
+    refreshCourseData(user, administrator, operationId);
     return profile;
   }
 
-  async function loadCourseData(user: { id: string }, administrator: boolean) {
+  function clearCourseData() {
+    courseRequestRef.current += 1;
+    courseScopeRef.current = null;
+    setAssignedCourses([]);
+    setCoursesLoading(false);
+    setCoursesError("");
+  }
+
+  function refreshCourseData(user: { id: string }, administrator: boolean, operationId = authOperationRef.current) {
     if (!supabase) return;
-    const operationId = authOperationRef.current;
+    const requestId = ++courseRequestRef.current;
+    const scope = `${user.id}:${administrator ? "admin" : "student"}`;
+    if (courseScopeRef.current !== scope) {
+      courseScopeRef.current = scope;
+      setAssignedCourses([]);
+    }
+    setCoursesLoading(true);
+    setCoursesError("");
+    void loadCourseData(user, administrator)
+      .then(courses => {
+        if (authOperationRef.current !== operationId || courseRequestRef.current !== requestId || courseScopeRef.current !== scope) return;
+        setAssignedCourses(courses);
+      })
+      .catch(() => {
+        if (authOperationRef.current !== operationId || courseRequestRef.current !== requestId || courseScopeRef.current !== scope) return;
+        setCoursesError("Không thể tải danh sách khóa học. Hãy kiểm tra kết nối rồi thử lại.");
+      })
+      .finally(() => {
+        if (authOperationRef.current === operationId && courseRequestRef.current === requestId && courseScopeRef.current === scope) setCoursesLoading(false);
+      });
+  }
+
+  function retryCourseData() {
+    if (!profileData) return;
+    const administrator = profileData.role === "admin" && isActiveProfileState(profileData);
+    if (administrator && window.location.pathname.startsWith("/admin")) return;
+    refreshCourseData({ id: profileData.id }, administrator);
+  }
+
+  async function loadCourseData(user: { id: string }, administrator: boolean) {
+    if (!supabase) return [];
     const courseResult = administrator
       ? await supabase.from("courses").select("id,title,description,cover_url,cover_color,published").order("sort_order").order("created_at")
       : await supabase.from("course_enrollments").select("course_id,courses(id,title,description,cover_url,cover_color,published)").eq("student_id", user.id);
@@ -798,7 +1010,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       }, {});
       coursesWithCounts = accessibleCourses.map(course => ({ ...course, lessons: lessonCounts[String(course.id)] ?? 0 }));
     }
-    if (authOperationRef.current === operationId) setAssignedCourses(coursesWithCounts);
+    return coursesWithCounts;
   }
 
   async function login(e: React.FormEvent) {
@@ -811,7 +1023,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     }
     // Invalidate the one-time bootstrap check. It may still be validating a
     // stale session restored from storage while this fresh login is running.
-    authOperationRef.current += 1;
+    const operationId = ++authOperationRef.current;
+    const isCurrentLogin = () => authOperationRef.current === operationId;
     setLoading(true);
     if (!supabase) {
       setAuthError("Chưa cấu hình Supabase.");
@@ -820,23 +1033,28 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setTurnstileResetNonce(value => value + 1);
       return;
     }
+    interactiveAuthRef.current = operationId;
 
     // Do not sign out before attempting the new login. Supabase already
     // replaces a valid session after a successful password login, while a
     // pre-emptive sign-out can race with the new session notification.
     const { data: currentSession } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    if (!isCurrentLogin()) return;
 
+    let passwordSession: { userId: string; accessToken: string } | null = null;
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
         options: { captchaToken: turnstileToken },
       });
+      if (!isCurrentLogin()) return;
       if (error) {
         if (currentSession.session) await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
         setSignedIn(false);
         setProfileData(null);
         setIsAdmin(false);
+        setAdminPermissionUser(null);
         const status = Number(error.status ?? 0);
         const code = String(error.code ?? "").toLowerCase();
         const message = String(error.message ?? "").toLowerCase();
@@ -859,36 +1077,90 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         setSignedIn(false);
         setProfileData(null);
         setIsAdmin(false);
+        setAdminPermissionUser(null);
         setAuthError("Không nhận được phiên đăng nhập từ Supabase. Hãy thử lại.");
         return;
       }
+      passwordSession = { userId: data.user.id, accessToken: data.session.access_token };
 
-      const profile = await loadUserData(data.user);
+      const security = await startLoginSecuritySession({ accessToken: data.session.access_token });
+      if (!isCurrentLogin()) return;
+      const current = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+      if (!isCurrentLogin()) return;
+      if (!loginSessionMatches(current.data.session, data.user.id, data.session.access_token)) {
+        // The browser session changed while the risk check was pending. Never
+        // sign out the newer identity or admit this stale login into the shell.
+        persistSecuritySessionId(null);
+        setAuthError("Phiên đăng nhập đã thay đổi. Vui lòng đăng nhập lại.");
+        return;
+      }
+      if (!security.allowed) {
+        persistSecuritySessionId(null);
+        setAuthError(security.message);
+        await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+        if (!isCurrentLogin()) return;
+        void authLogout({ silent: true });
+        setSignedIn(false);
+        setProfileData(null);
+        setIsAdmin(false);
+        setAdminPermissionUser(null);
+        return;
+      }
+
+      const profile = await loadUserData(data.user, undefined, data.user.app_metadata);
+      if (!isCurrentLogin()) return;
+      const profiledSession = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+      if (!isCurrentLogin()) return;
+      if (!loginSessionMatches(profiledSession.data.session, data.user.id, data.session.access_token)) {
+        persistSecuritySessionId(null);
+        setSignedIn(false);
+        setProfileData(null);
+        setIsAdmin(false);
+        setAdminPermissionUser(null);
+        setAuthError("Phiên đăng nhập đã thay đổi. Vui lòng đăng nhập lại.");
+        return;
+      }
       if (!profile) {
+        persistSecuritySessionId(null);
         await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
         setSignedIn(false);
         setProfileData(null);
         setIsAdmin(false);
+        setAdminPermissionUser(null);
         setAuthError("Tài khoản chưa có hồ sơ hợp lệ.");
         return;
       }
-      if (profile.status === "locked") {
+      if (!isActiveProfileState(profile)) {
+        persistSecuritySessionId(null);
         await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
         setSignedIn(false);
         setProfileData(null);
         setIsAdmin(false);
-        setAuthError("Tài khoản đã bị khóa.");
+        setAdminPermissionUser(null);
+        setAuthError("Tài khoản hiện không hoạt động.");
         return;
       }
       if (loginContext === "admin" && profile.role !== "admin") {
+        persistSecuritySessionId(null);
         await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
         setSignedIn(false);
         setProfileData(null);
         setIsAdmin(false);
+        setAdminPermissionUser(null);
         setAuthError("Tài khoản này không có quyền quản trị.");
         return;
       }
 
+      const permissionUser = adminPermissionUserFromMetadata(profile.role, data.user.app_metadata);
+      authLogin(
+        { token: data.session.access_token, refreshToken: data.session.refresh_token },
+        {
+          ...authUserFromSupabaseUser(data.user),
+          role: profile.role,
+          isSuperAdmin: permissionUser.isSuperAdmin === true,
+          adminPermissions: permissionUser.adminPermissions === undefined ? undefined : permissionsForUser(permissionUser),
+        },
+      );
       setSignedIn(true);
       const adminPath = loginContext === "admin";
       const adminDestination = window.location.pathname.startsWith("/admin") ? window.location.pathname : "/admin";
@@ -897,17 +1169,36 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
         : `${window.location.pathname}${window.location.search}${window.location.hash}`);
       router.replace(adminPath ? adminDestination : studentDestination);
     } catch (error) {
+      if (!isCurrentLogin()) return;
+      if (passwordSession) {
+        const latest = await supabase.auth.getSession().catch(() => null);
+        if (!isCurrentLogin()) return;
+        if (latest && !loginSessionMatches(latest.data.session, passwordSession.userId, passwordSession.accessToken)) {
+          persistSecuritySessionId(null);
+          setSignedIn(false);
+          setProfileData(null);
+          setIsAdmin(false);
+          setAdminPermissionUser(null);
+          setAuthError("Phiên đăng nhập đã thay đổi. Vui lòng đăng nhập lại.");
+          return;
+        }
+      }
+      persistSecuritySessionId(null);
       await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
       setSignedIn(false);
       setProfileData(null);
       setIsAdmin(false);
+      setAdminPermissionUser(null);
       setAuthError(error instanceof Error && /fetch|network/i.test(error.message)
         ? "Không thể kết nối dịch vụ đăng nhập. Hãy kiểm tra máy chủ rồi thử lại."
         : "Không thể hoàn tất đăng nhập. Hãy thử lại.");
     } finally {
-      setTurnstileToken("");
-      setTurnstileResetNonce(value => value + 1);
-      setLoading(false);
+      if (interactiveAuthRef.current === operationId) {
+        interactiveAuthRef.current = null;
+        setTurnstileToken("");
+        setTurnstileResetNonce(value => value + 1);
+        setLoading(false);
+      }
     }
   }
 
@@ -943,7 +1234,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       return;
     }
 
-    authOperationRef.current += 1;
+    const signupOperationId = ++authOperationRef.current;
+    interactiveAuthRef.current = signupOperationId;
+    const isCurrentSignup = () => authOperationRef.current === signupOperationId;
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -955,6 +1248,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           emailRedirectTo: `${window.location.origin}/login?registered=1`,
         },
       });
+      if (!isCurrentSignup()) return;
       if (error) {
         const status = Number(error.status ?? 0);
         const code = String(error.code ?? "").toLocaleLowerCase("en-US");
@@ -972,8 +1266,21 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       }
 
       if (data.session && data.user) {
-        const profile = await loadUserData(data.user);
-        if (profile && profile.status === "active") {
+        const current = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+        if (!isCurrentSignup() || !loginSessionMatches(current.data.session, data.user.id, data.session.access_token)) return;
+        const profile = await loadUserData(data.user, undefined, data.user.app_metadata);
+        if (!isCurrentSignup()) return;
+        if (profile && isActiveProfileState(profile)) {
+          const permissionUser = adminPermissionUserFromMetadata(profile.role, data.user.app_metadata);
+          authLogin(
+            { token: data.session.access_token, refreshToken: data.session.refresh_token },
+            {
+              ...authUserFromSupabaseUser(data.user),
+              role: profile.role,
+              isSuperAdmin: permissionUser.isSuperAdmin === true,
+              adminPermissions: permissionUser.adminPermissions === undefined ? undefined : permissionsForUser(permissionUser),
+            },
+          );
           setSignedIn(true);
           router.replace("/dashboard");
           return;
@@ -987,13 +1294,17 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setAuthNotice("Đã nhận đăng ký. Hãy kiểm tra email để xác minh tài khoản, sau đó đăng nhập tại đây.");
       router.replace("/login?registered=1");
     } catch (error) {
+      if (!isCurrentSignup()) return;
       setAuthError(error instanceof Error && /fetch|network/i.test(error.message)
         ? "Không thể kết nối dịch vụ tài khoản. Hãy kiểm tra mạng rồi thử lại."
         : "Không thể hoàn tất đăng ký. Hãy thử lại.");
     } finally {
-      setTurnstileToken("");
-      setTurnstileResetNonce(value => value + 1);
-      setLoading(false);
+      if (interactiveAuthRef.current === signupOperationId) {
+        interactiveAuthRef.current = null;
+        setTurnstileToken("");
+        setTurnstileResetNonce(value => value + 1);
+        setLoading(false);
+      }
     }
   }
 
@@ -1020,6 +1331,16 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   if (adminRouteRequested && (!signedIn || !isAdmin)) return <AdminLoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("admin"); setAuthMode("forgot"); router.push("/forgot-password?from=admin"); } }} />;
   if (!signedIn) return <LoginPage {...{ uiRouteMode, email, setEmail, password, setPassword, showPassword, setShowPassword, authError, authNotice, loading, setTurnstileToken, turnstileResetNonce, login, onForgot: () => { setLoginContext("student"); setAuthMode("forgot"); router.push("/forgot-password"); } }} />;
   if (pathname === "/login") return <LoadingIndicator label="Đang mở tổng quan…" fullPage />;
+  if (adminPermissionDenied) return <LoadingIndicator label="Bạn không có quyền mở chức năng này. Đang quay lại tổng quan quản trị…" fullPage />;
+  if (restrictedAdminAtRoot) {
+    if (restrictedAdminLandingPath) return <LoadingIndicator label="Đang mở phân hệ quản trị được cấp quyền…" fullPage />;
+    return <main className="login-page admin-login-page ui-auth-surface auth-public-refresh account-auth-reference">
+      <section className="login-card" role="status" aria-labelledby="admin-no-permissions-title">
+        <h1 id="admin-no-permissions-title">Chưa có quyền truy cập</h1>
+        <p>Tài khoản quản trị này chưa được cấp phân hệ nào. Vui lòng liên hệ quản trị viên hệ thống.</p>
+      </section>
+    </main>;
+  }
 
   const go = (next: View, pathOverride?: string) => {
     if (next === "admin" && !isAdmin) {
@@ -1046,7 +1367,9 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   const selectedCourse = visibleCourses.find(course => String(course.id) === routeCourseId) ?? null;
   const accountLabel = activeProfile.full_name || activeProfile.email.split("@")[0] || "Tài khoản AECK";
   const accountInitials = accountLabel.split(" ").filter(Boolean).slice(-2).map(value => value[0]).join("").toUpperCase();
-  const adminNavigation = adminRouteRequested ? adminNav.map(item => item) : [];
+  const adminNavGroups = ["Tổng quan", "Nội dung", "Kỳ thi", "Quản lý", "Hệ thống"]
+    .map(section => ({ section, items: adminNavigation.filter(item => item.section === section) }))
+    .filter(group => group.items.length > 0);
   const activeAdminNavigation = adminNavigation.find(item => item.id === currentAdminTab) ?? adminNav[0];
   const currentPath = pathname;
   const examRunnerSurface = currentView === "exams" && isExamRunnerPath(currentPath);
@@ -1090,7 +1413,10 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
   };
   async function logoutFromAccountMenu() {
     if (signingOut || !requestProductNavigation("/login")) return;
+    authOperationRef.current += 1;
+    interactiveAuthRef.current = null;
     setSigningOut(true);
+    void authLogout({ silent: true, skipAuthProvider: true });
     let logoutWarning = false;
     try {
       if (supabase) {
@@ -1103,8 +1429,8 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
       setSignedIn(false);
       setProfileData(null);
       setIsAdmin(false);
-      setAssignedCourses([]);
-      setCoursesLoading(false);
+      setAdminPermissionUser(null);
+      clearCourseData();
       setPracticeRooms([]);
       setAttempts([]);
       setAccountMenuOpen(false);
@@ -1114,7 +1440,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
     }
   }
   if (currentView === "profile" && !adminRouteRequested) {
-    return <Profile profile={activeProfile} courses={visibleCourses} attempts={attempts} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />;
+    return <Profile profile={activeProfile} courses={visibleCourses} attempts={attempts} coursesLoading={coursesLoading} coursesError={coursesError} onRetryCourses={retryCourseData} overviewLoading={overviewLoading} attemptsError={overviewAttemptsError} onRetryOverview={() => setOverviewReloadKey(value => value + 1)} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />;
   }
   return (
     <div data-ui-mode={uiRouteMode} className={`app-shell ui-shell ${adminRouteRequested ? "admin-app" : "student-app"} ${examRunnerSurface ? "exam-shell" : "product-shell"} ${protectedProductSurface ? "protected-exam-surface" : ""} ${adminRouteRequested && !protectedProductSurface ? "source-admin-shell" : ""} ${learnerThemeClass} ${currentView === "course" ? "study-mode course-study-mode" : currentView === "lesson" ? "study-mode" : currentView === "schedule" ? "schedule-mode" : ""} ${uiRouteMode !== "protected" ? "alpha-reference-surface" : ""} ${uiRouteMode === "optimized-content" ? "ui-optimized-surface" : ""} ${uiRouteMode === "optimized-chrome-only" ? "ui-optimized-chrome" : ""} ${sidebarOpen ? "sidebar-expanded" : ""}`}>
@@ -1170,19 +1496,21 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
           </div>
         </header>
       )}
+      {!examRunnerSurface && !protectedProductSurface && <EmailVerificationBanner />}
       <main id="main-content" tabIndex={uiRouteMode !== "protected" ? -1 : undefined} className={`main-content ${currentView === "lesson" ? "lesson-main-content" : currentView === "course" ? "lesson-main-content" : ""} ${examRunnerSurface ? "exam-view-content" : "product-view-content"} ${uiRouteMode === "optimized-content" ? "product-content-surface" : ""}`}>
-        {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} onContinueLearning={(lessonId, resourceId) => go("lesson", `/lessons/${encodeURIComponent(lessonId)}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ""}`)} profile={activeProfile} userId={activeProfile.id} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} loading={overviewLoading} error={overviewError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
-        {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} loading={coursesLoading} />}
-        {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} loading={coursesLoading} />}
+        {currentView === "overview" && <StudentDashboard onCourses={() => go("courses")} onExams={() => go("exams")} onOpenRoom={roomId => go("exams", `/exam-room/${encodeURIComponent(roomId)}`)} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} onContinueLearning={(lessonId, resourceId) => go("lesson", `/lessons/${encodeURIComponent(lessonId)}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ""}`)} profile={activeProfile} userId={activeProfile.id} userCourses={visibleCourses} practiceRooms={practiceRooms} attempts={attempts} coursesLoading={coursesLoading} coursesError={coursesError} onRetryCourses={retryCourseData} loading={overviewLoading} error={overviewError} attemptsError={overviewAttemptsError} practiceRoomsError={overviewRoomsError} onRetry={() => setOverviewReloadKey(value => value + 1)} />}
+        {currentView === "courses" && <Courses courses={visibleCourses} isAdmin={isAdmin} loading={coursesLoading} error={coursesError} onRetry={retryCourseData} />}
+        {currentView === "course" && <CourseDetail course={selectedCourse} showDrafts={isAdmin} loading={coursesLoading} coursesError={coursesError} onRetry={retryCourseData} />}
         {currentView === "lesson" && <LessonViewer lessonId={routeCourseId} userId={activeProfile.id} onOpenAppMenu={openMobileMenu} />}
         {currentView === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở phòng khảo thí…" />}><ExamRoomModule /></Suspense>}
         {currentView === "history" && <ExamHistory attempts={attempts} onAttemptsLoaded={handleHistoryLoaded} onOpen={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "progress" && <Suspense fallback={<LoadingIndicator label="Đang tổng hợp tiến độ…" />}><StudentProgress attempts={attempts.map(attempt => ({ id: attempt.id, title: attempt.title, score: attempt.score, correct: attempt.correct_answers, total: attempt.total_questions, submittedAt: attempt.submitted_at, status: attempt.status, examType: attempt.exam_type ?? "Khác" }))} /></Suspense>}
         {currentView === "search" && <StudentSearchPage courses={visibleCourses} rooms={practiceRooms} attempts={attempts} initialQuery={shellSearchParams.get("q") ?? ""} initialCategory={shellSearchParams.get("type") ?? "all"} onOpenAttempt={attemptId => go("exams", `/exam/result/${encodeURIComponent(attemptId)}`)} />}
         {currentView === "schedule" && <StudentSchedulePage />}
-        {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} courses={visibleCourses} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />}
-        {currentView === "admin" && isAdmin && <RealAdminDashboard pathname={pathname} />}
+        {currentView === "profile" && <Profile profile={activeProfile} attempts={attempts} courses={visibleCourses} coursesLoading={coursesLoading} coursesError={coursesError} onRetryCourses={retryCourseData} overviewLoading={overviewLoading} attemptsError={overviewAttemptsError} onRetryOverview={() => setOverviewReloadKey(value => value + 1)} onProfileUpdated={updatedProfile => setProfileData(updatedProfile)} onLogout={() => void logoutFromAccountMenu()} signingOut={signingOut} />}
+        {currentView === "admin" && isAdmin && adminPermissionUser && <RealAdminDashboard pathname={pathname} permissionUser={adminPermissionUser} />}
       </main>
+      {!examRunnerSurface && !protectedProductSurface && <RealtimeSystemEvents />}
     </div>
   );
 }
@@ -1514,7 +1842,15 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
   </div>;
 }
 
-function Courses({ courses: courseItems, isAdmin, loading }: { courses: CourseData[]; isAdmin: boolean; loading: boolean }) {
+function CourseLoadFeedback({ onRetry, compact = false }: { onRetry: () => void; compact?: boolean }) {
+  return <section className={`course-load-feedback${compact ? " course-load-feedback-compact" : ""}`} role="alert">
+    {!compact && <span className="course-load-feedback-icon" aria-hidden="true"><BookOpen /></span>}
+    <div className="course-load-feedback-copy"><h2>Chưa tải được khóa học</h2><p>Không thể tải danh sách khóa học. Hãy kiểm tra kết nối rồi thử lại.</p></div>
+    <button type="button" className="outline-btn" onClick={onRetry}>Tải lại khóa học</button>
+  </section>;
+}
+
+function Courses({ courses: courseItems, isAdmin, loading, error = "", onRetry }: { courses: CourseData[]; isAdmin: boolean; loading: boolean; error?: string; onRetry: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1580,10 +1916,19 @@ function Courses({ courses: courseItems, isAdmin, loading }: { courses: CourseDa
     const nextQuery = nextParams.toString();
     router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
   };
+  const hasCourseData = courseItems.length > 0;
+  const initialCourseLoading = loading && !hasCourseData;
+  const courseSearchStatus = !hasCourseData && loading
+    ? "Đang tải khóa học…"
+    : !hasCourseData && error
+      ? "Chưa tải được khóa học"
+      : courseSearch || selectedExamTab !== "ALL"
+        ? `${filteredCourses.length} kết quả phù hợp`
+        : `${courseItems.length} khóa học`;
   return <div className="courses-page w-full min-h-[calc(100vh-120px)] bg-transparent">
     <div className="courses-toolbar flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
       <div><h1 className="text-2xl md:text-3xl font-bold text-gray-800 m-0">Khóa học</h1><p className="text-gray-500 mt-2">Danh sách khóa học</p></div>
-      <div className="course-search-wrap hidden md:block w-full md:w-80">
+      <div className="course-search-wrap w-full md:w-80">
         <label className="course-search ant-input-affix-wrapper ant-input-affix-wrapper-lg ant-input-outlined rounded-full">
           <span className="ant-input-prefix"><Search className="anticon anticon-search text-gray-400" aria-hidden="true" /></span>
           <input name="courseSearch" type="search" autoComplete="off" value={courseSearch} onChange={event=>setCourseSearch(event.target.value)} placeholder="Tìm kiếm giáo trình..." aria-label="Tìm kiếm khóa học" aria-describedby="course-search-status" className="ant-input ant-input-lg" />
@@ -1591,13 +1936,15 @@ function Courses({ courses: courseItems, isAdmin, loading }: { courses: CourseDa
       </div>
     </div>
     <div className="course-controls">
-      <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearch || selectedExamTab !== "ALL" ? `${filteredCourses.length} kết quả phù hợp` : `${courseItems.length} khóa học`}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
+      <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearchStatus}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
       <div className="course-exam-tabs" role="tablist" aria-label="Phân loại khóa học" onKeyDown={handleCourseTabKeyDown}>
         {([['ALL','Tất cả'],['TSA','TSA'],['HSA','HSA']] as const).map(([value,label])=><button id={`course-exam-tab-${value.toLowerCase()}`} type="button" role="tab" key={value} aria-selected={selectedExamTab===value} aria-controls="course-catalog-panel" tabIndex={selectedExamTab===value?0:-1} onClick={()=>updateCourseExamTab(value)}><span>{label}</span><b>{courseCounts[value]}</b></button>)}
       </div>
     </div>
-    <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0}>
-      {loading ? <CourseCatalogSkeleton /> : filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
+    <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0} aria-busy={loading}>
+      {hasCourseData && loading && <p className="course-load-status" role="status" aria-live="polite">Đang cập nhật danh sách khóa học…</p>}
+      {hasCourseData && error && <CourseLoadFeedback compact onRetry={onRetry} />}
+      {filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : initialCourseLoading ? <CourseCatalogSkeleton /> : error && !hasCourseData ? <CourseLoadFeedback onRetry={onRetry} /> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
     </div>
   </div>;
 }
@@ -1620,7 +1967,7 @@ function CourseCoverVisual({ course, detail = false }: { course: CourseData; det
 function CourseCard({ course }: { course: CourseData }) {
   const href = `/courses/${encodeURIComponent(String(course.id))}`;
   const group = courseExamGroup(course);
-  return <article className="ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-[350px]" style={courseColorStyle(course.color)} data-course-exam-type={group.toLowerCase()}>
+  return <article className="ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-[transform,box-shadow] duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-[350px]" style={courseColorStyle(course.color)} data-course-exam-type={group.toLowerCase()}>
     <Link className="course-card-action flex flex-col flex-1 text-inherit no-underline" href={href} aria-label={`Vào học ${course.title}`}>
       <div className="ant-card-cover"><div className="w-full aspect-video overflow-hidden relative bg-gray-200">
         <CourseCoverVisual course={course} />
@@ -1634,7 +1981,7 @@ function CourseCard({ course }: { course: CourseData }) {
   </article>;
 }
 
-function CourseDetail({ course, showDrafts, loading }: { course: CourseData | null; showDrafts: boolean; loading: boolean }) {
+function CourseDetail({ course, showDrafts, loading, coursesError = "", onRetry }: { course: CourseData | null; showDrafts: boolean; loading: boolean; coursesError?: string; onRetry: () => void }) {
   const [chapters, setChapters] = useState<ChapterData[]>([]);
   const [courseLessons, setCourseLessons] = useState<LessonData[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
@@ -1668,10 +2015,12 @@ function CourseDetail({ course, showDrafts, loading }: { course: CourseData | nu
   }, [contentReloadVersion, course, showDrafts]);
 
   if (!course && loading) return <CourseDetailSkeleton />;
+  if (!course && coursesError) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><CourseLoadFeedback onRetry={onRetry} /></div>;
   if (!course) return <div className="page-stack"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true" /> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy khóa học" text="Khóa học không tồn tại hoặc chưa được phân cho tài khoản của bạn." /></div>;
   const firstCourseLesson = courseLessons[0];
   return <div className="course-study-page-reference max-w-[1700px] mx-auto min-h-[calc(100vh-32px)] flex flex-col">
-    <div className="course-detail-breadcrumb py-2 pb-4 flex items-center justify-between"><div className="flex items-center gap-2 overflow-hidden"><Link className="text-gray-500 hover:text-[#cd1627] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2">/</span><span className="font-bold text-gray-800 uppercase tracking-wide truncate max-w-[200px] md:max-w-[400px]">{course.title}</span></div></div>
+    <div className="course-detail-breadcrumb py-2 pb-4 flex items-center justify-between"><div className="course-detail-breadcrumb-inner flex min-w-0 items-center gap-2"><Link className="text-gray-500 hover:text-[#cd1627] cursor-pointer flex items-center gap-1 transition shrink-0" href="/courses" aria-label="Quay lại khóa học"><ArrowLeft className="text-xs" aria-hidden="true" /><span className="text-sm font-medium hidden md:inline">Quay lại khóa học</span></Link><span className="text-gray-300 mx-2" aria-hidden="true">/</span><h1 className="course-detail-title min-w-0 flex-1 font-bold text-gray-800 uppercase tracking-wide">{course.title}</h1></div></div>
+    {coursesError && <CourseLoadFeedback compact onRetry={onRetry} />}
     <div className="flex flex-col lg:flex-row flex-1 gap-8 pt-2 items-start">
       <section className="flex-1 w-full overflow-hidden">
         <div className="w-full h-auto bg-[#0f172a] rounded-xl shadow-sm relative group"><div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-900 relative flex items-center justify-center shadow-lg"><CourseCoverVisual course={course} detail /></div></div>
@@ -1701,11 +2050,14 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
   const [curriculumOpen, setCurriculumOpen] = useState(false);
   const [lessonLoading, setLessonLoading] = useState(() => Boolean(supabase && lessonId));
   const [lessonError, setLessonError] = useState("");
+  const [lessonMissing, setLessonMissing] = useState(false);
+  const [resourceError, setResourceError] = useState("");
   const [lessonReloadVersion, setLessonReloadVersion] = useState(0);
   const closeCurriculum = useCallback(() => {
+    if (!curriculumOpen) return;
     setCurriculumOpen(false);
     window.requestAnimationFrame(() => curriculumTriggerRef.current?.focus({ preventScroll: true }));
-  }, []);
+  }, [curriculumOpen]);
   const curriculumPanelRef = useAdminDialogFocus<HTMLElement>(curriculumOpen, closeCurriculum);
   const focusCurriculumClose = useCallback(() => {
     let attempts = 0;
@@ -1731,25 +2083,55 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
     if (!supabase || !lessonId) return;
     let cancelled = false;
     async function loadLesson() {
-      setLessonLoading(true); setLessonError("");
+      setLessonLoading(true); setLessonError(""); setLessonMissing(false); setResourceError("");
       setLesson(null); setResources([]); setCurriculum([]); setSelectedResourceId(""); setExpandedChapterId("");
       try {
         const accessToken = await activeSessionToken().catch(() => null);
         if (cancelled) return;
         if (!accessToken) { setLessonError("Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Hãy đăng nhập lại."); return; }
-        const [lessonResult, resourceResult] = await Promise.all([
+        const [lessonResult, resourceOutcome] = await Promise.all([
           supabase!.from("lessons").select("id,chapter_id,title,description,published,sort_order,chapters(course_id,title,sort_order,courses(title))").eq("id", lessonId).single(),
-          authenticatedFetch(`/api/lesson-resources?lessonId=${encodeURIComponent(lessonId)}`, { cache: "no-store" }),
+          authenticatedFetch(`/api/lesson-resources?lessonId=${encodeURIComponent(lessonId)}`, { cache: "no-store" })
+            .then(response => ({ response, error: null as Error | null }))
+            .catch(value => ({ response: null, error: value instanceof Error ? value : new Error("Không thể tải nội dung bài học.") })),
         ]);
         if (cancelled) return;
-        const resourcePayload = await resourceResult.json().catch(() => null) as { resources?: SecureLessonResource[]; curriculum?: LessonCurriculumSection[]; error?: string } | null;
+        const resourceResult = resourceOutcome.response;
+        const resourcePayload = resourceResult
+          ? await resourceResult.json().catch(() => null) as { resources?: SecureLessonResource[]; curriculum?: LessonCurriculumSection[]; error?: string } | null
+          : null;
         if (cancelled) return;
-        const errorMessage = lessonResult.error?.message || (!resourceResult.ok ? resourcePayload?.error || "Không thể tải nội dung bài học." : !resourcePayload ? "Nội dung bài học không hợp lệ." : "");
-        if (errorMessage) { setLessonError(errorMessage); return; }
+        const lessonResultError = lessonResult.error as { message?: string; code?: string; status?: number } | null;
+        const lessonErrorMessage = lessonResultError?.message || "";
+        if (lessonErrorMessage) {
+          const status = Number(lessonResultError?.status ?? 0);
+          const code = String(lessonResultError?.code ?? "").toUpperCase();
+          setLessonMissing(status === 404 || code === "PGRST116" || /không tìm thấy|không tồn tại|not found/i.test(lessonErrorMessage));
+          setLessonError(lessonErrorMessage);
+          return;
+        }
         const raw = lessonResult.data as LessonWithChapterRow;
+        if (!raw) {
+          setLessonMissing(true);
+          setLessonError("Bài học không tồn tại hoặc chưa được phân cho tài khoản của bạn.");
+          return;
+        }
         const chapter = Array.isArray(raw.chapters) ? raw.chapters[0] : raw.chapters;
         const relatedCourse = Array.isArray(chapter?.courses) ? chapter.courses[0] : chapter?.courses;
         setLesson({ id: raw.id, chapter_id: raw.chapter_id, title: raw.title, description: raw.description ?? "", published: raw.published, sort_order: raw.sort_order, course_id: chapter?.course_id ?? "", course_title: relatedCourse?.title ?? "", chapter_title: chapter?.title ?? "", chapter_sort_order: chapter?.sort_order ?? 0 });
+        const resourceErrorMessage = resourceOutcome.error
+          ? "Không thể kết nối để tải nội dung bài học. Hãy kiểm tra kết nối rồi thử lại."
+          : !resourceResult
+            ? "Không thể tải nội dung bài học."
+            : !resourceResult.ok
+              ? resourcePayload?.error || "Không thể tải nội dung bài học."
+              : !resourcePayload
+                ? "Nội dung bài học không hợp lệ."
+                : "";
+        if (resourceErrorMessage) {
+          setResourceError(resourceErrorMessage);
+          return;
+        }
         const nextResources = resourcePayload?.resources ?? [];
         const nextCurriculum = resourcePayload?.curriculum ?? [];
         setResources(nextResources);
@@ -1770,6 +2152,7 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
   useEffect(() => {
     if (!curriculumOpen) return;
     const drawerViewport = window.matchMedia("(min-width: 1024px) and (max-width: 1199px)");
+    if (!drawerViewport.matches) return;
     const previousOverflow = document.body.style.overflow;
     const background = [
       document.querySelector<HTMLElement>(".study-mode > .sidebar"),
@@ -1782,7 +2165,6 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
     const closeOutsideDrawer = (event: MediaQueryListEvent) => {
       if (!event.matches) setCurriculumOpen(false);
     };
-    if (!drawerViewport.matches) return;
     drawerViewport.addEventListener("change", closeOutsideDrawer);
     return () => {
       drawerViewport.removeEventListener("change", closeOutsideDrawer);
@@ -1826,10 +2208,12 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
   if (lessonLoading) return <div className="lesson-page"><LessonViewerSkeleton /></div>;
   if (!lesson) {
     const sessionExpired = /phiên đăng nhập/i.test(lessonError);
+    const missingLesson = lessonMissing || /không tìm thấy|không tồn tại|not found/i.test(lessonError);
     const recoveryAction = sessionExpired
       ? <Link className="outline-btn" href="/">Đăng nhập lại</Link>
       : <button type="button" className="outline-btn" onClick={() => setLessonReloadVersion(version => version + 1)}>Thử tải lại</button>;
-    return <div className="lesson-page"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true"/> Quay lại khóa học</Link><EmptyState icon={BookOpen} title="Không tìm thấy bài học" text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."} action={recoveryAction}/></div>;
+    const title = sessionExpired ? "Phiên đăng nhập hết hạn" : missingLesson ? "Không tìm thấy bài học" : "Không thể tải bài học";
+    return <div className="lesson-page"><Link className="back-btn" href="/courses"><ArrowLeft aria-hidden="true"/> Quay lại khóa học</Link><EmptyState icon={BookOpen} headingLevel={1} title={title} text={lessonError || "Bài học không tồn tại hoặc bạn chưa được cấp quyền."} action={recoveryAction}/></div>;
   }
   const orderedLessons = curriculum.flatMap(section => section.lessons);
   const currentLessonIndex = orderedLessons.findIndex(item => item.id === lessonId);
@@ -1848,7 +2232,11 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
     </nav>
     <div className="lesson-layout">
       <div className="study-viewer-column">
-        {selectedResource ? <>
+        {resourceError ? <section ref={viewerRef} className="viewer-card lesson-resource-error" aria-labelledby="lesson-resource-error-title">
+          <div className="lesson-viewer-surface is-document"><div className="secure-viewer-state error" role="alert">
+            <div className="lesson-resource-error-copy"><h1 className="lesson-resource-error-title">{formatLessonTitle(lesson.title, lesson.sort_order)}</h1><h2 id="lesson-resource-error-title">Không thể tải nội dung bài học</h2><p>{resourceError}</p><button type="button" className="outline-btn" onClick={() => setLessonReloadVersion(version => version + 1)}>Thử tải lại</button></div>
+          </div></div>
+        </section> : selectedResource ? <>
           <section ref={viewerRef} className="viewer-card" aria-label={`Nội dung: ${selectedResource.title}`}>
             <p className="lesson-resource-status" role="status" aria-live="polite">Đang mở: {selectedResource.title}</p>
             <div className={`lesson-viewer-surface ${selectedResourceIsVideo ? "is-video" : "is-document"}`}><VideoPlayer key={selectedResource.id} resource={selectedResource}/></div>
@@ -1864,32 +2252,32 @@ function LessonViewer({ lessonId, userId, onOpenAppMenu }: { lessonId: string; u
         </> : <section ref={viewerRef} className="viewer-card lesson-resource-picker flex-1 w-full overflow-hidden" aria-labelledby="lesson-resource-picker-title">
           <div className="lesson-viewer-surface lesson-resource-picker-surface w-full min-h-[50vh] md:min-h-[60vh] rounded-xl bg-white border border-gray-200 shadow-sm p-8 md:p-12 flex flex-col justify-center">
             <div className="lesson-resource-picker-content max-w-3xl mx-auto w-full">
-              <h2 id="lesson-resource-picker-title" className="text-3xl font-bold text-gray-800 mb-4">{formatLessonTitle(lesson.title, lesson.sort_order)}</h2>
-              <p className="text-gray-500 mb-8 text-lg">Bài học này bao gồm {resources.length} nội dung. Vui lòng chọn một mục bên dưới để bắt đầu học.</p>
+              <h1 id="lesson-resource-picker-title" className="text-3xl font-bold text-gray-800 mb-4">{formatLessonTitle(lesson.title, lesson.sort_order)}</h1>
+              <p className="text-gray-500 mb-8 text-lg">{resources.length ? `Bài học này bao gồm ${resources.length} nội dung. Vui lòng chọn một mục bên dưới để bắt đầu học.` : "Bài học này chưa có bài giảng hoặc tài liệu."}</p>
               {resources.length ? <div className="lesson-resource-picker-grid grid grid-cols-1 md:grid-cols-2 gap-4">{resources.map(resource => {
                   const resourceIsVideo = isVideoResource(resource.resource_type);
                   return <button type="button" className="lesson-resource-choice flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[#cd1627] hover:shadow-md active:scale-[0.96] transition-[background-color,border-color,box-shadow,transform] cursor-pointer group/card" key={resource.id} onClick={() => selectResource(resource.id)}>
                     <span className="lesson-resource-choice-icon w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover/card:scale-110 transition-transform shrink-0" aria-hidden="true">{resourceIsVideo ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span>
                     <span className="lesson-resource-choice-copy flex flex-col min-w-0 gap-1"><b className="block font-semibold text-slate-700 group-hover/card:text-[#cd1627] transition-colors">{resource.title}</b><small className="block text-xs text-gray-500 group-hover/card:text-gray-600 transition-colors">{resourceIsVideo ? "Video bài giảng" : "Tài liệu PDF"}</small></span>
                   </button>;
-                })}</div> : <MiniEmpty text="Bài học chưa có bài giảng hoặc tài liệu."/>}
+                })}</div> : <MiniEmpty text="Chưa có nội dung để bắt đầu."/>}
             </div>
           </div>
         </section>}
         <button ref={curriculumTriggerRef} type="button" className="study-curriculum-trigger" aria-controls="lesson-curriculum-panel" aria-expanded={curriculumOpen} onClick={openCurriculum}><BookOpen aria-hidden="true"/><span><b>Nội dung giáo trình</b><small>{curriculum.length} phần • {lessonCount} bài học</small></span><ChevronRight aria-hidden="true"/></button>
       </div>
-      <button type="button" className={`curriculum-sheet-shade ${curriculumOpen ? "show" : ""}`} onClick={closeCurriculum} aria-label="Đóng nội dung giáo trình" tabIndex={curriculumOpen ? 0 : -1}/>
+      <button type="button" className={`curriculum-sheet-shade ${curriculumOpen ? "show" : ""}`} onClick={closeCurriculum} aria-label="Đóng nội dung giáo trình" tabIndex={-1}/>
       <aside ref={curriculumPanelRef} id="lesson-curriculum-panel" className={`lesson-nav curriculum-panel ${curriculumOpen ? "mobile-open" : ""}`} aria-label="Nội dung giáo trình" aria-modal={curriculumOpen ? "true" : undefined} role={curriculumOpen ? "dialog" : undefined}>
         <div className="curriculum-panel-head"><span><h2>Nội dung giáo trình</h2><p>{curriculum.length} phần • {lessonCount} bài học</p></span><button type="button" className="curriculum-panel-close" data-dialog-autofocus onClick={closeCurriculum} aria-label="Đóng nội dung giáo trình"><X aria-hidden="true"/></button></div>
-        {curriculum.length ? <div className="lesson-curriculum-list">{curriculum.map(section => {
+        {resourceError ? <p className="lesson-curriculum-error">Chưa tải được nội dung giáo trình.</p> : curriculum.length ? <div className="lesson-curriculum-list">{curriculum.map(section => {
           const chapterExpanded = section.id === expandedChapterId;
           return <details key={section.id} open={chapterExpanded}>
             <summary onClick={event => { event.preventDefault(); setExpandedChapterId(chapterExpanded ? "" : section.id); }}><ChevronRight/><strong>{formatPartTitle(section.title, section.sort_order)}</strong></summary>
             <div className="lesson-curriculum-lessons">{section.lessons.map(item => <div ref={item.id === lessonId ? currentLessonRef : undefined} className={`curriculum-lesson ${item.id === lessonId ? "current" : ""}`} key={item.id}>
               {item.id === lessonId ? <span className="curriculum-lesson-title" aria-current="page"><span className="curriculum-status-dot" aria-hidden="true"/><b>{formatLessonTitle(item.title, item.sort_order)}</b></span> : <Link className="curriculum-lesson-title" href={`/lessons/${encodeURIComponent(item.id)}`} onClick={closeCurriculum}><span className="curriculum-status-dot" aria-hidden="true"/><b>{formatLessonTitle(item.title, item.sort_order)}</b></Link>}
               {item.resources.map(resource => item.id === lessonId
-                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} onClick={() => selectResource(resource.id)}><span>{isVideoResource(resource.resource_type) ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span><span><b>{resource.title}</b></span></button>
-                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`} onClick={closeCurriculum}><span>{isVideoResource(resource.resource_type) ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span><span><b>{resource.title}</b></span></Link>)}
+                ? <button type="button" key={resource.id} className={`curriculum-resource ${resource.id === selectedResource?.id ? "selected" : ""}`} aria-pressed={resource.id === selectedResource?.id} title={resource.title} onClick={() => selectResource(resource.id)}><span>{isVideoResource(resource.resource_type) ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span><span><b>{resource.title}</b></span></button>
+                : <Link key={resource.id} className="curriculum-resource" href={`/lessons/${encodeURIComponent(item.id)}?resource=${encodeURIComponent(resource.id)}`} title={resource.title} onClick={closeCurriculum}><span>{isVideoResource(resource.resource_type) ? <ReferencePlayCircleIcon/> : <ReferenceFilePdfIcon/>}</span><span><b>{resource.title}</b></span></Link>)}
             </div>)}</div>
           </details>;
         })}</div> : <MiniEmpty text="Chưa có nội dung giáo trình."/>}
@@ -2034,7 +2422,33 @@ function LessonViewerSkeleton() {
   </section>;
 }
 
-function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signingOut }: { profile: ProfileData; courses: CourseData[]; attempts: AttemptData[]; onProfileUpdated: (profile: ProfileData) => void; onLogout: () => void; signingOut: boolean }) {
+function Profile({
+  profile,
+  courses,
+  attempts,
+  coursesLoading = false,
+  coursesError = "",
+  onRetryCourses,
+  overviewLoading = false,
+  attemptsError = "",
+  onRetryOverview,
+  onProfileUpdated,
+  onLogout,
+  signingOut,
+}: {
+  profile: ProfileData;
+  courses: CourseData[];
+  attempts: AttemptData[];
+  coursesLoading?: boolean;
+  coursesError?: string;
+  onRetryCourses: () => void;
+  overviewLoading?: boolean;
+  attemptsError?: string;
+  onRetryOverview: () => void;
+  onProfileUpdated: (profile: ProfileData) => void;
+  onLogout: () => void;
+  signingOut: boolean;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") === "courses" ? "courses" : "info";
@@ -2105,6 +2519,8 @@ function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signi
   const completedYearAttempts = attempts.filter(attempt => attempt.status !== "in_progress" && Boolean(attempt.submitted_at) && new Date(attempt.submitted_at).getFullYear() === currentYear);
   const averageScore = completedYearAttempts.length ? Math.round(completedYearAttempts.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0) / completedYearAttempts.length) : 0;
   const profileFeedbackId = profileError ? "profile-name-error" : undefined;
+  const courseCountLabel = courses.length ? `${courses.length} khóa học` : coursesLoading ? "Đang tải khóa học…" : coursesError ? "Không tải được dữ liệu" : "0 khóa học";
+  const profileStats = <span className="profile-portal-stat" aria-label={`Điểm trung bình năm ${currentYear}: ${averageScore}`}>{completedYearAttempts.length ? `${completedYearAttempts.length} bài thi · Điểm trung bình ${averageScore}` : `Chưa có bài thi trong năm ${currentYear}`}</span>;
 
   const switchTab = (tab: "info" | "courses") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -2115,6 +2531,7 @@ function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signi
   const profileInitial = (profile.full_name.trim()[0] || profile.email[0] || "A").toLocaleUpperCase("vi");
 
   return <div className="profile-portal-reference ui-shell student-app product-shell learner-red-theme">
+    <a className="profile-portal-skip-link" href="#profile-main" onClick={() => window.requestAnimationFrame(() => document.getElementById("profile-main")?.focus())}>Bỏ qua đến nội dung chính</a>
     <header className="profile-portal-header bg-white sm:bg-white/80 sm:backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 w-full shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
       <div className="profile-portal-header-inner">
         <Link className="profile-portal-brand" href="/" aria-label="Trang chủ AECK"><img src="/aeck-public/logo-wordmark-red.svg" alt="AECK" width={180} height={49}/></Link>
@@ -2122,7 +2539,7 @@ function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signi
         <div className="profile-portal-header-actions"><Link className="profile-learning-space" href="/dashboard">Không gian học tập <ChevronDown aria-hidden="true"/></Link><details className="profile-account-menu"><summary>{profile.email.split("@")[0]} <ChevronDown aria-hidden="true"/></summary><div><Link href="/dashboard">Tổng quan</Link><button type="button" onClick={onLogout} disabled={signingOut}>{signingOut ? "Đang đăng xuất…" : "Đăng xuất"}</button></div></details></div>
       </div>
     </header>
-    <main className="profile-portal-main p-4 sm:p-6 lg:p-8 xl:p-12 2xl:p-14">
+    <main id="profile-main" tabIndex={-1} className="profile-portal-main p-4 sm:p-6 lg:p-8 xl:p-12 2xl:p-14">
       <div className="profile-portal-container mx-auto max-w-6xl text-left">
         <nav className="profile-portal-breadcrumb mb-4 flex items-center gap-1.5 text-sm text-gray-500" aria-label="Đường dẫn"><Link href="/dashboard" aria-label="Tổng quan"><Home aria-hidden="true"/></Link><ChevronRight aria-hidden="true"/><span>Cá nhân</span><ChevronRight aria-hidden="true"/><strong>{activeTab === "courses" ? "Khóa học của tôi" : "Thông tin cá nhân"}</strong></nav>
         <div className="profile-portal-layout flex flex-col gap-6 lg:flex-row">
@@ -2140,15 +2557,16 @@ function Profile({ profile, courses, attempts, onProfileUpdated, onLogout, signi
             </div>
           </aside>
           <section className="profile-portal-content min-w-0 flex-1">
-            {activeTab === "courses" ? <div className="profile-portal-courses-card rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:p-8">
-              <div className="profile-portal-section-title"><h1>Khóa học của tôi</h1><span>{courses.length} khóa học</span></div>
-              {courses.length ? <div className="profile-course-list">{courses.map(course => <Link key={course.id} href={`/courses/${encodeURIComponent(String(course.id))}`} className="profile-course-row"><span className="profile-course-cover"><CourseCoverVisual course={course}/></span><span className="profile-course-copy"><b>{course.title}</b><small>Vào học <ChevronRight aria-hidden="true"/></small></span></Link>)}</div> : <MiniEmpty text="Chưa có khóa học nào được phân cho tài khoản này."/>}
+            {activeTab === "courses" ? <div className="profile-portal-courses-card rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:p-8" aria-busy={coursesLoading}>
+              <div className="profile-portal-section-title"><h1>Khóa học của tôi</h1><span>{courseCountLabel}</span></div>
+              {coursesError && <div className="profile-portal-data-issue" role="alert"><p>{coursesError}</p><button type="button" onClick={onRetryCourses}>Tải lại khóa học</button></div>}
+              {courses.length ? <div className="profile-course-list">{courses.map(course => <Link key={course.id} href={`/courses/${encodeURIComponent(String(course.id))}`} className="profile-course-row"><span className="profile-course-cover"><CourseCoverVisual course={course}/></span><span className="profile-course-copy"><b>{course.title}</b><small>Vào học <ChevronRight aria-hidden="true"/></small></span></Link>)}</div> : coursesLoading ? <p className="profile-portal-load-status" role="status" aria-live="polite">Đang tải khóa học…</p> : !coursesError ? <MiniEmpty text="Chưa có khóa học nào được phân cho tài khoản này."/> : null}
             </div> : <form className="profile-card details profile-details-form" onSubmit={saveProfile} aria-busy={savingProfile}>
               <div className="profile-portal-info-head"><div className="profile-portal-person"><span className="profile-portal-avatar">{profileInitial}</span><span><h1>{profile.email.split("@")[0]}</h1><small>{profile.email}</small></span></div><div className="profile-portal-actions">{editing ? <><button type="submit" className="primary" disabled={savingProfile}>{savingProfile ? "Đang lưu…" : "Lưu hồ sơ"}</button><button type="button" onClick={() => { setEditing(false); setDraftName(profile.full_name); setProfileError(""); }}>Hủy</button></> : <button type="button" className="primary" onClick={() => setEditing(true)}><Pencil aria-hidden="true"/> Chỉnh sửa hồ sơ</button>}<button type="button" onClick={() => setPasswordModal(true)}><KeyRound aria-hidden="true"/> Đổi mật khẩu</button></div></div>
               <div className={`profile-portal-status ${profile.status === "locked" ? "locked" : ""}`}><CheckCircle2 aria-hidden="true"/><span><small>Trạng thái tài khoản</small><b>{profile.status === "active" ? "Đã xác thực email" : "Tài khoản đã bị khóa"}</b></span></div>
               <div className="profile-portal-detail-list"><Detail icon={UserRound} label="Họ và tên" labelFor={editing ? "profile-full-name" : undefined} value={editing ? <input ref={profileNameInputRef} id="profile-full-name" name="fullName" autoComplete="name" value={draftName} onChange={event => setDraftName(event.target.value)} aria-invalid={Boolean(profileError && !draftName.trim())} aria-describedby={profileFeedbackId} maxLength={120} required/> : profile.full_name}/><Detail icon={Mail} label="Email" value={profile.email}/><Detail icon={Hash} label="Định danh / Mã thí sinh" value={profile.student_code}/><Detail icon={ShieldCheck} label="Vai trò" value={profile.role === "admin" ? "QUẢN TRỊ VIÊN" : "HỌC SINH"}/></div>
               {profileError && <p id="profile-name-error" className="form-error" role="alert">{profileError}</p>}{profileMessage && <p id="profile-name-success" className="form-success" role="status" aria-live="polite">{profileMessage}</p>}
-              <span className="profile-portal-stat" aria-label={`Điểm trung bình năm ${currentYear}: ${averageScore}`}>{completedYearAttempts.length ? `${completedYearAttempts.length} bài thi · Điểm trung bình ${averageScore}` : `Chưa có bài thi trong năm ${currentYear}`}</span>
+              {attemptsError ? <><div className="profile-portal-data-issue" role="alert"><p>{attemptsError || "Chưa tải được lịch sử làm bài. Hãy thử lại."}</p><button type="button" onClick={onRetryOverview}>Tải lại thống kê</button></div>{attempts.length > 0 && profileStats}</> : overviewLoading && attempts.length === 0 ? <p className="profile-portal-load-status" role="status" aria-live="polite">Đang tải thống kê làm bài…</p> : profileStats}
             </form>}
           </section>
         </div>
@@ -2202,7 +2620,7 @@ function CourseColorField({ color, colorId, hexId, onColorChange, onHexChange }:
   </div>;
 }
 
-function RealAdminDashboard({ pathname }: { pathname: string }) {
+function RealAdminDashboard({ pathname, permissionUser }: { pathname: string; permissionUser: AdminPermissionUser }) {
   const adminPathname = pathname;
   const [tab, setTab] = useState<AdminTab>(() => adminTabFromPath(adminPathname));
   const [adminLocation, setAdminLocation] = useState(adminPathname);
@@ -2210,6 +2628,7 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
   const [loadingAdmin, setLoadingAdmin] = useState(true);
   const [adminError, setAdminError] = useState("");
   const [adminNotice, setAdminNotice] = useState("");
+  const [adminUsersTruncated, setAdminUsersTruncated] = useState(false);
   const [profiles, setProfiles] = useState<AdminProfileRow[]>([]);
   const [adminCourses, setAdminCourses] = useState<AdminCourseRow[]>([]);
   const [adminLessons, setAdminLessons] = useState<AdminLessonRow[]>([]);
@@ -2265,48 +2684,86 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
   }, [courseModal, modal, passwordStudent, savingStudentPassword]);
   useAdminDialogFocus(adminDialogOpen, closeAdminDialog);
 
-  async function loadAdminData() {
+  const loadAdminData = useCallback(async () => {
     const requestId = ++adminRequestId.current;
     adminAbortController.current?.abort();
     const controller = new AbortController();
     adminAbortController.current = controller;
-    setLoadingAdmin(true); setAdminError("");
+    const activePermissions = requiredPermissionsForAdminRoute(adminLocationPath);
+    const activeRouteAllowed = permissionUser.isSuperAdmin === true
+      || activePermissions.length > 0 && canAccessAllAdminPermissions(permissionUser, activePermissions);
+    const dataScope = new Set(activeRouteAllowed
+      ? adminDataScopeForTab(tab, permissionUser.isSuperAdmin === true)
+      : []);
+
+    setAdminError("");
+    if (!dataScope.size) {
+      setProfiles([]);
+      setAdminCourses([]);
+      setAdminLessons([]);
+      setEnrollments([]);
+      setAdminExamRooms([]);
+      setExamRoomEnrollments([]);
+      setAdminUsersTruncated(false);
+      setLoadingAdmin(false);
+      return;
+    }
+    setLoadingAdmin(true);
+    setAdminUsersTruncated(false);
     try {
       if (!supabase) { setAdminError("Chưa cấu hình Supabase."); return; }
+      const skippedQuery = Promise.resolve({ data: [] as unknown[], error: null as { message: string } | null });
       const [profileResult, courseResult, lessonResult, enrollmentResult, examRoomResult, examEnrollmentResult] = await Promise.all([
-      supabase.from("profiles").select("id,full_name,student_code,role,status,created_at").order("created_at", { ascending: false }),
-      supabase.from("courses").select("id,title,description,cover_url,cover_color,published,sort_order,created_at").order("sort_order").order("created_at", { ascending: false }),
-      supabase.from("lessons").select("id,title,published,chapters(course_id)"),
-      supabase.from("course_enrollments").select("student_id,course_id"),
-      supabase.from("exam_rooms").select("id,title,published,access_mode").order("sort_order"),
-        supabase.from("exam_room_enrollments").select("student_id,room_id"),
+        dataScope.has("profiles")
+          ? supabase.from("profiles").select("id,full_name,student_code,role,status,created_at").order("created_at", { ascending: false })
+          : skippedQuery,
+        dataScope.has("courses")
+          ? supabase.from("courses").select("id,title,description,cover_url,cover_color,published,sort_order,created_at").order("sort_order").order("created_at", { ascending: false })
+          : skippedQuery,
+        dataScope.has("lessons")
+          ? supabase.from("lessons").select("id,title,published,chapters(course_id)")
+          : skippedQuery,
+        dataScope.has("course-enrollments")
+          ? supabase.from("course_enrollments").select("student_id,course_id")
+          : skippedQuery,
+        dataScope.has("exam-rooms")
+          ? supabase.from("exam_rooms").select("id,title,published,access_mode").order("sort_order")
+          : skippedQuery,
+        dataScope.has("exam-room-enrollments")
+          ? supabase.from("exam_room_enrollments").select("student_id,room_id")
+          : skippedQuery,
       ]);
       if (requestId !== adminRequestId.current || controller.signal.aborted) return;
       const firstError = profileResult.error ?? courseResult.error ?? lessonResult.error ?? enrollmentResult.error ?? examRoomResult.error ?? examEnrollmentResult.error;
       if (firstError) setAdminError(firstError.message);
       let emailMap: Record<string, string> = {};
-      try {
-        const response = await authenticatedFetch("/api/admin/users", { cache: "no-store", signal: controller.signal });
-        const payload = await response.json().catch(() => null) as { users?: Array<{ id: string; email: string }>; error?: string } | null;
-        if (requestId !== adminRequestId.current || controller.signal.aborted) return;
-        if (response.ok) emailMap = Object.fromEntries((payload?.users ?? []).map(user => [user.id, user.email]));
-        else if (response.status !== 401 && !firstError) setAdminError(payload?.error ?? "Không thể tải email học viên.");
-      } catch (value) {
-        if (!controller.signal.aborted && !firstError) setAdminError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn.");
+      if (dataScope.has("user-emails")) {
+        try {
+          const response = await authenticatedFetch("/api/admin/users", { cache: "no-store", signal: controller.signal });
+          const payload = await response.json().catch(() => null) as { users?: Array<{ id: string; email: string }>; hasMore?: boolean; error?: string } | null;
+          if (requestId !== adminRequestId.current || controller.signal.aborted) return;
+          if (response.ok) {
+            emailMap = Object.fromEntries((payload?.users ?? []).map(user => [user.id, user.email]));
+            setAdminUsersTruncated(payload?.hasMore === true);
+          }
+          else if (response.status !== 401 && !firstError) setAdminError(payload?.error ?? "Không thể tải email học viên.");
+        } catch (value) {
+          if (!controller.signal.aborted && !firstError) setAdminError(value instanceof Error ? value.message : "Phiên đăng nhập đã hết hạn.");
+        }
       }
-      setProfiles(((profileResult.data ?? []) as Omit<AdminProfileRow, "email">[]).map(profile => ({ ...profile, email: emailMap[profile.id] ?? "" })));
-      setAdminCourses((courseResult.data ?? []) as AdminCourseRow[]);
-      setAdminLessons((lessonResult.data ?? []) as AdminLessonRow[]);
-      setEnrollments((enrollmentResult.data ?? []) as AdminEnrollmentRow[]);
-      setAdminExamRooms((examRoomResult.data ?? []) as AdminExamRoomRow[]);
-      setExamRoomEnrollments((examEnrollmentResult.data ?? []) as AdminExamEnrollmentRow[]);
+      setProfiles(dataScope.has("profiles") ? ((profileResult.data ?? []) as Omit<AdminProfileRow, "email">[]).map(profile => ({ ...profile, email: emailMap[profile.id] ?? "" })) : []);
+      setAdminCourses(dataScope.has("courses") ? (courseResult.data ?? []) as AdminCourseRow[] : []);
+      setAdminLessons(dataScope.has("lessons") ? (lessonResult.data ?? []) as AdminLessonRow[] : []);
+      setEnrollments(dataScope.has("course-enrollments") ? (enrollmentResult.data ?? []) as AdminEnrollmentRow[] : []);
+      setAdminExamRooms(dataScope.has("exam-rooms") ? (examRoomResult.data ?? []) as AdminExamRoomRow[] : []);
+      setExamRoomEnrollments(dataScope.has("exam-room-enrollments") ? (examEnrollmentResult.data ?? []) as AdminExamEnrollmentRow[] : []);
     } catch (value) {
       if (controller.signal.aborted) return;
       setAdminError(value instanceof Error ? value.message : "Không thể tải dữ liệu quản trị. Hãy thử lại.");
     } finally {
       if (requestId === adminRequestId.current && !controller.signal.aborted) setLoadingAdmin(false);
     }
-  }
+  }, [adminLocationPath, permissionUser, tab]);
 
   // Admin data is fetched after the authenticated dashboard mounts.
   useEffect(() => {
@@ -2315,7 +2772,7 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAdminData();
     return () => adminAbortController.current?.abort();
-  }, []);
+  }, [loadAdminData]);
 
   useEffect(() => {
     const syncAdminRoute = () => {
@@ -2347,16 +2804,21 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
     ...profiles.map(profile => ({ id: `profile-${profile.id}`, text: `Tài khoản ${profile.student_code} được tạo`, date: profile.created_at })),
     ...adminCourses.map(course => ({ id: `course-${course.id}`, text: `Khóa học "${course.title}" được tạo`, date: course.created_at })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5), [profiles, adminCourses]);
-  const adminFinderItems = useMemo<AdminFinderItem[]>(() => [
-    { id: "action-create-exam", title: "Tạo đề thi", description: "Mở quy trình tạo phòng và đề thi mới.", category: "Thao tác", path: "/admin/exams/rooms/new", kind: "action" },
-    { id: "action-create-session", title: "Tạo kíp thi", description: "Cấu hình thời gian, đối tượng và quyền truy cập.", category: "Thao tác", path: "/admin/sessions/new", kind: "action" },
-    { id: "action-question-bank", title: "Ngân hàng câu hỏi", description: "Mở công cụ quản lý và rà soát câu hỏi.", category: "Thao tác", path: "/admin/question-bank", kind: "action" },
-    { id: "action-permissions", title: "Phân quyền học viên", description: "Cấp khóa học và phòng khảo thí cho học viên.", category: "Thao tác", path: "/admin/enrollments", kind: "action" },
-    ...adminNav.map(item => ({ id: `navigation-${item.id}`, title: item.label, description: `Mở phân hệ ${item.label.toLocaleLowerCase("vi-VN")}.`, category: item.section, path: item.path, kind: "navigation" as const })),
-    ...students.map(student => ({ id: `student-${student.id}`, title: student.full_name, description: `${student.student_code}${student.email ? ` - ${student.email}` : ""}`, category: "Học viên", path: "/admin/students", searchValue: `${student.full_name} ${student.student_code} ${student.email}`, kind: "student" as const })),
-    ...adminCourses.map(course => ({ id: `course-${course.id}`, title: course.title, description: course.published ? "Khóa học đã xuất bản" : "Khóa học bản nháp", category: "Khóa học", path: `/admin/content/courses/${encodeURIComponent(course.id)}`, searchValue: course.description, kind: "course" as const })),
-    ...adminExamRooms.map(room => ({ id: `room-${room.id}`, title: room.title, description: room.published ? "Phòng thi đã xuất bản" : "Phòng thi bản nháp", category: "Phòng thi", path: `/admin/exams/rooms/${encodeURIComponent(room.id)}/edit`, kind: "room" as const })),
-  ], [adminCourses, adminExamRooms, students]);
+  const adminFinderItems = useMemo<AdminFinderItem[]>(() => {
+    const items: AdminFinderItem[] = [
+      { id: "action-create-exam", title: "Tạo đề thi", description: "Mở quy trình tạo phòng và đề thi mới.", category: "Thao tác", path: "/admin/exams/rooms/new", kind: "action" },
+      { id: "action-create-session", title: "Tạo kíp thi", description: "Cấu hình thời gian, đối tượng và quyền truy cập.", category: "Thao tác", path: "/admin/sessions/new", kind: "action" },
+      { id: "action-question-bank", title: "Ngân hàng câu hỏi", description: "Mở công cụ quản lý và rà soát câu hỏi.", category: "Thao tác", path: "/admin/question-bank", kind: "action" },
+      { id: "action-permissions", title: "Phân quyền học viên", description: "Cấp khóa học và phòng khảo thí cho học viên.", category: "Thao tác", path: "/admin/enrollments", kind: "action" },
+      ...adminNav.map(item => ({ id: `navigation-${item.id}`, title: item.label, description: `Mở phân hệ ${item.label.toLocaleLowerCase("vi-VN")}.`, category: item.section, path: item.path, kind: "navigation" as const })),
+      ...students.map(student => ({ id: `student-${student.id}`, title: student.full_name, description: `${student.student_code}${student.email ? ` - ${student.email}` : ""}`, category: "Học viên", path: "/admin/students", searchValue: `${student.full_name} ${student.student_code} ${student.email}`, kind: "student" as const })),
+      ...adminCourses.map(course => ({ id: `course-${course.id}`, title: course.title, description: course.published ? "Khóa học đã xuất bản" : "Khóa học bản nháp", category: "Khóa học", path: `/admin/content/courses/${encodeURIComponent(course.id)}`, searchValue: course.description, kind: "course" as const })),
+      ...adminExamRooms.map(room => ({ id: `room-${room.id}`, title: room.title, description: room.published ? "Phòng thi đã xuất bản" : "Phòng thi bản nháp", category: "Phòng thi", path: `/admin/exams/rooms/${encodeURIComponent(room.id)}/edit`, kind: "room" as const })),
+    ];
+    return items.filter(item => item.path === "/admin"
+      ? permissionUser.isSuperAdmin === true
+      : canAccessAdminRoute(permissionUser, item.path));
+  }, [adminCourses, adminExamRooms, permissionUser, students]);
 
   async function createStudent(event: React.FormEvent) {
     event.preventDefault();
@@ -2522,6 +2984,10 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
   }
 
   function navigateAdmin(path: string) {
+    if (path !== "/admin" && !canAccessAdminRoute(permissionUser, path)) {
+      setAdminError("Bạn chưa được cấp đủ quyền để mở chức năng này.");
+      return;
+    }
     if (!requestProductNavigation(path)) return;
     window.history.pushState({}, "", path);
     setTab(adminTabFromPath(path));
@@ -2664,21 +3130,25 @@ function RealAdminDashboard({ pathname }: { pathname: string }) {
         </section>
       </div>
     </div>}
-    {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div><label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button type="button" className="student-password-btn" onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
+    {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div>{adminUsersTruncated && <p className="student-data-warning" role="status" aria-live="polite">Danh sách email chưa chắc đầy đủ vì máy chủ đã chạm giới hạn phân trang.</p>}<label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button type="button" className="student-password-btn" aria-label={`Đổi mật khẩu cho ${student.full_name}`} onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
     {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>navigateAdmin("/admin/content")} onChanged={loadAdminData} onDeleted={async()=>{navigateAdmin("/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt="" width={320} height={180} loading="lazy" decoding="async"/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button type="button" className="outline-btn" onClick={()=>{setManagedCourseId(course.id);navigateAdmin(`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight aria-hidden="true"/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
     {tab === "hls-vault" && <Suspense fallback={<LoadingIndicator label="Đang mở công cụ HLS…" />}><AdminHlsVault /></Suspense>}
     {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị đề thi…" />}><AdminExamManager /></Suspense>}
-    {tab === "question-bank" && <Suspense fallback={<LoadingIndicator label="Đang mở ngân hàng câu hỏi…" />}><AdminQuestionBank navigate={navigateAdmin} /></Suspense>}
+    {tab === "question-bank" && <Suspense fallback={<LoadingIndicator label="Đang mở ngân hàng câu hỏi…" />}>{adminLocationPath === "/admin/question-bank/dedup" ? <AdminQuestionBankDedup /> : <AdminQuestionBank navigate={navigateAdmin} />}</Suspense>}
     {tab === "sessions" && (adminLocationPath === "/admin/sessions/new"
       ? <Suspense fallback={<LoadingIndicator label="Đang mở trình tạo kíp thi…" />}><AdminSessionWizard navigate={navigateAdmin} /></Suspense>
       : /^\/admin\/sessions\/[^/]+\/results$/.test(adminLocationPath)
         ? <Suspense fallback={<LoadingIndicator label="Đang mở kết quả kíp thi…" />}><AdminSessionResults key={adminLocation} navigate={navigateAdmin} /></Suspense>
-      : <AdminSessionList navigate={navigateAdmin} />)}
+      : <AdminSessionList
+          navigate={navigateAdmin}
+          canManageExams={canAccessAdminPermission(permissionUser, "exams")}
+          canOpenResults={canAccessAllAdminPermissions(permissionUser, ["exam-rooms", "exam-results", "exams"])}
+        />)}
     {tab === "timetable" && <Suspense fallback={<LoadingIndicator label="Đang mở lịch vận hành…" />}><AdminTimetable /></Suspense>}
   {tab === "audit" && <Suspense fallback={<LoadingIndicator label="Đang mở nhật ký quản trị…" />}><AdminAuditLog /></Suspense>}
-  {tab === "capabilities" && <Suspense fallback={<LoadingIndicator label="Đang mở phạm vi chức năng…" />}><AdminCapabilityCenter /></Suspense>}
-  {tab === "server-health" && <Suspense fallback={<LoadingIndicator label="Đang kiểm tra sức khỏe hệ thống…" />}><AdminCapabilityCenter initialModule="server-health" /></Suspense>}
-    {tab === "upload" && <Suspense fallback={<LoadingIndicator label="Đang mở kho ảnh…" />}><AdminUploadManager /></Suspense>}
+  {tab === "capabilities" && <Suspense fallback={<LoadingIndicator label="Đang mở phạm vi chức năng…" />}><AdminCapabilityCenter canInspectServerHealth={canAccessAdminPermission(permissionUser, "server-health")} /></Suspense>}
+  {tab === "server-health" && <Suspense fallback={<LoadingIndicator label="Đang kiểm tra sức khỏe hệ thống…" />}><AdminCapabilityCenter initialModule="server-health" canInspectServerHealth={canAccessAdminPermission(permissionUser, "server-health")} /></Suspense>}
+     {tab === "upload" && <Suspense fallback={<LoadingIndicator label="Đang mở kho ảnh…" />}><AdminUploadManager canManageExamImages={canAccessAdminPermission(permissionUser, "exams")} /></Suspense>}
     {(tab === "enrollments" || tab === "settings") && tab === "enrollments" && <div className="assignment-page">
       <header className="assignment-page-head"><div><span className="eyebrow">PHÂN QUYỀN HỌC VIÊN</span><h2>Khóa học và phòng thi</h2><p>Quản lý toàn bộ nội dung được cấp cho từng học viên tại một nơi.</p></div></header>
       {assignError && <p className="form-error">{assignError}</p>}
@@ -2970,7 +3440,7 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
 
   async function createResource(event: React.FormEvent) {
     event.preventDefault(); if (!supabase || !targetLessonId || savingBuilder) return;
-    const name = newResourceTitle.trim(); let url = newResourceUrl.trim(); let uploadedPath = ""; if (!name) return;
+    const name = newResourceTitle.trim(); let url = newResourceUrl.trim(); let uploadedPath = ""; let resourceSaved = false; if (!name) return;
     setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
     try {
       if (newResourceType === "storage_pdf") {
@@ -3008,18 +3478,19 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
         const { error } = await supabase.from("lesson_resources").insert({ lesson_id: targetLessonId, title: name, resource_type: newResourceType, resource_url: url, allow_download: newResourceType === "youtube" ? false : newResourceAllowDownload, sort_order: order });
         if (error) throw error;
       }
+      resourceSaved = true;
       setBuilderModal(null); setNewResourceTitle(""); setNewResourceUrl(""); setNewResourceFile(null); setNewResourceType("youtube"); setNewResourceAllowDownload(false); setBuilderNotice(newResourceType === "storage_pdf" ? "Đã tải PDF lên khóa học." : "Đã thêm nội dung vào bài học."); await loadBuilderData();
     } catch (value) {
-      if (uploadedPath) await deleteStoredLessonFile(url, uploadedPath).catch(() => undefined);
+      if (uploadedPath && !resourceSaved) await deleteStoredLessonFile(url, uploadedPath, undefined, course.id, targetLessonId, "r2").catch(() => undefined);
       setBuilderError(value instanceof Error ? value.message : "Không thể thêm nội dung. Hãy thử lại.");
     } finally {
       setSavingBuilder(false);
     }
   }
 
-  async function deleteStoredLessonFile(reference: string, path = "") {
+  async function deleteStoredLessonFile(reference: string, path = "", resourceId?: string, courseId = course.id, lessonId = targetLessonId, storage?: "r2" | "legacy") {
     if (!supabase || !reference && !path) return;
-    const response = await authenticatedFetch("/api/admin/lesson-files", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ reference, path }) });
+    const response = await authenticatedFetch("/api/admin/lesson-files", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ reference, path, resourceId, courseId, lessonId, storage }) });
     const payload = await response.json().catch(() => null) as { error?: string } | null;
     if (!response.ok) throw new Error(payload?.error || "Không thể xóa file khỏi kho PDF.");
   }
@@ -3051,22 +3522,28 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
     const storedResource = table === "lesson_resources" ? resources.find(resource=>resource.id===id && resource.resource_type==="storage_pdf") : undefined;
     setSavingBuilder(true); setBuilderError(""); setBuilderNotice("");
     let deleted = false;
+    let storageDeleted = false;
     try {
+      if (storedResource) {
+        if (storedResource.resource_url.startsWith("r2://")) {
+          await deleteStoredLessonFile(storedResource.resource_url, "", storedResource.id, course.id, storedResource.lesson_id);
+          storageDeleted = true;
+        } else {
+          const marker = "/lesson-files/";
+          const markerIndex = storedResource.resource_url.indexOf(marker);
+          if (markerIndex >= 0) {
+            await deleteStoredLessonFile("", decodeURIComponent(storedResource.resource_url.slice(markerIndex + marker.length)), storedResource.id, course.id, storedResource.lesson_id);
+            storageDeleted = true;
+          }
+        }
+      }
       const { error } = await supabase.from(table).delete().eq("id", id);
       if (error) throw error;
       deleted = true;
-      if (storedResource) {
-        if (storedResource.resource_url.startsWith("r2://")) await deleteStoredLessonFile(storedResource.resource_url);
-        else {
-          const marker = "/lesson-files/";
-          const markerIndex = storedResource.resource_url.indexOf(marker);
-          if (markerIndex >= 0) await deleteStoredLessonFile("", decodeURIComponent(storedResource.resource_url.slice(markerIndex + marker.length)));
-        }
-      }
       setBuilderNotice(storedResource ? "Đã xóa tài liệu và file PDF khỏi kho." : "Đã xóa nội dung.");
     } catch (value) {
       const message = value instanceof Error ? value.message : "Không thể xóa nội dung.";
-      setBuilderError(deleted ? `${message} Bản ghi nội dung đã được xóa; file cần được dọn lại.` : message);
+      setBuilderError(deleted || storageDeleted ? `${message} ${deleted ? "Bản ghi nội dung đã được xóa; file cần được dọn lại." : "File đã được dọn; bản ghi nội dung chưa được xóa."}` : message);
     } finally {
       setSavingBuilder(false);
     }
@@ -3145,5 +3622,8 @@ function AdminCourseBuilder({ course, onBack, onChanged, onDeleted }: { course: 
   </section>;
 }
 
-function EmptyState({ icon: Icon, title, text, role, ariaLive, action }: { icon: IconComponent; title: string; text: string; role?: "status" | "alert"; ariaLive?: "polite" | "assertive"; action?: React.ReactNode }) { return <section className="empty-state" role={role} aria-live={ariaLive}><span><Icon aria-hidden="true" /></span><h2>{title}</h2><p>{text}</p>{action}</section>; }
+function EmptyState({ icon: Icon, headingLevel = 2, title, text, role, ariaLive, action }: { icon: IconComponent; headingLevel?: 1 | 2; title: string; text: string; role?: "status" | "alert"; ariaLive?: "polite" | "assertive"; action?: React.ReactNode }) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
+  return <section className="empty-state" role={role} aria-live={ariaLive}><span><Icon aria-hidden="true" /></span><Heading>{title}</Heading><p>{text}</p>{action}</section>;
+}
 function MiniEmpty({text}:{text:string}){return <div className="mini-empty"><ClipboardCheck/><p>{text}</p></div>}

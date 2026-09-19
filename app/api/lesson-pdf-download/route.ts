@@ -3,8 +3,9 @@ import { contentServer } from "../../../lib/content-server";
 import { verifyContentToken } from "../../../lib/content-token";
 import { guardResourceAccess } from "../../../lib/resource-access-server";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
-import { ensureActiveAccount } from "../../../lib/security-server";
+import { ensureActiveAccount, hashedRequestIp } from "../../../lib/security-server";
 import { loadPdfBytes } from "../../../lib/r2-server";
+import { createWatermarkTraceMarker, watermarkTraceSecret } from "../../../lib/watermark-trace";
 
 const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
@@ -25,7 +26,7 @@ function safeFilename(value: string) {
   return `${value.replace(/\.pdf$/i, "").replace(/[^a-zA-Z0-9._ -]+/g, "-").trim() || "tai-lieu"}-watermarked.pdf`;
 }
 
-async function addWatermark(source: Uint8Array, email: string, timestamp: string) {
+async function addWatermark(source: Uint8Array, email: string, timestamp: string, traceMarker?: string) {
   const pdf = await PDFDocument.load(source, { ignoreEncryption: true, updateMetadata: false });
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const mark = `${email} | ${timestamp} GMT+7`;
@@ -61,6 +62,12 @@ async function addWatermark(source: Uint8Array, email: string, timestamp: string
   }
 
   pdf.setProducer("AECK");
+  if (traceMarker) {
+    // Keep attribution out of the visible page while leaving a signed,
+    // metadata-level marker that survives normal PDF downloads.
+    pdf.setSubject(traceMarker);
+    pdf.setKeywords(["AECK", traceMarker]);
+  }
   pdf.setModificationDate(new Date());
   return pdf.save({ useObjectStreams: false });
 }
@@ -95,7 +102,21 @@ export async function POST(request: Request) {
   if (new TextDecoder().decode(source.slice(0, 5)) !== "%PDF-") return Response.json({ error: "Nguồn tải xuống không phải PDF hợp lệ." }, { status: 422 });
 
   try {
-    const output = await addWatermark(source, auth.user.email, downloadTimestamp());
+    const issuedAt = new Date().toISOString();
+    const traceSecret = watermarkTraceSecret();
+    let traceMarker: string | undefined;
+    if (traceSecret) {
+      const ipHash = await hashedRequestIp(request).catch(() => "");
+      if (ipHash) {
+        traceMarker = await createWatermarkTraceMarker({
+          userId: auth.user.id,
+          resourceId: payload.rid,
+          issuedAt,
+          ipHash,
+        }, traceSecret);
+      }
+    }
+    const output = await addWatermark(source, auth.user.email, downloadTimestamp(), traceMarker);
     const filename = safeFilename(resource.title);
     const body = output.buffer.slice(output.byteOffset, output.byteOffset + output.byteLength) as ArrayBuffer;
     return new Response(body, {

@@ -32,7 +32,7 @@ test("non-API inputs remain unchanged and only same-origin API paths are rewritt
 
 test("configured API origin accepts HTTP/HTTPS, strips path/query, and rejects unsafe schemes", async t => withEnvironment(t, { NEXT_PUBLIC_API_URL: "https://configured.synthetic.test/base?ignore=1" }, () => {
   assert.equal(apiRequestUrl("/api/health"), "https://configured.synthetic.test/api/health");
-  for (const value of ["javascript:alert(1)", "//external.synthetic.test", "not a URL", "ftp://configured.synthetic.test", "data:text/plain,wrong"]) {
+  for (const value of ["javascript:alert(1)", "//external.synthetic.test", "not a URL", "ftp://configured.synthetic.test", "data:text/plain,wrong", "https://server.aeck.vn", "https://api.aeck.vn/v2"]) {
     process.env.NEXT_PUBLIC_API_URL = value;
     assert.equal(apiRequestUrl("/api/health"), "/api/health", value);
   }

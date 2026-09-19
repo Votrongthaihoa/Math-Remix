@@ -35,7 +35,7 @@
     "test:e2e": "node scripts/run-playwright.mjs",
     "release:check": "npm run lint && npm test && npm audit --omit=dev --audit-level=high && npm run smoke:worker && npm run test:e2e",
     "deploy:check": "node scripts/deploy-readiness-check.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern playwright-report --ignore-pattern test-results --ignore-pattern .wrangler",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { normalizeExamType } from "../../../../lib/exam-config";
 import { normalizeGuestSettings } from "../../../../lib/guest-exam-server";
@@ -9,10 +9,7 @@ import { runExamPreflight } from "../../../../lib/exam-preflight-server";
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }) };
-  return security;
+  return ensureAdminPermission(request, "exams");
 }
 function errorResponse(message: string, status = 400) { return Response.json({ error: message }, { status, headers }); }
 function asRecord(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
@@ -110,20 +107,12 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "preflight") {
-    const sections = (await security.admin.from("exam_sections").select("id,title,duration_minutes,sort_order").eq("exam_id", examId).order("sort_order")).data ?? [];
-    const questions = sections.length ? (await security.admin.from("exam_questions").select("id,section_id,prompt,question_type,options,media_url,points,latex_source").in("section_id", sections.map(section => section.id))).data ?? [] : [];
-    const keys = questions.length ? (await security.admin.from("exam_question_keys").select("question_id,correct_answer").in("question_id", questions.map(question => question.id))).data ?? [] : [];
-    const keyIds = new Set(keys.map(key => key.question_id));
-    const checks = [
-      { code: "questions", level: questions.length ? "pass" : "error", message: questions.length ? `${questions.length} câu hỏi đã sẵn sàng.` : "Đề chưa có câu hỏi." },
-      { code: "answer_keys", level: questions.every(question => keyIds.has(question.id)) ? "pass" : "error", message: `${questions.filter(question => !keyIds.has(question.id)).length} câu chưa có đáp án.` },
-      { code: "points", level: questions.every(question => Number(question.points) >= 0) ? "pass" : "error", message: "Điểm câu hỏi hợp lệ." },
-      { code: "media", level: questions.some(question => question.media_url) ? "pass" : "warning", message: "Kiểm tra media theo từng câu nếu đề có hình." },
-      { code: "sections", level: sections.length ? "pass" : "error", message: sections.length ? `${sections.length} phần thi.` : "Đề chưa có phần thi." },
-      { code: "policy", level: "pass", message: "Exam Policy đã được chuẩn hóa." },
-    ];
-    const errors = checks.filter(check => check.level === "error");
-    return Response.json({ status: errors.length ? "error" : checks.some(check => check.level === "warning") ? "warning" : "pass", checks, canPublish: errors.length === 0 }, { headers });
+    try {
+      const preflight = await runExamPreflight(security.admin, examId);
+      return Response.json({ ...preflight, checks: [...preflight.checks, { code: "policy", level: "pass", message: "Exam Policy đã được chuẩn hóa." }] }, { headers });
+    } catch (value) {
+      return errorResponse(value instanceof Error ? `Không thể kiểm tra preflight: ${value.message}` : "Không thể kiểm tra preflight của đề.", 503);
+    }
   }
 
   if (body.action === "save_preset") {

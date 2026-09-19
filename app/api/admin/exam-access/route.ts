@@ -1,4 +1,4 @@
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 import {
   GUEST_SLOT_SELECT, hashGuestPassword, isGuestExportWindowValid, normalizeGuestSettings, randomGuestLinkToken, sha256,
   type GuestExamSettings,
@@ -21,10 +21,7 @@ function guestShareUrl(request: Request, token: string) {
 }
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }) };
-  return security;
+  return ensureAdminPermission(request, "exams");
 }
 
 function asDate(value: unknown) {

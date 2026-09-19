@@ -2,9 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { hlsOriginPath, hlsVaultFolderPath, hlsVideoId } from "./hls-vault.ts";
 import { hlsUploadContentType, hlsUploadPath, MAX_HLS_UPLOAD_BYTES } from "./hls-upload.ts";
 import { encodeMicrosoftSharingUrl, parseMicrosoftShareUrl, type MicrosoftShareProvider } from "./microsoft-share-url.ts";
+import { adminPermissionUserFromMetadata, canAccessAdminPermission } from "./admin-permissions.ts";
 
 const GRAPH_ROOT = "https://graph.microsoft.com/v1.0";
-const DEFAULT_REDIRECT_URI = "https://www.mathremix.pro.vn/api/admin/microsoft/callback";
+export const DEFAULT_MICROSOFT_REDIRECT_URI = "https://www.mathremix.pro.vn/api/admin/microsoft/callback";
 const CONNECTION_ID = 1;
 const TOKEN_REFRESH_SKEW_MS = 2 * 60 * 1000;
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
@@ -107,6 +108,22 @@ function base64UrlToBytes(value: string) {
   return Uint8Array.from(binary, character => character.charCodeAt(0));
 }
 
+export function microsoftGraphConfigurationReady() {
+  const tenantId = process.env.MICROSOFT_TENANT_ID?.trim() ?? "";
+  const clientId = process.env.MICROSOFT_CLIENT_ID?.trim() ?? "";
+  const clientSecret = process.env.MICROSOFT_CLIENT_SECRET?.trim() ?? "";
+  const keyValue = process.env.MICROSOFT_TOKEN_ENCRYPTION_KEY?.trim() ?? "";
+  const redirectUri = process.env.MICROSOFT_REDIRECT_URI?.trim() || DEFAULT_MICROSOFT_REDIRECT_URI;
+  if (!tenantId || !clientId || !clientSecret || !keyValue || !/^[A-Za-z0-9_-]+$/.test(keyValue) || keyValue.length % 4 === 1) return false;
+  try {
+    const parsedRedirect = new URL(redirectUri);
+    if (parsedRedirect.protocol !== "https:" || parsedRedirect.username || parsedRedirect.password) return false;
+    return base64UrlToBytes(keyValue).byteLength === 32;
+  } catch {
+    return false;
+  }
+}
+
 function randomBase64Url(byteLength: number) {
   const bytes = new Uint8Array(byteLength);
   crypto.getRandomValues(bytes);
@@ -126,7 +143,7 @@ async function config(): Promise<MicrosoftConfig> {
   const clientId = process.env.MICROSOFT_CLIENT_ID?.trim() ?? "";
   const clientSecret = process.env.MICROSOFT_CLIENT_SECRET?.trim() ?? "";
   const keyValue = process.env.MICROSOFT_TOKEN_ENCRYPTION_KEY?.trim() ?? "";
-  const redirectUri = process.env.MICROSOFT_REDIRECT_URI?.trim() || DEFAULT_REDIRECT_URI;
+  const redirectUri = process.env.MICROSOFT_REDIRECT_URI?.trim() || DEFAULT_MICROSOFT_REDIRECT_URI;
   if (!tenantId || !clientId || !clientSecret || !keyValue) {
     throw new MicrosoftGraphError("Máy chủ Microsoft Graph chưa được cấu hình đầy đủ.", 503, "MICROSOFT_CONFIGURATION_REQUIRED");
   }
@@ -370,13 +387,25 @@ export async function uploadMicrosoftGraphHlsFile(videoId: string, relativePath:
   return { path, size: bytes.byteLength, uploaded: true as const };
 }
 
-export async function completeMicrosoftAuthorization(admin: SupabaseClient, code: string, stateValue: string, fetcher: typeof fetch = fetch) {
-  const settings = await config();
-  const state = await readOAuthState(stateValue, settings);
-  const { data: profile } = await admin.from("profiles").select("id,role,status,account_status").eq("id", state.connectedBy).maybeSingle();
+async function assertMicrosoftConnectionPermission(admin: SupabaseClient, connectedBy: string) {
+  const [{ data: profile }, { data: authUserData, error: authUserError }] = await Promise.all([
+    admin.from("profiles").select("id,role,status,account_status").eq("id", connectedBy).maybeSingle(),
+    admin.auth.admin.getUserById(connectedBy),
+  ]);
   if (!profile || profile.role !== "admin" || profile.status !== "active" || profile.account_status !== "active") {
     throw new MicrosoftGraphError("Tài khoản khởi tạo kết nối không còn quyền quản trị hoạt động.", 403, "MICROSOFT_ADMIN_REQUIRED");
   }
+  const authUser = authUserData?.user;
+  const permissionUser = adminPermissionUserFromMetadata(profile.role, authUser?.app_metadata);
+  if (authUserError || authUser?.id !== connectedBy || !canAccessAdminPermission(permissionUser, "courses")) {
+    throw new MicrosoftGraphError("Tài khoản khởi tạo kết nối không còn quyền quản lý khóa học.", 403, "MICROSOFT_COURSES_PERMISSION_REQUIRED");
+  }
+}
+
+export async function completeMicrosoftAuthorization(admin: SupabaseClient, code: string, stateValue: string, fetcher: typeof fetch = fetch) {
+  const settings = await config();
+  const state = await readOAuthState(stateValue, settings);
+  await assertMicrosoftConnectionPermission(admin, state.connectedBy);
   const token = await tokenRequest(settings, {
     grant_type: "authorization_code",
     code,
@@ -391,6 +420,10 @@ export async function completeMicrosoftAuthorization(admin: SupabaseClient, code
   });
   const me = await meResponse.json().catch(() => ({})) as { id?: string; userPrincipalName?: string; mail?: string };
   if (!meResponse.ok || !me.id) throw new MicrosoftGraphError("Không thể đọc danh tính tài khoản Microsoft đã kết nối.", 502, "MICROSOFT_IDENTITY_FAILED");
+  // The OAuth round trip and Graph lookup are network operations. Re-check
+  // the Auth-owned claim immediately before persisting long-lived tokens so a
+  // permission revocation during those calls still wins.
+  await assertMicrosoftConnectionPermission(admin, state.connectedBy);
   const now = new Date().toISOString();
   const { error } = await admin.from("microsoft_graph_connections").upsert({
     id: CONNECTION_ID,

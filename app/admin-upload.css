@@ -163,6 +163,10 @@
   gap: 14px;
 }
 
+.admin-upload-stats-public-only {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .admin-upload-stat-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -677,6 +681,14 @@
 
 .admin-upload-library-status svg:not(.admin-upload-spin) { color: #319260; }
 
+.admin-upload-library-status.is-error {
+  color: #a03a45;
+}
+
+.admin-upload-library-status.is-error svg {
+  color: #b4232e;
+}
+
 .admin-upload-skeleton-grid,
 .admin-upload-grid {
   display: grid;
@@ -702,6 +714,10 @@
 
 .admin-upload-private-error {
   margin: 0 0 13px;
+}
+
+.admin-upload-private-load-error {
+  margin-bottom: 16px;
 }
 
 .admin-upload-private-preview {

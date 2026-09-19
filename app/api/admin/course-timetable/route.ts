@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
+import { hashedRequestIp } from "../../../../lib/security-server";
 import {
   boundedDateRange,
   courseTimetableHeaders,
@@ -28,10 +29,7 @@ type LiveEventMutation = {
 };
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") return { ok: false as const, response: errorResponse("Bạn không có quyền quản trị.", 403) };
-  return security;
+  return ensureAdminPermission(request, "tkb");
 }
 
 async function mutationBudget(request: Request, security: Awaited<ReturnType<typeof adminRequest>>) {

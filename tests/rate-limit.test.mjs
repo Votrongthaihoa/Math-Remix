@@ -150,18 +150,17 @@ budgetTest("concurrent requests for the same scope each consume an RPC decision"
   assert.deepEqual(decisions.map(decision => decision.retryAfterSeconds), [1, 1, 10, 10, 10]);
 });
 
-// Executed TODOs document defects without modifying production in this task.
 budgetTest("permission error mentioning the RPC is not a missing migration", async ({ consumeRequestBudget }) => {
   const client = fakeRpc({ data: null, error: { code: "42501", message: "permission denied for function consume_request_budget" } });
   assert.deepEqual(await consumeRequestBudget(client, "guest_start", subjectHash, options), closed);
-}, { todo: "Broad missing-function regex currently degrades on permission errors." });
+});
 
 budgetTest("unrelated schema-cache error must not allow requests", async ({ consumeRequestBudget }) => {
   const client = fakeRpc({ data: null, error: { code: "XX000", message: "schema cache unavailable due to database failure" } });
   assert.deepEqual(await consumeRequestBudget(client, "guest_start", subjectHash, options), closed);
-}, { todo: "Broad schema-cache regex currently treats an outage as a missing migration." });
+});
 
 budgetTest("non-finite denial count must produce a finite safe value", async ({ consumeRequestBudget }) => {
   const client = fakeRpc(successful({ allowed: false, denials_last_minute: Infinity }));
   assert.equal(Number.isFinite((await consumeRequestBudget(client, "guest_submit", subjectHash, options)).denialsLastMinute), true);
-}, { todo: "Positive Infinity currently escapes numeric normalization." });
+});

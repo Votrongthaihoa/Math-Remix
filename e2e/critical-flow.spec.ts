@@ -64,7 +64,6 @@ test("synthetic restored student cannot enter the admin surface or issue admin r
 
 test("public teacher dialog opens with keyboard and restores focus on Escape", async ({ page }) => {
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
   const trigger = page.getByRole("button", { name: "Xem thông tin Thầy Vũ Gia Khoa", exact: true });
   await expect(trigger).toBeVisible();
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -82,7 +81,6 @@ test("public teacher dialog opens with keyboard and restores focus on Escape", a
 test("public mobile menu traps keyboard focus and restores its trigger", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
   const trigger = page.getByRole("button", { name: "Mở menu", exact: true });
   await expect(trigger).toBeVisible();
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -103,12 +101,15 @@ test("public mobile menu traps keyboard focus and restores its trigger", async (
 });
 
 test("outbound-network guard aborts and records a forbidden synthetic request", async ({ page, boundary }) => {
-  const target = "https://blocked-public-fixture.invalid/never-send";
+  // Keep the self-test on a connect-src origin so the browser reaches the
+  // Playwright boundary handler; the handler still aborts it before any
+  // backend can observe the request.
+  const target = "https://api.mathremix.pro.vn/never-send";
   boundary.expectedBlocked.push(target);
   await page.goto("/");
   const outcome = await page.evaluate(async url => {
     try { await fetch(url); return "unexpected-success"; } catch { return "blocked"; }
   }, target);
   expect(outcome).toBe("blocked");
-  expect(boundary.blocked).toEqual([{ method: "GET", origin: "https://blocked-public-fixture.invalid", pathname: "/never-send", kind: "fetch" }]);
+  expect(boundary.blocked).toEqual([{ method: "GET", origin: "https://api.mathremix.pro.vn", pathname: "/never-send", kind: "fetch" }]);
 });

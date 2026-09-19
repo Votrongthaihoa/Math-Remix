@@ -1091,15 +1091,48 @@
   white-space: nowrap;
 }
 
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-curriculum-error {
+  margin: 0;
+  padding: 20px 16px;
+  color: var(--study-muted);
+  font-size: 13px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-error-copy {
+  min-width: 0;
+  max-width: min(100%, 42rem);
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-error-title {
+  margin: 0 0 8px;
+  color: var(--study-ink);
+  font-size: clamp(18px, 2.4vw, 24px);
+  font-weight: 750;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-error-copy h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-error-copy p {
+  overflow-wrap: anywhere;
+}
+
+.app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .lesson-resource-choice-copy b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) :where(.study-mobile-menu, .study-curriculum-trigger, .curriculum-panel-close, .study-lesson-navigation a, .lesson-curriculum-list summary, .curriculum-lesson-title, .curriculum-resource):focus-visible {
   outline: 2px solid var(--study-accent);
   outline-offset: 2px;
-}
-
-@media (min-width: 768px) {
-  .app-shell.ui-shell.student-app.product-shell.study-mode:not(.protected-exam-surface) .study-lesson-context {
-    display: none;
-  }
 }
 
 @media (min-width: 1200px) {

@@ -278,13 +278,13 @@ test("manifest URI percent text stays encoded as a literal filename, never an un
   }
 });
 
-test.todo("an upstream non-HLS document must not be returned as a successful rewritten manifest", async t => {
+test("an upstream non-HLS document must not be returned as a successful rewritten manifest", async t => {
   const h = await harness(t);
   h.upstream.respond = async () => new Response("<html>upstream maintenance</html>", { headers: { "content-type": "text/html" } });
   assert.equal((await h.get()).status, 502);
 });
 
-test.todo("HLS upstream fetch must have a cancellation/deadline signal", async t => {
+test("HLS upstream fetch must have a cancellation/deadline signal", async t => {
   const h = await harness(t);
   await h.get();
   const init = h.calls.find(([name]) => name === "fetch")[2];

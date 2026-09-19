@@ -1,15 +1,22 @@
 const PRODUCTION_API_ORIGIN = "https://api.mathremix.pro.vn";
 
-function configuredApiOrigin() {
-  const value = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!value) return "";
+function parseOrigin(value: string | undefined) {
+  if (!value?.trim()) return "";
   try {
     const url = new URL(value);
     if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    // The old AECK API host is not part of this deployment. Treating it as
+    // an invalid configuration prevents a stale environment variable from
+    // sending browser traffic to the retired backend.
+    if (url.hostname === "aeck.vn" || url.hostname.endsWith(".aeck.vn")) return "";
     return url.origin;
   } catch {
     return "";
   }
+}
+
+function configuredApiOrigin() {
+  return parseOrigin(process.env.NEXT_PUBLIC_API_URL);
 }
 
 function productionBrowserApiOrigin() {

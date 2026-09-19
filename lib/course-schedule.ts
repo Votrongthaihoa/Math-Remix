@@ -85,6 +85,11 @@ function toUtcIso(value: { year: number; month: number; day: number; hour: numbe
   return new Date(utcMs).toISOString();
 }
 
+export function normalizeWeekdays(value: unknown): number[] {
+  return [...new Set((Array.isArray(value) ? value : []).filter(item => Number.isInteger(item) && item >= 1 && item <= 7))]
+    .sort((left, right) => left - right);
+}
+
 function orderedLessons(lessons: ScheduleLesson[], selectedIds?: string[]) {
   const selected = selectedIds?.length ? new Set(selectedIds) : null;
   if (selected) {
@@ -105,7 +110,7 @@ export function generateLessonSchedule(
 ): GeneratedLessonEvent[] {
   const startDate = assertDate(input.startDate);
   const startTime = assertTime(input.startTime);
-  const weekdays = [...new Set(input.weekdays)].filter(value => Number.isInteger(value) && value >= 1 && value <= 7).sort((left, right) => left - right);
+  const weekdays = normalizeWeekdays(input.weekdays);
   if (!weekdays.length) throw new Error("Hãy chọn ít nhất một ngày học trong tuần.");
   if (!Number.isInteger(input.durationMinutes) || input.durationMinutes < 5 || input.durationMinutes > 24 * 60) {
     throw new Error("Thời lượng mỗi buổi phải từ 5 đến 1.440 phút.");

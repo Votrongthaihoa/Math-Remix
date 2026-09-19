@@ -1,14 +1,14 @@
 import { jsonBodyError, readJsonBody } from "../../../../../lib/http-server";
 import { createMicrosoftAuthorizationUrl, microsoftConnectionStatus, MicrosoftGraphError } from "../../../../../lib/microsoft-graph-server";
 import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../../lib/admin-authorization-server";
+import { hashedRequestIp } from "../../../../../lib/security-server";
 
 const noStore = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
 async function getAdmin(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "courses");
   if (!security.ok) return { error: security.response };
-  if (security.profile.role !== "admin") return { error: Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore }) };
   return { admin: security.admin, user: security.user };
 }
 

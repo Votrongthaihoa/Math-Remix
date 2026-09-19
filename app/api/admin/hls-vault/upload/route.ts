@@ -1,16 +1,16 @@
-import { jsonBodyError, readJsonBody } from "../../../../../lib/http-server";
+import { jsonBodyError, MULTIPART_OVERHEAD_BYTES, readJsonBody, readMultipartFormData } from "../../../../../lib/http-server";
 import { ensureMicrosoftGraphHlsFolders, MicrosoftGraphError, uploadMicrosoftGraphHlsFile } from "../../../../../lib/microsoft-graph-server";
 import { hlsUploadPath, HLS_UPLOAD_RATE_LIMIT, MAX_HLS_UPLOAD_BYTES } from "../../../../../lib/hls-upload";
 import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../../lib/admin-authorization-server";
+import { hashedRequestIp } from "../../../../../lib/security-server";
 
 const noStore = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 const videoIdPattern = /^[A-Za-z0-9_-]{1,80}$/;
 
 async function getAdmin(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "courses");
   if (!security.ok) return { error: security.response };
-  if (security.profile.role !== "admin") return { error: Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore }) };
   return { admin: security.admin, user: security.user };
 }
 
@@ -36,8 +36,9 @@ export async function POST(request: Request) {
 
   const contentType = request.headers.get("content-type") || "";
   if (contentType.toLowerCase().includes("multipart/form-data")) {
-    const form = await request.formData().catch(() => null);
-    if (!form) return Response.json({ error: "Dữ liệu file HLS không hợp lệ." }, { status: 400, headers: noStore });
+    const multipart = await readMultipartFormData(request, MAX_HLS_UPLOAD_BYTES + MULTIPART_OVERHEAD_BYTES);
+    if (!multipart.ok) return Response.json({ error: multipart.error === "payload_too_large" ? "File HLS vượt quá giới hạn tải lên." : "Dữ liệu file HLS không hợp lệ." }, { status: multipart.error === "payload_too_large" ? 413 : 400, headers: noStore });
+    const form = multipart.form;
     const videoId = String(form.get("videoId") || "").trim();
     const relativePath = String(form.get("path") || "").trim();
     const file = form.get("file");

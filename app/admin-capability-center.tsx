@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -42,6 +42,7 @@ import {
   AeckStatCard,
 } from "./aeck-ui";
 import type { AdminLegacyModule } from "./admin-route-map";
+import AdminWatermarkTrace from "./admin-watermark-trace";
 import "./admin-capability-center.css";
 
 type CapabilityState = "ready" | "mapped" | "blocked";
@@ -211,7 +212,7 @@ const capabilities: readonly Capability[] = [
     description: "Lớp học, buổi học, điểm danh, tài liệu và recording.",
     state: "blocked",
     icon: Video,
-    detail: "Reference iLearn nằm trên server.aeck.vn/api/v2 và yêu cầu legacy JWT. Repo hiện không có token exchange hoặc bảng class/session/attendance.",
+    detail: "Reference iLearn yêu cầu legacy JWT và contract riêng. Repo hiện không có token exchange hoặc bảng class/session/attendance.",
     contract: ["/ilearn/admin/classes", "/ilearn/admin/sessions", "/ilearn/admin/sessions/:id/attendance"],
   },
   {
@@ -228,12 +229,12 @@ const capabilities: readonly Capability[] = [
     id: "watermark",
     group: "Hệ thống",
     title: "Truy vết tài liệu",
-    description: "Watermark PDF khi tải và bảo vệ tài nguyên bài học.",
-    state: "mapped",
+    description: "Đọc marker watermark ký trong PDF để đối chiếu tài khoản đã tải tài liệu.",
+    state: "ready",
     icon: KeyRound,
     path: "/admin/capabilities?module=watermark",
-    detail: "Watermark đang được áp dụng tại lesson-pdf-download và bảo vệ tài nguyên server-side. Repo chưa có bảng trace riêng để hiển thị lịch sử tài liệu như legacy.",
-    contract: ["POST /api/lesson-pdf-download", "GET /api/resource-content"],
+    detail: "PDF tải xuống được đóng watermark hiển thị và marker metadata ký HMAC. Trace chỉ trả attribution khi chữ ký hợp lệ; ảnh chụp hoặc marker bị sửa sẽ không bị suy đoán. IP chỉ được giữ dưới dạng hash.",
+    contract: ["POST /api/lesson-pdf-download", "POST /api/admin/watermark-trace", "GET /api/resource-content"],
   },
   {
     id: "server-health",
@@ -276,20 +277,41 @@ function healthStatusTone(status: HealthCheck["status"]) {
   return status === "healthy" ? "success" : status === "degraded" ? "warning" : "neutral";
 }
 
+function aggregateHealthStatusText(status: HealthPayload["status"] | undefined) {
+  if (status === "healthy") return "Đã sẵn sàng";
+  if (status === "degraded") return "Có phần cần kiểm tra";
+  return "Chưa có dữ liệu";
+}
+
+function aggregateHealthStatusTone(status: HealthPayload["status"] | undefined) {
+  return status === "healthy" ? "success" : status === "degraded" ? "warning" : "neutral";
+}
+
 function validModule(value: string | null): value is AdminLegacyModule {
   return Boolean(value && capabilityById.has(value as AdminLegacyModule));
 }
 
-export default function AdminCapabilityCenter({ initialModule = null }: { initialModule?: AdminLegacyModule | null }) {
+export default function AdminCapabilityCenter({
+  initialModule = null,
+  canInspectServerHealth,
+}: {
+  initialModule?: AdminLegacyModule | null;
+  canInspectServerHealth: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedModule = searchParams.get("module");
-  const selectedId = validModule(requestedModule) ? requestedModule : initialModule;
+  const visibleCapabilities = useMemo(() => canInspectServerHealth
+    ? capabilities
+    : capabilities.filter(capability => capability.id !== "server-health"), [canInspectServerHealth]);
+  const selectedIdCandidate = validModule(requestedModule) ? requestedModule : initialModule;
+  const selectedId = selectedIdCandidate === "server-health" && !canInspectServerHealth ? null : selectedIdCandidate;
   const selected = selectedId ? capabilityById.get(selectedId) ?? null : null;
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
   const [healthError, setHealthError] = useState("");
+  const healthAbortControllerRef = useRef<AbortController | null>(null);
 
   const selectModule = useCallback((id: AdminLegacyModule | null) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -299,30 +321,43 @@ export default function AdminCapabilityCenter({ initialModule = null }: { initia
   }, [pathname, router, searchParams]);
 
   const loadHealth = useCallback(async () => {
+    healthAbortControllerRef.current?.abort();
+    const controller = new AbortController();
+    healthAbortControllerRef.current = controller;
     setHealthLoading(true);
     setHealthError("");
     try {
-      const response = await authenticatedFetch("/api/admin/server-health", { cache: "no-store" });
+      const response = await authenticatedFetch("/api/admin/server-health", { cache: "no-store", signal: controller.signal });
       const payload = await response.json().catch(() => null) as HealthPayload | null;
       if (!response.ok) throw new Error(payload?.error ?? "Không thể kiểm tra sức khỏe server.");
+      if (controller.signal.aborted || healthAbortControllerRef.current !== controller) return;
       setHealth(payload);
     } catch (value) {
+      if (controller.signal.aborted || healthAbortControllerRef.current !== controller) return;
       setHealthError(value instanceof Error ? value.message : "Không thể kiểm tra sức khỏe server.");
     } finally {
-      setHealthLoading(false);
+      if (healthAbortControllerRef.current === controller) {
+        healthAbortControllerRef.current = null;
+        setHealthLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
     if (selected?.id !== "server-health") return;
     const frame = window.requestAnimationFrame(() => void loadHealth());
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      healthAbortControllerRef.current?.abort();
+      healthAbortControllerRef.current = null;
+      setHealthLoading(false);
+    };
   }, [loadHealth, selected?.id]);
 
-  const counts = useMemo(() => capabilities.reduce((result, capability) => {
+  const counts = useMemo(() => visibleCapabilities.reduce((result, capability) => {
     result[capability.state] += 1;
     return result;
-  }, { ready: 0, mapped: 0, blocked: 0 }), []);
+  }, { ready: 0, mapped: 0, blocked: 0 }), [visibleCapabilities]);
 
   return (
     <div className="admin-capability-center">
@@ -337,7 +372,7 @@ export default function AdminCapabilityCenter({ initialModule = null }: { initia
         <AeckStatCard label="Đang hoạt động" value={counts.ready} detail="Có API và flow trong repo" icon={<CheckCircle2 aria-hidden="true" />} tone="success" />
         <AeckStatCard label="Đã ánh xạ" value={counts.mapped} detail="Có flow tương đương, khác mô hình reference" icon={<Link2 aria-hidden="true" />} tone="info" />
         <AeckStatCard label="Chưa kết nối" value={counts.blocked} detail="Cần schema hoặc legacy auth" icon={<CircleAlert aria-hidden="true" />} tone="warning" />
-        <AeckStatCard label="Tổng nhóm" value={capabilities.length} detail="Không tạo menu giả" icon={<Boxes aria-hidden="true" />} tone="neutral" />
+        <AeckStatCard label="Tổng nhóm" value={visibleCapabilities.length} detail="Không tạo menu giả" icon={<Boxes aria-hidden="true" />} tone="neutral" />
       </div>
 
       <div className="admin-capability-layout">
@@ -346,7 +381,7 @@ export default function AdminCapabilityCenter({ initialModule = null }: { initia
             <Gauge aria-hidden="true" /><span><b>Tổng quan</b><small>Ma trận parity</small></span>
           </button>
           {capabilityGroups.map(group => {
-            const items = capabilities.filter(capability => capability.group === group);
+            const items = visibleCapabilities.filter(capability => capability.group === group);
             return <div className="admin-capability-index-group" key={group}>
               <h2>{group}</h2>
               {items.map(capability => <button type="button" key={capability.id} className={selected?.id === capability.id ? "is-selected" : undefined} aria-current={selected?.id === capability.id ? "page" : undefined} onClick={() => selectModule(capability.id)}>
@@ -359,7 +394,7 @@ export default function AdminCapabilityCenter({ initialModule = null }: { initia
         {!selected ? <section className="admin-capability-overview" aria-labelledby="admin-capability-overview-title">
           <AeckSectionHeader id="admin-capability-overview-title" title="Ma trận chức năng" description="Chọn một nhóm để xem contract, flow tương đương và điểm còn thiếu." />
           <div className="admin-capability-grid">
-            {capabilities.map(capability => <CapabilityCard key={capability.id} capability={capability} onSelect={() => selectModule(capability.id)} />)}
+            {visibleCapabilities.map(capability => <CapabilityCard key={capability.id} capability={capability} onSelect={() => selectModule(capability.id)} />)}
           </div>
           <AeckEmptyState icon={<ShieldCheck aria-hidden="true" />} title="Nguyên tắc tích hợp" description="Những module cần legacy JWT hoặc schema mới được giữ ở trạng thái chưa kết nối cho đến khi có contract/auth được xác nhận. Các flow hiện tại vẫn mở qua điều hướng chuẩn." />
         </section> : <CapabilityDetail capability={selected} health={health} healthLoading={healthLoading} healthError={healthError} onRetryHealth={() => void loadHealth()} onBack={() => selectModule(null)} />}
@@ -396,6 +431,7 @@ function CapabilityDetail({ capability, health, healthLoading, healthError, onRe
       {capability.path && capability.id !== "server-health" ? <Link className="aeck-button aeck-button-primary" href={capability.path}>Mở flow hiện tại <ArrowUpRight aria-hidden="true" /></Link> : null}
     </AeckCard>
     {isHealth ? <HealthPanel health={health} loading={healthLoading} error={healthError} onRetry={onRetryHealth} /> : null}
+    {capability.id === "watermark" ? <AdminWatermarkTrace /> : null}
   </section>;
 }
 
@@ -405,7 +441,7 @@ function HealthPanel({ health, loading, error, onRetry }: { health: HealthPayloa
   const checks = health?.checks ?? [];
   const integrations = health?.integrations ?? [];
   return <AeckCard className="admin-health-panel" aria-live="polite">
-    <AeckSectionHeader title="Tình trạng dịch vụ" description={health?.checkedAt ? `Kiểm tra lúc ${formatUiDateTime(health.checkedAt)} · ${health.latencyMs ?? 0} ms` : "Chưa có lần kiểm tra thành công"} actions={<AeckButton size="sm" onClick={onRetry} disabled={loading}><RefreshCw aria-hidden="true" />{loading ? "Đang kiểm tra…" : "Kiểm tra lại"}</AeckButton>} />
+    <AeckSectionHeader title="Tình trạng dịch vụ" description={health?.checkedAt ? `Kiểm tra lúc ${formatUiDateTime(health.checkedAt)} · ${health.latencyMs ?? 0} ms` : "Chưa có lần kiểm tra thành công"} actions={<div className="admin-health-actions"><AeckBadge tone={aggregateHealthStatusTone(health?.status)}>{aggregateHealthStatusText(health?.status)}</AeckBadge><AeckButton size="sm" onClick={onRetry} disabled={loading}><RefreshCw aria-hidden="true" />{loading ? "Đang kiểm tra…" : "Kiểm tra lại"}</AeckButton></div>} />
     {error ? <p className="admin-health-inline-error" role="alert"><CircleAlert aria-hidden="true" />{error}</p> : null}
     <div className="admin-health-check-list">{checks.map(check => <div className="admin-health-check" key={check.id}><span className={`admin-health-check-icon status-${check.status}`} aria-hidden="true">{check.status === "healthy" ? <CheckCircle2 /> : check.status === "degraded" ? <CircleAlert /> : <XCircle />}</span><span><b>{check.label}</b><small>{check.detail}</small></span><AeckBadge tone={healthStatusTone(check.status)}>{healthStatusText(check.status)}{typeof check.durationMs === "number" ? ` · ${check.durationMs} ms` : ""}</AeckBadge></div>)}</div>
     {integrations.length ? <div className="admin-health-integrations"><h3>Integration runtime</h3>{integrations.map(integration => <div className="admin-health-integration" key={integration.id}><span className={integration.configured ? "is-configured" : "is-missing"} aria-hidden="true" /> <span><b>{integration.label}</b><small>{integration.detail}</small></span><span>{integration.configured ? "Đã cấu hình" : "Chưa cấu hình"}</span></div>)}</div> : null}

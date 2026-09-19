@@ -36,7 +36,8 @@ export async function consumeRequestBudget(
   });
   if (error) {
     const detail = `${error.code ?? ""} ${error.message ?? ""}`;
-    const missingFunction = /PGRST202|consume_request_budget|schema cache|function.+does not exist/i.test(detail);
+    const missingFunction = String(error.code ?? "").toUpperCase() === "PGRST202"
+      || /function\s+(?:[\w".]+\.)?consume_request_budget(?:\([^)]*\))?\s+does not exist/i.test(detail);
     if (missingFunction && process.env.RATE_LIMIT_REQUIRE_DB !== "1") {
       if (!missingMigrationWarningShown) {
         missingMigrationWarningShown = true;
@@ -47,10 +48,11 @@ export async function consumeRequestBudget(
     return { allowed: false, retryAfterSeconds: 60, ready: false, denialsLastMinute: 0 };
   }
   const row = (Array.isArray(data) ? data[0] : data) as RateLimitRow | undefined;
+  const denialCount = Number(row?.denials_last_minute);
   return {
     allowed: row?.allowed === true,
     retryAfterSeconds: Math.max(1, Math.min(3600, Number(row?.retry_after_seconds) || 1)),
     ready: true,
-    denialsLastMinute: Math.max(0, Number(row?.denials_last_minute) || 0),
+    denialsLastMinute: Number.isFinite(denialCount) ? Math.max(0, denialCount) : 0,
   };
 }

@@ -92,6 +92,7 @@ function defaultDateRange(): DateRange {
 
 function offsetInputDate(value: string, days: number) {
   const date = new Date(`${value}T12:00:00`);
+  if (!Number.isFinite(date.getTime())) return "";
   date.setDate(date.getDate() + days);
   return dateInput(date);
 }
@@ -278,7 +279,7 @@ export default function AdminCourseTimetable() {
     <div className="admin-course-timetable-filters">
       <label>Khóa học<select value={courseId} onChange={event => setCourseId(event.target.value)}><option value="">Tất cả khóa học</option>{courses.map(course => <option key={course.id} value={course.id}>{course.title}{course.published ? "" : " — Bản nháp"}</option>)}</select></label>
       <label>Từ ngày<input type="date" value={range.from} max={range.to} onChange={event => setRange(current => ({ ...current, from: event.target.value }))} /></label>
-      <label>Đến ngày<input type="date" value={range.to} min={range.from} max={latestRangeEnd} onChange={event => setRange(current => ({ ...current, to: event.target.value }))} /></label>
+      <label>Đến ngày<input type="date" value={range.to} min={range.from || undefined} max={latestRangeEnd || undefined} onChange={event => setRange(current => ({ ...current, to: event.target.value }))} /></label>
     </div>
     {error ? <p className="admin-timetable-page-error" role="alert"><CircleAlert aria-hidden="true" />{error}</p> : null}
     {notice ? <p className="admin-timetable-notice" role="status"><CheckCircle2 aria-hidden="true" />{notice}<button type="button" aria-label="Đóng thông báo" onClick={() => setNotice("")}>×</button></p> : null}

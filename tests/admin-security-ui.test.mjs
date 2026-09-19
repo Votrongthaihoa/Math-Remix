@@ -87,6 +87,49 @@ test("admin security email search stays inside the server-side Auth admin bounda
   assert.doesNotMatch(page, /auth\.admin|service_role|SUPABASE_SERVICE_ROLE/);
 });
 
+test("admin security list budgets requests and refuses incomplete email scans", async () => {
+  const route = await readFile(new URL("../app/api/admin/security/route.ts", import.meta.url), "utf8");
+  const getHandler = route.slice(route.indexOf("export async function GET"), route.indexOf("type AdminAction"));
+
+  assert.match(getHandler, /hashedRequestIp\(request\)/);
+  assert.match(getHandler, /consumeRequestBudget\(admin, "admin-security-list", `\$\{user\.id\}:\$\{ipHash\}`/);
+  assert.match(getHandler, /capacity: 30, refillSeconds: 2/);
+  assert.ok(getHandler.indexOf("consumeRequestBudget") < getHandler.indexOf('if (q.includes("@"))'));
+  assert.match(getHandler, /status: 429/);
+  assert.match(getHandler, /retry-after/);
+  assert.match(getHandler, /SECURITY_CONFIGURATION_REQUIRED/);
+  assert.match(route, /const authLookupMaxPages = 20/);
+  assert.match(getHandler, /while \(authPage > 0 && authPage <= authLookupMaxPages\)/);
+  assert.match(getHandler, /Number\.isInteger\(nextPage\)/);
+  assert.match(getHandler, /EMAIL_SEARCH_TOO_BROAD/);
+});
+
+test("admin security stale event and device targets cannot be audited as successful", async () => {
+  const route = await readFile(new URL("../app/api/admin/security/route.ts", import.meta.url), "utf8");
+  const postHandler = route.slice(route.indexOf("export async function POST"));
+  const falsePositive = postHandler.slice(postHandler.indexOf('action === "mark_false_positive"'), postHandler.indexOf('action === "trust_device"'));
+  const deviceActions = postHandler.slice(postHandler.indexOf('action === "trust_device"'));
+
+  assert.match(falsePositive, /\.eq\("user_id", userId\)\.select\("id"\)\.maybeSingle\(\)/);
+  assert.match(falsePositive, /!operationError && !result\.data/);
+  assert.match(deviceActions, /\.eq\("user_id", userId\)\.select\("id"\)\.maybeSingle\(\)/);
+  assert.match(deviceActions, /!operationError && !result\.data/);
+  assert.ok(postHandler.indexOf("if (operationError)") < postHandler.indexOf('from("admin_actions").insert'));
+});
+
+test("admin security does not expose provider errors and reports partial side effects", async () => {
+  const route = await readFile(new URL("../app/api/admin/security/route.ts", import.meta.url), "utf8");
+
+  assert.match(route, /function providerFailure\(/);
+  assert.match(route, /SECURITY_PROVIDER_ERROR/);
+  assert.match(route, /console\.error\(`\[admin-security\]/);
+  assert.match(route, /ACTION_PARTIALLY_COMPLETED/);
+  assert.match(route, /partial: true/);
+  assert.match(route, /AUDIT_LOG_FAILED/);
+  assert.doesNotMatch(route, /error: authError\.message/);
+  assert.doesNotMatch(route, /error: operationError\.message/);
+});
+
 test("admin security list state is URL-synced and cancels stale requests", async () => {
   const page = await readFile(new URL("../app/admin-security.tsx", import.meta.url), "utf8");
 

@@ -1,7 +1,8 @@
-import { generateLessonSchedule } from "../../../../../lib/course-schedule";
+import { generateLessonSchedule, normalizeWeekdays } from "../../../../../lib/course-schedule";
+import { ensureAdminPermission } from "../../../../../lib/admin-authorization-server";
 import { jsonBodyError, readJsonBody } from "../../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../../lib/security-server";
+import { hashedRequestIp } from "../../../../../lib/security-server";
 import { courseTimetableHeaders, courseTimetableUuid, errorResponse, textValue } from "../../../../../lib/course-timetable-server";
 
 type GenerationBody = {
@@ -15,9 +16,8 @@ type GenerationBody = {
 };
 
 export async function POST(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "tkb");
   if (!security.ok) return security.response;
-  if (security.profile.role !== "admin") return errorResponse("Bạn không có quyền quản trị.", 403);
   try {
     const budget = await consumeRequestBudget(security.admin, "admin-course-timetable-generate", `${security.user.id}:${await hashedRequestIp(request)}`, { capacity: 6, refillSeconds: 60 });
     if (!budget.allowed) return Response.json({ error: "Bạn tạo lịch quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...courseTimetableHeaders, "retry-after": String(budget.retryAfterSeconds) } });
@@ -29,6 +29,7 @@ export async function POST(request: Request) {
   const body = parsed.body;
   const courseId = textValue(body.courseId, 80);
   if (!courseTimetableUuid.test(courseId)) return errorResponse("Khóa học không hợp lệ.");
+  const weekdays = normalizeWeekdays(body.weekdays);
 
   const [courseResult, chapterResult] = await Promise.all([
     security.admin.from("courses").select("id,title").eq("id", courseId).maybeSingle(),
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
   try {
     generated = generateLessonSchedule(lessons, {
       startDate: textValue(body.startDate, 10),
-      weekdays: Array.isArray(body.weekdays) ? body.weekdays : [],
+      weekdays,
       startTime: textValue(body.startTime, 5),
       durationMinutes: Number(body.durationMinutes),
       lessonIds: Array.isArray(body.lessonIds) ? body.lessonIds.map(value => String(value)) : undefined,
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
   const ruleResult = await security.admin.from("course_schedule_rules").upsert({
     course_id: courseId,
     start_date: textValue(body.startDate, 10),
-    weekdays: [...new Set(body.weekdays ?? [])].sort((left, right) => left - right),
+    weekdays,
     start_time: textValue(body.startTime, 5),
     duration_minutes: Number(body.durationMinutes),
     time_zone: "Asia/Ho_Chi_Minh",

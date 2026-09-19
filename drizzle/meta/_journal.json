@@ -1,5 +1,13 @@
 {
   "version": "7",
-  "dialect": "sqlite",
-  "entries": []
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789443513994,
+      "tag": "0000_solid_the_hunter",
+      "breakpoints": true
+    }
+  ]
 }

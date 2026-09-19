@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+﻿import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { latexPartSequence, parseLatexQuestion, type LatexMatchingData, type LatexPartNumber } from "./exam-latex.ts";
 import {
   policyFromGuestSettings,
@@ -111,15 +111,12 @@ export function guestServerClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   return url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
 }
-
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
-
 function asBoolean(value: unknown, fallback: boolean) {
   return typeof value === "boolean" ? value : fallback;
 }
-
 function asNumber(value: unknown, fallback: number, min = 0, max = 100000) {
   const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : fallback;
   return Number.isFinite(number) ? Math.min(max, Math.max(min, Math.round(number))) : fallback;
@@ -166,7 +163,6 @@ export function normalizeGuestSettings(value: unknown): GuestExamSettings {
     exportWindowEnabled: asBoolean(raw.exportWindowEnabled, false),
   };
 }
-
 export async function sha256(value: string) {
   const bytes = new TextEncoder().encode(value);
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));

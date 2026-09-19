@@ -6,10 +6,15 @@ import { legacyAdminRedirectPath } from "../app/admin-route-map.ts";
 
 test("legacy admin reference routes land on native capability or supported flows", () => {
   assert.equal(legacyAdminRedirectPath("/exam-management"), "/admin/exams");
+  assert.equal(legacyAdminRedirectPath("/admin-session-wizard"), "/admin/sessions/new");
   assert.equal(legacyAdminRedirectPath("/user-management"), "/admin/students");
   assert.equal(legacyAdminRedirectPath("/course-management/abc"), "/admin/content/courses/abc");
   assert.equal(legacyAdminRedirectPath("/ilearn-management"), "/admin/capabilities?module=ilearn");
   assert.equal(legacyAdminRedirectPath("/admin/all"), "/admin/capabilities");
+  assert.equal(
+    legacyAdminRedirectPath("/exam-result-management/result-01/stats"),
+    "/admin/sessions/result-01/results?examId=result-01&mode=account",
+  );
 });
 
 test("admin content state follows pathname changes from the shared shell", async () => {

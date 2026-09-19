@@ -1,11 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { adminPermissionUserFromAppMetadata, ensureAdminPermission } from "../../../../lib/admin-authorization-server";
+import { canAccessAdminPermission } from "../../../../lib/admin-permissions";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
+import { findPotentialDuplicates, type DedupQuestion } from "../../../../lib/question-dedup";
+import { buildLatexQuestionPreview } from "../../../../lib/question-bank-latex";
 import {
   normalizeDifficulty,
   normalizeQuestionBankContent,
   normalizeTags,
   selectCurrentVersions,
+  validateQuestionBankContent,
+  type QuestionBankContentFieldErrors,
   type QuestionBankDifficulty,
   type QuestionBankNodeType,
 } from "../../../../lib/question-bank";
@@ -13,16 +18,41 @@ import {
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") {
-    return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }) };
-  }
-  return security;
+  return ensureAdminPermission(request, "question-bank");
+}
+
+function canManageExamContent(appMetadata: unknown, role: string | null | undefined) {
+  return canAccessAdminPermission(adminPermissionUserFromAppMetadata(appMetadata, role), "exams");
 }
 
 function errorResponse(message: string, status = 400) {
   return Response.json({ error: message }, { status, headers });
+}
+
+function invalidQuestionContentResponse(fieldErrors: QuestionBankContentFieldErrors, invalidItems?: Array<{ itemId: string; fieldErrors: QuestionBankContentFieldErrors }>) {
+  return Response.json({
+    error: "Câu hỏi chưa đủ dữ liệu để lưu hoặc đưa vào đề.",
+    code: "invalid_question_content",
+    fieldErrors,
+    ...(invalidItems?.length ? { invalidItems } : {}),
+  }, { status: 422, headers });
+}
+
+function targetExamFieldErrors(content: ReturnType<typeof normalizeQuestionBankContent>, isThptqg: boolean): QuestionBankContentFieldErrors {
+  if (!isThptqg) return {};
+  if (content.question_type === "drag_drop") {
+    return { questionType: "Dạng kéo và thả chưa tương thích với đề THPTQG." };
+  }
+  if (content.question_type === "true_false" && content.options.length !== 4) {
+    return { options: "Đề THPTQG cần đúng 4 phát biểu Đúng / Sai cho mỗi câu." };
+  }
+  if (content.question_type === "text") {
+    const answer = typeof content.correct_answer === "string" ? content.correct_answer.trim() : "";
+    if (!/^(?=.*\d)[0-9,-]{1,4}$/.test(answer)) {
+      return { correctAnswer: "Đáp án THPTQG chỉ dùng chữ số, dấu phẩy hoặc dấu trừ và tối đa 4 ký tự." };
+    }
+  }
+  return {};
 }
 
 function stringValue(value: unknown, fallback = "", max = 500) {
@@ -50,11 +80,16 @@ export async function GET(request: Request) {
   const difficulty = normalizeDifficulty(params.get("difficulty"));
   const nodeId = stringValue(params.get("nodeId"), "", 80);
   const admin = security.admin;
+  const canManageExams = canManageExamContent(security.user.app_metadata, security.profile.role);
 
   const [banksResult, sourceExamsResult, sourceSectionsResult] = await Promise.all([
     admin.from("question_banks").select("id,name,subject_code,grade,curriculum,description,status,created_at,updated_at").order("updated_at", { ascending: false }).limit(100),
-    admin.from("exams").select("id,title,exam_type").order("created_at", { ascending: false }).limit(100),
-    admin.from("exam_sections").select("id,exam_id,title,sort_order").order("sort_order").limit(500),
+    canManageExams
+      ? admin.from("exams").select("id,title,exam_type,published").order("created_at", { ascending: false }).limit(100)
+      : Promise.resolve({ data: [], error: null }),
+    canManageExams
+      ? admin.from("exam_sections").select("id,exam_id,title,sort_order").order("sort_order").limit(500)
+      : Promise.resolve({ data: [], error: null }),
   ]);
   const catalogError = banksResult.error || sourceExamsResult.error || sourceSectionsResult.error;
   if (catalogError) return errorResponse(catalogError.message, 503);
@@ -66,6 +101,7 @@ export async function GET(request: Request) {
       items: [],
       sourceExams: sourceExamsResult.data ?? [],
       sourceSections: sourceSectionsResult.data ?? [],
+      canManageExams,
     }, { headers });
   }
 
@@ -98,11 +134,12 @@ export async function GET(request: Request) {
     items: filteredItems,
     sourceExams: sourceExamsResult.data ?? [],
     sourceSections: sourceSectionsResult.data ?? [],
+    canManageExams,
   }, { headers });
 }
 
 type Body = {
-  action?: "create_bank" | "create_node" | "create_item" | "update_item" | "seed_from_section" | "attach_to_exam";
+  action?: "create_bank" | "create_node" | "create_item" | "update_item" | "seed_from_section" | "attach_to_exam" | "import_latex";
   bankId?: string;
   itemId?: string;
   examId?: string;
@@ -119,8 +156,50 @@ type Body = {
   tags?: string[] | string;
   content?: unknown;
   itemIds?: string[];
+  latexSource?: string;
+  importIndexes?: number[];
+  allowPotentialDuplicates?: boolean;
   points?: number;
 };
+
+type NormalizedQuestionContent = ReturnType<typeof normalizeQuestionBankContent>;
+
+async function findPotentialDuplicatesForItem(
+  admin: SupabaseClient,
+  bankId: string,
+  content: Pick<NormalizedQuestionContent, "prompt" | "question_type">,
+  excludeItemId = "",
+) {
+  const itemsResult = await admin
+    .from("question_bank_items")
+    .select("id,current_version")
+    .eq("bank_id", bankId)
+    .in("status", ["draft", "active"])
+    .order("updated_at", { ascending: false })
+    .limit(1_000);
+  if (itemsResult.error) throw new Error(itemsResult.error.message);
+
+  const rows = (itemsResult.data ?? []).filter(item => item.id !== excludeItemId);
+  const itemIds = rows.map(item => item.id);
+  const versionsResult = itemIds.length
+    ? await admin.from("question_bank_item_versions").select("item_id,version,prompt,question_type").in("item_id", itemIds)
+    : { data: [], error: null };
+  if (versionsResult.error) throw new Error(versionsResult.error.message);
+
+  const currentVersions = new Map((versionsResult.data ?? []).map(version => [`${version.item_id}:${version.version}`, version]));
+  const candidates: DedupQuestion[] = rows.flatMap(item => {
+    const version = currentVersions.get(`${item.id}:${item.current_version}`);
+    return version?.prompt
+      ? [{ id: item.id, prompt: version.prompt, questionType: version.question_type }]
+      : [];
+  });
+
+  return findPotentialDuplicates(
+    { prompt: content.prompt, questionType: content.question_type },
+    candidates,
+    { excludeItemId, limit: 5 },
+  ).map(match => ({ ...match, prompt: match.prompt.slice(0, 500) }));
+}
 
 export async function POST(request: Request) {
   const security = await adminRequest(request);
@@ -155,6 +234,83 @@ export async function POST(request: Request) {
     return errorResponse(value instanceof Error ? value.message : "Không thể kiểm tra ngân hàng.", 503);
   }
 
+  if (action === "seed_from_section" || action === "attach_to_exam") {
+    const examSecurity = await ensureAdminPermission(request, "exams", admin);
+    if (!examSecurity.ok) return examSecurity.response;
+  }
+
+  if (action === "import_latex") {
+    const source = typeof body.latexSource === "string" ? body.latexSource : "";
+    if (!source.trim()) return errorResponse("Hãy chọn một tệp LaTeX có nội dung.");
+    if (new TextEncoder().encode(source).byteLength > 5 * 1024 * 1024) return errorResponse("Tệp LaTeX không được vượt quá 5 MB.", 413);
+    const preview = buildLatexQuestionPreview(source);
+    if (preview.fileError) return errorResponse(preview.fileError, 422);
+    if (preview.items.length > 500) return errorResponse("Mỗi lần nhập tối đa 500 câu hỏi.", 422);
+    const requestedIndexes = Array.isArray(body.importIndexes)
+      ? Array.from(new Set(body.importIndexes.filter(index => Number.isInteger(index) && index >= 0 && index < preview.items.length)))
+      : preview.items.map(item => item.index);
+    const selected = preview.items.filter(item => requestedIndexes.includes(item.index));
+    const invalid = selected.filter(item => item.errors.length > 0);
+    if (invalid.length) return Response.json({ error: "Tệp có câu hỏi lỗi cú pháp hoặc dữ liệu.", invalidIndexes: invalid.map(item => item.index), preview: preview.items }, { status: 422, headers });
+    if (!selected.length) return errorResponse("Không có câu hỏi hợp lệ để lưu.", 422);
+    const semanticInvalid = selected.flatMap(item => {
+      const validation = validateQuestionBankContent({
+        prompt: item.prompt,
+        question_type: item.question_type,
+        options: item.options,
+        correct_answer: item.correct_answer,
+        explanation: item.explanation,
+        solution_source: item.solution_source,
+      });
+      return validation.valid ? [] : [{ index: item.index, fieldErrors: validation.fieldErrors }];
+    });
+    if (semanticInvalid.length) {
+      return Response.json({
+        error: "Một số câu hỏi được chọn chưa đủ dữ liệu để lưu.",
+        code: "invalid_question_content",
+        invalidIndexes: semanticInvalid.map(item => item.index),
+        invalidItems: semanticInvalid,
+      }, { status: 422, headers });
+    }
+    if (body.parentId) {
+      const node = await admin.from("question_bank_nodes").select("id").eq("id", body.parentId).eq("bank_id", bankId).maybeSingle();
+      if (node.error) return errorResponse(node.error.message, 503);
+      if (!node.data) return errorResponse("Chủ đề không thuộc ngân hàng này.");
+    }
+    const difficulty = normalizeDifficulty(body.difficulty);
+    const tags = normalizeTags(body.tags);
+    const itemRows = selected.map(() => ({
+      id: crypto.randomUUID(),
+      bank_id: bankId,
+      node_id: body.parentId || null,
+      current_version: 1,
+      difficulty,
+      tags,
+      created_by: security.user.id,
+    }));
+    const itemResult = await admin.from("question_bank_items").insert(itemRows);
+    if (itemResult.error) return errorResponse(itemResult.error.message, 503);
+    const versionRows = selected.map((item, index) => ({
+      item_id: itemRows[index].id,
+      version: 1,
+      ...normalizeQuestionBankContent({
+        prompt: item.prompt,
+        question_type: item.question_type,
+        options: item.options,
+        correct_answer: item.correct_answer,
+        explanation: item.explanation,
+        solution_source: item.solution_source,
+      }),
+      created_by: security.user.id,
+    }));
+    const versionResult = await admin.from("question_bank_item_versions").insert(versionRows);
+    if (versionResult.error) {
+      await admin.from("question_bank_items").delete().in("id", itemRows.map(item => item.id));
+      return errorResponse(versionResult.error.message, 503);
+    }
+    return Response.json({ imported: selected.length, skipped: preview.items.length - selected.length }, { status: 201, headers });
+  }
+
   if (action === "create_node") {
     const title = stringValue(body.title, "", 160);
     if (!title) return errorResponse("Tên chủ đề không được để trống.");
@@ -175,13 +331,33 @@ export async function POST(request: Request) {
 
   if (action === "create_item" || action === "update_item") {
     const content = normalizeQuestionBankContent(body.content);
-    if (!content.prompt) return errorResponse("Nội dung câu hỏi không được để trống.");
+    const contentValidation = validateQuestionBankContent(body.content);
+    if (!contentValidation.valid) return invalidQuestionContentResponse(contentValidation.fieldErrors);
     const difficulty = normalizeDifficulty(body.difficulty);
     const tags = normalizeTags(body.tags);
     if (body.parentId) {
       const node = await admin.from("question_bank_nodes").select("id").eq("id", body.parentId).eq("bank_id", bankId).maybeSingle();
       if (node.error) return errorResponse(node.error.message, 503);
       if (!node.data) return errorResponse("Chủ đề không thuộc ngân hàng này.");
+    }
+
+    const existingItem = action === "update_item"
+      ? await admin.from("question_bank_items").select("id,current_version,bank_id").eq("id", body.itemId ?? "").eq("bank_id", bankId).maybeSingle()
+      : null;
+    if (existingItem?.error) return errorResponse(existingItem.error.message, 503);
+    if (action === "update_item" && !existingItem?.data) return errorResponse("Không tìm thấy câu hỏi.", 404);
+
+    try {
+      const potentialDuplicates = await findPotentialDuplicatesForItem(admin, bankId, content, existingItem?.data?.id ?? "");
+      if (potentialDuplicates.length && body.allowPotentialDuplicates !== true) {
+        return Response.json({
+          error: "Tìm thấy câu hỏi có nội dung gần giống. Hãy rà soát trước khi lưu.",
+          code: "potential_duplicates",
+          potentialDuplicates,
+        }, { status: 409, headers });
+      }
+    } catch (value) {
+      return errorResponse(value instanceof Error ? value.message : "Không thể kiểm tra câu hỏi trùng lặp.", 503);
     }
 
     if (action === "create_item") {
@@ -209,12 +385,11 @@ export async function POST(request: Request) {
       return Response.json({ itemId, version: 1 }, { status: 201, headers });
     }
 
-    const item = await admin.from("question_bank_items").select("id,current_version,bank_id").eq("id", body.itemId ?? "").eq("bank_id", bankId).maybeSingle();
-    if (item.error) return errorResponse(item.error.message, 503);
-    if (!item.data) return errorResponse("Không tìm thấy câu hỏi.", 404);
-    const nextVersion = Number(item.data.current_version || 0) + 1;
+    const item = existingItem?.data;
+    if (!item) return errorResponse("Không tìm thấy câu hỏi.", 404);
+    const nextVersion = Number(item.current_version || 0) + 1;
     const versionResult = await admin.from("question_bank_item_versions").insert({
-      item_id: item.data.id,
+      item_id: item.id,
       version: nextVersion,
       ...content,
       created_by: security.user.id,
@@ -226,14 +401,20 @@ export async function POST(request: Request) {
       difficulty,
       tags,
       updated_at: new Date().toISOString(),
-    }).eq("id", item.data.id).eq("bank_id", bankId);
+    }).eq("id", item.id).eq("bank_id", bankId);
     if (itemResult.error) return errorResponse(itemResult.error.message, 503);
-    return Response.json({ itemId: item.data.id, version: nextVersion }, { headers });
+    return Response.json({ itemId: item.id, version: nextVersion }, { headers });
   }
 
   if (action === "seed_from_section") {
     const sectionId = stringValue(body.sectionId, "", 80);
+    const parentId = stringValue(body.parentId, "", 80);
     if (!sectionId) return errorResponse("Hãy chọn phần đề cần nạp.");
+    if (parentId) {
+      const node = await admin.from("question_bank_nodes").select("id").eq("id", parentId).eq("bank_id", bankId).maybeSingle();
+      if (node.error) return errorResponse(node.error.message, 503);
+      if (!node.data) return errorResponse("Chủ đề không thuộc ngân hàng này.");
+    }
     const section = await admin.from("exam_sections").select("id,exam_id,title").eq("id", sectionId).maybeSingle();
     if (section.error) return errorResponse(section.error.message, 503);
     if (!section.data) return errorResponse("Không tìm thấy phần đề.", 404);
@@ -245,10 +426,36 @@ export async function POST(request: Request) {
       : { data: [], error: null };
     if (keys.error) return errorResponse(keys.error.message, 503);
     const keyByQuestion = new Map((keys.data ?? []).map(key => [key.question_id, key]));
-    const itemRows = (questions.data ?? []).map(question => ({
+    const sourceItems = (questions.data ?? []).map((question, index) => {
+      const key = keyByQuestion.get(question.id);
+      const content = {
+        prompt: question.prompt,
+        question_type: question.question_type,
+        options: question.options ?? [],
+        correct_answer: key?.correct_answer ?? null,
+        explanation: key?.explanation ?? "",
+        passage: question.passage ?? null,
+        media_url: question.media_url ?? null,
+        instruction: question.instruction ?? null,
+        solution_source: "",
+      };
+      return { index, content, validation: validateQuestionBankContent(content) };
+    });
+    const invalidSourceItems = sourceItems.flatMap(item => item.validation.valid
+      ? []
+      : [{ index: item.index, fieldErrors: item.validation.fieldErrors }]);
+    if (invalidSourceItems.length) {
+      return Response.json({
+        error: "Một số câu trong phần đề nguồn chưa đủ dữ liệu để nạp vào ngân hàng.",
+        code: "invalid_question_content",
+        invalidIndexes: invalidSourceItems.map(item => item.index),
+        invalidItems: invalidSourceItems,
+      }, { status: 422, headers });
+    }
+    const itemRows = (questions.data ?? []).map(() => ({
       id: crypto.randomUUID(),
       bank_id: bankId,
-      node_id: body.parentId || null,
+      node_id: parentId || null,
       current_version: 1,
       difficulty: normalizeDifficulty(body.difficulty),
       tags: normalizeTags(body.tags),
@@ -257,20 +464,11 @@ export async function POST(request: Request) {
     if (itemRows.length) {
       const itemResult = await admin.from("question_bank_items").insert(itemRows);
       if (itemResult.error) return errorResponse(itemResult.error.message, 503);
-      const versions = (questions.data ?? []).map((question, index) => {
-        const key = keyByQuestion.get(question.id);
+      const versions = sourceItems.map((sourceItem, index) => {
         return {
           item_id: itemRows[index].id,
           version: 1,
-          prompt: question.prompt,
-          question_type: question.question_type,
-          options: question.options ?? [],
-          correct_answer: key?.correct_answer ?? null,
-          explanation: key?.explanation ?? "",
-          passage: question.passage ?? null,
-          media_url: question.media_url ?? null,
-          instruction: question.instruction ?? null,
-          solution_source: "",
+          ...normalizeQuestionBankContent(sourceItem.content),
           created_by: security.user.id,
         };
       });
@@ -288,9 +486,17 @@ export async function POST(request: Request) {
     const sectionId = stringValue(body.sectionId, "", 80);
     const itemIds = idList(body.itemIds);
     if (!examId || !sectionId || !itemIds.length) return errorResponse("Hãy chọn đề, phần thi và ít nhất một câu hỏi.");
-    const section = await admin.from("exam_sections").select("id,exam_id").eq("id", sectionId).eq("exam_id", examId).maybeSingle();
-    if (section.error) return errorResponse(section.error.message, 503);
-    if (!section.data) return errorResponse("Phần thi không thuộc đề đã chọn.");
+    const [section, targetExam] = await Promise.all([
+      admin.from("exam_sections").select("id,exam_id").eq("id", sectionId).eq("exam_id", examId).maybeSingle(),
+      admin.from("exams").select("id,room_id,exam_type,published").eq("id", examId).maybeSingle(),
+    ]);
+    if (section.error || targetExam.error) return errorResponse(section.error?.message || targetExam.error?.message || "Không thể kiểm tra đề thi.", 503);
+    if (!section.data || !targetExam.data) return errorResponse("Phần thi không thuộc đề đã chọn.");
+    if (targetExam.data.published === true) return errorResponse("Không thể thêm câu vào đề đã xuất bản. Hãy chọn một bản nháp để giữ nội dung học viên đang làm ổn định.", 409);
+    const targetRoom = await admin.from("exam_rooms").select("id,exam_type").eq("id", targetExam.data.room_id).maybeSingle();
+    if (targetRoom.error) return errorResponse(targetRoom.error.message, 503);
+    if (!targetRoom.data) return errorResponse("Không tìm thấy phòng thi của đề đã chọn.", 404);
+    const isThptqg = [targetExam.data.exam_type, targetRoom.data.exam_type].some(type => String(type ?? "").trim().toUpperCase() === "THPTQG");
     const items = await admin.from("question_bank_items").select("id,current_version,bank_id,node_id,status").eq("bank_id", bankId).in("id", itemIds).in("status", ["draft", "active"]);
     if (items.error) return errorResponse(items.error.message, 503);
     const selectedItems = items.data ?? [];
@@ -300,6 +506,14 @@ export async function POST(request: Request) {
     const versionMap = new Map((versions.data ?? []).map(version => [`${version.item_id}:${version.version}`, version]));
     const missing = selectedItems.some(item => !versionMap.has(`${item.id}:${item.current_version}`));
     if (missing) return errorResponse("Một hoặc nhiều câu hỏi chưa có phiên bản hiện tại.");
+    const invalidItems = selectedItems.flatMap(item => {
+      const version = versionMap.get(`${item.id}:${item.current_version}`)!;
+      const validation = validateQuestionBankContent(version);
+      const targetErrors = targetExamFieldErrors(normalizeQuestionBankContent(version), isThptqg);
+      const fieldErrors = { ...validation.fieldErrors, ...targetErrors };
+      return Object.keys(fieldErrors).length ? [{ itemId: item.id, fieldErrors }] : [];
+    });
+    if (invalidItems.length) return invalidQuestionContentResponse({}, invalidItems);
     const currentMax = await admin.from("exam_questions").select("sort_order").eq("section_id", sectionId).order("sort_order", { ascending: false }).limit(1).maybeSingle();
     if (currentMax.error) return errorResponse(currentMax.error.message, 503);
     const startOrder = Number(currentMax.data?.sort_order ?? -1) + 1;

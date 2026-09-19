@@ -290,8 +290,9 @@ test("protected content APIs enforce active account status", async () => {
 });
 
 test("learning guard tracks devices and heartbeats without email verification", async () => {
-  const [guard, sessionApi, platform, exam] = await Promise.all([source("app/account-security-guard.tsx"), source("app/api/security/session/route.ts"), source("app/platform.tsx"), source("app/exam-room.tsx")]);
-  assert.match(guard, /crypto\.randomUUID\(\)/);
+  const [guard, sessionClient, sessionApi, platform, exam] = await Promise.all([source("app/account-security-guard.tsx"), source("lib/security-session-client.ts"), source("app/api/security/session/route.ts"), source("app/platform.tsx"), source("app/exam-room.tsx")]);
+  assert.match(sessionClient, /crypto\?\.randomUUID\?\.\(\)/);
+  assert.match(guard, /getOrCreateSecurityDeviceId/);
   assert.match(guard, /document\.visibilityState !== "visible"/);
   assert.match(guard, /60_000/);
   // OTP was removed until transactional email is configured. Assert it is gone
@@ -302,22 +303,24 @@ test("learning guard tracks devices and heartbeats without email verification", 
   assert.match(sessionApi, /DEVICE_LIMIT_REACHED/);
   assert.match(sessionApi, /profile\.role === "admin"/);
   assert.match(sessionApi, /admin_exempt/);
-  assert.match(guard, /payload\.sessionId \|\| payload\.exempt/);
+  assert.match(guard, /isSecurityUuid\(payload\.sessionId\) \|\| payload\.exempt/);
   assert.match(sessionApi, /score >= 100/);
   assert.match(sessionApi, /apply_account_violation/);
   assert.match(platform, /<AccountSecurityGuard activityType=/);
   assert.match(exam, /<AccountSecurityGuard activityType=/);
 });
 
-test("privileged admin routes enforce active account status and admin role", async () => {
-  const [usersRoute, lessonFilesRoute] = await Promise.all([
+test("privileged admin routes enforce active account status, admin role, and scoped permission", async () => {
+  const [usersRoute, lessonFilesRoute, authorizationHelper] = await Promise.all([
     source("app/api/admin/users/route.ts"),
     source("app/api/admin/lesson-files/route.ts"),
+    source("lib/admin-authorization-server.ts"),
   ]);
-  assert.match(usersRoute, /ensureActiveAccount/);
-  assert.match(lessonFilesRoute, /ensureActiveAccount/);
-  assert.match(usersRoute, /profile\.role !== "admin"/);
-  assert.match(lessonFilesRoute, /profile\.role !== "admin"/);
+  assert.match(usersRoute, /ensureAdminPermission\(request, "users"\)/);
+  assert.match(lessonFilesRoute, /ensureAdminPermission\(request, "courses"\)/);
+  assert.match(authorizationHelper, /ensureActiveAccount\(request, admin\)/);
+  assert.match(authorizationHelper, /profile\.role !== "admin"/);
+  assert.doesNotMatch(lessonFilesRoute, /profile\.role !== "admin"/);
 });
 
 test("admin security actions are audited", async () => {

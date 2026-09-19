@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ensureAdminPermission } from "./admin-authorization-server";
+import type { AdminPermissionKey } from "./admin-permissions";
 import { ensureActiveAccount, securityAdminClient, type SecurityProfile } from "./security-server";
 import { createR2ReadUrl } from "./r2-server";
 
@@ -52,13 +54,9 @@ export async function requireActiveExamUser(request: Request) {
   };
 }
 
-export async function requireExamImageAdmin(request: Request) {
-  const authentication = await requireActiveExamUser(request);
-  if (!authentication.ok) return authentication;
-  if (authentication.user.role !== "admin") {
-    return { ok: false as const, response: Response.json({ error: "Chỉ quản trị viên mới được tải ảnh đề thi." }, { status: 403, headers: examImageHeaders }) };
-  }
-  return authentication;
+export async function requireExamImageAdmin(request: Request, permission: AdminPermissionKey) {
+  const admin = securityAdminClient();
+  return ensureAdminPermission(request, permission, admin ?? undefined);
 }
 
 export async function loadExamSectionAccess(

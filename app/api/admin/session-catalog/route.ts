@@ -1,14 +1,9 @@
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") {
-    return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị." }, { status: 403, headers }) };
-  }
-  return security;
+  return ensureAdminPermission(request, "exam-rooms");
 }
 
 function errorResponse(message: string, status = 400) {
@@ -69,4 +64,3 @@ export async function GET(request: Request) {
 
   return Response.json({ rooms, exams, sections, serverTime: new Date().toISOString() }, { headers });
 }
-

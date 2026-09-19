@@ -88,6 +88,13 @@ test("HLS upload validation accepts bounded playlist/segment paths and clears at
   assert.deepEqual([...empty], []);
 });
 
+test("HLS multipart upload is bounded before parsing and keeps the file-size guard", async () => {
+  const route = await readFile(new URL("../app/api/admin/hls-vault/upload/route.ts", import.meta.url), "utf8");
+  assert.match(route, /readMultipartFormData\(request, MAX_HLS_UPLOAD_BYTES \+ MULTIPART_OVERHEAD_BYTES\)/);
+  assert.match(route, /multipart\.error === "payload_too_large"/);
+  assert.match(route, /file\.size > MAX_HLS_UPLOAD_BYTES/);
+});
+
 test("HLS Vault routes use the existing content-token and resource-access boundary", async () => {
   const [route, adminRoute, tokenRoute, player, keyHelper] = await Promise.all([
     readFile(new URL("../app/api/hls/[resourceId]/[...path]/route.ts", import.meta.url), "utf8"),
@@ -101,13 +108,14 @@ test("HLS Vault routes use the existing content-token and resource-access bounda
   assert.match(route, /activeAccount/);
   assert.match(keyHelper, /process\.env\.MEDIA_MASTER_KEY_HEX/);
   assert.doesNotMatch(route, /ensureActiveAccount\(/);
-  assert.match(adminRoute, /profile\.role !== "admin"/);
+  assert.match(adminRoute, /ensureAdminPermission\(request, "courses"\)/);
+  assert.doesNotMatch(adminRoute, /profile\.role !== "admin"/);
   assert.match(adminRoute, /resource_type:\s*"hls_vault"/);
   assert.match(adminRoute, /playlistPath:\s*"index\.m3u8"/);
   assert.match(tokenRoute, /index\.m3u8/);
-  assert.doesNotMatch(player, /import\("hls\.js"\)/);
   assert.doesNotMatch(player, /plyr/i);
-  assert.match(player, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=hls/);
+  assert.match(player, /src=\{`\/yt-embed-player\.html\?mode=hls&wm=\$\{encodeURIComponent\(watermarkEmail\)\}`\}/);
+  assert.match(player, /resolved\.type === "hls_vault" \? window\.location\.origin : MEDIA_VIEWER_ORIGIN/);
   assert.match(player, /remix:set-video-source/);
   assert.match(player, /content\.type === "hls_vault"/);
   assert.match(player, /application\/vnd\.apple\.mpegurl/);
@@ -160,15 +168,24 @@ test("HLS player routes the media source through the configured API origin", asy
   assert.match(player, /apiRequestUrl\(resolved\.playbackUrl\)/);
 });
 
-test("HLS uses the isolated media viewer instead of a same-origin frame", async () => {
-  const [player, mediaWorker] = await Promise.all([
+test("HLS uses the same-origin Vidstack viewer with strict source and message boundaries", async () => {
+  const [player, viewer] = await Promise.all([
     readFile(new URL("../app/video-player.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../workers/media-proxy/src/index.ts", import.meta.url), "utf8"),
+    readFile(new URL("../public/yt-embed-player.html", import.meta.url), "utf8"),
   ]);
 
   assert.doesNotMatch(player, /plyr/i);
-  assert.match(player, /MEDIA_VIEWER_ORIGIN\}\/viewer\/video\?mode=hls/);
-  assert.match(mediaWorker, /hls\.js/);
-  assert.match(mediaWorker, /application\/vnd\.apple\.mpegurl/);
-  assert.match(mediaWorker, /api\.mathremix\.pro\.vn/);
+  assert.match(player, /src=\{`\/yt-embed-player\.html\?mode=hls&wm=\$\{encodeURIComponent\(watermarkEmail\)\}`\}/);
+  assert.match(player, /event\.origin !== viewerOrigin \|\| event\.source !== frameWindow \|\| event\.data\?\.channel !== viewerChannelRef\.current/);
+  assert.match(viewer, /import "https:\/\/cdn\.vidstack\.io\/player"/);
+  assert.match(viewer, /function allowedHlsSource\(value\)/);
+  assert.match(viewer, /const sameOrigin = parsed\.origin === location\.origin/);
+  assert.match(viewer, /const productionApi = parsed\.origin === allowedHlsApiOrigin/);
+  assert.match(viewer, /parsed\.pathname\.startsWith\("\/api\/hls\/"\)/);
+  assert.match(viewer, /event\.origin !== location\.origin \|\| event\.source !== window\.parent/);
+  assert.match(viewer, /player\.setAttribute\("crossorigin", "use-credentials"\)/);
+  assert.match(viewer, /xhr\.withCredentials = true/);
+  assert.match(viewer, /hls\.js@1\.6\.13/);
+  assert.match(viewer, /application\/vnd\.apple\.mpegurl/);
+  assert.match(viewer, /https:\/\/api\.mathremix\.pro\.vn/);
 });

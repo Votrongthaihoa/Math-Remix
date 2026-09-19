@@ -189,30 +189,29 @@ test("thrown query errors reject without returning a resource", async () => {
   await assert.rejects(run(fakeClient(result(row()), enrollmentError)), error => error === enrollmentError);
 });
 
-// Executable security-contract TODOs, not skipped tests or approval of current
-// behavior. These fail today: unknown/malformed facts must never grant access.
+// Unknown or malformed authorization facts must never grant access.
 // Synthetic malformed result envelopes do not claim that live Supabase emits them.
-test.todo("fail closed when a resource query contains both data and an error", async () => {
+test("fail closed when a resource query contains both data and an error", async () => {
   const client = fakeClient({ data: row(), error: { message: "synthetic DB failure" } });
   assert.equal((await run(client)).ok, false);
 });
 
-test.todo("fail closed when an enrollment query contains both data and an error", async () => {
+test("fail closed when an enrollment query contains both data and an error", async () => {
   const client = fakeClient(result(row()), { data: { course_id: "course-1" }, error: { message: "synthetic DB failure" } });
   assert.equal((await run(client)).ok, false);
 });
 
-test.todo("malformed truthy course id must not establish a valid course relation", async () => {
+test("malformed truthy course id must not establish a valid course relation", async () => {
   const client = fakeClient(result(row({ lessons: { published: true, chapters: { course_id: {} } } })));
   assert.equal((await run(client, { role: "admin" })).ok, false);
 });
 
-test.todo("malformed published string must not authorize a student", async () => {
+test("malformed published string must not authorize a student", async () => {
   const client = fakeClient(result(row({ lessons: { ...lesson(), published: "false" } })));
   assert.equal((await run(client)).ok, false);
 });
 
-test.todo("malformed download-permission string must not authorize a download", async () => {
+test("malformed download-permission string must not authorize a download", async () => {
   const client = fakeClient(result(row({ allow_download: "false" })));
   assert.equal((await run(client, {}, "download")).ok, false);
 });

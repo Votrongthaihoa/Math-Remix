@@ -1,4 +1,5 @@
-import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
+import { hashedRequestIp } from "../../../../lib/security-server";
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
 
@@ -8,9 +9,15 @@ const listStatuses = new Set(["all", "active", "temporarily_banned", "permanentl
 const defaultPageSize = 20;
 const maxPageSize = 50;
 const authLookupConcurrency = 5;
+const authLookupMaxPages = 20;
 const authEmailCacheTtlMs = 60_000;
 const authEmailCacheMaxEntries = 2_000;
 const authEmailCache = new Map<string, { email: string; expiresAt: number }>();
+
+function providerFailure(context: string, error: { message?: string } | null | undefined) {
+  if (error) console.error(`[admin-security] ${context}:`, error.message ?? "unknown provider error");
+  return Response.json({ error: "Không thể hoàn tất thao tác bảo mật lúc này.", code: "SECURITY_PROVIDER_ERROR" }, { status: 503, headers });
+}
 
 function cacheAuthEmail(id: string, email: string) {
   if (!authEmailCache.has(id) && authEmailCache.size >= authEmailCacheMaxEntries) {
@@ -36,16 +43,21 @@ function safeSearchTerm(value: string | null) {
 }
 
 async function adminRequest(request: Request) {
-  const security = await ensureActiveAccount(request);
-  if (!security.ok) return security;
-  if (security.profile.role !== "admin") return { ok: false as const, response: Response.json({ error: "Bạn không có quyền quản trị bảo mật." }, { status: 403, headers }) };
-  return security;
+  return ensureAdminPermission(request, "system-admin");
 }
 
 export async function GET(request: Request) {
   const security = await adminRequest(request);
   if (!security.ok) return security.response;
   const { admin, user } = security;
+  let listBudget;
+  try {
+    const ipHash = await hashedRequestIp(request);
+    listBudget = await consumeRequestBudget(admin, "admin-security-list", `${user.id}:${ipHash}`, { capacity: 30, refillSeconds: 2 });
+  } catch {
+    return Response.json({ error: "Máy chủ bảo mật chưa được cấu hình đầy đủ.", code: "SECURITY_CONFIGURATION_REQUIRED" }, { status: 503, headers });
+  }
+  if (!listBudget.allowed) return Response.json({ error: "Bạn tải danh sách quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: listBudget.retryAfterSeconds }, { status: 429, headers: { ...headers, "retry-after": String(listBudget.retryAfterSeconds) } });
   const searchParams = new URL(request.url).searchParams;
   const userId = searchParams.get("userId")?.trim() || "";
   if (userId && !uuid.test(userId)) return Response.json({ error: "Mã tài khoản không hợp lệ." }, { status: 400, headers });
@@ -64,9 +76,10 @@ export async function GET(request: Request) {
       const emailQuery = q.toLocaleLowerCase("vi");
       const authPageSize = 1000;
       let authPage = 1;
-      while (authPage > 0) {
+      let authSearchTruncated = false;
+      while (authPage > 0 && authPage <= authLookupMaxPages) {
         const { data: authUsers, error: authError } = await admin.auth.admin.listUsers({ page: authPage, perPage: authPageSize });
-        if (authError) return Response.json({ error: authError.message }, { status: 400, headers });
+        if (authError) return providerFailure("auth list", authError);
         for (const user of authUsers.users) {
           const id = user.id;
           if (!uuid.test(id)) continue;
@@ -75,8 +88,14 @@ export async function GET(request: Request) {
           cacheAuthEmail(id, email);
           if (email.toLocaleLowerCase("vi").includes(emailQuery)) emailMatchIds.push(id);
         }
-        authPage = authUsers.nextPage ?? 0;
+        const nextPage = Number(authUsers.nextPage ?? 0);
+        if (!Number.isInteger(nextPage) || nextPage < 0 || nextPage > authLookupMaxPages || (nextPage > 0 && nextPage <= authPage)) {
+          authSearchTruncated = true;
+          break;
+        }
+        authPage = nextPage;
       }
+      if (authSearchTruncated || authPage > 0) return Response.json({ error: "Từ khóa email quá rộng. Hãy nhập thêm ký tự để thu hẹp tìm kiếm.", code: "EMAIL_SEARCH_TOO_BROAD" }, { status: 400, headers });
     }
 
     const serverNow = new Date().toISOString();
@@ -102,14 +121,14 @@ export async function GET(request: Request) {
     };
 
     let profilePage = await executeProfilesPage(offset);
-    if (profilePage.error) return Response.json({ error: profilePage.error.message }, { status: 400, headers });
+    if (profilePage.error) return providerFailure("profile list", profilePage.error);
     const total = profilePage.count ?? 0;
     const pageCount = Math.max(1, Math.ceil(total / limit));
     if (page > pageCount) {
       page = pageCount;
       offset = (page - 1) * limit;
       profilePage = await executeProfilesPage(offset);
-      if (profilePage.error) return Response.json({ error: profilePage.error.message }, { status: 400, headers });
+      if (profilePage.error) return providerFailure("profile page", profilePage.error);
     }
 
     const profiles = profilePage.data ?? [];
@@ -139,7 +158,7 @@ export async function GET(request: Request) {
   }
 
   const { data: targetProfile, error: targetProfileError } = await admin.from("profiles").select("id,role").eq("id", userId).maybeSingle();
-  if (targetProfileError) return Response.json({ error: targetProfileError.message }, { status: 400, headers });
+  if (targetProfileError) return providerFailure("target profile", targetProfileError);
   if (!targetProfile) return Response.json({ error: "Không tìm thấy tài khoản học viên." }, { status: 404, headers });
   if (targetProfile.id === user.id || targetProfile.role !== "student") return Response.json({ error: "Chỉ có thể quản trị tài khoản học viên." }, { status: 403, headers });
 
@@ -152,8 +171,9 @@ export async function GET(request: Request) {
     admin.from("admin_actions").select("id,admin_id,action,reason,metadata,created_at").eq("target_user_id", userId).order("created_at", { ascending: false }).limit(100),
   ]);
   const firstError = profile.error || devices.error || sessions.error || events.error || violations.error || actions.error;
-  if (firstError) return Response.json({ error: firstError.message }, { status: 400, headers });
+  if (firstError) return providerFailure("security detail", firstError);
   const authUser = await admin.auth.admin.getUserById(userId);
+  if (authUser.error) return providerFailure("auth detail", authUser.error);
   return Response.json({ profile: { ...profile.data, email: authUser.data.user?.email ?? "" }, devices: devices.data ?? [], sessions: sessions.data ?? [], events: events.data ?? [], violations: violations.data ?? [], actions: actions.data ?? [], serverTime: new Date().toISOString() }, { headers });
 }
 
@@ -181,17 +201,21 @@ export async function POST(request: Request) {
   const allowed = new Set<AdminAction>(["unban", "extend_ban", "permanent_ban", "mark_false_positive", "trust_device", "revoke_device", "reset_violation_count"]);
   if (!action || !allowed.has(action) || !uuid.test(userId)) return Response.json({ error: "Yêu cầu không hợp lệ." }, { status: 400, headers });
   const { data: targetProfile, error: targetProfileError } = await admin.from("profiles").select("id,role").eq("id", userId).maybeSingle();
-  if (targetProfileError) return Response.json({ error: targetProfileError.message }, { status: 400, headers });
+  if (targetProfileError) return providerFailure("target profile", targetProfileError);
   if (!targetProfile) return Response.json({ error: "Không tìm thấy tài khoản học viên." }, { status: 404, headers });
   if (targetProfile.id === user.id || targetProfile.role !== "student") return Response.json({ error: "Chỉ có thể quản trị tài khoản học viên." }, { status: 403, headers });
   const now = new Date().toISOString();
   let metadata: Record<string, unknown> = {};
   let operationError: { message: string } | null = null;
+  const sideEffectErrors: string[] = [];
 
   if (action === "unban") {
     const result = await admin.from("profiles").update({ account_status: "active", status: "active", banned_at: null, banned_until: null, ban_reason: null, ban_event_id: null, banned_by: null }).eq("id", userId);
     operationError = result.error;
-    if (!operationError) await admin.from("security_events").insert({ user_id: userId, event_type: "admin_unban", reason, evidence: { adminId: user.id } });
+    if (!operationError) {
+      const eventResult = await admin.from("security_events").insert({ user_id: userId, event_type: "admin_unban", reason, evidence: { adminId: user.id } });
+      if (eventResult.error) sideEffectErrors.push("security event");
+    }
   } else if (action === "extend_ban") {
     const hours = Math.min(24 * 30, Math.max(1, Math.round(Number(body.durationHours) || 24)));
     const until = new Date(Date.now() + hours * 3600_000).toISOString();
@@ -202,23 +226,37 @@ export async function POST(request: Request) {
     operationError = result.error;
   } else if (action === "mark_false_positive") {
     if (!body.eventId) return Response.json({ error: "Thiếu mã sự kiện." }, { status: 400, headers });
-    const result = await admin.from("security_events").update({ reviewed_at: now, reviewed_by: user.id, review_result: "false_positive" }).eq("id", body.eventId).eq("user_id", userId);
+    const result = await admin.from("security_events").update({ reviewed_at: now, reviewed_by: user.id, review_result: "false_positive" }).eq("id", body.eventId).eq("user_id", userId).select("id").maybeSingle();
     operationError = result.error; metadata = { eventId: body.eventId };
+    if (!operationError && !result.data) return Response.json({ error: "Không tìm thấy sự kiện bảo mật thuộc tài khoản." }, { status: 404, headers });
   } else if (action === "trust_device" || action === "revoke_device") {
     if (!body.deviceId || !uuid.test(body.deviceId)) return Response.json({ error: "Thiếu mã thiết bị." }, { status: 400, headers });
     const changes = action === "trust_device" ? { trusted_by_admin: true, revoked_at: null, verified_at: now } : { trusted_by_admin: false, revoked_at: now };
-    const result = await admin.from("trusted_devices").update(changes).eq("id", body.deviceId).eq("user_id", userId);
+    const result = await admin.from("trusted_devices").update(changes).eq("id", body.deviceId).eq("user_id", userId).select("id").maybeSingle();
     operationError = result.error; metadata = { deviceId: body.deviceId };
-    if (action === "revoke_device" && !operationError) await admin.from("user_sessions").update({ revoked_at: now }).eq("user_id", userId).eq("device_id", body.deviceId).is("revoked_at", null);
+    if (!operationError && !result.data) return Response.json({ error: "Không tìm thấy thiết bị thuộc tài khoản." }, { status: 404, headers });
+    if (action === "revoke_device" && !operationError) {
+      const sessionResult = await admin.from("user_sessions").update({ revoked_at: now }).eq("user_id", userId).eq("device_id", body.deviceId).is("revoked_at", null);
+      if (sessionResult.error) sideEffectErrors.push("device sessions");
+    }
   } else if (action === "reset_violation_count") {
     const count = Math.min(4, Math.max(0, Math.round(Number(body.violationCount) || 0)));
     const result = await admin.from("profiles").update({ violation_count: count }).eq("id", userId);
     operationError = result.error; metadata = { violationCount: count };
   }
 
-  if (operationError) return Response.json({ error: operationError.message }, { status: 400, headers });
+  if (operationError) return providerFailure("security action", operationError);
   const { error: auditError } = await admin.from("admin_actions").insert({ admin_id: user.id, target_user_id: userId, action, reason, metadata });
-  if (auditError) return Response.json({ error: `Thao tác đã thực hiện nhưng không thể ghi audit log: ${auditError.message}` }, { status: 500, headers });
-  if (["unban", "extend_ban", "permanent_ban"].includes(action)) await admin.from("user_sessions").update({ revoked_at: now }).eq("user_id", userId).is("revoked_at", null);
+  if (auditError) {
+    console.error("[admin-security] audit log:", auditError.message);
+    return Response.json({ error: "Thao tác đã thực hiện nhưng chưa ghi được audit log.", code: "AUDIT_LOG_FAILED", recoverable: true }, { status: 503, headers });
+  }
+  if (["unban", "extend_ban", "permanent_ban"].includes(action)) {
+    const sessionResult = await admin.from("user_sessions").update({ revoked_at: now }).eq("user_id", userId).is("revoked_at", null);
+    if (sessionResult.error) sideEffectErrors.push("active sessions");
+  }
+  if (sideEffectErrors.length) {
+    return Response.json({ ok: true, partial: true, warning: "Thao tác chính đã thực hiện nhưng một số bước phụ chưa hoàn tất.", failedSteps: sideEffectErrors, code: "ACTION_PARTIALLY_COMPLETED" }, { headers });
+  }
   return Response.json({ ok: true }, { headers });
 }

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpenCheck, ClipboardCheck, UserRound } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
 import { continueLearningStorageKey, loadContinueLearningResult, type ContinueLearningResult } from "../lib/continue-learning";
-import { buildActivityCalendar, summarizeDashboardAttempts, type DashboardAttempt } from "../lib/student-dashboard";
+import { buildActivityCalendar, dashboardActivityLevel, summarizeDashboardAttempts, type DashboardAttempt } from "../lib/student-dashboard";
 import { formatUiActivityDate, formatUiDate } from "./ui-format";
 
 type StudentDashboardProfile = {
@@ -39,6 +39,11 @@ type StudentDashboardProps = {
  onContinueLearning: (lessonId: string, resourceId?: string) => void;
   loading?: boolean;
   error?: string;
+  coursesLoading?: boolean;
+  coursesError?: string;
+  onRetryCourses?: () => void;
+  attemptsError?: string;
+  practiceRoomsError?: string;
   onRetry?: () => void;
 };
 
@@ -52,10 +57,19 @@ function followLink(event: React.MouseEvent<HTMLAnchorElement>, action: () => vo
   action();
 }
 
-export default function StudentDashboard({ profile, userId, userCourses, practiceRooms, attempts, onCourses, onExams, onOpenRoom, onOpenAttempt, onContinueLearning, loading = false, error = "", onRetry }: StudentDashboardProps) {
+function DashboardDataIssue({ message, onRetry, retryLabel = "Thử tải lại", urgent = false }: { message: string; onRetry?: () => void; retryLabel?: string; urgent?: boolean }) {
+  return <div className="alpha-dashboard-data-issue" role={urgent ? "alert" : "status"}>
+    <span>{message}</span>
+    {onRetry && <button type="button" onClick={onRetry}>{retryLabel}</button>}
+  </div>;
+}
+
+export default function StudentDashboard({ profile, userId, userCourses, practiceRooms, attempts, onCourses, onExams, onOpenRoom, onOpenAttempt, onContinueLearning, loading = false, error = "", coursesLoading = false, coursesError = "", onRetryCourses, attemptsError = "", practiceRoomsError = "", onRetry }: StudentDashboardProps) {
   const year = new Date().getFullYear();
   const summary = summarizeDashboardAttempts(attempts, new Date());
   const activityDays = buildActivityCalendar(year, summary.currentYear);
+  const initialPracticeRoomsLoading = loading && practiceRooms.length === 0 && !practiceRoomsError;
+  const initialAttemptsLoading = loading && attempts.length === 0 && !attemptsError;
   const [continueRetry, setContinueRetry] = useState(0);
   const [continueResult, setContinueResult] = useState<{ userId: string; request: number; result: ContinueLearningResult } | null>(null);
   const activeContinueResult = continueResult?.userId === userId && continueResult.request === continueRetry ? continueResult.result : null;
@@ -124,12 +138,14 @@ export default function StudentDashboard({ profile, userId, userCourses, practic
           <h2>Khóa học</h2>
           <Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link>
         </div>
-        {userCourses.length ? <ul>
-          {userCourses.slice(0, 5).map(course => <li key={course.id}>
+        {userCourses.length ? <>
+          {coursesLoading && <p className="alpha-dashboard-empty" role="status" aria-live="polite">Đang cập nhật khóa học…</p>}
+          {coursesError && <DashboardDataIssue message={coursesError} onRetry={onRetryCourses} retryLabel="Tải lại khóa học" urgent />}
+          <ul>{userCourses.slice(0, 5).map(course => <li key={course.id}>
             <span className="alpha-list-dot alpha-list-dot-course" aria-hidden="true" />
             <Link href={`/courses/${encodeURIComponent(String(course.id))}`} title={course.title}>{course.title}</Link>
-          </li>)}
-        </ul> : <p className="alpha-dashboard-empty">Chưa được phân khóa học.</p>}
+          </li>)}</ul>
+        </> : coursesLoading ? <p className="alpha-dashboard-empty" role="status" aria-live="polite">Đang tải khóa học…</p> : coursesError ? <DashboardDataIssue message={coursesError} onRetry={onRetryCourses} retryLabel="Tải lại khóa học" urgent /> : <p className="alpha-dashboard-empty">Chưa được phân khóa học.</p>}
       </article>
       <article className="alpha-dashboard-list-card">
         <div className="alpha-dashboard-card-head">
@@ -141,7 +157,7 @@ export default function StudentDashboard({ profile, userId, userCourses, practic
             <span className="alpha-list-dot alpha-list-dot-room" aria-hidden="true" />
             <Link href={`/exam-room/${encodeURIComponent(room.id)}`} onClick={event => followLink(event, () => onOpenRoom(room.id))} title={`${room.title} · ${room.examCount} đề`}>{room.title}</Link>
           </li>)}
-        </ul> : <p className="alpha-dashboard-empty">Chưa có phòng luyện nào.</p>}
+        </ul> : practiceRoomsError ? <DashboardDataIssue message={practiceRoomsError} /> : initialPracticeRoomsLoading ? <p className="alpha-dashboard-empty" role="status" aria-live="polite">Đang tải phòng luyện…</p> : <p className="alpha-dashboard-empty">Chưa có phòng luyện nào.</p>}
       </article>
     </section>
 
@@ -157,7 +173,7 @@ export default function StudentDashboard({ profile, userId, userCourses, practic
             <Link href={`/exam/result/${encodeURIComponent(item.id)}`} onClick={event => followLink(event, () => onOpenAttempt(item.id))} title={item.title ?? "Bài thi"}>{item.title ?? "Bài thi"}</Link>
             <time dateTime={item.submitted_at ?? undefined}>{formatUiDate(item.submitted_at, "—")}</time>
           </li>)}
-        </ul> : <p className="alpha-dashboard-empty">Chưa có bài thi nào được thực hiện.</p>}
+        </ul> : attemptsError ? <DashboardDataIssue message={attemptsError} /> : initialAttemptsLoading ? <p className="alpha-dashboard-empty" role="status" aria-live="polite">Đang tải lịch sử làm bài…</p> : <p className="alpha-dashboard-empty">Chưa có bài thi nào được thực hiện.</p>}
       </article>
       <article className="alpha-dashboard-list-card alpha-dashboard-attempt-card">
         <div className="alpha-dashboard-card-head">
@@ -169,7 +185,7 @@ export default function StudentDashboard({ profile, userId, userCourses, practic
             <Link href={`/exam/result/${encodeURIComponent(item.id)}`} onClick={event => followLink(event, () => onOpenAttempt(item.id))} title={item.title ?? "Bài thi"}>{item.title ?? "Bài thi"}</Link>
             <strong>{Number(item.score ?? 0)}</strong>
           </li>)}
-        </ul> : <p className="alpha-dashboard-empty">Chưa có dữ liệu xếp hạng.</p>}
+        </ul> : attemptsError ? <DashboardDataIssue message={attemptsError} /> : initialAttemptsLoading ? <p className="alpha-dashboard-empty" role="status" aria-live="polite">Đang tải lịch sử làm bài…</p> : <p className="alpha-dashboard-empty">Chưa có dữ liệu xếp hạng.</p>}
       </article>
     </section>
 
@@ -185,7 +201,7 @@ export default function StudentDashboard({ profile, userId, userCourses, practic
         {Array.from({ length: 12 }, (_, index) => <span key={index}>Th.{index + 1}</span>)}
       </div>
       <div className="alpha-activity-heatmap" role="img" aria-label={`Biểu đồ hoạt động năm ${year}: ${summary.currentYear.length} bài thi đã hoàn thành`}>
-        {activityDays.map((day, index) => <span key={`${day.dateKey}-${index}`} className={day.inYear ? `level-${Math.min(day.count, 4)}` : "outside-year"} title={day.inYear ? `${formatUiActivityDate(new Date(`${day.dateKey}T12:00:00`))}: ${day.count} bài thi` : undefined} aria-hidden="true" />)}
+        {activityDays.map((day, index) => <span key={`${day.dateKey}-${index}`} className={day.inYear ? `level-${dashboardActivityLevel(day.count)}` : "outside-year"} title={day.inYear ? `${formatUiActivityDate(new Date(`${day.dateKey}T12:00:00`))}: ${day.count} bài thi` : undefined} aria-hidden="true" />)}
       </div>
       <ol className="alpha-activity-mobile-summary" aria-label={`Hoạt động theo tháng năm ${year}`}>
         {summary.monthly.map((count, index) => <li key={index}><span>Tháng {index + 1}</span><strong>{count} bài</strong></li>)}

@@ -28,7 +28,7 @@ async function loadQuestionReferences(admin: SupabaseClient) {
 }
 
 export async function GET(request: Request) {
-  const authentication = await requireExamImageAdmin(request);
+  const authentication = await requireExamImageAdmin(request, "courses");
   if (!authentication.ok) return authentication.response;
 
   let objects;
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const authentication = await requireExamImageAdmin(request);
+  const authentication = await requireExamImageAdmin(request, "courses");
   if (!authentication.ok) return authentication.response;
 
   const form = await request.formData().catch(() => null);
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const authentication = await requireExamImageAdmin(request);
+  const authentication = await requireExamImageAdmin(request, "courses");
   if (!authentication.ok) return authentication.response;
 
   const parsedBody = await readJsonBody<ImageMutationBody>(request);

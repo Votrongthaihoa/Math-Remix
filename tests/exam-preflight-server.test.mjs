@@ -161,19 +161,14 @@ test("multiple errors dominate a media warning and missing keys are counted per 
   assert.equal(result.checks[1].message, "2 câu chưa có đáp án.");
 });
 
-for (const [label, points, knownGap = false] of [["nonnumeric text", "invalid"], ["missing", undefined], ["NaN", NaN], ["null", null, true], ["empty text", "", true], ["whitespace", " ", true], ["boolean", true, true], ["infinity", Infinity, true], ["array", [], true]]) {
-  test(`malformed ${label} points must fail closed`, {
-    todo: knownGap && "Production coerces malformed points with Number(points) and permits publication; requires separately authorized validation fix.",
-  }, async () => {
+for (const [label, points] of [["nonnumeric text", "invalid"], ["missing", undefined], ["NaN", NaN], ["null", null], ["empty text", ""], ["whitespace", " "], ["boolean", true], ["infinity", Infinity], ["array", []]]) {
+  test(`malformed ${label} points must fail closed`, async () => {
     const metadata = validMetadata();
     metadata.exam_questions[0].points = points;
     await assertCannotPublish(fakeAdmin(metadata));
   });
 }
 
-// These are intended safety contracts, not endorsements of permissive behavior.
-// Executable TODO failures identify production validation gaps without treating
-// unsafe publication as the expected outcome or patching production code.
 for (const [label, corrupt] of [
   ["missing section id", metadata => { delete metadata.exam_sections[0].id; }],
   ["question linked to a different section", metadata => { metadata.exam_questions[0].section_id = "unrelated-section"; }],
@@ -181,9 +176,7 @@ for (const [label, corrupt] of [
   ["question and key with missing ids", metadata => { delete metadata.exam_questions[0].id; metadata.exam_question_keys = [{}]; }],
   ["question and key with null ids", metadata => { metadata.exam_questions[0].id = null; metadata.exam_question_keys = [{ question_id: null }]; }],
 ]) {
-  test(`malformed relation: ${label} must fail closed`, {
-    todo: "Production trusts malformed identifiers/section relations; requires separately authorized validation fix.",
-  }, async () => {
+  test(`malformed relation: ${label} must fail closed`, async () => {
     const metadata = validMetadata();
     corrupt(metadata);
     await assertCannotPublish(fakeAdmin(metadata));

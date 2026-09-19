@@ -6,6 +6,7 @@ import {
   ensureMicrosoftGraphHlsFolders,
   inspectMicrosoftGraphVideo,
   isAllowedMicrosoftDownloadUrl,
+  microsoftGraphConfigurationReady,
   resolveMicrosoftGraphPlayback,
   uploadMicrosoftGraphHlsFile,
 } from "../lib/microsoft-graph-server.ts";
@@ -18,10 +19,39 @@ const envNames = [
   "MICROSOFT_REDIRECT_URI",
 ];
 
-function fakeAdmin(adminId) {
+test("Microsoft Graph health configuration follows the runtime defaults", () => {
+  const previous = Object.fromEntries(envNames.map(name => [name, process.env[name]]));
+  process.env.MICROSOFT_TENANT_ID = "tenant-id";
+  process.env.MICROSOFT_CLIENT_ID = "client-id";
+  process.env.MICROSOFT_CLIENT_SECRET = "server-secret";
+  process.env.MICROSOFT_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 3).toString("base64url");
+  delete process.env.MICROSOFT_REDIRECT_URI;
+  try {
+    assert.equal(microsoftGraphConfigurationReady(), true);
+    process.env.MICROSOFT_REDIRECT_URI = "http://insecure.invalid/callback";
+    assert.equal(microsoftGraphConfigurationReady(), false);
+  } finally {
+    for (const name of envNames) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
+function fakeAdmin(adminId, { appMetadata = { admin_permissions: ["courses"] }, authUserId = adminId } = {}) {
   let connection = null;
   return {
     connection: () => connection,
+    auth: {
+      admin: {
+        async getUserById() {
+          return {
+            data: { user: { id: authUserId, app_metadata: typeof appMetadata === "function" ? appMetadata() : appMetadata } },
+            error: null,
+          };
+        },
+      },
+    },
     from(table) {
       if (table === "profiles") {
         return {
@@ -156,4 +186,78 @@ test("temporary playback URL allowlist rejects lookalikes and insecure redirects
   assert.equal(isAllowedMicrosoftDownloadUrl("https://files.1drv.com.attacker.example/video.mp4"), false);
   assert.equal(isAllowedMicrosoftDownloadUrl("http://public.dm.files.1drv.com/video.mp4"), false);
   assert.equal(isAllowedMicrosoftDownloadUrl("https://user:pass@public.dm.files.1drv.com/video.mp4"), false);
+});
+
+test("OAuth callback rechecks the initiating admin's current courses permission before token exchange", async () => {
+  const previous = Object.fromEntries(envNames.map(name => [name, process.env[name]]));
+  process.env.MICROSOFT_TENANT_ID = "tenant-id";
+  process.env.MICROSOFT_CLIENT_ID = "client-id";
+  process.env.MICROSOFT_CLIENT_SECRET = "server-secret";
+  process.env.MICROSOFT_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 8).toString("base64url");
+  process.env.MICROSOFT_REDIRECT_URI = "https://www.mathremix.pro.vn/api/admin/microsoft/callback";
+  const adminId = "00000000-0000-4000-8000-000000000002";
+  const admin = fakeAdmin(adminId, { appMetadata: { admin_permissions: [] } });
+  let tokenExchangeCalled = false;
+
+  try {
+    const authorizationUrl = new URL(await createMicrosoftAuthorizationUrl(adminId, "/admin/content"));
+    await assert.rejects(
+      completeMicrosoftAuthorization(
+        admin,
+        "authorization-code",
+        authorizationUrl.searchParams.get("state"),
+        async () => {
+          tokenExchangeCalled = true;
+          return Response.json({ access_token: "must-not-be-issued" });
+        },
+      ),
+      error => error?.code === "MICROSOFT_COURSES_PERMISSION_REQUIRED" && error?.status === 403,
+    );
+    assert.equal(tokenExchangeCalled, false);
+    assert.equal(admin.connection(), null);
+  } finally {
+    for (const name of envNames) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
+test("OAuth callback refuses to persist tokens when courses permission is revoked during the exchange", async () => {
+  const previous = Object.fromEntries(envNames.map(name => [name, process.env[name]]));
+  process.env.MICROSOFT_TENANT_ID = "tenant-id";
+  process.env.MICROSOFT_CLIENT_ID = "client-id";
+  process.env.MICROSOFT_CLIENT_SECRET = "server-secret";
+  process.env.MICROSOFT_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 9).toString("base64url");
+  process.env.MICROSOFT_REDIRECT_URI = "https://www.mathremix.pro.vn/api/admin/microsoft/callback";
+  const adminId = "00000000-0000-4000-8000-000000000003";
+  let permissionCheck = 0;
+  const admin = fakeAdmin(adminId, {
+    appMetadata: () => (++permissionCheck === 1 ? { admin_permissions: ["courses"] } : { admin_permissions: [] }),
+  });
+  const requests = [];
+
+  try {
+    const authorizationUrl = new URL(await createMicrosoftAuthorizationUrl(adminId, "/admin/content"));
+    await assert.rejects(
+      completeMicrosoftAuthorization(admin, "authorization-code", authorizationUrl.searchParams.get("state"), async url => {
+        requests.push(String(url));
+        if (String(url).includes("/oauth2/v2.0/token")) {
+          return Response.json({ access_token: "short-lived", refresh_token: "must-not-be-persisted", expires_in: 3600 });
+        }
+        if (String(url).endsWith("/me?$select=id,userPrincipalName,mail")) {
+          return Response.json({ id: "microsoft-user-id", userPrincipalName: "teacher@contoso.com" });
+        }
+        throw new Error(`Unexpected request ${String(url)}`);
+      }),
+      error => error?.code === "MICROSOFT_COURSES_PERMISSION_REQUIRED" && error?.status === 403,
+    );
+    assert.equal(requests.some(url => url.includes("/oauth2/v2.0/token")), true);
+    assert.equal(admin.connection(), null);
+  } finally {
+    for (const name of envNames) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
 });

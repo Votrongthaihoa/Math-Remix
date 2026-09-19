@@ -121,7 +121,7 @@ async function listAllExamImages(admin: SupabaseClient) {
 }
 
 async function getExamImages(request: Request) {
-  const authentication = await requireExamImageAdmin(request);
+  const authentication = await requireExamImageAdmin(request, "exams");
   if (!authentication.ok) return authentication.response;
 
   const searchParams = new URL(request.url).searchParams;
@@ -174,7 +174,7 @@ async function getExamImages(request: Request) {
 }
 
 async function postExamImage(request: Request) {
-  const authentication = await requireExamImageAdmin(request);
+  const authentication = await requireExamImageAdmin(request, "exams");
   if (!authentication.ok) return authentication.response;
 
   const form = await request.formData().catch(() => null);
@@ -219,7 +219,7 @@ async function postExamImage(request: Request) {
 }
 
 async function deleteExamImage(request: Request) {
-  const authentication = await requireExamImageAdmin(request);
+  const authentication = await requireExamImageAdmin(request, "exams");
   if (!authentication.ok) return authentication.response;
 
   const parsedBody = await readJsonBody<ImageMutationBody>(request);

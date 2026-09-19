@@ -10,8 +10,8 @@ test("admin exam workspace reads protected content through an authenticated serv
     source("app/admin-exam-workspace.tsx"),
   ]);
 
-  assert.match(route, /ensureActiveAccount\(request\)/);
-  assert.match(route, /security\.profile\.role !== "admin"/);
+  assert.match(route, /ensureAdminPermission\(request, "exams"\)/);
+  assert.doesNotMatch(route, /security\.profile\.role !== "admin"/);
   assert.match(route, /Promise\.all\(\[/);
   assert.match(route, /from\("exam_sections"\)/);
   assert.match(route, /from\("exam_questions"\)/);

@@ -143,7 +143,7 @@ test("courses use native links and curriculum list semantics", async () => {
   assert.match(productCss, /\.course-part-lessons > li > a/);
 });
 
-test("student shell exposes URL-backed shortcuts and course view modes", async () => {
+test("student shell exposes URL-backed shortcuts and functional course view modes", async () => {
   const [platform, css] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/product-shell-ux.css", import.meta.url), "utf8"),
@@ -158,7 +158,9 @@ test("student shell exposes URL-backed shortcuts and course view modes", async (
   assert.match(platform, /course-list-view/);
   assert.match(css, /\.dashboard-shortcuts-grid/);
   assert.match(css, /\.course-view-toggle/);
-  assert.match(css, /\.course-grid\.reference-course-grid\.course-list-view/);
+  assert.match(css, /\.reference-course-grid\.course-list-view\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
+  assert.match(css, /\.course-list-view\s*>\s*\.ant-card\s*>\s*\.course-card-action\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(180px,\s*250px\)\s*minmax\(0,\s*1fr\);/s);
+  assert.match(css, /@media \(max-width: 420px\)\s*\{[\s\S]*?\.course-list-view\s*>\s*\.ant-card\s*>\s*\.course-card-action\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);
 });
 
 test("admin quick actions connect to real modals and routes", async () => {
@@ -346,4 +348,17 @@ test("mobile admin drawer centers its logo without covering the close button", a
   const css = await readFile(new URL("../app/admin-product-shell.css", import.meta.url), "utf8");
 
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*?\.ui-shell\.admin-app\.product-shell \.mobile-sidebar-head\s*\{[\s\S]*?position:\s*relative;[\s\S]*?justify-content:\s*flex-end;[\s\S]*?\.ui-shell\.admin-app\.product-shell \.mobile-sidebar-brand\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset-inline-start:\s*50%;[\s\S]*?width:\s*min\(200px,\s*calc\(100%\s*-\s*120px\)\);[\s\S]*?transform:\s*translateX\(-50%\);[\s\S]*?\.ui-shell\.admin-app\.product-shell \.mobile-sidebar-brand img\s*\{[\s\S]*?width:\s*100%;[\s\S]*?\.ui-shell\.admin-app\.product-shell \.mobile-sidebar-close\s*\{[\s\S]*?position:\s*relative;[\s\S]*?z-index:\s*1;/);
+});
+
+test("admin student roster reports bounded email pagination and keeps mobile actions compact", async () => {
+  const [platform, css] = await Promise.all([
+    readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-source-reference.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(platform, /const \[adminUsersTruncated, setAdminUsersTruncated\] = useState\(false\)/);
+  assert.match(platform, /tab === "students"[\s\S]*?student-data-warning/);
+  assert.match(platform, /aria-label=\{`Đổi mật khẩu cho \$\{student\.full_name\}`\}/);
+  assert.match(css, /@media \(max-width: 575px\)[\s\S]*?student-table \.student-password-btn[\s\S]*?width: 36px[\s\S]*?font-size: 0/);
+  assert.match(css, /student-table \.student-password-btn[\s\S]*?:not\(\.protected-exam-surface\)/);
 });

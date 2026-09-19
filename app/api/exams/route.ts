@@ -7,7 +7,7 @@ import { buildHsaQuestionLoadPlan, filterHsaQuestionsForCombination, getHsaCombi
 import { createAttemptPolicy, examCodes, examReleaseVisibility, isExamCodeAllowed, normalizeExamCode, policyFromExamSettings, prepareQuestionIdentityForPolicy, publicExamPolicy, resolveAttemptPolicy, type ExamPolicy, type ExamPolicyMode } from "../../../lib/exam-policy";
 import { safeExamMonitorEvents } from "../../../lib/exam-monitor";
 import { jsonBodyError, readJsonBody } from "../../../lib/http-server";
-import { ensureActiveAccount } from "../../../lib/security-server";
+import { ensureActiveAccount, guardExamStartRisk } from "../../../lib/security-server";
 
 type ExamUser = { id: string; role: "student" | "admin" };
 type ExamAuthentication = { ok: true; user: ExamUser } | { ok: false; response: Response };
@@ -506,6 +506,10 @@ export async function POST(request: Request) {
   };
 
   if (body.action === "start" && body.examId) {
+    if (user.role !== "admin") {
+      const riskGuard = await guardExamStartRisk(admin, user.id, request);
+      if (!riskGuard.ok) return riskGuard.response;
+    }
     const requestedMode: ExamPolicyMode = body.mode === "exam" ? "official" : "practice";
     const examShell = await loadExam(admin, user, body.examId, { includeQuestions: false, mode: requestedMode });
     if (!examShell) return Response.json({ error: "Đề thi không tồn tại hoặc chưa được mở." }, { status: 404 });

@@ -1890,7 +1890,7 @@
   text-transform: uppercase;
 }
 
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select select {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select :is(select, input[type="date"]) {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -1930,6 +1930,34 @@
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading > div {
   min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  margin-block-end: 16px;
+  padding: 11px 13px;
+  border: 1px solid rgba(141, 101, 15, 0.24);
+  border-radius: 10px;
+  background: #fffaf0;
+  color: #73530b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-warning > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-warning p {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-list-heading h2 {
@@ -2273,9 +2301,6 @@
     grid-column: 1 / -1;
   }
 
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-row > :is(td, th):nth-child(4) {
-    display: none;
-  }
 }
 
 @media (max-width: 840px) {
@@ -2416,7 +2441,7 @@
   }
 
   .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-search input,
-  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select select {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-select :is(select, input[type="date"]) {
     font-size: 16px;
   }
 

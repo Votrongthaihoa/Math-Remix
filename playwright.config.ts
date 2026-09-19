@@ -16,6 +16,11 @@ export default defineConfig({
     trace: process.env.CI ? "on-first-retry" : "retain-on-failure",
     screenshot: "only-on-failure",
   },
+  // The local Worker is intentionally started once for the matrix and can
+  // queue several synthetic Supabase requests when workers run in parallel.
+  // Keep the suite's assertions deterministic without changing the overall
+  // per-test safety budget above.
+  expect: { timeout: 15_000 },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
     { name: "tablet-768", use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } } },

@@ -1,4 +1,4 @@
-import { ensureActiveAccount } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
 
 const headers = {
   "cache-control": "private, no-store, max-age=0",
@@ -16,9 +16,8 @@ function errorResponse(message: string, status: number) {
 }
 
 export async function GET(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "exams");
   if (!security.ok) return security.response;
-  if (security.profile.role !== "admin") return errorResponse("Bạn không có quyền quản trị nội dung đề thi.", 403);
 
   const admin = security.admin;
   const examId = new URL(request.url).searchParams.get("examId")?.trim();

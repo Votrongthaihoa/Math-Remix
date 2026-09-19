@@ -654,7 +654,7 @@ export default function AdminHlsVault() {
       <div className="admin-hls-vault-card-head"><div><span className="admin-hls-vault-eyebrow">BƯỚC 2 · XỬ LÝ</span><h2>Tiến trình</h2></div><span className={`admin-hls-vault-state state-${state}`}>{state === "done" ? <><CheckCircle2 aria-hidden="true"/> Hoàn tất</> : state === "error" ? "Có lỗi" : state === "cancelled" ? "Đã hủy" : busy ? "Đang chạy" : "Chờ thao tác"}</span></div>
       <div className="admin-hls-vault-progress-track" role="progressbar" aria-label="Tiến trình encode và upload" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }}/></div>
       <div className="admin-hls-vault-progress-meta"><b>{stage}</b><span>{uploadedFiles}{totalFiles ? ` / ${totalFiles}` : ""} file</span></div>
-      {ffmpegLog && <p className="admin-hls-vault-log" title={ffmpegLog}>{ffmpegLog}</p>}
+      {ffmpegLog && <pre className="admin-hls-vault-log" role="log" aria-label="Nhật ký FFmpeg" tabIndex={0}>{ffmpegLog}</pre>}
       {notice && <p className="admin-hls-vault-notice">{notice} <Link href="/admin/content" onClick={guardOwnedNavigation}>Mở trình soạn nội dung</Link></p>}
       {error && <p className="admin-hls-vault-error" role="alert">{error}</p>}
     </section>

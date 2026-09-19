@@ -17,6 +17,7 @@ const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}
 const guestTokenSegment = /^[A-Za-z0-9_-]{10,100}$/;
 const legacyAdminPrefixes = [
   "question-bank", "item/create", "exam-management", "assessment-management", "exam-room-management",
+  "admin-session-wizard",
   "user-management", "group-user-management", "course-management", "media-management", "exam-result-management",
   "irt-exam-management", "evidence-registration-management", "subscription-package-management", "shipment-management",
   "tkb-management", "ilearn-management", "admin-log", "watermark-trace", "server-health",
@@ -43,7 +44,7 @@ export default async function CatchAllPage({ params, searchParams }: { params: P
   const query = new URLSearchParams();
   const requestedTab = queryValues.tab;
   if (typeof requestedTab === "string") query.set("tab", requestedTab);
-  const targetAlias = targetRouteRedirect(slug);
+  const targetAlias = targetRouteRedirect(slug, queryValues);
   if (targetAlias === "/profile" && query.get("tab") === "courses") redirect("/profile?tab=courses");
   if (targetAlias) redirect(targetAlias);
   const publicRoute = slug.length === 1 && publicRoutes.has(slug[0]) ? slug[0] as AeckPublicRoute : null;

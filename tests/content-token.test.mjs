@@ -149,9 +149,8 @@ test("content tokens use independent 12-byte IVs and do not expose plaintext ide
   }
 });
 
-// Desired validation is recorded as executable TODOs, not passing assertions
-// that would enshrine current acceptance of malformed authenticated claims.
-// These tests do NOT imply an attacker without SECRET can forge a token.
+// Authenticated claims still require strict runtime validation. These tests do
+// not imply an attacker without SECRET can forge a token.
 for (const [name, changes] of [
   ["non-string resource identifier", { rid: 123 }],
   ["non-string user identifier", { sub: { id: USER_ID } }],
@@ -159,14 +158,14 @@ for (const [name, changes] of [
   ["numeric expiration string", { exp: String(NOW + 300) }],
   ["object expiration", { exp: {} }],
 ]) {
-  test(`content token should reject ${name}`, { todo: "Verifier does not validate claim types; production fix is outside this test-only task." }, async t => {
+  test(`content token rejects ${name}`, async t => {
     freezeTime(t);
     assert.equal(await verifyContentToken(encryptPayload({ ...validPayload(), ...changes }), SECRET), null);
   });
 }
 
 for (const [name, iat] of [["missing", undefined], ["null", null], ["nonnumeric", "yesterday"], ["object", {}]]) {
-  test(`content token should reject ${name} issued-at claim`, { todo: "Verifier does not validate iat; production fix is outside this test-only task." }, async t => {
+  test(`content token rejects ${name} issued-at claim`, async t => {
     freezeTime(t);
     assert.equal(await verifyContentToken(encryptPayload({ ...validPayload(), iat }), SECRET), null);
   });

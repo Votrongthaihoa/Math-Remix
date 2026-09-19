@@ -28,14 +28,12 @@ const OPTIMIZED_CONTENT_ROUTES = new Set([
   "/admin/upload",
   "/admin/enrollments",
   "/admin/security",
-  "/admin/question-bank",
 ]);
 
 const OPTIMIZED_CONTENT_PATTERNS = [
   /^\/courses\/[^/]+$/,
   /^\/lessons\/[^/]+$/,
   /^\/admin\/content\/courses\/[^/]+$/,
-  /^\/admin\/question-bank\/[^/]+$/,
 ];
 
 const OPTIMIZED_CHROME_PATTERNS = [

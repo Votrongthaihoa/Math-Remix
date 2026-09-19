@@ -23,6 +23,10 @@ test("admin can create live events and generate ordered lesson events for an exi
   assert.match(generator, /generateLessonSchedule/);
   assert.match(generator, /course_schedule_rules/);
   assert.match(generator, /eq\("published", true\)/);
+  assert.match(generator, /normalizeWeekdays\(body\.weekdays\)/);
+  assert.match(generator, /weekdays,\s*\r?\n\s*startTime/);
+  assert.match(generator, /weekdays,\s*\r?\n\s*start_time/);
+  assert.doesNotMatch(generator, /weekdays: \[\.\.\.new Set\(body\.weekdays/);
 });
 
 test("admin timetable keeps exam-room scheduling and adds course live and generated lesson workflows", async () => {
@@ -57,6 +61,8 @@ test("admin timetable update and delete mutations are rate limited", async () =>
   assert.match(route, /consumeRequestBudget/);
   assert.match(route, /hashedRequestIp/);
   assert.match(patchHandler, /mutationBudget\(request, security, "update"\)/);
+  assert.match(patchHandler, /end\.getTime\(\) - start\.getTime\(\) > 24 \* 60 \* 60 \* 1000/);
+  assert.match(patchHandler, /không thể kéo dài quá 24 giờ/);
   assert.match(deleteHandler, /mutationBudget\(request, security, "delete"\)/);
 });
 
@@ -70,6 +76,13 @@ test("admin timetable supports a bounded date window and complete event manageme
   assert.match(courseUi, /range\.from/);
   assert.match(courseUi, /range\.to/);
   assert.doesNotMatch(courseUi, /setMonth\(to\.getMonth\(\) \+ 6\)/);
+});
+
+test("clearing the optional timetable start date cannot crash the date-range controls", async () => {
+  const courseUi = await source("app/admin-course-timetable.tsx");
+
+  assert.match(courseUi, /const date = new Date\(`\$\{value\}T12:00:00`\);\s*if \(!Number\.isFinite\(date\.getTime\(\)\)\) return "";/);
+  assert.match(courseUi, /min=\{range\.from \|\| undefined\} max=\{latestRangeEnd \|\| undefined\}/);
 });
 
 test("deleting a course timetable event requires the accessible product confirmation", async () => {

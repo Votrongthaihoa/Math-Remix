@@ -430,7 +430,8 @@
 .admin-hls-vault-progress-meta { display: flex; justify-content: space-between; gap: 12px; min-width: 0; color: var(--hls-muted); font-size: 12px; }
 .admin-hls-vault-progress-meta b { min-width: 0; color: var(--hls-ink); font-weight: 650; overflow-wrap: break-word; }
 .admin-hls-vault-progress-meta span { flex: 0 0 auto; }
-.admin-hls-vault-log { margin: 0; padding: 9px 11px; overflow: hidden; border-radius: 8px; color: #64748b; background: #f8fafc; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.admin-hls-vault-log { max-height: 180px; margin: 0; padding: 9px 11px; overflow: auto; overscroll-behavior: contain; border-radius: 8px; color: #64748b; background: #f8fafc; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+.admin-hls-vault-log:focus-visible { outline: 2px solid var(--hls-red, #b5122b); outline-offset: 2px; }
 .admin-hls-vault-notice,
 .admin-hls-vault-error { margin: 0; padding: 12px 13px; border-radius: 10px; font-size: 12px; line-height: 1.55; overflow-wrap: break-word; }
 .admin-hls-vault-notice { color: #166534; background: #f0fdf4; }

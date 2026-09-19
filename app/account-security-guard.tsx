@@ -3,40 +3,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, LockKeyhole } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
+import {
+  getOrCreateSecurityDeviceId,
+  isSecurityUuid,
+  persistSecuritySessionId,
+  readSecuritySessionId,
+  securityDeviceInfo,
+  type SecuritySessionReply,
+} from "../lib/security-session-client";
 
 type ActivityType = "lesson" | "video" | "pdf" | "quiz" | "exam";
-type SecurityReply = {
-  allowed?: boolean;
-  code?: string;
-  message?: string;
-  reason?: string;
-  sessionId?: string;
-  bannedUntil?: string | null;
-  serverTime?: string;
-  violationNumber?: number;
-  eventCode?: string | null;
-  warning?: { message?: string } | null;
-  exempt?: boolean;
-};
-
-const DEVICE_KEY = "remix.security.device-id.v1";
-const SESSION_KEY = "remix.security.learning-session.v1";
-
-function deviceInfo() {
-  const ua = navigator.userAgent;
-  const browser = /Edg\//.test(ua) ? "Microsoft Edge" : /Chrome\//.test(ua) ? "Google Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Trình duyệt khác";
-  const operatingSystem = /Windows/.test(ua) ? "Windows" : /Android/.test(ua) ? "Android" : /iPhone|iPad/.test(ua) ? "iOS/iPadOS" : /Mac OS/.test(ua) ? "macOS" : /Linux/.test(ua) ? "Linux" : "Hệ điều hành khác";
-  return { browser, operatingSystem, deviceName: `${browser} trên ${operatingSystem}` };
-}
-
-function getDeviceId() {
-  let value = localStorage.getItem(DEVICE_KEY);
-  if (!value || !/^[0-9a-f-]{36}$/i.test(value)) {
-    value = crypto.randomUUID();
-    localStorage.setItem(DEVICE_KEY, value);
-  }
-  return value;
-}
 
 function remainingLabel(milliseconds: number) {
   const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
@@ -49,12 +25,12 @@ function remainingLabel(milliseconds: number) {
 
 export default function AccountSecurityGuard({ activityType, resourceId }: { activityType: ActivityType; resourceId: string }) {
   const [state, setState] = useState<"checking" | "allowed" | "blocked">("checking");
-  const [reply, setReply] = useState<SecurityReply>({});
+  const [reply, setReply] = useState<SecuritySessionReply>({});
   const [error, setError] = useState("");
   const [remaining, setRemaining] = useState(0);
   const sessionId = useRef<string | null>(null);
   const deviceId = useRef<string>("");
-  const info = useMemo(() => typeof navigator === "undefined" ? { browser: "", operatingSystem: "", deviceName: "" } : deviceInfo(), []);
+  const info = useMemo(() => securityDeviceInfo(), []);
 
   const callSecurity = useCallback(async (action: "start" | "heartbeat" | "stop" | "status") => {
     const response = await authenticatedFetch("/api/security/session", {
@@ -63,7 +39,7 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
       body: JSON.stringify({ action, sessionId: sessionId.current, deviceId: deviceId.current, activityType, resourceId, ...info }),
       cache: "no-store",
     });
-    const payload = await response.json().catch(() => ({})) as SecurityReply;
+    const payload = await response.json().catch(() => ({})) as SecuritySessionReply;
     if (!response.ok && !payload.code) throw new Error(payload.message || payload.reason || "Không thể kiểm tra phiên học.");
     return payload;
   }, [activityType, info, resourceId]);
@@ -73,10 +49,8 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
     try {
       const payload = await callSecurity("start");
       setReply(payload);
-      if (payload.allowed && (payload.sessionId || payload.exempt)) {
-        sessionId.current = payload.sessionId ?? null;
-        if (payload.sessionId) sessionStorage.setItem(SESSION_KEY, payload.sessionId);
-        else sessionStorage.removeItem(SESSION_KEY);
+      if (payload.allowed && (isSecurityUuid(payload.sessionId) || payload.exempt)) {
+        sessionId.current = persistSecuritySessionId(payload.sessionId);
         setState("allowed");
       } else setState("blocked");
     } catch (value) {
@@ -86,15 +60,15 @@ export default function AccountSecurityGuard({ activityType, resourceId }: { act
   }, [callSecurity]);
 
   useEffect(() => {
-    deviceId.current = getDeviceId();
-    sessionId.current = sessionStorage.getItem(SESSION_KEY);
+    deviceId.current = getOrCreateSecurityDeviceId();
+    sessionId.current = readSecuritySessionId();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize the server-backed guard on mount
     void start();
     return () => {
       if (sessionId.current) {
         // Access token cannot be attached to sendBeacon, so the session is only
         // dropped locally; the stale row expires server-side after five minutes.
-        sessionStorage.removeItem(SESSION_KEY);
+        persistSecuritySessionId(null);
       }
     };
   }, [start]);

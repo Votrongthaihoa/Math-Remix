@@ -1,8 +1,19 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { registerTestLoader } from "./support/test-loader.mjs";
 
 const source = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const auditRouteUrl = new URL("../app/api/admin/audit/route.ts", import.meta.url).href;
+const auditRouteState = {};
+globalThis.__adminAuditRouteTest = auditRouteState;
+await registerTestLoader([{
+  parentURL: auditRouteUrl,
+  specifier: "../../../../lib/admin-authorization-server",
+  url: `data:text/javascript,${encodeURIComponent("export const ensureAdminPermission = (...args) => globalThis.__adminAuditRouteTest.ensure(...args);")}`,
+}]);
+const { GET: getAudit } = await import(auditRouteUrl);
+test.after(() => { delete globalThis.__adminAuditRouteTest; });
 
 test("admin audit ignores stale responses after filters change", async () => {
   const page = await source("app/admin-audit-log.tsx");
@@ -41,6 +52,133 @@ test("admin audit uses native table semantics without hiding mobile audit detail
   assert.match(styles, /\.admin-audit-row\s*>\s*:is\(td, th\)\s*\{[\s\S]*?display:\s*block;/);
   assert.match(styles, /\.admin-audit-row > td:nth-child\(4\)\s*\{[\s\S]*?display:\s*block;/);
   assert.doesNotMatch(styles, /\.admin-audit-row > span\s*\{\s*display:\s*none;/);
+});
+
+test("admin audit keeps the target column visible through the tablet breakpoint", async () => {
+  const styles = await source("app/admin-reference-suite.css");
+  const tablet = styles.slice(styles.indexOf("@media (max-width: 1180px)"), styles.indexOf("@media (max-width: 840px)"));
+
+  assert.doesNotMatch(tablet, /admin-audit-row[^{}]*nth-child\(4\)[^{}]*display:\s*none/);
+});
+
+test("admin audit exposes URL-synced action and date filters", async () => {
+  const [page, route] = await Promise.all([
+    source("app/admin-audit-log.tsx"),
+    source("app/api/admin/audit/route.ts"),
+  ]);
+  assert.match(page, /name="action"/);
+  assert.match(page, /name="from"/);
+  assert.match(page, /name="to"/);
+  assert.match(page, /params\.set\("action"/);
+  assert.match(route, /params\.get\("action"\)/);
+  assert.match(route, /params\.get\("from"\)/);
+  assert.match(route, /params\.get\("to"\)/);
+  assert.match(route, /item\.action === action/);
+  assert.match(route, /const vietnamUtcOffset = "\+07:00"/);
+  assert.match(route, /T\$\{endOfDay \? "23:59:59\.999" : "00:00:00\.000"\}\$\{vietnamUtcOffset\}/);
+  assert.doesNotMatch(route, /T\$\{endOfDay \? "23:59:59\.999" : "00:00:00\.000"\}Z/);
+});
+
+test("admin audit date filters include the complete Vietnam calendar day", async () => {
+  const rows = [
+    { id: 1, admin_id: "admin-1", target_user_id: "student-1", action: "before", reason: "", created_at: "2026-09-17T16:59:59.999Z" },
+    { id: 2, admin_id: "admin-1", target_user_id: "student-1", action: "first", reason: "", created_at: "2026-09-17T17:00:00.000Z" },
+    { id: 3, admin_id: "admin-1", target_user_id: "student-1", action: "last", reason: "", created_at: "2026-09-18T16:59:59.999Z" },
+    { id: 4, admin_id: "admin-1", target_user_id: "student-1", action: "after", reason: "", created_at: "2026-09-18T17:00:00.000Z" },
+  ];
+  const profiles = [
+    { id: "admin-1", full_name: "Quản trị viên", student_code: "ADMIN" },
+    { id: "student-1", full_name: "Học viên", student_code: "HS001" },
+  ];
+  const calls = [];
+  const admin = {
+    from(table) {
+      calls.push(["from", table]);
+      const query = {
+        select(value) { calls.push(["select", value]); return query; },
+        order(...args) { calls.push(["order", ...args]); return query; },
+        gte(...args) { calls.push(["gte", ...args]); return query; },
+        lte(...args) { calls.push(["lte", ...args]); return query; },
+        limit() { return Promise.resolve({ data: rows, error: null }); },
+        in(...args) { calls.push(["in", ...args]); return Promise.resolve({ data: profiles, error: null }); },
+      };
+      return query;
+    },
+  };
+  auditRouteState.ensure = async () => ({ ok: true, admin, user: { id: "admin-1" }, profile: { role: "admin" } });
+
+  const response = await getAudit(new Request("https://example.test/api/admin/audit?source=account&from=2026-09-18&to=2026-09-18&limit=10"));
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.total, 2);
+  assert.deepEqual(payload.items.map(item => item.action), ["last", "first"]);
+  assert.ok(calls.some(([name, column, value]) => name === "gte" && column === "created_at" && value === "2026-09-17T17:00:00.000Z"));
+  assert.ok(calls.some(([name, column, value]) => name === "lte" && column === "created_at" && value === "2026-09-18T16:59:59.999Z"));
+  assert.ok(calls.some(([name, table]) => name === "from" && table === "admin_actions"));
+  assert.ok(calls.some(([name, table]) => name === "from" && table === "profiles"));
+});
+
+test("admin audit reports per-source truncation instead of implying complete history", async () => {
+  const rows = Array.from({ length: 501 }, (_, index) => ({
+    id: index + 1,
+    admin_id: "admin-1",
+    target_user_id: "student-1",
+    action: `action_${index}`,
+    reason: "",
+    created_at: new Date(Date.UTC(2026, 8, 19, 0, 0, 501 - index)).toISOString(),
+  }));
+  const profiles = [
+    { id: "admin-1", full_name: "Quản trị viên", student_code: "ADMIN" },
+    { id: "student-1", full_name: "Học viên", student_code: "HS001" },
+  ];
+  const admin = {
+    from(table) {
+      const query = {
+        select() { return query; },
+        order() { return query; },
+        gte() { return query; },
+        lte() { return query; },
+        limit() { return Promise.resolve({ data: table === "admin_actions" ? rows : [], error: null }); },
+        in() { return Promise.resolve({ data: profiles, error: null }); },
+      };
+      return query;
+    },
+  };
+  auditRouteState.ensure = async () => ({ ok: true, admin, user: { id: "admin-1" }, profile: { role: "admin" } });
+
+  const response = await getAudit(new Request("https://example.test/api/admin/audit?source=account&limit=100"));
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.items.length, 100);
+  assert.equal(payload.truncation.hasTruncatedSources, true);
+  assert.deepEqual(payload.truncation.sources, { exam: false, account: true });
+  assert.equal(payload.truncation.sourceLimit, 500);
+  assert.equal(payload.hasNextPage, true);
+});
+
+test("admin audit rejects invalid and reversed calendar ranges", async () => {
+  auditRouteState.ensure = async () => ({ ok: true, admin: {}, user: { id: "admin-1" }, profile: { role: "admin" } });
+  const invalid = await getAudit(new Request("https://example.test/api/admin/audit?from=2026-02-30"));
+  assert.equal(invalid.status, 400);
+  assert.equal((await invalid.json()).error, "Ngày lọc không hợp lệ.");
+  const reversed = await getAudit(new Request("https://example.test/api/admin/audit?from=2026-09-20&to=2026-09-19"));
+  assert.equal(reversed.status, 400);
+  assert.equal((await reversed.json()).error, "Khoảng ngày không hợp lệ.");
+});
+
+test("admin audit warns when the result is capped and exposes the recorded-status filter", async () => {
+  const [page, styles, route] = await Promise.all([
+    source("app/admin-audit-log.tsx"),
+    source("app/admin-reference-suite.css"),
+    source("app/api/admin/audit/route.ts"),
+  ]);
+  assert.match(page, /admin-audit-warning/);
+  assert.match(page, /Bộ lọc và phân trang có thể chưa bao quát dữ liệu cũ/);
+  assert.match(styles, /\.admin-audit-warning\s*\{/);
+  assert.match(page, /value=\{option\.id\}/);
+  assert.match(page, /\{ id: "recorded", label: "Đã ghi nhận" \}/);
+  assert.match(route, /params\.get\("status"\) === "recorded"/);
+  assert.match(route, /profileLookupChunkSize = 100/);
 });
 
 test("exam admin audit migration is constrained, indexed, and RLS protected", async () => {

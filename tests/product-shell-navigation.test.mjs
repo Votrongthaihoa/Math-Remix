@@ -49,6 +49,9 @@ test("course shell removes demo copy and exposes cover management", async () => 
   assert.match(coverRoute, /export async function DELETE/);
   assert.match(coverRoute, /putR2Object/);
   assert.match(coverRoute, /deleteR2Object/);
+  assert.match(coverRoute, /readJsonBody<\{ courseId\?: unknown \}>\(request, 8 \* 1024\)/);
+  assert.match(coverRoute, /payload_too_large/);
+  assert.match(coverRoute, /readMultipartFormData\(request, COURSE_COVER_MAX_UPLOAD_BYTES \+ MULTIPART_OVERHEAD_BYTES\)/);
   assert.match(coverRoute, /consumeRequestBudget/);
   assert.match(coverRoute, /retry-after/);
   assert.match(platform, /onError=\{\(\) => setCoverPreviewErrorUrl\(coverUrl\)\}/);

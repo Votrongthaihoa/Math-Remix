@@ -34,7 +34,7 @@ export const test = base.extend<{ boundary: Boundary }>({
         synthetic.push(evidence);
         if (req.method() === "GET" && url.pathname === "/auth/v1/user") return json(user);
         if (req.method() === "POST" && url.pathname === "/auth/v1/logout") return route.fulfill({ status: 204 });
-        if (req.method() === "GET" && url.pathname === "/rest/v1/profiles") return json({ id: user.id, full_name: "Học viên tổng hợp", student_code: "SYNTHETIC", role: "student", status: "active" });
+        if (req.method() === "GET" && url.pathname === "/rest/v1/profiles") return json({ id: user.id, full_name: "Học viên tổng hợp", student_code: "SYNTHETIC", role: "student", status: "active", account_status: "active", banned_until: null });
         if (req.method() === "GET" && url.pathname === "/rest/v1/course_enrollments") return json([]);
         unexpected.push(evidence);
         return route.abort("blockedbyclient");

@@ -1,15 +1,15 @@
 import { jsonBodyError, readJsonBody } from "../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../lib/admin-authorization-server";
+import { hashedRequestIp } from "../../../../lib/security-server";
 
 const noStore = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const videoIdPattern = /^[A-Za-z0-9_-]{1,80}$/;
 
 export async function POST(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "courses");
   if (!security.ok) return security.response;
-  if (security.profile.role !== "admin") return Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore });
   try {
     const budget = await consumeRequestBudget(security.admin, "admin-lesson-hls", `${security.user.id}:${await hashedRequestIp(request)}`, { capacity: 20, refillSeconds: 30 });
     if (!budget.allowed) return Response.json({ error: "Bạn thao tác quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...noStore, "retry-after": String(budget.retryAfterSeconds) } });

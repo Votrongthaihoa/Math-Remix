@@ -2,14 +2,14 @@ import { hlsMediaKeyFromEnvironment } from "../../../../../lib/hls-key";
 import { hlsVideoId } from "../../../../../lib/hls-vault";
 import { jsonBodyError, readJsonBody } from "../../../../../lib/http-server";
 import { consumeRequestBudget } from "../../../../../lib/rate-limit-server";
-import { ensureActiveAccount, hashedRequestIp } from "../../../../../lib/security-server";
+import { ensureAdminPermission } from "../../../../../lib/admin-authorization-server";
+import { hashedRequestIp } from "../../../../../lib/security-server";
 
 const noStore = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
 
 export async function POST(request: Request) {
-  const security = await ensureActiveAccount(request);
+  const security = await ensureAdminPermission(request, "courses");
   if (!security.ok) return security.response;
-  if (security.profile.role !== "admin") return Response.json({ error: "Không có quyền quản trị." }, { status: 403, headers: noStore });
   try {
     const budget = await consumeRequestBudget(security.admin, "admin-hls-vault-key", `${security.user.id}:${await hashedRequestIp(request)}`, { capacity: 10, refillSeconds: 60 });
     if (!budget.allowed) return Response.json({ error: "Bạn yêu cầu khóa HLS quá nhanh. Hãy thử lại sau.", code: "RATE_LIMITED", retryAfter: budget.retryAfterSeconds }, { status: 429, headers: { ...noStore, "retry-after": String(budget.retryAfterSeconds) } });
