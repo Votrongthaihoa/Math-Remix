@@ -28,10 +28,13 @@ import AccountSecurityGuard from "./account-security-guard";
 import TurnstileChallenge from "./turnstile-login";
 import { normalizeExamType } from "../lib/exam-config";
 import AdminSecurity from "./admin-security";
+import AdminContentList from "./admin-content-list";
+import AdminStudentRoster from "./admin-student-roster";
 import { useAdminDialogFocus } from "./admin-dialog";
 import { classifyUiRoute, type UiRouteMode } from "./ui-route-mode";
 import { requestProductNavigation } from "./product-navigation-guard";
 import { adminCourseIdFromPath } from "./admin-route-map";
+import { courseCategoryCounts, courseCategoryFromParams, courseCategoryIds, courseCategoryParams, matchesCourseCategory, resetCourseCatalogParams, searchCourseText, sortCourseCatalog, visibleCourseCategories, type CourseCatalogSort, type CourseCategoryFilter } from "../lib/course-catalog";
 import "./study.css";
 import "./admin-redesign.css";
 import "./student-redesign.css";
@@ -52,6 +55,8 @@ import "./account-learning-polish.css";
 import "./student-reference-fidelity.css";
 import "./student-timetable-reference.css";
 import "./red-white-theme.css";
+import "./student-course-catalog.css";
+import "./admin-content-catalog.css";
 import "./admin-source-reference.css";
 import AdminSessionList from "./admin-sessions";
 import { AdminQuickFinder, StudentSchedulePage, StudentSearchPage, type AdminFinderItem } from "./student-discovery";
@@ -240,18 +245,6 @@ function courseFallbackCoverAsset(course: Pick<CourseData, "title" | "descriptio
   if (has("tieng anh", "english")) return courseCoverAssets.english;
   if (has("vat ly")) return courseCoverAssets.physics;
   return courseCoverAssets.default;
-}
-
-type CourseExamTab = "ALL" | "TSA" | "HSA";
-
-function courseExamGroup(course: Pick<CourseData, "title" | "description">): Exclude<CourseExamTab, "ALL"> | "SHARED" {
-  const searchable = `${course.title} ${course.description}`.toLocaleUpperCase("vi");
-  const hasHsa = searchable.includes("HSA") || searchable.includes("ĐGNL") || searchable.includes("ĐÁNH GIÁ NĂNG LỰC") || searchable.includes("QDA") || searchable.includes("BCA");
-  const hasTsa = searchable.includes("TSA") || searchable.includes("ĐÁNH GIÁ TƯ DUY") || searchable.includes("TƯ DUY");
-  if (hasHsa && hasTsa) return "SHARED";
-  if (hasHsa) return "HSA";
-  if (hasTsa) return "TSA";
-  return "SHARED";
 }
 
 function cleanPartTitle(title: string | null | undefined) {
@@ -1463,7 +1456,7 @@ export default function PlatformApp({ initialAdminRoute = false, initialGuestTok
               <Link key="exams" href="/exam-room" className={`student-nav-primary ${currentView === "exams" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "exams", "/exam-room")} title="Phòng khảo thí" aria-label="Phòng khảo thí" aria-current={currentView === "exams" ? "page" : undefined}><ReferenceSidebarIcon name="read" /><span>Phòng khảo thí</span></Link>
               <Link key="courses" href="/courses" className={`student-nav-primary ${currentView === "courses" || currentView === "course" || currentView === "lesson" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "courses", "/courses")} title="Khóa học" aria-label="Khóa học" aria-current={currentView === "courses" || currentView === "course" || currentView === "lesson" ? "page" : undefined}><ReferenceSidebarIcon name="play-square" /><span>Khóa học</span></Link>
               <Link key="history" href="/exam-history" className={`student-nav-primary ${currentView === "history" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "history", "/exam-history")} title="Lịch sử thi" aria-label="Lịch sử thi" aria-current={currentView === "history" ? "page" : undefined}><ReferenceSidebarIcon name="history" /><span>Lịch sử thi</span></Link>
-              <Link key="progress" href="/progress" className={`student-nav-primary ${currentView === "progress" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "progress", "/progress")} title="Tiến độ học tập" aria-label="Tiến độ học tập" aria-current={currentView === "progress" ? "page" : undefined}><ReferenceSidebarIcon name="bar-chart" /><span>Tiến độ</span></Link>
+              <Link key="progress" href="/progress" className={`student-nav-primary ${currentView === "progress" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "progress", "/progress")} title="Bài thi IRT" aria-label="Bài thi IRT" aria-current={currentView === "progress" ? "page" : undefined}><ReferenceSidebarIcon name="bar-chart" /><span>Bài thi IRT</span></Link>
               {!protectedProductSurface && <>
                 <Link key="search" href="/search" className={`student-nav-primary ${currentView === "search" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "search", "/search")} title="Tra cứu" aria-label="Tra cứu" aria-current={currentView === "search" ? "page" : undefined}><ReferenceSidebarIcon name="search" /><span>Tra cứu</span></Link>
                 <Link key="schedule" href="/tkb" className={`student-nav-primary ${currentView === "schedule" ? "active" : ""}`} onClick={event => handleNavigationLink(event, "schedule", "/tkb")} title="Thời khóa biểu" aria-label="Thời khóa biểu" aria-current={currentView === "schedule" ? "page" : undefined}><ReferenceSidebarIcon name="calendar" /><span>Thời khóa biểu</span></Link>
@@ -1829,6 +1822,7 @@ function Overview({ onCourses, onExams, onOpenRoom, onOpenAttempt, profile, user
     <section className="overview-lists">
       <article className="overview-list-card"><div className="overview-card-head"><b>Khóa học</b><Link href="/courses" onClick={event => followLink(event, onCourses)}>Xem tất cả</Link></div>{userCourses.length ? <ul>{userCourses.map(c=><li key={c.id}><i className="dot blue"/><Link href={`/courses/${encodeURIComponent(String(c.id))}`}>{c.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa được phân khóa học</div>}</article>
       <article className="overview-list-card"><div className="overview-card-head"><b>Phòng luyện</b><Link href="/exam-room" onClick={event => followLink(event, onExams)}>Xem tất cả</Link></div>{practiceRooms.length ? <ul>{practiceRooms.slice(0,5).map(room=><li key={room.id}><i className="dot blue"/><Link href={`/exam-room/${encodeURIComponent(room.id)}`} onClick={event => followLink(event, () => onOpenRoom(room.id))} title={`${room.title} · ${room.examCount} đề`}>{room.title}</Link></li>)}</ul> : <div className="overview-empty">Chưa có phòng luyện nào</div>}</article>
+      <article className="overview-list-card"><div className="overview-card-head"><b>Bài thi IRT</b><Link href="/progress" onClick={event => followLink(event, () => {})}>Xem tất cả</Link></div><div className="overview-empty">Chưa có bài thi IRT nào</div></article>
     </section>
     <section className="two-col"><div className="section-card"><div className="section-head"><h2>Bài thi gần đây</h2></div>{recent.length ? <ul className="attempt-list">{recent.map(item=><li key={item.id}><button type="button" className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><small>{formatUiDate(item.submitted_at)}</small></li>)}</ul> : <MiniEmpty text="Chưa có bài thi nào được thực hiện." />}</div><div className="section-card"><div className="section-head"><h2>Top 5 điểm cao nhất</h2></div>{top.length ? <ul className="attempt-list">{top.map(item=><li key={item.id}><button type="button" className="attempt-list-link" title={item.title} onClick={() => onOpenAttempt(item.id)}>{item.title}</button><b>{item.score}</b></li>)}</ul> : <MiniEmpty text="Chưa có dữ liệu xếp hạng." />}</div></section>
     <section className="section-card activity-card">
@@ -1856,8 +1850,9 @@ function Courses({ courses: courseItems, isAdmin, loading, error = "", onRetry }
   const searchParams = useSearchParams();
   const routeCourseSearch = searchParams.get("q") ?? "";
   const courseView = searchParams.get("view") === "list" ? "list" : "grid";
-  const requestedExamType = searchParams.get("examType")?.toLocaleUpperCase("vi");
-  const selectedExamTab: CourseExamTab = requestedExamType === "TSA" || requestedExamType === "HSA" ? requestedExamType : "ALL";
+  const selectedExamTab = courseCategoryFromParams(searchParams);
+  const requestedSort = searchParams.get("sort");
+  const courseSort: CourseCatalogSort = requestedSort === "title-asc" || requestedSort === "title-desc" ? requestedSort : "default";
   const [courseSearch, setCourseSearch] = useState(routeCourseSearch);
   const committedCourseSearchRef = useRef(routeCourseSearch);
   useEffect(() => {
@@ -1870,6 +1865,7 @@ function Courses({ courses: courseItems, isAdmin, loading, error = "", onRetry }
       const query = courseSearch.trimStart();
       const currentParams = new URLSearchParams(window.location.search);
       const currentQuery = currentParams.get("q") ?? "";
+      if (query === committedCourseSearchRef.current && currentQuery !== query) return;
       if (currentQuery === query) {
         committedCourseSearchRef.current = query;
         return;
@@ -1882,28 +1878,21 @@ function Courses({ courses: courseItems, isAdmin, loading, error = "", onRetry }
     return () => window.clearTimeout(timer);
   }, [courseSearch, pathname, router]);
   const filteredCourses = useMemo(() => {
-    const query = courseSearch.trim().toLocaleLowerCase("vi");
-    return courseItems.filter(course => {
-      const group = courseExamGroup(course);
-      const matchesExamType = selectedExamTab === "ALL" || group === "SHARED" || group === selectedExamTab;
-      const matchesQuery = !query || `${course.title} ${course.description}`.toLocaleLowerCase("vi").includes(query);
-      return matchesExamType && matchesQuery;
-    });
-  }, [courseItems, courseSearch, selectedExamTab]);
-  const courseCounts = useMemo(() => ({
-    ALL: courseItems.length,
-    TSA: courseItems.filter(course => ["TSA", "SHARED"].includes(courseExamGroup(course))).length,
-    HSA: courseItems.filter(course => ["HSA", "SHARED"].includes(courseExamGroup(course))).length,
-  }), [courseItems]);
-  const updateCourseExamTab = (nextTab: CourseExamTab) => {
-    const nextParams = new URLSearchParams(searchParams.toString());
-    if (nextTab === "ALL") nextParams.delete("examType"); else nextParams.set("examType", nextTab);
+    const query = searchCourseText(courseSearch);
+    const matching = courseItems.filter(course => matchesCourseCategory(course, selectedExamTab)
+      && (!query || searchCourseText(`${course.title} ${course.description ?? ""}`).includes(query)));
+    return sortCourseCatalog(matching, courseSort);
+  }, [courseItems, courseSearch, selectedExamTab, courseSort]);
+  const courseCounts = useMemo(() => courseCategoryCounts(courseItems), [courseItems]);
+  const courseTabs = useMemo(() => visibleCourseCategories(courseItems, selectedExamTab), [courseItems, selectedExamTab]);
+  const updateCourseExamTab = (nextTab: CourseCategoryFilter) => {
+    const nextParams = courseCategoryParams(new URLSearchParams(window.location.search), nextTab);
     const nextQuery = nextParams.toString();
     router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
   };
   const handleCourseTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-    const tabs: CourseExamTab[] = ["ALL", "TSA", "HSA"];
+    const tabs = courseTabs.map(category => category.id);
     const currentIndex = tabs.indexOf(selectedExamTab);
     const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
     event.preventDefault();
@@ -1911,18 +1900,32 @@ function Courses({ courses: courseItems, isAdmin, loading, error = "", onRetry }
     window.requestAnimationFrame(() => document.getElementById(`course-exam-tab-${tabs[nextIndex].toLowerCase()}`)?.focus());
   };
   const updateCourseView = (nextView: "grid" | "list") => {
-    const nextParams = new URLSearchParams(searchParams.toString());
+    const nextParams = new URLSearchParams(window.location.search);
     nextParams.set("view", nextView);
+    const nextQuery = nextParams.toString();
+    router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
+  };
+  const updateCourseSort = (nextSort: CourseCatalogSort) => {
+    const nextParams = new URLSearchParams(window.location.search);
+    if (nextSort === "default") nextParams.delete("sort"); else nextParams.set("sort", nextSort);
+    const nextQuery = nextParams.toString();
+    router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
+  };
+  const resetCourseFilters = () => {
+    committedCourseSearchRef.current = "";
+    setCourseSearch("");
+    const nextParams = resetCourseCatalogParams(new URLSearchParams(window.location.search));
     const nextQuery = nextParams.toString();
     router.push(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`, { scroll: false });
   };
   const hasCourseData = courseItems.length > 0;
   const initialCourseLoading = loading && !hasCourseData;
+  const hasActiveCourseFilters = Boolean(courseSearch.trim()) || selectedExamTab !== "ALL" || courseSort !== "default";
   const courseSearchStatus = !hasCourseData && loading
     ? "Đang tải khóa học…"
     : !hasCourseData && error
       ? "Chưa tải được khóa học"
-      : courseSearch || selectedExamTab !== "ALL"
+      : hasActiveCourseFilters
         ? `${filteredCourses.length} kết quả phù hợp`
         : `${courseItems.length} khóa học`;
   return <div className="courses-page w-full min-h-[calc(100vh-120px)] bg-transparent">
@@ -1936,15 +1939,22 @@ function Courses({ courses: courseItems, isAdmin, loading, error = "", onRetry }
       </div>
     </div>
     <div className="course-controls">
-      <div className="course-toolbar-meta"><span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearchStatus}</span><div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div></div>
+      <div className="course-toolbar-meta">
+        <span id="course-search-status" className="course-search-status" role="status" aria-live="polite">{courseSearchStatus}</span>
+        <div className="course-toolbar-actions">
+          <label className="course-sort-control" htmlFor="course-catalog-sort"><span>Sắp xếp</span><select id="course-catalog-sort" value={courseSort} onChange={event => updateCourseSort(event.target.value as CourseCatalogSort)}><option value="default">Thứ tự hiện tại</option><option value="title-asc">Tên A–Z</option><option value="title-desc">Tên Z–A</option></select></label>
+          {hasActiveCourseFilters && <button type="button" className="course-filter-reset" onClick={resetCourseFilters}>Đặt lại bộ lọc</button>}
+          <div className="course-view-toggle" role="group" aria-label="Chế độ hiển thị khóa học"><button type="button" aria-pressed={courseView === "grid"} onClick={() => updateCourseView("grid")}><LayoutGrid aria-hidden="true" /><span>Thẻ</span></button><button type="button" aria-pressed={courseView === "list"} onClick={() => updateCourseView("list")}><ListIcon aria-hidden="true" /><span>Danh sách</span></button></div>
+        </div>
+      </div>
       <div className="course-exam-tabs" role="tablist" aria-label="Phân loại khóa học" onKeyDown={handleCourseTabKeyDown}>
-        {([['ALL','Tất cả'],['TSA','TSA'],['HSA','HSA']] as const).map(([value,label])=><button id={`course-exam-tab-${value.toLowerCase()}`} type="button" role="tab" key={value} aria-selected={selectedExamTab===value} aria-controls="course-catalog-panel" tabIndex={selectedExamTab===value?0:-1} onClick={()=>updateCourseExamTab(value)}><span>{label}</span><b>{courseCounts[value]}</b></button>)}
+        {courseTabs.map(({ id, shortLabel }) => <button id={`course-exam-tab-${id.toLowerCase()}`} type="button" role="tab" key={id} aria-label={`${shortLabel}: ${courseCounts[id]} khóa học`} aria-selected={selectedExamTab === id} aria-controls="course-catalog-panel" tabIndex={selectedExamTab === id ? 0 : -1} onClick={() => updateCourseExamTab(id)}><span>{shortLabel}</span><b>{courseCounts[id]}</b></button>)}
       </div>
     </div>
     <div id="course-catalog-panel" role="tabpanel" aria-labelledby={`course-exam-tab-${selectedExamTab.toLowerCase()}`} tabIndex={0} aria-busy={loading}>
       {hasCourseData && loading && <p className="course-load-status" role="status" aria-live="polite">Đang cập nhật danh sách khóa học…</p>}
       {hasCourseData && error && <CourseLoadFeedback compact onRetry={onRetry} />}
-      {filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : initialCourseLoading ? <CourseCatalogSkeleton /> : error && !hasCourseData ? <CourseLoadFeedback onRetry={onRetry} /> : <EmptyState icon={BookOpen} title={courseItems.length ? `Chưa có khóa học ${selectedExamTab === "ALL" ? "phù hợp" : selectedExamTab}` : "Chưa có khóa học"} text={courseItems.length ? "Hãy chọn tab khác hoặc thử từ khóa khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" />}
+      {filteredCourses.length ? <div className={`grid reference-course-grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 ${courseView === "list" ? "course-list-view" : "course-grid-view"}`}>{filteredCourses.map(course => <CourseCard key={course.id} course={course} />)}</div> : initialCourseLoading ? <CourseCatalogSkeleton /> : error && !hasCourseData ? <CourseLoadFeedback onRetry={onRetry} /> : <EmptyState icon={BookOpen} title={courseItems.length ? "Không tìm thấy khóa học phù hợp" : "Chưa có khóa học"} text={courseItems.length ? "Thử từ khóa hoặc nhóm khóa học khác." : isAdmin ? "Hãy tạo khóa học trong trang Quản trị." : "Khóa học sẽ xuất hiện sau khi quản trị viên phân cho tài khoản của bạn."} role="status" ariaLive="polite" action={courseItems.length && hasActiveCourseFilters ? <button type="button" className="course-filter-reset" onClick={resetCourseFilters}>Đặt lại bộ lọc</button> : undefined} />}
     </div>
   </div>;
 }
@@ -1966,8 +1976,9 @@ function CourseCoverVisual({ course, detail = false }: { course: CourseData; det
 
 function CourseCard({ course }: { course: CourseData }) {
   const href = `/courses/${encodeURIComponent(String(course.id))}`;
-  const group = courseExamGroup(course);
-  return <article className="ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-[transform,box-shadow] duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-[350px]" style={courseColorStyle(course.color)} data-course-exam-type={group.toLowerCase()}>
+  const categories = courseCategoryIds(course);
+  const group = categories.length === 1 ? categories[0].toLowerCase() : categories.length ? "mixed" : "shared";
+  return <article className="ant-card ant-card-bordered ant-card-hoverable cursor-pointer overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-[transform,box-shadow] duration-300 transform hover:-translate-y-1 flex flex-col h-full min-h-[350px]" style={courseColorStyle(course.color)} data-course-exam-type={group}>
     <Link className="course-card-action flex flex-col flex-1 text-inherit no-underline" href={href} aria-label={`Vào học ${course.title}`}>
       <div className="ant-card-cover"><div className="w-full aspect-video overflow-hidden relative bg-gray-200">
         <CourseCoverVisual course={course} />
@@ -2776,6 +2787,10 @@ function RealAdminDashboard({ pathname, permissionUser }: { pathname: string; pe
 
   useEffect(() => {
     const syncAdminRoute = () => {
+      // A cancelled popstate can briefly update Next's pathname before the
+      // question-bank draft guard restores the browser URL. Do not remount the
+      // admin tab for a destination that is no longer the active location.
+      if (window.location.pathname !== adminPathname) return;
       setTab(adminTabFromPath(adminPathname));
       setAdminLocation(`${adminPathname}${window.location.search}`);
       setManagedCourseId(adminCourseIdFromPath(adminPathname));
@@ -2786,11 +2801,6 @@ function RealAdminDashboard({ pathname, permissionUser }: { pathname: string; pe
   }, [adminPathname]);
 
   const students = useMemo(() => profiles.filter(profile => profile.role === "student"), [profiles]);
-  const filteredStudents = useMemo(() => {
-    const query = searchTerm.trim().toLocaleLowerCase("vi");
-    if (!query) return students;
-    return students.filter(student => `${student.full_name} ${student.student_code} ${student.email}`.toLocaleLowerCase("vi").includes(query));
-  }, [searchTerm, students]);
   const enrollmentCount = useMemo(() => enrollments.reduce<Record<string, number>>((counts, row) => {
     counts[row.student_id] = (counts[row.student_id] ?? 0) + 1;
     return counts;
@@ -3012,9 +3022,10 @@ function RealAdminDashboard({ pathname, permissionUser }: { pathname: string; pe
   const publishedRoomCount = adminExamRooms.filter(room => room.published).length;
   const draftRoomCount = adminExamRooms.length - publishedRoomCount;
   const activeStudentCount = profiles.filter(p => p.role === "student" && p.status === "active").length;
+  const managedCourse = managedCourseId ? adminCourses.find(course => course.id === managedCourseId) : undefined;
 
   return <div className="admin-page">
-      {adminError && <p className="form-error" role="alert">Không thể tải dữ liệu quản trị: {adminError}</p>}
+      {adminError && tab !== "content" && <p className="form-error" role="alert">Không thể tải dữ liệu quản trị: {adminError}</p>}
       {adminNotice && <p className="form-success" role="status" aria-live="polite">{adminNotice}</p>}
     {tab === "dashboard" && <div className="admin-dashboard-v2">
       <header className="admin-dash-header">
@@ -3130,8 +3141,24 @@ function RealAdminDashboard({ pathname, permissionUser }: { pathname: string; pe
         </section>
       </div>
     </div>}
-    {tab === "students" && <section className="section-card student-manager"><div className="section-head"><div><h2>Quản lý học viên</h2><p className="muted">Dữ liệu tài khoản, email và khóa học từ Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCreateError("");setModal(true)}}><Plus/> Thêm học viên</button></div>{adminUsersTruncated && <p className="student-data-warning" role="status" aria-live="polite">Danh sách email chưa chắc đầy đủ vì máy chủ đã chạm giới hạn phân trang.</p>}<label className="search wide student-search"><Search/><input type="search" value={searchTerm} onChange={event=>setSearchTerm(event.target.value)} placeholder="Tìm theo tên, mã học viên hoặc email…" aria-label="Tìm học viên theo tên, mã hoặc email"/>{searchTerm && <button type="button" onClick={()=>setSearchTerm("")} aria-label="Xóa từ khóa"><X/></button>}</label><div className="student-search-hint">Có thể nhập toàn bộ hoặc một phần địa chỉ email.</div><div className="admin-table student-table"><div className="table-row table-title"><span>Học viên / Email</span><span>Mã</span><span>Khóa học</span><span>Trạng thái</span><span>Thao tác</span></div>{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : filteredStudents.length ? filteredStudents.map(student=><div className="table-row" key={student.id}><span><i className="mini-avatar">{student.full_name.split(" ").slice(-2).map(value=>value[0]).join("").toUpperCase()}</i><span className="student-name-email"><b>{student.full_name}</b><small>{student.email || "Chưa có email"}</small></span></span><span>{student.student_code}</span><span>{enrollmentCount[student.id] ?? 0} khóa</span><span><i className={student.status === "active" ? "active-dot" : "locked-dot"}/> {student.status === "active" ? "Hoạt động" : "Đã khóa"}</span><span><button type="button" className="student-password-btn" aria-label={`Đổi mật khẩu cho ${student.full_name}`} onClick={()=>openStudentPassword(student)}><LockKeyhole/> Đổi mật khẩu</button></span></div>) : <div className="overview-empty">Không tìm thấy học viên phù hợp.</div>}</div></section>}
-    {tab === "content" && (managedCourseId && adminCourses.some(course=>course.id===managedCourseId) ? <AdminCourseBuilder course={adminCourses.find(course=>course.id===managedCourseId)!} onBack={()=>navigateAdmin("/admin/content")} onChanged={loadAdminData} onDeleted={async()=>{navigateAdmin("/admin/content");await loadAdminData()}}/> : <section className="section-card"><div className="section-head"><div><h2>Quản lý nội dung</h2><p className="muted">Khóa học được chia theo Phần → Bài → Bài giảng / tài liệu và lưu tại Supabase.</p></div><button type="button" className="primary-btn small" onClick={()=>{setCourseError("");setCourseModal(true)}}><Plus/> Tạo khóa học</button></div><div className="content-admin-grid">{loadingAdmin ? <LoadingIndicator label="Đang tải dữ liệu…" /> : adminCourses.length ? adminCourses.map(course=><article key={course.id}><div className="tiny-cover" style={courseColorStyle(course.cover_color)}>{course.cover_url?<img src={course.cover_url} alt="" width={320} height={180} loading="lazy" decoding="async"/>:<Library/>}</div><div><h3>{course.title}</h3><p>{lessonsPerCourse[course.id] ?? 0} bài học · {course.published ? "Đã xuất bản" : "Bản nháp"}</p></div><button type="button" className="outline-btn" onClick={()=>{setManagedCourseId(course.id);navigateAdmin(`/admin/content/courses/${encodeURIComponent(course.id)}`)}}>Quản lý <ChevronRight aria-hidden="true"/></button></article>) : <div className="overview-empty">Chưa có khóa học nào.</div>}</div></section>)}
+    {tab === "students" && <AdminStudentRoster students={students} enrollmentCount={enrollmentCount} loading={loadingAdmin} error={adminError} truncated={adminUsersTruncated} searchTerm={searchTerm} onSearch={setSearchTerm} onRetry={() => void loadAdminData()} onCreate={() => { setCreateError(""); setModal(true); }} onPassword={openStudentPassword} />}
+    {tab === "content" && (managedCourseId
+      ? managedCourse
+        ? <AdminCourseBuilder course={managedCourse} onBack={() => navigateAdmin("/admin/content")} onChanged={loadAdminData} onDeleted={async () => { navigateAdmin("/admin/content"); await loadAdminData(); }} />
+        : loadingAdmin
+          ? <section className="section-card"><LoadingIndicator label="Đang tải khóa học…" /></section>
+          : adminError
+            ? <section className="section-card admin-content-catalog"><div className="admin-content-catalog-feedback" role="alert"><h2>Không tải được khóa học</h2><p>{adminError}</p><button type="button" className="outline-btn" onClick={() => void loadAdminData()}>Thử lại</button></div></section>
+            : <section className="section-card admin-content-catalog"><div className="admin-content-catalog-feedback" role="status"><h2>Không tìm thấy khóa học</h2><p>Khóa học không tồn tại hoặc bạn không có quyền truy cập.</p><button type="button" className="outline-btn" onClick={() => navigateAdmin("/admin/content")}>Về danh sách khóa học</button></div></section>
+      : <AdminContentList
+          courses={adminCourses}
+          lessonsPerCourse={lessonsPerCourse}
+          loading={loadingAdmin}
+          error={adminError}
+          onRetry={() => void loadAdminData()}
+          onCreate={() => { setCourseError(""); setCourseModal(true); }}
+          onOpenCourse={courseId => { setManagedCourseId(courseId); navigateAdmin(`/admin/content/courses/${encodeURIComponent(courseId)}`); }}
+        />)}
     {tab === "hls-vault" && <Suspense fallback={<LoadingIndicator label="Đang mở công cụ HLS…" />}><AdminHlsVault /></Suspense>}
     {tab === "exams" && <Suspense fallback={<LoadingIndicator label="Đang mở quản trị đề thi…" />}><AdminExamManager /></Suspense>}
     {tab === "question-bank" && <Suspense fallback={<LoadingIndicator label="Đang mở ngân hàng câu hỏi…" />}>{adminLocationPath === "/admin/question-bank/dedup" ? <AdminQuestionBankDedup /> : <AdminQuestionBank navigate={navigateAdmin} />}</Suspense>}

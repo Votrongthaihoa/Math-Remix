@@ -9,6 +9,7 @@ type RequestEvidence = {
   kind: string;
 };
 type QuestionBankPost = { body: Record<string, unknown>; pathname: string };
+type PausablePostAction = "create_item" | "import_latex" | "seed_from_section" | "create_node" | "attach_to_exam";
 type QuestionBank = {
   id: string;
   name: string;
@@ -51,7 +52,7 @@ type QuestionBankItem = {
 type BankDetail = { bank: QuestionBank; nodes: QuestionBankNode[]; items: QuestionBankItem[] };
 type Deferred = { promise: Promise<void>; release: () => void };
 
-export type QuestionBankFixtureOptions = { permissions: AdminPermission[] };
+export type QuestionBankFixtureOptions = { permissions: AdminPermission[]; longContent?: boolean };
 export type QuestionBankFixture = {
   posts: QuestionBankPost[];
   apiRequests: RequestEvidence[];
@@ -59,9 +60,14 @@ export type QuestionBankFixture = {
   blockedRequests: RequestEvidence[];
   unexpectedRequests: RequestEvidence[];
   externalResponses: RequestEvidence[];
+  failNextCatalogLoad: (message?: string) => void;
   failNextDetailLoad: (bankId: string, message?: string) => void;
   pauseDetail: (bankId: string) => void;
   releaseDetail: (bankId: string) => void;
+  pauseCreateBank: () => void;
+  releaseCreateBank: () => void;
+  pausePost: (action: PausablePostAction) => void;
+  releasePost: (action: PausablePostAction) => void;
   detailRequestCount: (bankId: string) => number;
 };
 
@@ -248,6 +254,23 @@ export const test = base.extend<TestFixtures>({
     }
     const canManageExams = permissions.includes("exams");
     const { banks, details } = questionBankData();
+    if (questionBankOptions.longContent) {
+      const longText = "Ngân hàng ôn tập chuyên đề nâng cao – Advanced mathematics question collection ";
+      const unbroken = "ChuoiKhongNgat".repeat(18);
+      for (const bank of banks) {
+        bank.name = `${longText}${unbroken}`;
+        bank.description = longText.repeat(3);
+      }
+      for (const detail of details.values()) {
+        for (const node of detail.nodes) node.title = `${longText}${unbroken}`;
+        for (const item of detail.items) {
+          item.prompt = `${longText.repeat(2)}${unbroken}`;
+          item.tags = [unbroken, "Tiếng Việt có dấu", "Advanced mathematics"];
+          item.options[0].label = `${longText}${unbroken}`;
+          item.correct_answer = "A";
+        }
+      }
+    }
     const sourceExams = canManageExams
       ? [
         { id: "qbank-exam-draft", title: "Đề fixture nháp", exam_type: "TSA", published: false },
@@ -263,8 +286,11 @@ export const test = base.extend<TestFixtures>({
     const blockedRequests: RequestEvidence[] = [];
     const unexpectedRequests: RequestEvidence[] = [];
     const externalResponses: RequestEvidence[] = [];
+    const catalogFailures: { remaining: number; message: string } = { remaining: 0, message: "Không thể tải danh sách ngân hàng synthetic." };
     const detailFailures = new Map<string, { remaining: number; message: string }>();
     const pausedDetails = new Map<string, Deferred>();
+    const pausedCreateBank: { current: Deferred | null } = { current: null };
+    const pausedPosts = new Map<PausablePostAction, Deferred>();
     const detailCounts = new Map<string, number>();
 
     const expiresAt = Math.floor(Date.now() / 1_000) + 3_600;
@@ -372,6 +398,15 @@ export const test = base.extend<TestFixtures>({
         return route.abort("blockedbyclient");
       }
 
+      if (url.pathname === "/api/admin/exam-content" && request.method() === "GET" && !url.search) {
+        apiRequests.push(evidence);
+        return fulfillJson(route, { rooms: [], exams: [], sections: [], questions: [], keys: [] });
+      }
+      if (url.pathname === "/api/admin/exam-history" && request.method() === "GET" && !url.search) {
+        apiRequests.push(evidence);
+        return fulfillJson(route, { count: 0 });
+      }
+
       if (url.pathname !== "/api/admin/question-banks") {
         if (url.pathname.startsWith("/api/")) {
           unexpectedRequests.push(evidence);
@@ -383,7 +418,13 @@ export const test = base.extend<TestFixtures>({
       apiRequests.push(evidence);
       if (request.method() === "GET") {
         const bankId = url.searchParams.get("bankId");
-        if (!bankId) return fulfillJson(route, catalogPayload());
+        if (!bankId) {
+          if (catalogFailures.remaining) {
+            catalogFailures.remaining -= 1;
+            return fulfillJson(route, { error: catalogFailures.message }, 503);
+          }
+          return fulfillJson(route, catalogPayload());
+        }
         detailCounts.set(bankId, (detailCounts.get(bankId) ?? 0) + 1);
         const failure = detailFailures.get(bankId);
         if (failure?.remaining) {
@@ -404,10 +445,63 @@ export const test = base.extend<TestFixtures>({
       if (request.method() === "POST") {
         const body = requestBody(route);
         posts.push({ body, pathname: url.pathname });
+        const postAction = body.action;
+        if (postAction === "create_item" || postAction === "import_latex" || postAction === "seed_from_section" || postAction === "create_node" || postAction === "attach_to_exam") {
+          const gate = pausedPosts.get(postAction);
+          if (gate) {
+            await gate.promise;
+            if (pausedPosts.get(postAction) === gate) pausedPosts.delete(postAction);
+          }
+        }
+        if (body.action === "create_bank") {
+          const gate = pausedCreateBank.current;
+          if (gate) {
+            await gate.promise;
+            if (pausedCreateBank.current === gate) pausedCreateBank.current = null;
+          }
+          const bank: QuestionBank = {
+            id: `qbank-created-bank-${posts.length}`,
+            name: stringValue(body.name).trim(),
+            subject_code: stringValue(body.subjectCode).trim(),
+            grade: stringValue(body.grade).trim(),
+            curriculum: stringValue(body.curriculum).trim(),
+            description: stringValue(body.description).trim(),
+            status: "draft",
+            created_at: timestamp,
+            updated_at: timestamp,
+          };
+          banks.unshift(bank);
+          details.set(bank.id, { bank, nodes: [], items: [] });
+          return fulfillJson(route, { bank: jsonClone(bank) }, 201);
+        }
         if (body.action === "create_item" && typeof body.bankId === "string") {
           const detail = details.get(body.bankId);
           if (detail) detail.items.push(createItemFromPost(body, detail, posts.length));
           return fulfillJson(route, { itemId: `qbank-created-${posts.length}`, version: 1 }, 201);
+        }
+        if (body.action === "create_node" && typeof body.bankId === "string") {
+          const detail = details.get(body.bankId);
+          const node: QuestionBankNode = {
+            id: `qbank-created-node-${posts.length}`,
+            bank_id: body.bankId,
+            parent_id: stringValue(body.parentId) || null,
+            title: stringValue(body.title),
+            node_type: body.nodeType === "unit" ? "unit" : "topic",
+            sort_order: detail?.nodes.length ?? 0,
+          };
+          detail?.nodes.push(node);
+          return fulfillJson(route, { node: jsonClone(node) }, 201);
+        }
+        if (body.action === "import_latex") {
+          const imported = Array.isArray(body.importIndexes) ? body.importIndexes.length : 0;
+          return fulfillJson(route, { imported, skipped: 0 }, 201);
+        }
+        if (body.action === "seed_from_section") {
+          return fulfillJson(route, { imported: 0 }, 200);
+        }
+        if (body.action === "attach_to_exam") {
+          const attached = Array.isArray(body.itemIds) ? body.itemIds.length : 0;
+          return fulfillJson(route, { attached, questionIds: [] }, 200);
         }
         return fulfillJson(route, { ok: true }, 201);
       }
@@ -423,6 +517,10 @@ export const test = base.extend<TestFixtures>({
       blockedRequests,
       unexpectedRequests,
       externalResponses,
+      failNextCatalogLoad: (message = "Không thể tải danh sách ngân hàng synthetic.") => {
+        catalogFailures.remaining += 1;
+        catalogFailures.message = message;
+      },
       failNextDetailLoad: (bankId, message = "Không thể tải chi tiết ngân hàng synthetic.") => {
         const current = detailFailures.get(bankId);
         detailFailures.set(bankId, { remaining: (current?.remaining ?? 0) + 1, message });
@@ -432,6 +530,18 @@ export const test = base.extend<TestFixtures>({
         pausedDetails.set(bankId, createDeferred());
       },
       releaseDetail: bankId => pausedDetails.get(bankId)?.release(),
+      pauseCreateBank: () => {
+        pausedCreateBank.current?.release();
+        pausedCreateBank.current = createDeferred();
+      },
+      releaseCreateBank: () => {
+        pausedCreateBank.current?.release();
+      },
+      pausePost: action => {
+        pausedPosts.get(action)?.release();
+        pausedPosts.set(action, createDeferred());
+      },
+      releasePost: action => pausedPosts.get(action)?.release(),
       detailRequestCount: bankId => detailCounts.get(bankId) ?? 0,
     };
 
@@ -439,6 +549,8 @@ export const test = base.extend<TestFixtures>({
       await useFixture(fixture);
     } finally {
       for (const gate of pausedDetails.values()) gate.release();
+      pausedCreateBank.current?.release();
+      for (const gate of pausedPosts.values()) gate.release();
       await testInfo.attach("question-bank-network-boundary", {
         body: JSON.stringify({
           apiRequests,

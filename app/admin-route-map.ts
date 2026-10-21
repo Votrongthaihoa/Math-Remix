@@ -82,6 +82,48 @@ export function isLegacyAdminPath(value: string) {
   return LEGACY_ADMIN_ROUTES.some(route => matchesPrefix(pathname, route.prefix));
 }
 
+type AdminPrototypeQuery = Record<string, string | readonly string[] | undefined>;
+
+const ADMIN_PROTOTYPE_ALIASES: Readonly<Record<string, string>> = {
+  dashboard: "/admin",
+  courses: "/admin/content",
+  "course-management": "/admin/content",
+  "user-management": "/admin/students",
+  "group-user-management": "/admin/enrollments",
+  access: "/admin/enrollments",
+  "media-management": "/admin/upload",
+  "tkb-management": "/admin/timetable",
+  schedule: "/admin/timetable",
+  "admin-log": "/admin/audit",
+  "watermark-trace": "/admin/capabilities",
+};
+
+/** Redirect only the prototype URLs backed by an existing AECK admin screen. */
+export function adminPrototypeRedirectPath(slug: readonly string[], query: AdminPrototypeQuery = {}): string | null {
+  if (slug[0] !== "admin") return null;
+
+  let destination: string | undefined;
+  if (slug.length === 2 && Object.prototype.hasOwnProperty.call(ADMIN_PROTOTYPE_ALIASES, slug[1])) {
+    destination = ADMIN_PROTOTYPE_ALIASES[slug[1]];
+  } else if (slug.length === 3 && (slug[1] === "courses" || slug[1] === "course-management") && slug[2] && slug[2] !== "." && slug[2] !== "..") {
+    try {
+      destination = `/admin/content/courses/${encodeURIComponent(slug[2])}`;
+    } catch {
+      return null;
+    }
+  }
+  if (!destination) return null;
+
+  const params = new URLSearchParams();
+  for (const [name, value] of Object.entries(query)) {
+    if (typeof value === "string") params.append(name, value);
+    else if (Array.isArray(value)) value.forEach(item => params.append(name, item));
+  }
+  if (slug[1] === "watermark-trace") params.set("module", "watermark");
+  const search = params.toString();
+  return search ? `${destination}?${search}` : destination;
+}
+
 export function legacyAdminRedirectPath(value: string) {
  const pathname = normalizePathname(value);
   if (matchesPrefix(pathname, "/admin/all")) return "/admin/capabilities";

@@ -1,0 +1,35 @@
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-student-roster {
+  min-width: 0;
+  .roster-head, .roster-actions, .roster-summary, .roster-result { display: flex; flex-wrap: wrap; align-items: center; gap: var(--alpha-space-3); }
+  .roster-head, .roster-result { justify-content: space-between; }
+  .roster-head > div, .roster-actions { min-width: 0; }
+  .roster-head h2 { margin: 0; }
+  .roster-head p { color: var(--brand-muted); margin-block: var(--alpha-space-2); }
+  button { display: inline-flex; align-items: center; justify-content: center; gap: var(--alpha-space-2); min-height: var(--alpha-control-height); padding: var(--alpha-space-2) var(--alpha-space-3); border: 1px solid var(--brand-line); border-radius: var(--alpha-control-radius); background: var(--brand-white); color: var(--brand-body); white-space: normal; overflow-wrap: anywhere; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary-btn { background: var(--brand-red); color: var(--brand-white); border-color: var(--brand-red); }
+  :is(button, input, select):focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
+  svg { flex-shrink: 0; }
+  .roster-summary { padding-block: var(--alpha-space-4); border-block-end: 1px solid var(--brand-line); margin-block-end: var(--alpha-space-4); }
+  .roster-summary > span { display: inline-flex; flex-wrap: wrap; gap: var(--alpha-space-2); align-items: center; }
+  .roster-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: var(--alpha-space-3); }
+  .roster-filters label { display: grid; min-width: 0; gap: var(--alpha-space-2); font-weight: 700; }
+  .roster-filters :is(input, select) { width: 100%; min-width: 0; min-height: var(--alpha-control-height); border: 1px solid var(--brand-line); border-radius: var(--alpha-control-radius); background: var(--brand-white); color: var(--brand-body); padding: var(--alpha-space-2); font: inherit; font-weight: 400; }
+  .roster-search { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--alpha-space-2); }
+  .roster-search > svg { pointer-events: none; }
+  .roster-result { padding-block: var(--alpha-space-3); }
+  .roster-result p { margin: 0; color: var(--brand-muted); }
+  .roster-person-column { width: 36%; }
+  button.roster-person { display: flex; border: 0; background: transparent; padding: 0; text-align: start; justify-content: flex-start; width: 100%; }
+  .roster-person > span:last-child { min-width: 0; }
+  .roster-person :is(strong, small) { display: block; overflow-wrap: anywhere; line-height: 1.5; }
+  .roster-person small { color: var(--brand-muted); }
+  .roster-avatar { display: grid; place-items: center; width: var(--alpha-control-height); height: var(--alpha-control-height); flex: 0 0 auto; border-radius: 50%; background: var(--brand-red-soft); color: var(--brand-red); }
+  .roster-status { display: inline-block; padding: var(--alpha-space-1) var(--alpha-space-2); border-radius: var(--alpha-control-radius); background: var(--admin-surface-muted); }
+  .roster-row-actions { display: flex; flex-wrap: wrap; gap: var(--alpha-space-2); }
+  .roster-row-actions button { font-size: inherit; padding-inline: var(--alpha-space-2); }
+  .roster-feedback { padding-block: var(--alpha-space-6); overflow-wrap: anywhere; }
+  @media (max-width: 1100px) { .roster-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 1000px) { .roster-person-column { width: auto; grid-column: 1 / -1; } }
+  @media (max-width: 560px) { .roster-filters { grid-template-columns: minmax(0, 1fr); } .roster-filters :is(input, select) { font-size: 1rem; } }
+}

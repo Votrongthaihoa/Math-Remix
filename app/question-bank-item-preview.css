@@ -1,0 +1,170 @@
+.question-bank-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+  color: var(--brand-body, #252b33);
+  font-family: Lato, Arial, sans-serif;
+}
+
+.question-bank-preview-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 100%;
+  border: 0;
+  background: rgba(25, 28, 34, .52);
+  cursor: default;
+}
+
+.question-bank-preview-dialog {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(760px, 100%);
+  max-height: min(860px, calc(100dvh - 24px));
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--brand-line, #e2e5e9);
+  border-radius: 14px;
+  background: var(--brand-white, #fff);
+  box-shadow: 0 24px 64px rgba(30, 35, 42, .2);
+  outline: 0;
+}
+
+.question-bank-preview-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--brand-line, #e2e5e9);
+  background: var(--brand-white, #fff);
+}
+
+.question-bank-preview-header > div { min-width: 0; }
+.question-bank-preview-kicker {
+  display: block;
+  color: var(--brand-red-hover, #a91427);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  line-height: 1.4;
+}
+.question-bank-preview-header h2 {
+  margin: 5px 0 3px;
+  color: var(--brand-ink, #171b22);
+  font-size: 22px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.question-bank-preview-header p { margin: 0; color: var(--brand-muted, #68717c); font-size: 13px; line-height: 1.5; }
+.question-bank-preview-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--brand-line, #e2e5e9);
+  border-radius: 8px;
+  background: var(--brand-white, #fff);
+  color: var(--brand-body, #252b33);
+  cursor: pointer;
+}
+.question-bank-preview-close:hover { border-color: var(--brand-red, #cd1627); background: var(--brand-red-soft, #fff1f3); color: var(--brand-red-hover, #a91427); }
+.question-bank-preview-close svg { width: 18px; height: 18px; }
+.question-bank-preview-close:focus-visible,
+.question-bank-preview-backdrop:focus-visible,
+.question-bank-preview-solution summary:focus-visible {
+  outline: 2px solid var(--brand-red-hover, #a91427);
+  outline-offset: 2px;
+}
+
+.question-bank-preview-scroll {
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 22px;
+}
+.question-bank-preview-passage,
+.question-bank-preview-instruction {
+  min-width: 0;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--brand-line, #e2e5e9);
+  border-inline-start: 3px solid var(--brand-red, #cd1627);
+  border-radius: 8px;
+  background: var(--brand-page, #fafbfc);
+  color: var(--brand-body, #252b33);
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.question-bank-preview-passage { display: flex; gap: 10px; align-items: flex-start; }
+.question-bank-preview-passage svg { flex: 0 0 17px; margin-top: 3px; color: var(--brand-red-hover, #a91427); }
+.question-bank-preview-passage p { min-width: 0; margin: 0; white-space: pre-wrap; }
+.question-bank-preview-instruction { font-style: italic; }
+.question-bank-preview-question { min-width: 0; }
+.question-bank-preview-prompt {
+  margin: 0 0 18px;
+  color: var(--brand-ink, #171b22);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.question-bank-preview-blank {
+  display: inline-grid;
+  min-width: 36px;
+  min-height: 28px;
+  margin: 0 4px;
+  padding: 2px 7px;
+  place-items: center;
+  border: 1px dashed var(--brand-red, #cd1627);
+  border-radius: 5px;
+  background: var(--brand-red-soft, #fff1f3);
+  color: var(--brand-red-hover, #a91427);
+  font-size: 12px;
+  font-weight: 800;
+  vertical-align: middle;
+}
+.question-bank-preview-media { margin: 0 0 18px; }
+.question-bank-preview-media img { display: block; width: 100%; max-height: 360px; object-fit: contain; border: 1px solid var(--brand-line, #e2e5e9); border-radius: 8px; background: var(--brand-page, #fafbfc); }
+.question-bank-preview-media figcaption { display: flex; align-items: center; gap: 6px; margin-top: 7px; color: var(--brand-muted, #68717c); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.question-bank-preview-media figcaption svg { flex: 0 0 14px; width: 14px; }
+.question-bank-preview-options { display: grid; gap: 8px; min-width: 0; margin-bottom: 16px; }
+.question-bank-preview-option { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: start; gap: 10px; min-width: 0; padding: 11px 12px; border: 1px solid var(--brand-line, #e2e5e9); border-radius: 8px; background: var(--brand-white, #fff); font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+.question-bank-preview-option.is-correct { border-color: var(--brand-red, #cd1627); background: var(--brand-red-soft, #fff1f3); }
+.question-bank-preview-option-key { display: grid; width: 26px; min-height: 26px; place-items: center; border-radius: 6px; background: var(--brand-page, #fafbfc); color: var(--brand-body, #252b33); font-size: 12px; font-weight: 800; }
+.question-bank-preview-option.is-correct .question-bank-preview-option-key { background: var(--brand-red, #cd1627); color: var(--brand-white, #fff); }
+.question-bank-preview-option svg { width: 17px; height: 17px; color: var(--brand-red-hover, #a91427); }
+.question-bank-preview-answer { display: grid; gap: 7px; min-width: 0; margin-top: 16px; padding: 13px 14px; border: 1px solid var(--brand-line, #e2e5e9); border-radius: 8px; background: var(--brand-page, #fafbfc); font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+.question-bank-preview-answer b { color: var(--brand-muted, #68717c); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.question-bank-preview-answer span, .question-bank-preview-answer strong { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.question-bank-preview-answer ol { display: grid; gap: 6px; margin: 0; padding-inline-start: 20px; }
+.question-bank-preview-answer li { padding-inline-start: 3px; }
+.question-bank-preview-answer li span { margin-inline-end: 8px; color: var(--brand-muted, #68717c); font-size: 12px; }
+.question-bank-preview-solution { margin-top: 16px; border-top: 1px solid var(--brand-line, #e2e5e9); }
+.question-bank-preview-solution summary { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--brand-red-hover, #a91427); font-size: 13px; font-weight: 800; cursor: pointer; }
+.question-bank-preview-solution summary svg { width: 16px; height: 16px; }
+.question-bank-preview-solution p { margin: 0 0 10px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
+.question-bank-preview-solution pre { max-width: 100%; margin: 0; padding: 12px; overflow: auto; border-radius: 6px; background: var(--brand-page, #fafbfc); white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.question-bank-preview-footer { display: grid; gap: 10px; min-width: 0; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--brand-line, #e2e5e9); color: var(--brand-muted, #68717c); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.question-bank-preview-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.question-bank-preview-tags em { max-width: 100%; padding: 4px 7px; border-radius: 5px; background: var(--brand-red-soft, #fff1f3); color: var(--brand-red-hover, #a91427); font-style: normal; overflow-wrap: anywhere; }
+
+@media (max-width: 560px) {
+  .question-bank-preview-modal { padding: 0; }
+  .question-bank-preview-dialog { width: 100%; max-height: 100dvh; min-height: 100dvh; border: 0; border-radius: 0; }
+  .question-bank-preview-header { padding: 16px; }
+  .question-bank-preview-scroll { padding: 16px; }
+  .question-bank-preview-prompt { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question-bank-preview-modal *, .question-bank-preview-modal *::before, .question-bank-preview-modal *::after { scroll-behavior: auto; transition-duration: 0.01ms; animation-duration: 0.01ms; }
+}

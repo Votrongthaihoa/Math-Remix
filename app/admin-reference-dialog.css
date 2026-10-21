@@ -1,0 +1,24 @@
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-reference-dialog {
+  width: min(42rem, calc(100% - var(--alpha-space-6)));
+  max-height: calc(100dvh - var(--alpha-space-6));
+  margin: auto;
+  padding: var(--alpha-space-6);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--alpha-control-radius);
+  background: var(--brand-white);
+  color: var(--brand-body);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font: inherit;
+  &::backdrop { background: color-mix(in srgb, var(--brand-ink) 45%, transparent); }
+  header { display: flex; gap: var(--alpha-space-3); align-items: flex-start; justify-content: space-between; margin-bottom: var(--alpha-space-6); }
+  h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
+  header > .admin-reference-dialog-close { display: grid; place-items: center; flex-shrink: 0; width: var(--alpha-control-height); min-width: var(--alpha-control-height); min-height: var(--alpha-control-height); padding: 0; border: 1px solid var(--brand-line); border-radius: var(--alpha-control-radius); background: var(--brand-white); color: var(--brand-body); cursor: pointer; }
+  .admin-reference-dialog-close:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
+  .admin-reference-dialog-body { min-width: 0; overflow-wrap: anywhere; }
+  dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--alpha-space-4); }
+  dl > div { min-width: 0; }
+  dt { color: var(--brand-muted); margin-bottom: var(--alpha-space-1); }
+  dd { margin: 0; overflow-wrap: anywhere; line-height: 1.5; }
+  @media (max-width: 560px) { dl { grid-template-columns: minmax(0, 1fr); } }
+}

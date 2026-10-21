@@ -61,7 +61,7 @@ test("dashboard provides one semantic next-step action without entering protecte
   assert.match(platform, /const nextStep = nextRoom/);
   assert.match(platform, /<Link className="dashboard-next-step-action"/);
   assert.match(platform, /<h1>\{profile\.full_name\}<\/h1>/);
-  assert.doesNotMatch(platform, /<b>Bài thi IRT<\/b>/);
+  assert.match(platform, /<b>Bài thi IRT<\/b>/);
   assert.match(css, /\.dashboard-next-step-action/);
   assert.match(css, /\.student-app\.product-shell:not\(\.protected-exam-surface\) \.dashboard-next-step/);
 });
@@ -351,14 +351,16 @@ test("mobile admin drawer centers its logo without covering the close button", a
 });
 
 test("admin student roster reports bounded email pagination and keeps mobile actions compact", async () => {
-  const [platform, css] = await Promise.all([
+  const [platform, css, roster] = await Promise.all([
     readFile(new URL("../app/platform.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin-source-reference.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin-student-roster.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.match(platform, /const \[adminUsersTruncated, setAdminUsersTruncated\] = useState\(false\)/);
-  assert.match(platform, /tab === "students"[\s\S]*?student-data-warning/);
-  assert.match(platform, /aria-label=\{`Đổi mật khẩu cho \$\{student\.full_name\}`\}/);
+  assert.match(platform, /tab === "students" && <AdminStudentRoster[\s\S]*?truncated=\{adminUsersTruncated\}/);
+  assert.match(roster, /truncated && <p className="student-data-warning"/);
+  assert.match(roster, /aria-label=\{`Đổi mật khẩu cho \$\{student\.full_name\}`\}/);
   assert.match(css, /@media \(max-width: 575px\)[\s\S]*?student-table \.student-password-btn[\s\S]*?width: 36px[\s\S]*?font-size: 0/);
   assert.match(css, /student-table \.student-password-btn[\s\S]*?:not\(\.protected-exam-surface\)/);
 });

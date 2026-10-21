@@ -56,11 +56,11 @@ test("TSA and HSA courses remain in one Alpha catalogue with URL-backed tabs", a
     source("app/course-exam-tabs.css"),
   ]);
 
-  assert.match(platform, /type CourseExamTab = "ALL" \| "TSA" \| "HSA"/);
-  assert.match(platform, /searchParams\.get\("examType"\)/);
+  assert.match(platform, /courseCategoryFromParams\(searchParams\)/);
+  assert.match(platform, /courseCategoryParams\(new URLSearchParams\(window\.location\.search\), nextTab\)/);
   assert.match(platform, /role="tablist" aria-label="Phân loại khóa học"/);
   assert.match(platform, /role="tabpanel"/);
-  assert.match(platform, /courseExamGroup\(course\)/);
+  assert.match(platform, /courseCategoryIds\(course\)/);
   assert.match(css, /^\/\* Course-only grouping/m);
   assert.ok((css.match(/\.ui-shell\.student-app\.product-shell \.courses-page/g) ?? []).length >= 8);
   assert.doesNotMatch(css, /\.exam-shell|\.exam-room|\.question|\.answer|\.result|\.review|\.solution/);
@@ -100,13 +100,15 @@ test("public signed-out primary action keeps the supplied TSA red identity", asy
 });
 
 test("a course shared by TSA and HSA is available from both tabs", async () => {
-  const [site, platform] = await Promise.all([
+  const [site, catalog] = await Promise.all([
     source("app/aeck-public-site.tsx"),
-    source("app/platform.tsx"),
+    import("../lib/course-catalog.ts"),
   ]);
 
   assert.match(site, /hasTsa && hasHsa \? "\/courses"/);
-  assert.match(platform, /if \(hasHsa && hasTsa\) return "SHARED"/);
+  const sharedCourse = { title: "TSA và HSA: Toán" };
+  assert.equal(catalog.matchesCourseCategory(sharedCourse, "TSA"), true);
+  assert.equal(catalog.matchesCourseCategory(sharedCourse, "HSA"), true);
 });
 
 test("the teacher directory exposes one semantic page heading", async () => {

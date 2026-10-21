@@ -2,22 +2,11 @@
 
 These instructions apply to all work in this repository. Preserve existing user changes and follow the protected UI boundary below.
 
-## Design source of truth: Figma
+## Design source of truth
 
-For macOS-inspired UI, Figma MCP is the visual/design source of truth:
+The visual design follows the existing Remix Study brand system (red-white palette, Lato font family). Design tokens are defined in `app/red-white-theme.css` and `app/alpha-reference-portal.css`. No external Figma file is used as a design reference.
 
-https://www.figma.com/design/AayAtfqD1SQHSdEOSWVJT5/macOS-26--Community-?node-id=2548-2846&m=dev&t=fxGm5rgBCo1tD2vt-1
-
-Known inspected reference values (not universal component rules):
-
-- Alert: observed width 260px, horizontal padding 16px, text/actions gap 16px, radius 10px.
-- Buttons: row 228 × 32px; observed buttons 110 × 32px; gap 8px; horizontal padding 8px; radius 100px; SF Pro Medium 13/16; reference output uses nowrap.
-- Title: SF Pro Bold 13/16.
-- Description: SF Pro Regular 11/14.
-
-Some exact Figma sizing and resizing behaviors remain unconfirmed because of MCP quota limits. Do not treat sample dimensions as universal rules or invent missing values. When a future implementation depends on an unconfirmed property, use Figma MCP if available, inspect the exact node with `get_design_context`, use `get_screenshot` for visual reference, and inspect variable definitions when available.
-
-Use Figma MCP read operations for inspection. Do not modify the Figma file unless the user explicitly requests a Figma write operation.
+When implementing new UI, use existing CSS custom properties (`--brand-*`, `--alpha-*`, `--admin-*`) from these files rather than inventing new color or spacing values.
 
 ## Supabase source of truth
 
@@ -27,7 +16,7 @@ Do not apply migrations, execute destructive SQL, change RLS, modify production 
 
 ## Protected assignment/question/answer UI
 
-The assignment/question/answer experience is a protected visual area. General macOS work must not redesign, migrate, restyle, or visually normalize:
+The assignment/question/answer experience is a protected visual area. General product-shell work must not redesign, migrate, restyle, or visually normalize:
 
 - question presentation and numbering
 - answer choices and free-response fields
@@ -92,11 +81,11 @@ Never modify shared global styling merely for convenience.
 
 ## CSS isolation
 
-Future macOS UI must be isolated to explicitly approved application surfaces. Prefer the existing specific product wrapper:
+New product-shell UI must be isolated to explicitly approved application surfaces. Prefer the existing specific product wrapper:
 
 `.ui-shell.student-app.product-shell`
 
-Preserve `.exam-shell` as a separate visual boundary. Scope new macOS variables beneath the macOS/product wrapper. Do not add broad global rules such as `button`, `input`, `textarea`, `select`, `svg`, `body`, or `h1`, and do not globally replace `.primary-btn`, `.modal`, `.sidebar`, or `.topbar`. Use uniquely scoped or prefixed selectors for new styling.
+Preserve `.exam-shell` as a separate visual boundary. Scope new variables beneath the product wrapper. Do not add broad global rules such as `button`, `input`, `textarea`, `select`, `svg`, `body`, or `h1`, and do not globally replace `.primary-btn`, `.modal`, `.sidebar`, or `.topbar`. Use uniquely scoped or prefixed selectors for new styling.
 
 ## Text safety is mandatory
 
@@ -131,7 +120,6 @@ Other potential non-exam candidates:
 - `app/product-polish.css`
 - `app/text-overflow-polish.css`
 - `app/admin-redesign.css`
-- `app/admin-macos.css`
 - `app/admin-operation-polish.css`
 - `app/study.css`
 
@@ -140,3 +128,13 @@ Exam runners, question authoring, answer review, solution display, and related p
 ## Preserve user work
 
 The repository may contain pre-existing uncommitted changes. Run `git status --short` before substantial implementation and afterward, and report which changes belong to the current task. Never discard user changes. Do not run `git reset --hard`, `git checkout .`, `git restore .`, or `git clean` unless explicitly requested.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

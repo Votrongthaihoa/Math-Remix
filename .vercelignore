@@ -1,0 +1,17 @@
+.git
+.next
+.wrangler
+node_modules
+artifacts
+audit
+coverage
+dist
+playwright-report
+test-results
+.agents
+.claude
+RECON
+.hls-work
+.codex-turnstile-bin
+.runtime-*
+*.log

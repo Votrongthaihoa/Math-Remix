@@ -1,0 +1,2 @@
+cd D:\Aeck_Pre
+npm.cmd run ffmpeg:agent

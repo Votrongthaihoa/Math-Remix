@@ -1,0 +1,191 @@
+/* Port of admin-dashboard/src/{styles,pages}.css table/course-cell structure.
+ * Source geometry is adapted to existing tokens and readable text sizing.
+ * No source-wide selectors, Ant Design reset, or exam styles are imported. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-student-roster {
+  .admin-source-catalog-actions {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--alpha-space-2);
+    min-width: 0;
+  }
+
+  .admin-source-catalog-actions :is(a, button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--alpha-space-2);
+    min-height: var(--alpha-control-height);
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+  }
+
+  .admin-source-catalog-actions svg { flex-shrink: 0; width: 18px; height: 18px; }
+
+  .admin-source-catalog-view {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--alpha-space-1);
+  }
+
+  .admin-source-catalog-view button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--alpha-space-2);
+    background: var(--brand-white);
+    color: var(--brand-body);
+    border: 1px solid var(--brand-line);
+  }
+
+  .admin-source-catalog-view button[aria-pressed="true"] {
+    color: var(--brand-red-hover);
+    background: var(--brand-red-soft);
+    border-color: var(--brand-red);
+  }
+
+  .admin-source-data-table-card { min-width: 0; width: 100%; }
+
+  .admin-source-data-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: start;
+    white-space: normal;
+  }
+
+  .admin-source-data-table th,
+  .admin-source-data-table td {
+    padding: var(--alpha-space-4) var(--alpha-space-3);
+    border-bottom: 1px solid var(--admin-line);
+    color: var(--admin-body);
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+
+  .admin-source-data-table th {
+    background: var(--admin-surface-muted);
+    color: var(--admin-body);
+    font-weight: 700;
+  }
+
+  .admin-source-data-table .admin-source-course-column { width: 42%; }
+  .admin-source-data-table tbody tr:hover { background: var(--admin-surface-muted); }
+  .admin-source-cell-value { min-width: 0; font-variant-numeric: tabular-nums; }
+  .admin-source-mobile-label { display: none; }
+  .admin-source-cell-right { text-align: end; }
+
+  .admin-source-course-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--alpha-space-3);
+    min-width: 0;
+  }
+
+  .admin-source-course-cell > span:last-child { min-width: 0; flex: 1; }
+  .admin-source-course-cell a { color: var(--admin-ink); font-weight: 700; text-decoration: none; }
+  .admin-source-course-cell a:hover { color: var(--brand-red-hover); text-decoration: underline; }
+  .admin-source-course-cell details { margin-block-start: var(--alpha-space-1); }
+  .admin-source-course-cell summary { cursor: pointer; color: var(--admin-body); }
+  .admin-source-course-cell p { margin-block: var(--alpha-space-2) 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  .admin-source-course-cover {
+    position: relative;
+    display: grid;
+    width: calc(var(--alpha-space-6) * 2);
+    height: calc(var(--alpha-space-6) * 2);
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: var(--alpha-control-radius);
+    color: var(--brand-red);
+    background: var(--brand-red-soft);
+  }
+
+  .admin-source-course-cover img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+
+  .admin-source-course-cover img[hidden] { display: none; }
+
+  .admin-source-course-action {
+    display: inline-flex;
+    min-height: var(--alpha-control-height);
+    align-items: center;
+    justify-content: center;
+    gap: var(--alpha-space-1);
+    color: var(--brand-red-hover);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .admin-source-course-action svg { flex-shrink: 0; }
+  .admin-source-course-action:hover { text-decoration: underline; }
+
+  .admin-source-table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--alpha-space-3);
+    flex-wrap: wrap;
+    padding-block: var(--alpha-space-4);
+    color: var(--admin-body);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .admin-source-table-pagination > span { min-width: 0; overflow-wrap: anywhere; }
+  .admin-source-pagination-controls { display: flex; align-items: center; gap: var(--alpha-space-2); }
+  .admin-source-pagination-controls button {
+    display: grid;
+    width: var(--alpha-control-height);
+    min-height: var(--alpha-control-height);
+    place-items: center;
+    border: 1px solid var(--admin-line);
+    border-radius: var(--alpha-control-radius);
+    background: var(--brand-white);
+    color: var(--admin-body);
+    cursor: pointer;
+  }
+  .admin-source-pagination-controls button:hover:not(:disabled) { border-color: var(--brand-red); color: var(--brand-red); }
+  .admin-source-pagination-controls button:disabled { opacity: .5; cursor: default; }
+  :is(a, summary):focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
+}
+
+@media (max-width: 1000px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-student-roster {
+    /* Source DataTable's data-label mobile pattern, with real labels in the DOM.
+     * Cards grow to fit content; no sideways table or hidden action column. */
+    .admin-source-data-table,
+    .admin-source-data-table tbody { display: block; }
+    .admin-source-data-table thead { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); }
+    .admin-source-data-table tr {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--alpha-space-3);
+      padding-block: var(--alpha-space-4);
+      border-bottom: 1px solid var(--admin-line);
+    }
+    .admin-source-data-table td { display: block; width: auto; min-width: 0; padding: 0; border: 0; }
+    .admin-source-data-table .admin-source-course-column { width: auto; grid-column: 1 / -1; }
+    .admin-source-mobile-label { display: block; font-weight: 700; margin-block-end: var(--alpha-space-1); }
+    .admin-source-course-column .admin-source-mobile-label { display: none; }
+    .admin-source-cell-right { text-align: start; }
+  }
+}
+
+@media (max-width: 560px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog,
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-student-roster {
+    .admin-content-catalog-field :is(input, select) { font-size: 1rem; }
+    .admin-source-data-table tr { grid-template-columns: minmax(0, 1fr); }
+    .admin-source-table-pagination { align-items: flex-start; }
+  }
+}

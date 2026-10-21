@@ -121,7 +121,11 @@ test("browser Back and Forward restore course and lesson navigation", async ({ c
 });
 
 test("course filters persist through reload and support keyboard tab selection", async ({ context, page, baseURL }) => {
-  await installStudentFixture(context, baseURL!);
+  const state = await installStudentFixture(context, baseURL!);
+  state.courseEnrollmentPayload = [
+    { course_id: course.id, courses: course },
+    { course_id: "flow-hsa", courses: { ...course, id: "flow-hsa", title: "Toán HSA", description: "Khóa học HSA" } },
+  ];
   await page.goto("/courses?examType=TSA&view=list&q=To%C3%A1n", { waitUntil: "domcontentloaded" });
   const tsa = page.getByRole("tab", { name: /^TSA/ });
   await expect(tsa).toHaveAttribute("aria-selected", "true");
@@ -134,7 +138,7 @@ test("course filters persist through reload and support keyboard tab selection",
   await expect(hsa).toBeFocused();
   await expect(hsa).toHaveAttribute("aria-selected", "true");
   await expect(page).toHaveURL(/examType=HSA/);
-  await expect(page.getByRole("heading", { name: "Chưa có khóa học HSA" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Vào học Toán HSA", exact: true })).toBeVisible();
   await page.keyboard.press("Home");
   await expect(page.getByRole("tab", { name: /^Tất cả/ })).toBeFocused();
   await expect(page.getByRole("link", { name: `Vào học ${course.title}`, exact: true })).toBeVisible();
@@ -257,6 +261,34 @@ test("course search remains available and reflows at mobile widths", async ({ co
 
   await search.fill("ChuỗiKhôngNgắtDài".repeat(16));
   await expect(page.locator("#course-search-status")).toHaveText("0 kết quả phù hợp");
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+});
+
+test("course catalogue combines category aliases, accent-free search, sorting and reset", async ({ context, page, baseURL }, testInfo) => {
+  test.skip(!["chromium", "mobile-320"].includes(testInfo.project.name), "Catalogue desktop and narrow viewport check");
+  const state = await installStudentFixture(context, baseURL!);
+  const thptTen = { ...course, id: "course-thpt-ten", title: "Toán 10 THPT" };
+  const thptTwo = { ...course, id: "course-thpt-two", title: "Toán 2 THPT" };
+  state.courseEnrollmentPayload = [course, thptTen, thptTwo].map(item => ({ course_id: item.id, courses: item }));
+  await page.goto("/courses?category=thpt&sort=title-desc&view=list", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("tab", { name: /THPT/ })).toHaveAttribute("aria-selected", "true");
+  const cards = page.locator("#course-catalog-panel .ant-card-meta-title");
+  await expect(cards).toHaveText([thptTen.title, thptTwo.title]);
+  await expect(page.locator("#course-search-status")).toHaveText("2 kết quả phù hợp");
+
+  await page.getByLabel("Sắp xếp").selectOption("title-asc");
+  await expect(cards).toHaveText([thptTwo.title, thptTen.title]);
+  const search = page.getByRole("searchbox", { name: "Tìm kiếm khóa học" });
+  await search.fill("toan 2");
+  await expect(page).toHaveURL(/(?:\?|&)q=toan(?:\+|%20)2/);
+  await expect(cards).toHaveText([thptTwo.title]);
+
+  await page.getByRole("button", { name: "Đặt lại bộ lọc" }).first().click();
+  await expect(page).toHaveURL(/(?:\?|&)view=list(?:&|$)/);
+  await expect(page).not.toHaveURL(/(?:\?|&)(?:q|sort|category|workspace|examType)=/);
+  await expect(cards).toHaveText([course.title, thptTen.title, thptTwo.title]);
+  await expect(page.locator("#course-search-status")).toHaveText("3 khóa học");
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 });
 

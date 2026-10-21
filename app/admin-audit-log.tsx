@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { authenticatedFetch } from "../lib/auth-client";
 import { formatUiDateTime } from "./ui-format";
+import AdminReferenceDialog from "./admin-reference-dialog";
+import "./admin-audit-reference-detail.css";
 
 type AuditSource = "all" | "exam" | "account";
 type AuditStatus = "all" | "started" | "succeeded" | "failed" | "recorded";
@@ -115,6 +117,39 @@ function statusCopy(status: AdminAuditItem["status"]) {
   if (status === "failed") return "Thất bại";
   if (status === "started") return "Đang xử lý";
   return "Đã ghi nhận";
+}
+
+// Adapted from the expandable LogDetail in the supplied AdminLogPage.tsx.
+// Only display fields already returned by our audit API, never demo request data.
+function AuditRecordDetails({ item }: { item: AdminAuditItem }) {
+  const [open, setOpen] = useState(false);
+
+  return <div className="admin-audit-reference-detail">
+    <button type="button" aria-haspopup="dialog" aria-label={`Xem chi tiết bản ghi ${item.id}`} onClick={event => {
+      // Safari does not focus buttons on tap; give the shared dialog the correct
+      // return target for both pointer and keyboard interactions.
+      event.currentTarget.focus();
+      setOpen(true);
+    }}>Xem chi tiết</button>
+    {open ? <AdminReferenceDialog title="Chi tiết nhật ký" onClose={() => setOpen(false)}>
+      <dl>
+        <div><dt>Mã bản ghi</dt><dd>{item.id}</dd></div>
+        <div><dt>Nguồn</dt><dd>{item.source === "exam" ? "Kỳ thi" : "Tài khoản"}</dd></div>
+        <div><dt>Thao tác</dt><dd>{actionLabel(item.action)}</dd></div>
+        <div><dt>Mã thao tác</dt><dd>{item.action}</dd></div>
+        <div><dt>Người thực hiện</dt><dd>{item.admin_name || "Chưa có thông tin"}</dd></div>
+        <div><dt>ID người thực hiện</dt><dd>{item.admin_id || "Không có ID"}</dd></div>
+        <div><dt>Đối tượng</dt><dd>{item.target_name || "Chưa có thông tin"}</dd></div>
+        <div><dt>ID đối tượng</dt><dd>{item.target_id || "Không có ID"}</dd></div>
+        <div><dt>Mã đối tượng</dt><dd>{item.target_code || "Không có mã"}</dd></div>
+        <div><dt>Trạng thái</dt><dd>{statusCopy(item.status)}</dd></div>
+        <div><dt>Thời gian ghi nhận</dt><dd>{dateTime(item.created_at)}</dd></div>
+        <div><dt>Thời gian hoàn tất</dt><dd>{item.completed_at ? dateTime(item.completed_at) : "Chưa ghi nhận"}</dd></div>
+        <div className="admin-audit-detail-wide"><dt>Ngữ cảnh</dt><dd>{item.context || "Chưa có thông tin"}</dd></div>
+        <div className="admin-audit-detail-wide"><dt>Lý do</dt><dd>{item.reason || "Không có lý do được ghi nhận"}</dd></div>
+      </dl>
+    </AdminReferenceDialog> : null}
+  </div>;
 }
 
 export default function AdminAuditLog() {
@@ -267,7 +302,7 @@ export default function AdminAuditLog() {
                   <td className="admin-audit-action"><span className="admin-audit-cell-label">Thao tác</span><i className={`tone-${item.status}`} aria-hidden="true">{item.source === "exam" ? <FileClock /> : <ShieldCheck />}</i><span><strong>{actionLabel(item.action)}</strong>{item.reason ? <small title={item.reason}>{item.reason}</small> : <small>{item.context}</small>}</span></td>
                   <td><span className="admin-audit-cell-label">Nguồn</span><em className={`admin-audit-source source-${item.source}`}>{item.source === "exam" ? "Kỳ thi" : "Tài khoản"}</em></td>
                   <td className="admin-audit-person"><span className="admin-audit-cell-label">Người thực hiện</span><strong>{item.admin_name}</strong><small>{item.admin_id?.slice(0, 12) || "Tự động"}</small></td>
-                  <td className="admin-audit-person"><span className="admin-audit-cell-label">Đối tượng</span><strong>{item.target_name}</strong><small>{item.target_code || "Không có mã"}</small></td>
+                  <td className="admin-audit-person"><span className="admin-audit-cell-label">Đối tượng</span><strong>{item.target_name}</strong><small>{item.target_code || "Không có mã"}</small><AuditRecordDetails item={item} /></td>
                   <td className="admin-audit-time"><span className="admin-audit-cell-label">Thời gian</span><Clock3 aria-hidden="true" />{dateTime(item.created_at)}</td>
                   <td><span className="admin-audit-cell-label">Trạng thái</span><em className={`admin-audit-status status-${item.status}`}>{item.status === "succeeded" || item.status === "recorded" ? <CheckCircle2 aria-hidden="true" /> : item.status === "started" ? <Clock3 aria-hidden="true" /> : <CircleAlert aria-hidden="true" />}{statusCopy(item.status)}</em></td>
                 </tr>)}

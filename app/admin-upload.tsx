@@ -8,6 +8,9 @@ import {
   Copy,
   ExternalLink,
   FileImage,
+  Eye,
+  Grid2X2,
+  List,
   FolderOpen,
   Images,
   Info,
@@ -22,6 +25,9 @@ import AeckConfirmDialog from "../components/aeck/AeckConfirmDialog";
 import { adminImageFetch, prepareImageFile } from "../lib/exam-image-client";
 import { formatUiDate, formatUiTime } from "./ui-format";
 import "./admin-upload.css";
+import AdminReferenceDialog from "./admin-reference-dialog";
+import { filterPublicMedia, type MediaSort, type MediaUsage } from "./admin-public-media-query";
+import "./admin-public-media-reference.css";
 
 type UploadedImage = {
   assetName: string;
@@ -119,6 +125,10 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
   const [examSearchTerm, setExamSearchTerm] = useState("");
   const [activeLibrary, setActiveLibrary] = useState<LibraryTab>("public");
   const [publicPage, setPublicPage] = useState(1);
+  const [publicView, setPublicView] = useState<"grid" | "list">("grid");
+  const [publicUsage, setPublicUsage] = useState<MediaUsage>("all");
+  const [publicSort, setPublicSort] = useState<MediaSort>("default");
+  const [previewAsset, setPreviewAsset] = useState<string | null>(null);
   const [privatePage, setPrivatePage] = useState(1);
   const [urlReady, setUrlReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -152,6 +162,11 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
     setSearchTerm(params.get("publicQ") ?? "");
     setExamSearchTerm(params.get("privateQ") ?? "");
     setPublicPage(positivePage(params.get("publicPage")));
+    setPublicView(params.get("publicView") === "list" ? "list" : "grid");
+    const usage = params.get("publicUsage");
+    setPublicUsage(usage === "used" || usage === "unused" ? usage : "all");
+    const sort = params.get("publicSort");
+    setPublicSort(sort === "name" || sort === "newest" || sort === "largest" ? sort : "default");
     setPrivatePage(positivePage(params.get("privatePage")));
     setUrlReady(true);
   }, [canManageExamImages]);
@@ -172,9 +187,12 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
     if (searchTerm) url.searchParams.set("publicQ", searchTerm); else url.searchParams.delete("publicQ");
     if (examSearchTerm) url.searchParams.set("privateQ", examSearchTerm); else url.searchParams.delete("privateQ");
     url.searchParams.set("publicPage", String(publicPage));
+    if (publicView === "list") url.searchParams.set("publicView", publicView); else url.searchParams.delete("publicView");
+    if (publicUsage !== "all") url.searchParams.set("publicUsage", publicUsage); else url.searchParams.delete("publicUsage");
+    if (publicSort !== "default") url.searchParams.set("publicSort", publicSort); else url.searchParams.delete("publicSort");
     url.searchParams.set("privatePage", String(privatePage));
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [activeLibrary, canManageExamImages, examSearchTerm, privatePage, publicPage, searchTerm, urlReady]);
+  }, [activeLibrary, canManageExamImages, examSearchTerm, privatePage, publicPage, searchTerm, urlReady, publicView, publicUsage, publicSort]);
 
   const loadImages = useCallback(async () => {
     libraryAbortControllerRef.current?.abort();
@@ -418,11 +436,8 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
     }
   }
 
-  const filteredImages = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) return images;
-    return images.filter((image) => image.assetName.toLowerCase().includes(query));
-  }, [images, searchTerm]);
+  const filteredImages = useMemo(() => filterPublicMedia(images, searchTerm, publicUsage, publicSort), [images, searchTerm, publicUsage, publicSort]);
+  const previewImage = images.find(image => image.assetName === previewAsset);
 
   const filteredExamImages = useMemo(() => {
     const query = examSearchTerm.trim().toLowerCase();
@@ -565,6 +580,13 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
         <span>{loading ? <><LoaderCircle className="admin-upload-spin" /> Đang đồng bộ kho ảnh…</> : libraryError ? <><Info /> Không thể đồng bộ kho ảnh</> : <><CircleCheck /> Đã đồng bộ lúc {formatTime(lastLoadedAt)}</>}</span>
       </div>
 
+      <div className="admin-public-media-tools">
+        <label>Tình trạng sử dụng<select value={publicUsage} onChange={event => { setPublicUsage(event.target.value as MediaUsage); setPublicPage(1); }}><option value="all">Tất cả ảnh</option><option value="used">Đang sử dụng</option><option value="unused">Chưa sử dụng</option></select></label>
+        <label>Sắp xếp ảnh<select value={publicSort} onChange={event => { setPublicSort(event.target.value as MediaSort); setPublicPage(1); }}><option value="default">Thứ tự từ máy chủ</option><option value="name">Tên A–Z</option><option value="newest">Mới tải lên nhất</option><option value="largest">Dung lượng lớn nhất</option></select></label>
+        <div role="group" aria-label="Cách hiển thị kho ảnh"><button type="button" aria-pressed={publicView === "grid"} onClick={() => setPublicView("grid")}><Grid2X2 aria-hidden="true" size={18} /> Lưới</button><button type="button" aria-pressed={publicView === "list"} onClick={() => setPublicView("list")}><List aria-hidden="true" size={18} /> Danh sách</button></div>
+        {(searchTerm || publicUsage !== "all" || publicSort !== "default") && <button type="button" onClick={() => { setSearchTerm(""); setPublicUsage("all"); setPublicSort("default"); setPublicPage(1); }}>Đặt lại bộ lọc ảnh</button>}
+      </div>
+
       {libraryError && <div className="admin-upload-empty admin-upload-load-error" role="alert">
         <span className="admin-upload-empty-icon"><Info /></span>
         <h3>Không thể tải kho ảnh</h3>
@@ -581,9 +603,9 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
       </div>) : !filteredImages.length ? <div className="admin-upload-empty">
         <span className="admin-upload-empty-icon"><Search /></span>
         <h3>Không tìm thấy ảnh</h3>
-        <p>Thử tìm với một phần khác trong tên file.</p>
-        <button type="button" className="outline-btn" onClick={() => { setSearchTerm(""); setPublicPage(1); }}><X /> Xóa tìm kiếm</button>
-      </div> : <div className="admin-upload-grid">
+        <p>Thử tên file khác hoặc đặt lại bộ lọc tình trạng sử dụng.</p>
+        <button type="button" className="outline-btn" onClick={() => { setSearchTerm(""); setPublicUsage("all"); setPublicPage(1); }}><X /> Xóa tìm kiếm và bộ lọc</button>
+      </div> : <div className={`admin-upload-grid admin-public-media-items${publicView === "list" ? " is-list" : ""}`}>
         {pagedImages.map((image) => {
           const href = publicHref(image.url);
           return <article className="admin-upload-image-card" key={image.assetName}>
@@ -606,6 +628,7 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
                 </button>
               </div>
               <div className="admin-upload-card-actions">
+                <button type="button" className="admin-public-media-inspect" onClick={() => setPreviewAsset(image.assetName)} aria-label={`Xem nhanh ${image.assetName}`}><Eye aria-hidden="true" size={16} /> Xem nhanh</button>
                 <button type="button" className="admin-upload-copy-label" onClick={() => void copyUrl(image, `public:${image.assetName}`)}>
                   {copiedAsset === `public:${image.assetName}` ? <><Check /> Đã sao chép</> : <><Copy /> Sao chép URL</>}
                 </button>
@@ -619,6 +642,18 @@ export default function AdminUploadPage({ canManageExamImages }: { canManageExam
       </div>}
       {filteredImages.length > LIBRARY_PAGE_SIZE && <nav className="admin-upload-pagination" aria-label="Phân trang kho ảnh công khai"><button type="button" disabled={publicPage <= 1} onClick={() => setPublicPage(page => Math.max(1, page - 1))}>Trang trước</button><span>Trang <b>{Math.min(publicPage, publicPageCount)}</b> / {publicPageCount}</span><button type="button" disabled={publicPage >= publicPageCount} onClick={() => setPublicPage(page => Math.min(publicPageCount, page + 1))}>Trang sau</button></nav>}
     </section>}
+
+    {previewImage && activeLibrary === "public" && <AdminReferenceDialog title="Chi tiết ảnh" onClose={() => setPreviewAsset(null)}>
+      <div className="admin-public-media-detail">
+        {/* Existing image URLs can be signed R2 URLs; preserve that contract. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={previewImage.url} alt={previewImage.assetName} width={640} height={360} />
+        <dl><div><dt>Tên file</dt><dd>{previewImage.assetName}</dd></div><div><dt>Dung lượng</dt><dd>{formatBytes(previewImage.size)}</dd></div><div><dt>Ngày cập nhật</dt><dd>{formatDate(previewImage.lastModified)}</dd></div><div><dt>Tình trạng</dt><dd>{previewImage.used ? "Đang sử dụng — không thể xóa" : "Chưa được tham chiếu"}</dd></div></dl>
+        <label>URL ảnh<input readOnly value={publicHref(previewImage.url)} onFocus={event => event.currentTarget.select()} /></label>
+        <button type="button" onClick={() => void copyUrl(previewImage, `public:${previewImage.assetName}`)}><Copy aria-hidden="true" size={16} /> {copiedAsset === `public:${previewImage.assetName}` ? "Đã sao chép" : "Sao chép URL"}</button>
+        <a href={publicHref(previewImage.url)} target="_blank" rel="noreferrer">Mở ảnh trong thẻ mới <ExternalLink aria-hidden="true" size={16} /></a>
+      </div>
+    </AdminReferenceDialog>}
 
     {pendingImage ? <AeckConfirmDialog
       open

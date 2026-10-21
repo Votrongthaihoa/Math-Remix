@@ -1,0 +1,48 @@
+/* Source log-detail interaction, isolated from exam and question surfaces. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-audit-page .admin-audit-reference-detail {
+  display: block;
+  min-width: 0;
+
+  > button {
+    display: block;
+    max-width: 100%;
+    min-height: var(--alpha-control-height);
+    margin-block-start: var(--alpha-space-2);
+    padding: var(--alpha-space-2);
+    border: 1px solid var(--brand-line);
+    border-radius: var(--alpha-control-radius);
+    background: var(--brand-white);
+    color: var(--brand-red);
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: start;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+  }
+
+  > button:hover {
+    background: var(--brand-red-soft);
+    border-color: var(--brand-red);
+  }
+
+  > button:focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+  }
+
+  .admin-reference-dialog {
+    font-size: 1rem;
+    line-height: 1.5;
+    white-space: normal;
+  }
+
+  .admin-audit-detail-wide {
+    grid-column: 1 / -1;
+  }
+
+  .admin-reference-dialog dd {
+    white-space: pre-wrap;
+  }
+}

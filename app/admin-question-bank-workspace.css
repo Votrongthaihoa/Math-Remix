@@ -1,0 +1,355 @@
+/* Authorized bank-authoring surface only. Do not remove protected route gates.
+ * The :has boundary also resets the bank's old glass chrome without changing
+ * platform.tsx, exam authoring, candidate runners, previews or results. */
+.app-shell.ui-shell.admin-app.product-shell:has(> .main-content .question-bank-page.question-bank-workspace) {
+  --qb-space-1: var(--alpha-space-1, 4px);
+  --qb-space-2: var(--alpha-space-2, 8px);
+  --qb-space-3: var(--alpha-space-3, 12px);
+  --qb-space-4: var(--alpha-space-4, 16px);
+  --qb-space-6: var(--alpha-space-6, 24px);
+  background: var(--brand-page);
+  font-family: Lato, Arial, sans-serif;
+
+  /* The bank mounts after its catalog loads. Move rail, header and content
+   * together so the tablet rail never covers the first authoring frame. */
+  & > .sidebar,
+  & > .topbar,
+  & > .main-content { transition: none; }
+  & > .main-content { background: var(--brand-page); }
+  & > .sidebar,
+  & > .topbar {
+    background: var(--brand-white);
+    border-color: var(--brand-line);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  & .sidebar nav a.admin-sidebar-nav-item { border-radius: 0; }
+  & .sidebar nav a.admin-sidebar-nav-item.active {
+    border-inline-end: 3px solid var(--brand-red);
+    background: var(--brand-red-soft);
+    color: var(--brand-red-hover);
+  }
+  /* Legacy tablet chrome used the collapsed content offset with an expanded
+   * rail. Keep geometry paired, without altering any other protected page. */
+  @media (min-width: 768px) {
+    &.sidebar-expanded > .main-content,
+    &.sidebar-expanded > .topbar { margin-left: 280px; }
+    &.sidebar-expanded > .sidebar { width: 280px; }
+  }
+
+  & .question-bank-page.question-bank-workspace {
+    --admin-primary: var(--brand-red);
+    --admin-primary-strong: var(--brand-red-hover);
+    --admin-primary-soft: var(--brand-red-soft);
+    --admin-surface: var(--brand-white);
+    --admin-surface-muted: var(--brand-page);
+    --admin-ink: var(--brand-ink);
+    --admin-body: var(--brand-body);
+    --admin-muted: var(--brand-muted);
+    --admin-subtle: var(--brand-muted);
+    --admin-line: var(--brand-line);
+    --admin-shadow: none;
+    min-width: 0;
+    width: 100%;
+    color: var(--brand-body);
+
+    & :where(h1, h2, h3, h4, p, label, legend, small, b, em) { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+    & :where(button, input, select, textarea, summary) { max-width: 100%; }
+    & :where(button, .primary-btn, .outline-btn) {
+      min-height: 40px;
+      height: auto;
+      border-radius: var(--qb-space-2);
+      box-shadow: none;
+      white-space: normal;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    & :where(button, .outline-btn, input, select, textarea, summary):focus-visible {
+      outline: 2px solid var(--brand-red-hover);
+      outline-offset: 2px;
+    }
+    & :where(.primary-btn, .outline-btn) { gap: var(--qb-space-2); padding: var(--qb-space-2) var(--qb-space-3); }
+    & .primary-btn { border: 1px solid var(--brand-red); background: var(--brand-red); color: var(--brand-white); }
+    & .primary-btn:hover:not(:disabled) { border-color: var(--brand-red-hover); background: var(--brand-red-hover); }
+    & .outline-btn { border: 1px solid var(--brand-line); background: var(--brand-white); color: var(--brand-body); }
+    & .outline-btn:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--brand-red); color: var(--brand-red-hover); background: var(--brand-red-soft); }
+    & .outline-btn[aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
+    & button:disabled { cursor: not-allowed; opacity: .55; }
+    & :where(.primary-btn, .outline-btn) svg { width: 16px; height: 16px; flex: 0 0 16px; }
+    & :where(.eyebrow, .editor-eyebrow) { color: var(--brand-muted); font-size: 12px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
+
+    & .question-bank-header { align-items: flex-start; gap: var(--qb-space-4); margin-bottom: var(--qb-space-6); padding: 0; border: 0; }
+    & .question-bank-header > div { min-width: 0; }
+    & .question-bank-header h1 { margin: var(--qb-space-2) 0; font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: 0; }
+    & .question-bank-header p { max-width: 65ch; font-size: 14px; line-height: 1.6; }
+    & .question-bank-header-actions { flex-shrink: 0; padding-top: var(--qb-space-2); }
+    & .question-bank-header-actions { flex-wrap: wrap; max-width: 100%; }
+    & .question-bank-catalog-warning {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--qb-space-3);
+      min-width: 0;
+      margin-bottom: var(--qb-space-4);
+      padding: var(--qb-space-3) var(--qb-space-4);
+      border: 1px solid var(--brand-red-selected);
+      border-radius: var(--qb-space-2);
+      background: var(--brand-red-soft);
+      color: var(--brand-body);
+    }
+    & .question-bank-catalog-warning > svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--brand-red-hover); }
+    & .question-bank-catalog-warning > p { flex: 1 1 220px; min-width: 0; margin: 0; overflow-wrap: anywhere; line-height: 1.5; }
+    & .question-bank-catalog-warning > button { flex: 0 1 auto; }
+    & .question-bank-navigation-warning {
+      min-width: 0;
+      margin-bottom: var(--qb-space-4);
+      padding: var(--qb-space-3) var(--qb-space-4);
+      border: 1px solid var(--brand-red-selected);
+      border-radius: var(--qb-space-2);
+      background: var(--brand-red-soft);
+      color: var(--brand-body);
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    & .question-bank-layout { grid-template-columns: 232px minmax(0, 1fr); align-items: start; gap: var(--qb-space-4); margin: 0; }
+    & :where(.question-bank-sidebar, .question-bank-stage, .question-bank-form, .question-bank-inline-form, .question-bank-attach-form, .question-bank-node-panel, .question-bank-items) {
+      min-width: 0;
+      border-color: var(--brand-line);
+      border-radius: var(--qb-space-2);
+      background: var(--brand-white);
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    & .question-bank-sidebar { overflow: visible; }
+    & :where(.question-bank-sidebar-heading, .question-bank-panel-heading) { padding: var(--qb-space-4); font-size: 13px; }
+    & :where(.question-bank-sidebar-heading, .question-bank-panel-heading) b { font-size: 12px; font-variant-numeric: tabular-nums; }
+    & .question-bank-list { padding: var(--qb-space-2); }
+    & .question-bank-list > button { border-radius: var(--qb-space-1); padding: var(--qb-space-3); }
+    & .question-bank-list > button.active { border-color: var(--brand-red-selected); background: var(--brand-red-soft); }
+    & :where(.question-bank-list > button b, .question-bank-list > button small, .question-bank-node b, .question-bank-node small) {
+      min-width: 0;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    & .question-bank-list > button small { font-size: 12px; }
+    & .question-bank-node-panel { display: block; overflow: visible; border-width: 1px 0 0; border-radius: 0; padding: 0 var(--qb-space-2) var(--qb-space-2); }
+    & .question-bank-panel-heading { padding-inline: var(--qb-space-2); border: 0; }
+    & .question-bank-node { border-radius: var(--qb-space-1); gap: var(--qb-space-2); padding: var(--qb-space-2); }
+    & .question-bank-node.active { border-color: var(--brand-red-selected); background: var(--brand-red-soft); }
+    & .question-bank-node > svg { width: 16px; height: 16px; flex: 0 0 16px; color: var(--brand-red-hover); }
+    & .question-bank-node small { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+    & .question-bank-sidebar-hint { margin: var(--qb-space-2); color: var(--brand-muted); font-size: 13px; line-height: 1.5; }
+
+    & .question-bank-stage { padding: 0; border: 0; border-radius: 0; background: transparent; }
+    & .question-bank-stage-heading { padding: var(--qb-space-6); border: 1px solid var(--brand-line); border-radius: var(--qb-space-2) var(--qb-space-2) 0 0; background: var(--brand-white); }
+    & .question-bank-stage-heading h2 { font-size: 22px; line-height: 1.4; font-weight: 700; letter-spacing: 0; }
+    & .question-bank-stage-heading p { font-size: 14px; line-height: 1.6; }
+    & .question-bank-stage-meta { flex-shrink: 0; }
+    & .question-bank-stage-meta small { font-size: 12px; }
+    & .question-bank-status { border-radius: var(--qb-space-1); font-size: 12px; }
+    & .question-bank-status.active { background: var(--brand-red-soft); color: var(--brand-red-hover); }
+    & .question-bank-actions-row { gap: var(--qb-space-2); padding: var(--qb-space-4); border: 1px solid var(--brand-line); border-top: 0; border-radius: 0 0 var(--qb-space-2) var(--qb-space-2); background: var(--brand-white); }
+    & .question-bank-workspace-count { margin-inline-end: auto; font-size: 13px; color: var(--brand-muted); font-variant-numeric: tabular-nums; }
+    & .question-bank-workspace-count b { color: var(--brand-ink); }
+    & .question-bank-workspace-count > span { padding-inline: var(--qb-space-1); }
+    & .question-bank-selection-limit {
+      flex: 1 1 260px;
+      min-width: 0;
+      color: var(--brand-red-hover);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    & .question-bank-toolbar { gap: var(--qb-space-2); padding: 0; margin-top: var(--qb-space-6); border: 0; background: transparent; }
+    & .question-bank-selection-warning {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--qb-space-3);
+      min-width: 0;
+      margin-top: var(--qb-space-3);
+      padding: var(--qb-space-3) var(--qb-space-4);
+      border: 1px solid var(--brand-line);
+      border-radius: var(--qb-space-2);
+      background: var(--brand-white);
+    }
+    & .question-bank-selection-warning > p { flex: 1 1 240px; min-width: 0; margin: 0; overflow-wrap: anywhere; line-height: 1.5; }
+    & .question-bank-selection-warning > button { flex: 0 1 auto; }
+    & :where(.question-bank-search, .question-bank-filter) { min-width: 0; min-height: 44px; border-radius: var(--qb-space-2); background: var(--brand-white); }
+    & .question-bank-search { flex: 1 1 220px; }
+    & .question-bank-filter { flex: 0 1 160px; }
+    & .question-bank-topic-filter { display: none; }
+    & :where(.question-bank-search input, .question-bank-filter select) { width: 100%; min-width: 0; min-height: 40px; padding: var(--qb-space-2) 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; font-size: 14px; }
+    & :where(.question-bank-search, .question-bank-filter) svg { flex: 0 0 16px; }
+    & .question-bank-result-count { font-size: 13px; font-variant-numeric: tabular-nums; }
+    & .question-bank-content { display: block; margin-top: var(--qb-space-4); }
+    & .question-bank-items { padding: 0; }
+    & .question-bank-items-heading { padding: var(--qb-space-4); margin: 0; border-bottom: 1px solid var(--brand-line); }
+    & .question-bank-items-heading > div { min-width: 0; }
+    & .question-bank-items-heading h3 { font-size: 16px; font-weight: 700; line-height: 1.5; letter-spacing: 0; }
+    & .question-bank-items-heading p { margin: var(--qb-space-1) 0 0; font-size: 13px; color: var(--brand-muted); line-height: 1.5; }
+    & .question-bank-items-heading button { flex-shrink: 0; }
+    & .question-bank-item-list { gap: 0; }
+    & .question-bank-item-card { display: grid; grid-template-columns: 32px minmax(0, 1fr); min-width: 0; gap: var(--qb-space-3); padding: var(--qb-space-4); border: 0; border-top: 1px solid var(--brand-line); border-radius: 0; background: transparent; box-shadow: none; }
+    & .question-bank-item-main { min-width: 0; width: 100%; }
+    & .question-bank-item-card:first-child { border-top: 0; }
+    & .question-bank-item-card:hover { background: var(--brand-page); box-shadow: none; }
+    & .question-bank-item-card.selected { background: var(--brand-red-soft); box-shadow: inset 3px 0 var(--brand-red); }
+    & .question-bank-item-rail { display: flex; flex: 0 0 32px; flex-direction: column; align-items: center; gap: var(--qb-space-2); }
+    & .question-bank-item-number { display: grid; width: 32px; min-height: 32px; place-items: center; border-radius: var(--qb-space-1); background: var(--brand-page); color: var(--brand-muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    & .question-bank-item-select { align-self: center; width: 32px; min-height: 32px; }
+    & .question-bank-item-select span { border-color: var(--admin-border-strong); border-radius: var(--qb-space-1); background: var(--brand-white); }
+    & .question-bank-item-select input:checked + span { background: var(--brand-red); box-shadow: inset 0 0 0 4px var(--brand-white); }
+    & :where(.question-bank-item-type, .difficulty-chip, .version-chip) { padding: var(--qb-space-1) var(--qb-space-2); border-radius: var(--qb-space-1); font-size: 12px; font-weight: 700; }
+    & .difficulty-chip { color: var(--brand-body); background: var(--brand-page); }
+    & .version-chip { background: var(--brand-page); }
+    & .question-bank-item-meta small { font-size: 12px; }
+    & .question-bank-item-edit { display: inline-flex; align-items: center; justify-content: center; gap: var(--qb-space-2); width: auto; padding: var(--qb-space-2); background: var(--brand-white); color: var(--brand-body); }
+    & .question-bank-item-edit svg { width: 14px; height: 14px; flex-shrink: 0; }
+    & .question-bank-item-main h4 { margin: var(--qb-space-3) 0; font-size: 15px; line-height: 1.6; }
+    & .question-bank-options { font-size: 14px; line-height: 1.6; gap: var(--qb-space-2) var(--qb-space-4); }
+    & .question-bank-options > span { min-width: 0; overflow: visible; text-overflow: clip; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+    & .question-bank-options > span > span { display: block; min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; word-break: break-word; white-space: pre-wrap; }
+    & .question-bank-options b { width: 24px; height: 24px; border-radius: var(--qb-space-1); background: var(--brand-page); font-size: 12px; }
+    & .question-bank-item-footer { gap: var(--qb-space-2) var(--qb-space-4); font-size: 13px; line-height: 1.5; }
+    & .question-bank-item-footer > span { min-width: 0; overflow-wrap: anywhere; }
+    & .question-bank-tags { width: 100%; min-width: 0; }
+    & .question-bank-tags em { min-width: 0; max-width: 100%; word-break: break-word; border-radius: var(--qb-space-1); }
+
+    & :where(.question-bank-form, .question-bank-inline-form, .question-bank-attach-form) { margin-top: var(--qb-space-4); padding: var(--qb-space-6); }
+    & .question-bank-create-form { margin-bottom: var(--qb-space-6); }
+    & .question-bank-form-heading { padding-bottom: var(--qb-space-4); margin-bottom: var(--qb-space-6); border-bottom: 1px solid var(--brand-line); }
+    & .question-bank-form-heading h3 { font-size: 20px; font-weight: 700; }
+    & :where(.question-bank-form-heading .icon-btn, .question-bank-inline-title button) { width: 40px; min-width: 40px; height: 40px; }
+    & .question-bank-editor-section { min-width: 0; margin: 0 0 var(--qb-space-6); padding: 0; border: 0; }
+    & .question-bank-editor-section legend { display: flex; align-items: center; gap: var(--qb-space-2); width: 100%; margin-bottom: var(--qb-space-4); padding: 0; font-size: 14px; font-weight: 700; color: var(--brand-ink); }
+    & .question-bank-editor-section legend span { padding: var(--qb-space-1) var(--qb-space-2); border-radius: var(--qb-space-1); background: var(--brand-red-soft); color: var(--brand-red-hover); font-size: 12px; }
+    & .question-bank-form-grid { gap: var(--qb-space-4); margin-bottom: var(--qb-space-4); }
+    & .question-bank-form-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & :where(.question-bank-form, .question-bank-inline-form, .question-bank-attach-form) label { gap: var(--qb-space-2); font-size: 14px; font-weight: 700; line-height: 1.5; }
+    & :where(.question-bank-form, .question-bank-inline-form, .question-bank-attach-form) :where(input, select, textarea) { min-width: 0; min-height: 44px; padding: var(--qb-space-2) var(--qb-space-3); border-radius: var(--qb-space-2); background: var(--brand-white); font-size: 14px; font-weight: 400; }
+    & .question-bank-form label small { font-size: 12px; }
+    & .question-bank-form :where(input, textarea)::placeholder { color: var(--brand-muted); font-weight: 400; }
+    & .question-bank-answer-grid { margin-top: var(--qb-space-4); }
+    & .question-bank-format-guide { padding: var(--qb-space-3); border-color: var(--brand-line); border-inline-start-color: var(--brand-red); border-radius: var(--qb-space-1); background: var(--brand-page); }
+    & .question-bank-format-guide :where(b, p, code) { font-size: 13px; line-height: 1.5; }
+    & .question-bank-format-guide code { background: var(--brand-white); }
+    & .question-bank-advanced { margin-bottom: var(--qb-space-6); }
+    & .question-bank-advanced summary { min-height: 40px; padding-block: var(--qb-space-2); font-size: 14px; color: var(--brand-red-hover); }
+    & .question-bank-editor-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--qb-space-4); padding-top: var(--qb-space-4); border-top: 1px solid var(--brand-line); }
+    & .question-bank-editor-footer p { flex: 1 1 200px; margin: 0; color: var(--brand-muted); font-size: 13px; line-height: 1.5; }
+    & .question-bank-editor-footer > div { display: flex; flex-wrap: wrap; gap: var(--qb-space-2); }
+    & .question-bank-attach-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    & .question-bank-attach-form > div { grid-column: 1 / -1; }
+    & .question-bank-attach-selection-empty {
+      grid-column: 1 / -1;
+      min-width: 0;
+      margin: 0;
+      padding: var(--qb-space-3);
+      border: 1px solid var(--brand-line);
+      border-radius: var(--qb-space-1);
+      background: var(--brand-page);
+      overflow-wrap: anywhere;
+    }
+    & .question-bank-attach-form > button { justify-self: start; }
+    & .question-bank-attach-form label { width: 100%; min-width: 0; }
+    & .question-bank-attach-form select { display: block; width: 100%; max-width: 100%; box-sizing: border-box; }
+    /* Native WebKit select text can escape its box with long option labels.
+     * Keep the native picker/keyboard behavior and provide a token-based arrow. */
+    & select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-inline-end: var(--qb-space-6);
+      /* Intentional collapsed-picker truncation; native options retain full labels. */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    & label:has(> select) { position: relative; }
+    & label:has(> select)::after {
+      content: "";
+      position: absolute;
+      inset-inline-end: var(--qb-space-4);
+      bottom: 20px;
+      width: 6px;
+      height: 6px;
+      border-inline-end: 2px solid var(--brand-muted);
+      border-bottom: 2px solid var(--brand-muted);
+      transform: rotate(45deg);
+      pointer-events: none;
+    }
+    & :where(.question-bank-form, .question-bank-inline-form, .question-bank-attach-form) select,
+    & .question-bank-filter select { padding-inline-end: var(--qb-space-6); }
+    & :where(.question-bank-help, .question-bank-field-error, .question-bank-file-name, .question-bank-import-permission, .question-bank-latex-selection-status, .question-bank-attach-form p, .question-bank-empty p) { font-size: 13px; line-height: 1.6; }
+    & .question-bank-latex-preview { min-width: 0; background: var(--brand-page); }
+    & .question-bank-latex-preview-item.is-selected:not(.has-error) { border-color: var(--brand-red); background: var(--brand-red-soft); box-shadow: none; }
+    & .question-bank-latex-preview-item p { font-size: 14px; }
+    & .question-bank-inline-form .question-bank-latex-select { min-height: 40px; flex-direction: row; font-size: 13px; }
+    & .question-bank-inline-form .question-bank-latex-select input { min-height: 16px; padding: 0; }
+    & .question-bank-seed-invalid {
+      display: grid;
+      gap: var(--qb-space-2);
+      min-width: 0;
+      margin-top: var(--qb-space-4);
+      padding: var(--qb-space-3) var(--qb-space-4);
+      border: 1px solid var(--brand-red-selected);
+      border-inline-start: 3px solid var(--brand-red);
+      border-radius: var(--qb-space-1);
+      background: var(--brand-red-soft);
+      color: var(--brand-body);
+    }
+    & .question-bank-seed-invalid b { color: var(--brand-red-hover); font-size: 13px; }
+    & .question-bank-seed-invalid ul { display: grid; gap: var(--qb-space-1); margin: 0; padding-inline-start: 20px; }
+    & .question-bank-seed-invalid li { min-width: 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+    & .question-bank-seed-invalid li strong { margin-inline-end: var(--qb-space-2); color: var(--brand-red-hover); }
+    & .question-bank-seed-invalid li span { color: var(--brand-muted); }
+
+    @media (max-width: 1180px) {
+      & .question-bank-header { flex-direction: column; }
+      & .question-bank-header-actions { width: auto; }
+      & .question-bank-layout { grid-template-columns: 200px minmax(0, 1fr); }
+      & .question-bank-stage-heading { flex-direction: column; padding: var(--qb-space-4); }
+      & .question-bank-stage-meta { align-items: flex-start; text-align: start; }
+      & .question-bank-workspace-count { flex-basis: 100%; }
+    }
+    @media (max-width: 960px) {
+      & .question-bank-layout { grid-template-columns: minmax(0, 1fr); }
+      & .question-bank-sidebar { position: static; }
+      & .question-bank-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      & .question-bank-node-panel { display: none; }
+      & .question-bank-topic-filter { display: flex; flex: 1 1 100%; }
+      & .question-bank-form-grid.compact { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 560px) {
+      & .question-bank-header h1 { font-size: 24px; }
+      & .question-bank-header-actions { width: 100%; }
+      & .question-bank-header-actions > * { flex: 1 1 auto; }
+      & .question-bank-catalog-warning > button { flex: 1 1 100%; }
+      & .question-bank-selection-warning > button { flex: 1 1 100%; }
+      & .question-bank-list { grid-template-columns: minmax(0, 1fr); }
+      & .question-bank-actions-row > button { flex: 1 1 auto; }
+      & :where(.question-bank-form, .question-bank-inline-form, .question-bank-attach-form) { padding: var(--qb-space-4); }
+      & :where(.question-bank-form-grid, .question-bank-form-grid.compact, .question-bank-attach-form, .question-bank-options) { grid-template-columns: minmax(0, 1fr); }
+      & .question-bank-attach-form { grid-template-columns: minmax(0, 1fr); }
+      & .question-bank-items-heading { align-items: flex-start; flex-wrap: wrap; }
+      & .question-bank-item-card { grid-template-columns: 24px minmax(0, 1fr); gap: var(--qb-space-2); padding: var(--qb-space-3); }
+      & .question-bank-item-rail { flex-basis: 24px; }
+      & .question-bank-item-number { width: 24px; }
+      & .question-bank-item-select { width: 24px; min-height: 44px; }
+      & .question-bank-item-meta small { margin-left: 0; }
+      & .question-bank-item-edit { margin-inline-start: auto; }
+      & .question-bank-editor-footer > div { width: 100%; }
+      & .question-bank-editor-footer > div > button { flex: 1 1 auto; }
+      & :where(button, .primary-btn, .outline-btn, summary) { min-height: 44px; }
+      & :where(input, select, textarea),
+      & :where(.question-bank-form, .question-bank-inline-form, .question-bank-attach-form) :where(input, select, textarea),
+      & :where(.question-bank-search input, .question-bank-filter select) { font-size: 16px; }
+    }
+  }
+}

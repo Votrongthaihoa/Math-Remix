@@ -502,6 +502,8 @@
 
   .app-shell.ui-shell.admin-app.product-shell.source-admin-shell:not(.protected-exam-surface) > .sidebar > nav {
     display: flex;
+    width: 100%;
+    align-self: stretch;
     min-width: 0;
     min-height: 0;
     flex: 1 1 auto;

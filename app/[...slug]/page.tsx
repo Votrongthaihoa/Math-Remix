@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import PlatformApp from "../platform";
 import LoadingIndicator from "../loading-indicator";
 import { notFound, redirect } from "next/navigation";
-import { legacyAdminRedirectPath } from "../admin-route-map";
+import { adminPrototypeRedirectPath, legacyAdminRedirectPath } from "../admin-route-map";
 import AeckPublicSite from "../aeck-public-site";
 import { AECK_PUBLIC_ROUTES, type AeckPublicRoute } from "../aeck-public-routes";
 import articleDocuments from "../aeck-public-articles.json";
@@ -44,6 +44,8 @@ export default async function CatchAllPage({ params, searchParams }: { params: P
   const query = new URLSearchParams();
   const requestedTab = queryValues.tab;
   if (typeof requestedTab === "string") query.set("tab", requestedTab);
+  const adminPrototypeAlias = adminPrototypeRedirectPath(slug, queryValues);
+  if (adminPrototypeAlias) redirect(adminPrototypeAlias);
   const targetAlias = targetRouteRedirect(slug, queryValues);
   if (targetAlias === "/profile" && query.get("tab") === "courses") redirect("/profile?tab=courses");
   if (targetAlias) redirect(targetAlias);

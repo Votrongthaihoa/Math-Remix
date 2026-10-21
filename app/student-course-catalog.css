@@ -1,0 +1,138 @@
+/* The learner catalogue is scoped to its product shell and cannot style exam routes. */
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .courses-toolbar > *,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-toolbar-meta > *,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-toolbar-actions > * {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-toolbar-meta {
+  flex-wrap: wrap;
+  gap: var(--alpha-space-3) var(--alpha-space-6);
+  margin-block-end: var(--alpha-space-4);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-search-status {
+  color: var(--brand-body);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-toolbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--alpha-space-3);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-sort-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--alpha-space-2);
+  color: var(--brand-body);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-sort-control select,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-filter-reset {
+  min-height: var(--alpha-control-height);
+  max-width: 100%;
+  padding: var(--alpha-space-2) var(--alpha-space-3);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--alpha-control-radius);
+  background: var(--brand-white);
+  color: var(--brand-ink);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-filter-reset {
+  color: var(--brand-red);
+  cursor: pointer;
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-filter-reset:hover {
+  border-color: var(--brand-red);
+  background: var(--brand-red-soft);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-search:focus-within {
+  border-color: var(--brand-red);
+  box-shadow: var(--alpha-focus);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page :is(.course-sort-control select, .course-filter-reset, .course-view-toggle button, .course-exam-tabs button, .course-card-action):focus-visible {
+  outline: 2px solid var(--brand-red);
+  outline-offset: 2px;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-exam-tabs {
+  max-width: 100%;
+  border-color: var(--brand-line);
+  background: var(--brand-white);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-exam-tabs > button {
+  flex: 0 0 auto;
+  color: var(--brand-body);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-exam-tabs > button:hover,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-exam-tabs > button[aria-selected="true"] {
+  background: var(--brand-red-soft);
+  color: var(--brand-red);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-exam-tabs > button[aria-selected="true"] b {
+  background: var(--brand-red);
+  color: var(--brand-white);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .reference-course-grid {
+  min-width: 0;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .reference-course-grid.course-list-view {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .reference-course-grid > .ant-card,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-card-action,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .ant-card-body,
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .ant-card-meta-title {
+  min-width: 0;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .ant-card-meta-title > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-list-view > .ant-card > .course-card-action > .ant-card-cover {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-toolbar-actions,
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-sort-control {
+    width: 100%;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-sort-control select {
+    flex: 1 1 auto;
+  }
+
+  .ui-shell.student-app.product-shell:not(.protected-exam-surface) .courses-page .course-view-toggle {
+    flex: 1 1 100%;
+  }
+}

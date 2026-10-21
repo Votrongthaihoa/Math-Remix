@@ -1,0 +1,25 @@
+/* Grid/list and inspector adapted from the supplied MediaManagementPage.
+ * Explicitly excludes the private exam-image panel. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) {
+  .admin-public-media-tools { display: flex; align-items: end; flex-wrap: wrap; gap: var(--alpha-space-3); margin-block: var(--alpha-space-4); }
+  .admin-public-media-tools label { display: grid; flex: 1 1 12rem; min-width: 0; gap: var(--alpha-space-2); }
+  .admin-public-media-tools > div { display: flex; flex-wrap: wrap; gap: var(--alpha-space-2); }
+  .admin-public-media-tools :is(select, button), .admin-public-media-detail :is(input, button, a), .admin-public-media-inspect { min-height: var(--alpha-control-height); min-width: 0; max-width: 100%; border: 1px solid var(--brand-line); border-radius: var(--alpha-control-radius); padding: var(--alpha-space-2) var(--alpha-space-3); background: var(--brand-white); color: var(--brand-body); font: inherit; white-space: normal; overflow-wrap: anywhere; }
+  .admin-public-media-tools button, .admin-public-media-detail :is(button, a), .admin-public-media-inspect { display: inline-flex; align-items: center; justify-content: center; gap: var(--alpha-space-2); cursor: pointer; }
+  .admin-public-media-tools button[aria-pressed="true"] { color: var(--brand-red); background: var(--brand-red-soft); border-color: var(--brand-red); }
+  .admin-public-media-tools :is(button, select):focus-visible, .admin-public-media-detail :is(button, input, a):focus-visible, .admin-public-media-inspect:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
+  .admin-public-media-items .admin-upload-card-actions { flex-wrap: wrap; gap: var(--alpha-space-2); }
+  .admin-public-media-items.is-list { grid-template-columns: minmax(0, 1fr); }
+  .admin-public-media-items.is-list .admin-upload-image-card { display: grid; grid-template-columns: minmax(0, 10rem) minmax(0, 1fr); }
+  .admin-public-media-items.is-list .admin-upload-preview { height: auto; min-height: 10rem; aspect-ratio: auto; }
+  .admin-public-media-items.is-list .admin-upload-image-body { min-width: 0; }
+  .admin-public-media-detail { display: grid; gap: var(--alpha-space-3); min-width: 0; }
+  .admin-public-media-detail > img { width: 100%; height: auto; max-height: 45dvh; object-fit: contain; background: var(--admin-surface-muted); }
+  .admin-public-media-detail label { display: grid; gap: var(--alpha-space-2); min-width: 0; }
+  .admin-public-media-detail input { width: 100%; }
+  @media (max-width: 560px) {
+    .admin-public-media-items.is-list .admin-upload-image-card { grid-template-columns: minmax(0, 1fr); }
+    .admin-public-media-items.is-list .admin-upload-preview { aspect-ratio: 16 / 9; }
+    .admin-public-media-tools select, .admin-public-media-detail input { font-size: 1rem; }
+  }
+}

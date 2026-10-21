@@ -225,6 +225,18 @@ test("guest exam images carry the kíp cookie across the production API origin",
   assert.match(imageRoute, /headers: guestImageHeaders/);
 });
 
+test("guest loader cancels superseded requests before committing state", async () => {
+  const guestModule = await readFile(new URL("../app/guest-exam.tsx", import.meta.url), "utf8");
+
+  assert.match(guestModule, /async function api<T>\(body: Record<string, unknown>, signal\?: AbortSignal\)/);
+  assert.match(guestModule, /signal/);
+  assert.match(guestModule, /const loadControllerRef = useRef<AbortController \| null>\(null\)/);
+  assert.match(guestModule, /const controller = new AbortController\(\)/);
+  assert.match(guestModule, /loadControllerRef\.current\?\.abort\(\)/);
+  assert.match(guestModule, /if \(!isCurrent\(\)\) return/);
+  assert.match(guestModule, /return \(\) => \{\s*loadControllerRef\.current\?\.abort\(\);/);
+});
+
 test("THPTQG timeout finalizes a delayed guest attempt without trusting late edits", async () => {
   const [renderer, guestApi] = await Promise.all([
     readFile(new URL("../components/thptqg/ThptqgExamRenderer.tsx", import.meta.url), "utf8"),

@@ -1511,3 +1511,5 @@
     min-height: 0;
   }
 }
+.ui-shell.admin-app .admin-table .sortable-header { cursor: pointer; transition: color 0.15s ease; }
+.ui-shell.admin-app .admin-table .sortable-header:hover { color: var(--admin-primary); }

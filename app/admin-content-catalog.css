@@ -1,0 +1,337 @@
+/* Course catalogue controls only; no styles enter the protected exam surface. */
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog {
+  min-width: 0;
+  color: var(--admin-ink);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-head {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-head > div {
+  min-width: 0;
+  flex: 1 1 300px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-head :where(h2, p) {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-head > button {
+  min-height: var(--alpha-control-height);
+  flex: 0 0 auto;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(160px, 1fr));
+  gap: var(--alpha-space-3);
+  align-items: end;
+  margin-block: var(--alpha-space-6) var(--alpha-space-3);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-field {
+  display: grid;
+  min-width: 0;
+  gap: var(--alpha-space-2);
+  color: var(--admin-body);
+  font-weight: 700;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-field > :first-child {
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-field > select,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--alpha-field-height);
+  border: 1px solid var(--admin-line);
+  border-radius: var(--alpha-control-radius);
+  background: var(--brand-white);
+  color: var(--admin-ink);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-field > select {
+  padding-inline: var(--alpha-space-3);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input {
+  display: flex;
+  align-items: center;
+  gap: var(--alpha-space-2);
+  padding-inline: var(--alpha-space-3);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input > svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--admin-muted);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input > input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--alpha-control-height);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--admin-ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input > input:focus {
+  outline: 0;
+}
+
+/* The product field rule is more specific than the catalogue's basic input rule. */
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface:not(.protected-exam-surface) .admin-content-catalog .admin-content-catalog-search-input > input {
+  min-height: var(--alpha-control-height);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ui-shell.admin-app.product-shell.alpha-reference-surface.ui-optimized-surface:not(.protected-exam-surface) .admin-content-catalog .admin-content-catalog-search-input > input:focus {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input:focus-within {
+  border-color: var(--admin-primary);
+  box-shadow: var(--admin-focus);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input > button {
+  display: grid;
+  width: var(--alpha-control-height);
+  min-width: var(--alpha-control-height);
+  min-height: var(--alpha-control-height);
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--alpha-control-radius);
+  background: transparent;
+  color: var(--admin-muted);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input > button:hover {
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search-input > button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog :where(button, select):focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-summary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--alpha-space-3);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--admin-line);
+  padding-block: var(--alpha-space-2) var(--alpha-space-3);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-summary p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-summary button {
+  min-height: var(--alpha-control-height);
+  padding-inline: var(--alpha-space-3);
+  border: 0;
+  border-radius: var(--alpha-control-radius);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary-strong);
+  font-weight: 700;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-warning {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--alpha-space-3);
+  flex-wrap: wrap;
+  margin-block: var(--alpha-space-3);
+  padding: var(--alpha-space-3);
+  border: 1px solid var(--admin-line);
+  border-radius: var(--alpha-control-radius);
+  background: var(--admin-primary-soft);
+  color: var(--admin-body);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-warning p {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-warning button {
+  min-height: var(--alpha-control-height);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-list {
+  margin-top: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-list article {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: var(--alpha-space-4);
+  align-items: center;
+  min-width: 0;
+  padding-block: var(--alpha-space-4);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-list article:first-child {
+  border-top: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-list .tiny-cover {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 auto;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-copy,
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-title-line {
+  min-width: 0;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-title-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--alpha-space-2);
+  flex-wrap: wrap;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-title-line h3 {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-status {
+  flex: 0 0 auto;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--alpha-pill-radius);
+  padding: var(--alpha-space-1) var(--alpha-space-2);
+  background: var(--admin-surface-muted);
+  color: var(--admin-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-status.is-published {
+  border-color: var(--admin-primary-soft);
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary-strong);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-copy p {
+  margin: var(--alpha-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-description {
+  color: var(--admin-body);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-copy .admin-content-catalog-meta {
+  color: var(--admin-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-open {
+  min-height: var(--alpha-control-height);
+  white-space: nowrap;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-feedback {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: var(--alpha-space-2);
+  padding-block: var(--alpha-space-8);
+  color: var(--admin-body);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-feedback > svg {
+  color: var(--admin-primary);
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-feedback :where(h3, p) {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-feedback button {
+  min-height: var(--alpha-control-height);
+  margin-top: var(--alpha-space-2);
+}
+
+@media (max-width: 800px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-head > div {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-search {
+    grid-column: auto;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-list article {
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-list .tiny-cover {
+    width: 56px;
+    height: 56px;
+  }
+
+  .ui-shell.admin-app.product-shell:not(.protected-exam-surface) .admin-content-catalog-open {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

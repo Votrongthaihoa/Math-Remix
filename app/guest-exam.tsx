@@ -161,9 +161,9 @@ function attemptSecondsLeft(attempt: Attempt) {
   return Number.isFinite(deadline) ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
 }
 
-async function api<T>(body: Record<string, unknown>) {
+async function api<T>(body: Record<string, unknown>, signal?: AbortSignal) {
   const request = async () => {
-    const response = await fetch(apiRequestUrl("/api/guest-exams"), { method: "POST", headers: { "content-type": "application/json" }, cache: "no-store", credentials: "include", body: JSON.stringify(body) });
+    const response = await fetch(apiRequestUrl("/api/guest-exams"), { method: "POST", headers: { "content-type": "application/json" }, cache: "no-store", credentials: "include", body: JSON.stringify(body), signal });
     const payload = await response.json().catch(() => null) as T & { error?: string } | null;
     if (!response.ok) {
       const error = Object.assign(new Error(payload?.error || "Không thể kết nối kíp thi."), {
@@ -202,23 +202,31 @@ export default function GuestExamModule({ token }: { token: string }) {
   const pendingMonitorEventsRef = useRef<string[]>([]);
   const monitorFlushTimerRef = useRef<number | null>(null);
   const progressWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const loadControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => { attemptRef.current = attempt; }, [attempt]);
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { flaggedQuestionsRef.current = flaggedQuestions; }, [flaggedQuestions]);
 
   const load = useCallback(async () => {
+    loadControllerRef.current?.abort();
+    const controller = new AbortController();
+    loadControllerRef.current = controller;
+    const isCurrent = () => loadControllerRef.current === controller && !controller.signal.aborted;
+
     setPhase("loading"); setError("");
     try {
-      const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store", credentials: "include" });
+      const response = await fetch(apiRequestUrl(`/api/guest-exams?token=${encodeURIComponent(token)}`), { cache: "no-store", credentials: "include", signal: controller.signal });
       const payload = await response.json() as Meta & { error?: string };
+      if (!isCurrent()) return;
       if (!response.ok) throw new Error(payload.error || "Link thi không tồn tại.");
       setMeta(payload);
       setIdentity(readStoredIdentity(token, payload.settings.identityFields));
       const savedAttemptId = window.localStorage.getItem(guestStorageKey(token));
       if (savedAttemptId) {
         try {
-          const resumed = await api<{ attempt?: Attempt; questions?: Question[]; sections?: Array<{ id: string; title: string }>; result?: Result }>({ action: "resume", token, attemptId: savedAttemptId });
+          const resumed = await api<{ attempt?: Attempt; questions?: Question[]; sections?: Array<{ id: string; title: string }>; result?: Result }>({ action: "resume", token, attemptId: savedAttemptId }, controller.signal);
+          if (!isCurrent()) return;
           if (resumed.result) {
             if (resumed.result.identity && Object.keys(resumed.result.identity).length) setIdentity(resumed.result.identity);
             window.localStorage.setItem(guestResultStorageKey(token), resumed.result.attempt.id);
@@ -231,27 +239,43 @@ export default function GuestExamModule({ token }: { token: string }) {
             if (resumed.attempt.identity && Object.keys(resumed.attempt.identity).length) setIdentity(resumed.attempt.identity);
             setAttempt(resumed.attempt); setSecondsLeft(attemptSecondsLeft(resumed.attempt)); setAnswers(resumed.attempt.answers ?? {}); setQuestions(questionsWithGuestMedia(resumed.questions)); setPhase("exam"); return;
           }
-        } catch { window.localStorage.removeItem(guestStorageKey(token)); }
+        } catch {
+          if (!isCurrent()) return;
+          window.localStorage.removeItem(guestStorageKey(token));
+        }
       }
       const savedResultId = window.localStorage.getItem(guestResultStorageKey(token));
       if (savedResultId) {
         try {
-          const resumed = await api<{ result?: Result }>({ action: "resume", token, attemptId: savedResultId });
+          const resumed = await api<{ result?: Result }>({ action: "resume", token, attemptId: savedResultId }, controller.signal);
+          if (!isCurrent()) return;
           if (resumed.result) {
             if (resumed.result.identity && Object.keys(resumed.result.identity).length) setIdentity(resumed.result.identity);
             setResult(resultWithGuestMedia(resumed.result)); setPhase("submitted"); return;
           }
         } catch {
+          if (!isCurrent()) return;
           window.localStorage.removeItem(guestResultStorageKey(token));
         }
       }
+      if (!isCurrent()) return;
       setPhase(payload.phase === "upcoming" ? "identity" : payload.phase === "open" ? "identity" : "identity");
-    } catch (value) { setError(value instanceof Error ? value.message : "Không thể mở link thi."); setPhase("error"); }
+    } catch (value) {
+      if (!isCurrent()) return;
+      setError(value instanceof Error ? value.message : "Không thể mở link thi."); setPhase("error");
+    } finally {
+      if (loadControllerRef.current === controller) loadControllerRef.current = null;
+    }
   }, [token]);
 
   // This effect intentionally starts the network load when the link changes.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    return () => {
+      loadControllerRef.current?.abort();
+    };
+  }, [load]);
 
   useEffect(() => {
     if (!meta) return;

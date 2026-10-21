@@ -86,3 +86,10 @@ test("admin users route bounds Auth pagination and request bodies", async () => 
   assert.match(inputHelper, /PASSWORD_TOO_LONG/);
   assert.match(inputHelper, /isAdminUserUuid/);
 });
+
+test("admin student sorting keeps state updaters pure", async () => {
+  const page = await readFile(new URL("../app/admin-students.tsx", import.meta.url), "utf8");
+
+  assert.doesNotMatch(page, /setSortKey\(prev => \{[\s\S]*?setSortDir/);
+  assert.match(page, /setSortKey\(key\);[\s\S]*?setSortDir\(sortKey === key/);
+});

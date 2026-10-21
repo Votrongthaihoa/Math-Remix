@@ -1,7 +1,9 @@
 /* Final product-shell contract. Protected exam surfaces intentionally do not
  * inherit this layer; their visual boundary is governed by the exam files. */
 .ui-shell.student-app.product-shell:not(.protected-exam-surface),
-.ui-shell.admin-app.product-shell:not(.protected-exam-surface) {
+.ui-shell.admin-app.product-shell:not(.protected-exam-surface),
+/* Explicit question-bank authoring refresh; other protected routes stay isolated. */
+.ui-shell.admin-app.product-shell:has(.question-bank-page.question-bank-workspace) {
   --brand-red: #cd1627;
   --brand-red-hover: #a8101e;
   --brand-red-pressed: #8f0f1a;

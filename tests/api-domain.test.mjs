@@ -35,6 +35,8 @@ test("API proxy permits only approved web origins and required auth headers", as
   assert.match(proxy, /status: 404/);
   assert.match(proxy, /https:\/\/www\.mathremix\.pro\.vn/);
   assert.match(proxy, /X-Supabase-Access-Token/);
+  assert.match(proxy, /X-Remix-Device-Id/);
+  assert.match(proxy, /X-Remix-Security-Session-Id/);
   assert.match(proxy, /access-control-allow-credentials/);
   assert.match(proxy, /request\.method === "OPTIONS"/);
   assert.match(proxy, /matcher: "\/:path\*"/);

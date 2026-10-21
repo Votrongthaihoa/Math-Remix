@@ -16,6 +16,7 @@ import {
 } from "../../../../lib/question-bank";
 
 const headers = { "cache-control": "private, no-store, max-age=0", "x-content-type-options": "nosniff" };
+const MAX_ATTACH_ITEMS = 200;
 
 async function adminRequest(request: Request) {
   return ensureAdminPermission(request, "question-bank");
@@ -118,7 +119,13 @@ export async function GET(request: Request) {
   if (versionsResult.error) return errorResponse(versionsResult.error.message, 503);
   const currentVersions = selectCurrentVersions(itemsResult.data ?? [], versionsResult.data ?? []);
   const versionByItem = new Map(currentVersions.map(version => [version.item_id, version]));
-  const normalizedItems = (itemsResult.data ?? []).map(item => ({ ...item, ...(versionByItem.get(item.id) ?? {}) }));
+  const normalizedItems = (itemsResult.data ?? []).flatMap(item => {
+    const version = versionByItem.get(item.id);
+    // Keep the stable question_bank_items.id as the public item identity. The
+    // version row also has an `id`, but update/attach handlers address the
+    // parent item and would otherwise receive the wrong identifier.
+    return version ? [{ ...item, ...version, id: item.id }] : [];
+  });
   const filteredItems = normalizedItems.filter(item => {
     if (difficulty && item.difficulty !== difficulty) return false;
     if (nodeId && item.node_id !== nodeId) return false;
@@ -484,7 +491,14 @@ export async function POST(request: Request) {
   if (action === "attach_to_exam") {
     const examId = stringValue(body.examId, "", 80);
     const sectionId = stringValue(body.sectionId, "", 80);
-    const itemIds = idList(body.itemIds);
+    const itemIds = idList(body.itemIds, MAX_ATTACH_ITEMS + 1);
+    if (itemIds.length > MAX_ATTACH_ITEMS) {
+      return Response.json({
+        error: `Chá»‰ cÃ³ thá»ƒ Ä‘Æ°a tá»‘i Ä‘a ${MAX_ATTACH_ITEMS} cÃ¢u vÃ o Ä‘á» trong má»™t láº§n. HÃ£y chia lá»±a chá»n thÃ nh nhiá»u láº§n.`,
+        code: "item_limit_exceeded",
+        maxItems: MAX_ATTACH_ITEMS,
+      }, { status: 422, headers });
+    }
     if (!examId || !sectionId || !itemIds.length) return errorResponse("Hãy chọn đề, phần thi và ít nhất một câu hỏi.");
     const [section, targetExam] = await Promise.all([
       admin.from("exam_sections").select("id,exam_id").eq("id", sectionId).eq("exam_id", examId).maybeSingle(),
